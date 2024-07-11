@@ -1,3 +1,4 @@
 #!/bin/sh
 
-ln -s hooks/pre-commit.sh .git/hooks/pre-commit
+rm -fr .git/hooks
+ln -s ../hooks .git/hooks
