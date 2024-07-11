@@ -4,6 +4,6 @@
     "@std/http": "jsr:@std/http@^0.224.5"
   },
   "tasks": {
-    "dev": "deno run --watch --allow-net='0.0.0.0:8000' index.ts"
+    "dev": "deno run --watch --allow-net='0.0.0.0:8000' --allow-read='static' index.ts"
   }
 }
