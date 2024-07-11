@@ -1,5 +1,6 @@
 {
   "imports": {
+    "@std/html": "jsr:@std/html@^0.224.2",
     "@std/http": "jsr:@std/http@^0.224.5"
   },
   "tasks": {
