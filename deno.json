@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@std/http": "jsr:@std/http@^0.224.5"
+  },
+  "tasks": {
+    "dev": "deno run --allow-net='0.0.0.0:8000' index.ts"
+  }
+}
