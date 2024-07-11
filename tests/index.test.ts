@@ -1,8 +1,8 @@
 import { start } from "../src/server.ts";
 import { assertEquals } from "@std/assert";
 
-start()
+start();
 
 Deno.test("hello world", () => {
-  assertEquals(1, 1)
-})
+  assertEquals(1, 1);
+});
