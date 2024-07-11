@@ -1,3 +1,3 @@
-import { server } from "./src/server.ts";
+import { start } from "./src/server.ts";
 
-server()
+start()
