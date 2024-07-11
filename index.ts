@@ -3,5 +3,5 @@ Deno.serve(() => {
     headers: {
       "Content-Type": "text/html",
     },
-  });
+  })
 });
