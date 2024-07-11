@@ -1,8 +1,11 @@
 import { start } from "../src/server.ts";
-import { assertEquals } from "@std/assert";
+import { assertEquals, assert } from "@std/assert";
 
 start();
 
-Deno.test("hello world", () => {
-  assertEquals(1, 1);
+Deno.test("returns hello world html", async () => {
+  const response = await fetch("http://0.0.0.0:8000");
+  assertEquals(response.status, 200);
+  const body = await response.text();
+  assert(body.includes('hello'))
 });
