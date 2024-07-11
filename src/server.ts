@@ -1,9 +1,10 @@
-import { serveDir } from "@std/http";
+import { layout } from "./templates/layout.ts";
 
 export const start = () =>
-  Deno.serve((request) => {
-    return serveDir(request, {
-      fsRoot: "static",
-      urlRoot: "",
+  Deno.serve(() => {
+    return new Response(layout("hello"), {
+      headers: {
+        "Content-Type": "text/html",
+      },
     });
   });
