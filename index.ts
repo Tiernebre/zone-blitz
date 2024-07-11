@@ -1,8 +1,3 @@
-import { serveDir } from "@std/http";
+import { server } from "./src/server.ts";
 
-Deno.serve((request) => {
-  return serveDir(request, {
-    fsRoot: "static",
-    urlRoot: ""
-  })
-});
+server()
