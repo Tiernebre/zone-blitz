@@ -1,8 +1,7 @@
 Deno.serve(() => {
-  return new Response('hello', {
+  return new Response("hello", {
     headers: {
-      'Content-Type': 'text/html'
-    }
-  })
-})
-
+      "Content-Type": "text/html",
+    },
+  });
+});
