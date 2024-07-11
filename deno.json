@@ -6,6 +6,6 @@
   },
   "tasks": {
     "dev": "deno run --watch --allow-net='0.0.0.0:8000' --allow-read='static' index.ts",
-    "e2e": "deno test --allow-net='0.0.0.0:8000' --allow-read='static'"
+    "test": "deno test --allow-net='0.0.0.0:8000' --allow-read='static'"
   }
 }
