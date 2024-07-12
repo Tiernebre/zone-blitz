@@ -40,3 +40,13 @@ Deno.test("does not allow empty password", async () => {
   const body = await response.text();
   assert(body.includes("Got error when registering"));
 });
+
+Deno.test("successfully registers", async () => {
+  const response = await register({
+    username: "username",
+    password: "password",
+  });
+  assertEquals(response.status, STATUS_CODE.OK);
+  const body = await response.text();
+  assert(body.includes("registered"));
+});
