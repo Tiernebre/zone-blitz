@@ -1,4 +1,5 @@
 import { sql } from "./db/postgres.ts";
+import { htmlResponse } from "./response.ts";
 import { layout } from "./templates/layout.ts";
 
 type Registration = {
@@ -7,7 +8,7 @@ type Registration = {
 };
 
 export const renderRegistrationPage = () =>
-  new Response(
+  htmlResponse(
     layout(/*html*/ `
       <form method="post">
         <label for="username">Username</label>
@@ -17,11 +18,6 @@ export const renderRegistrationPage = () =>
         <button type="submit">Register</button>
       </form>
     `),
-    {
-      headers: {
-        "Content-Type": "text/html",
-      },
-    },
   );
 
 export const register = (request: Request) =>
@@ -48,27 +44,17 @@ const insert = (registration: Registration) =>
 `;
 
 const renderSuccessPage = () => (
-  new Response(
+  htmlResponse(
     layout(/*html*/ `
       <p>registered</p>
     `),
-    {
-      headers: {
-        "Content-Type": "text/html",
-      },
-    },
   )
 );
 
 const renderErrorPage = (error: Error) => (
-  new Response(
+  htmlResponse(
     layout(/*html*/ `
       <p>Got error when registering: ${error.message}</p>
     `),
-    {
-      headers: {
-        "Content-Type": "text/html",
-      },
-    },
   )
 );
