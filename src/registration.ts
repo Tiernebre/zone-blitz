@@ -1,3 +1,4 @@
+import { STATUS_CODE } from "@std/http";
 import { sql } from "./db/postgres.ts";
 import { htmlResponse } from "./response.ts";
 import { layout } from "./templates/layout.ts";
@@ -56,5 +57,6 @@ const renderErrorPage = (error: Error) => (
     layout(/*html*/ `
       <p>Got error when registering: ${error.message}</p>
     `),
+    STATUS_CODE.BadRequest,
   )
 );
