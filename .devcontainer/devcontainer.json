@@ -12,7 +12,8 @@
     "vscode": {
       "extensions": [
         "denoland.vscode-deno",
-        "pushqrdx.inline-html"
+        "pushqrdx.inline-html",
+        "forbeslindesay.vscode-sql-template-literal"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "fish",
