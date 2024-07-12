@@ -11,8 +11,8 @@ services:
   
   db:
     image: postgres:16
-    environment:
-      POSTGRES_PASSWORD: example
+    env_file:
+      - devcontainer.env
   
   pgweb:
     image: sosedoff/pgweb
