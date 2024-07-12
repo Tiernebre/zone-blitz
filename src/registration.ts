@@ -1,4 +1,4 @@
-import { layout } from "../templates/layout.ts";
+import { layout } from "./templates/layout.ts";
 
 export const registrationPage = () =>
   new Response(

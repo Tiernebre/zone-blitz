@@ -1,4 +1,4 @@
-import { register, registrationPage } from "./registration/registration.ts";
+import { register, registrationPage } from "./registration.ts";
 
 export const start = () =>
   Deno.serve((request) => {
