@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+  dev:
+    image: "ubuntu:jammy"
+    volumes:
+      - ..:/workspace:cached
+    command: /bin/sh -c "while sleep 1000; do :; done"
+
