@@ -1,5 +1,28 @@
 {
   "dockerComposeFile": "docker-compose.yml",
   "workspaceFolder": "/workspace",
-  "service": "dev"
+  "service": "dev",
+  "features": {
+    "ghcr.io/devcontainers-community/features/deno:1": {},
+    "ghcr.io/meaningful-ooo/devcontainer-features/fish:1": {
+      "fisher": false
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "denoland.vscode-deno",
+        "pushqrdx.inline-html"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "fish",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/fish"
+          }
+        }
+      }
+    }
+  },
+  "postCreateCommand": ".devcontainer/postCreateCommand.sh"
 }
