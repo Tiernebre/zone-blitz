@@ -7,4 +7,4 @@ if (!url) {
   Deno.exit(1);
 }
 
-export const sql = postgres(Deno.env.get("DATABASE_URL") as string);
+export const sql = postgres(url);
