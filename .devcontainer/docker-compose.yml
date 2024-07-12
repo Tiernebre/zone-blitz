@@ -6,4 +6,9 @@ services:
     volumes:
       - ..:/workspace:cached
     command: /bin/sh -c "while sleep 1000; do :; done"
+  
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: example
 
