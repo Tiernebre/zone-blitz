@@ -3,7 +3,7 @@ import { sql } from "./db/postgres.ts";
 import { htmlResponse } from "./response.ts";
 import { layout } from "./templates/layout.ts";
 
-type Registration = {
+export type Registration = {
   username: string;
   password: string;
 };
