@@ -25,11 +25,12 @@ export const renderRegistrationPage = () =>
   );
 
 export const register = (request: Request) =>
-  request.formData().then(mapForm).then(insert).then(renderSuccessPage).catch(
-    renderErrorPage,
-  );
+  request.formData().then(mapFromForm).then(insert).then(renderSuccessPage)
+    .catch(
+      renderErrorPage,
+    );
 
-const mapForm = (formData: FormData): Registration => {
+const mapFromForm = (formData: FormData): Registration => {
   const username = formData.get("username");
   const password = formData.get("password");
   if (!username || !password) {
