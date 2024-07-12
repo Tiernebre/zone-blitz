@@ -1,18 +1,11 @@
-import { registrationPage } from "./registration.ts";
+import { register, registrationPage } from "./registration/registration.ts";
 
 export const start = () =>
   Deno.serve((request) => {
     if (request.method === "POST") {
-      return new Response(registrationPage(), {
-        headers: {
-          "Content-Type": "text/html",
-        },
-      });
+      console.log("form?");
+      return register(request);
     } else {
-      return new Response(registrationPage(), {
-        headers: {
-          "Content-Type": "text/html",
-        },
-      });
+      return registrationPage();
     }
   });
