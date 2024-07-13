@@ -15,8 +15,4 @@ jobs:
       - name: Run application tests in development container
         uses: devcontainers/ci@v0.3
         with:
-          imageName: Tiernebre/zone-blitz-dev
-          cacheFrom: Tiernebre/zone-blitz-dev
-          push: always
-          runCmd: make ci-build
-          platform: arm64
+          runCmd: deno task test
