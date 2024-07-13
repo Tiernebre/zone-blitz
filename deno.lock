@@ -2,23 +2,56 @@
   "version": "3",
   "packages": {
     "specifiers": {
+      "jsr:@astral/astral": "jsr:@astral/astral@0.4.3",
+      "jsr:@deno-library/progress@1.4.9": "jsr:@deno-library/progress@1.4.9",
+      "jsr:@std/assert@^0.223.0": "jsr:@std/assert@0.223.0",
       "jsr:@std/assert@^1.0.0": "jsr:@std/assert@1.0.0",
+      "jsr:@std/async@0.223.0": "jsr:@std/async@0.223.0",
       "jsr:@std/async@^1.0.0-rc.1": "jsr:@std/async@1.0.0-rc.3",
       "jsr:@std/cli@^0.224.7": "jsr:@std/cli@0.224.7",
       "jsr:@std/encoding@1.0.0-rc.2": "jsr:@std/encoding@1.0.0-rc.2",
+      "jsr:@std/fmt@0.221.0": "jsr:@std/fmt@0.221.0",
       "jsr:@std/fmt@^0.225.4": "jsr:@std/fmt@0.225.6",
+      "jsr:@std/fs@0.223.0": "jsr:@std/fs@0.223.0",
       "jsr:@std/http@^0.224.5": "jsr:@std/http@0.224.5",
       "jsr:@std/internal@^1.0.1": "jsr:@std/internal@1.0.1",
       "jsr:@std/media-types@^1.0.0-rc.1": "jsr:@std/media-types@1.0.1",
       "jsr:@std/net@^0.224.3": "jsr:@std/net@0.224.5",
+      "jsr:@std/path@0.223.0": "jsr:@std/path@0.223.0",
       "jsr:@std/path@1.0.0-rc.2": "jsr:@std/path@1.0.0-rc.2",
-      "jsr:@std/streams@^0.224.5": "jsr:@std/streams@0.224.5"
+      "jsr:@std/streams@^0.224.5": "jsr:@std/streams@0.224.5",
+      "jsr:@zip-js/zip-js@2.7.41": "jsr:@zip-js/zip-js@2.7.41"
     },
     "jsr": {
+      "@astral/astral@0.4.3": {
+        "integrity": "6b206155dc6c608eec2f5d9b9823eca2cdcbeb0bd00fb32c8b5fe94490a31405",
+        "dependencies": [
+          "jsr:@deno-library/progress@1.4.9",
+          "jsr:@std/async@0.223.0",
+          "jsr:@std/fs@0.223.0",
+          "jsr:@std/path@0.223.0",
+          "jsr:@zip-js/zip-js@2.7.41"
+        ]
+      },
+      "@deno-library/progress@1.4.9": {
+        "integrity": "86db695ae338cb1ae3ffa46d6f2e6a9cdef33a15c2ace6fa25354a91a9dd3909",
+        "dependencies": [
+          "jsr:@std/fmt@0.221.0"
+        ]
+      },
+      "@std/assert@0.223.0": {
+        "integrity": "eb8d6d879d76e1cc431205bd346ed4d88dc051c6366365b1af47034b0670be24"
+      },
       "@std/assert@1.0.0": {
         "integrity": "0e4f6d873f7f35e2a1e6194ceee39686c996b9e5d134948e644d35d4c4df2008",
         "dependencies": [
           "jsr:@std/internal@^1.0.1"
+        ]
+      },
+      "@std/async@0.223.0": {
+        "integrity": "b42f635d89fb8f9e0e7dc258fbc8f33233e4977f61e0b20da08a8b51fd7b2c5d",
+        "dependencies": [
+          "jsr:@std/assert@^0.223.0"
         ]
       },
       "@std/async@1.0.0-rc.3": {
@@ -30,8 +63,14 @@
       "@std/encoding@1.0.0-rc.2": {
         "integrity": "160d7674a20ebfbccdf610b3801fee91cf6e42d1c106dd46bbaf46e395cd35ef"
       },
+      "@std/fmt@0.221.0": {
+        "integrity": "379fed69bdd9731110f26b9085aeb740606b20428ce6af31ef6bd45ef8efa62a"
+      },
       "@std/fmt@0.225.6": {
         "integrity": "aba6aea27f66813cecfd9484e074a9e9845782ab0685c030e453a8a70b37afc8"
+      },
+      "@std/fs@0.223.0": {
+        "integrity": "3b4b0550b2c524cbaaa5a9170c90e96cbb7354e837ad1bdaf15fc9df1ae9c31c"
       },
       "@std/http@0.224.5": {
         "integrity": "b03b5d1529f6c423badfb82f6640f9f2557b4034cd7c30655ba5bb447ff750a4",
@@ -55,11 +94,20 @@
       "@std/net@0.224.5": {
         "integrity": "9c2ae90a5c3dc7771da5ae5e13b6f7d5d0b316c1954c5d53f2bfc1129fb757ff"
       },
+      "@std/path@0.223.0": {
+        "integrity": "593963402d7e6597f5a6e620931661053572c982fc014000459edc1f93cc3989",
+        "dependencies": [
+          "jsr:@std/assert@^0.223.0"
+        ]
+      },
       "@std/path@1.0.0-rc.2": {
         "integrity": "39f20d37a44d1867abac8d91c169359ea6e942237a45a99ee1e091b32b921c7d"
       },
       "@std/streams@0.224.5": {
         "integrity": "bcde7818dd5460d474cdbd674b15f6638b9cd73cd64e52bd852fba2bd4d8ec91"
+      },
+      "@zip-js/zip-js@2.7.41": {
+        "integrity": "a883116c1b46673de643f9cd3b6619d746271b96cd9a8e2b9d0bb8353d764d3d"
       }
     }
   },
@@ -349,6 +397,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@astral/astral@^0.4.3",
       "jsr:@std/assert@^1.0.0",
       "jsr:@std/html@^0.224.2",
       "jsr:@std/http@^0.224.5"

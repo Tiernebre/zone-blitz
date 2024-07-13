@@ -2,8 +2,21 @@ import { STATUS_CODE } from "@std/http";
 import { start } from "../src/server.ts";
 import { assert, assertEquals } from "@std/assert";
 import { Registration } from "../src/registration.ts";
+import { launch } from "jsr:@astral/astral";
 
 await start();
+
+const browser = await launch();
+
+// Open a new page
+const page = await browser.newPage("https://deno.land");
+
+// Take a screenshot of the page and save that to disk
+const screenshot = await page.screenshot();
+Deno.writeFileSync("screenshot.png", screenshot);
+
+// Close the browser
+await browser.close();
 
 const URL = "http://0.0.0.0:8000";
 
