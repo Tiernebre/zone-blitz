@@ -3,6 +3,7 @@
   "packages": {
     "specifiers": {
       "jsr:@astral/astral": "jsr:@astral/astral@0.4.3",
+      "jsr:@astral/astral@^0.4.3": "jsr:@astral/astral@0.4.3",
       "jsr:@deno-library/progress@1.4.9": "jsr:@deno-library/progress@1.4.9",
       "jsr:@std/assert@^0.223.0": "jsr:@std/assert@0.223.0",
       "jsr:@std/assert@^1.0.0": "jsr:@std/assert@1.0.0",
