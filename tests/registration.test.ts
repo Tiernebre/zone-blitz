@@ -7,9 +7,7 @@ import { launch } from "jsr:@astral/astral";
 await start();
 
 const browser = await launch({
-  wsEndpoint:
-    "ws://127.0.0.1:1337/devtools/browser/c5b43dbd-e478-4840-abac-a84925a2d1d3",
-  headless: true,
+  path: "/usr/local/bin/chrome",
 });
 
 // Open a new page
