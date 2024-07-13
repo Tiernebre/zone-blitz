@@ -6,7 +6,11 @@ import { launch } from "jsr:@astral/astral";
 
 await start();
 
-const browser = await launch();
+const browser = await launch({
+  wsEndpoint:
+    "ws://127.0.0.1:1337/devtools/browser/c5b43dbd-e478-4840-abac-a84925a2d1d3",
+  headless: true,
+});
 
 // Open a new page
 const page = await browser.newPage("https://deno.land");
