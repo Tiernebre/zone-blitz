@@ -2,6 +2,9 @@ name: CI
 
 on: push
 
+env:
+  DEVCONTAINER_PLATFORM: linux/arm64
+
 jobs:
   tests:
     name: Run Tests
