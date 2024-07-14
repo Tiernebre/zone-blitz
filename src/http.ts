@@ -13,3 +13,8 @@ export const htmlResponse = (
       },
     },
   );
+
+export enum HttpMethod {
+  GET = "GET",
+  POST = "POST",
+}

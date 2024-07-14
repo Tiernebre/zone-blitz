@@ -1,6 +1,6 @@
 import { STATUS_CODE } from "@std/http";
 import { sql } from "./db/postgres.ts";
-import { htmlResponse } from "./response.ts";
+import { htmlResponse, HttpMethod } from "./http.ts";
 import { layout } from "./templates/layout.ts";
 import { RouterFunction } from "./types.ts";
 
@@ -11,7 +11,7 @@ export type Registration = {
 
 export const routeForRegistration: RouterFunction = (request, url) => {
   if (url.pathname === "/registration") {
-    return request.method === "GET"
+    return request.method === HttpMethod.GET
       ? renderRegistrationPage()
       : register(request);
   } else {
