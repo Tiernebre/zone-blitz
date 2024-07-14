@@ -2,10 +2,21 @@ import { STATUS_CODE } from "@std/http";
 import { sql } from "./db/postgres.ts";
 import { htmlResponse } from "./response.ts";
 import { layout } from "./templates/layout.ts";
+import { RouterFunction } from "./types.ts";
 
 export type Registration = {
   username: string;
   password: string;
+};
+
+export const routeForRegistration: RouterFunction = (request, url) => {
+  if (url.pathname === "/registration") {
+    return request.method === "GET"
+      ? renderRegistrationPage()
+      : register(request);
+  } else {
+    return null;
+  }
 };
 
 export const renderRegistrationPage = () =>
@@ -52,12 +63,10 @@ const renderSuccessPage = () => (
   )
 );
 
-const renderErrorPage = (error: Error) => {
-  console.error({ error });
-  return htmlResponse(
+const renderErrorPage = (error: Error) =>
+  htmlResponse(
     layout(/*html*/ `
       <p>Got error when registering: ${error.message}</p>
     `),
     STATUS_CODE.BadRequest,
   );
-};

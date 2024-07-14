@@ -3,10 +3,11 @@ import { start } from "../src/server.ts";
 import { assert, assertEquals, assertNotEquals } from "@std/assert";
 import { Registration } from "../src/registration.ts";
 import { browser } from "./browser.ts";
+import { urlWithPath } from "./utils.ts";
+
+const URL = urlWithPath("registration");
 
 await start();
-
-const URL = "http://0.0.0.0:8000";
 
 const register = (registration: Partial<Registration>) =>
   fetch(URL, {
