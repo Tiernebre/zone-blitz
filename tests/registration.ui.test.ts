@@ -4,9 +4,12 @@ import { browser } from "./browser.ts";
 import { REGISTRATION_URL as URL } from "./utils.ts";
 import { Page } from "@astral/astral";
 
+const USERNAME = 'input[name="username"]';
+
 await start();
 
-const getUsernameInput = (page: Page) => page.$('input[name="username"]');
+const getUsernameInput = (page: Page) => page.$(USERNAME);
+const getInvalidUsernameInput = (page: Page) => page.$(`${USERNAME}:invalid`);
 const getPasswordInput = (page: Page) => page.$('input[name="password"]');
 const getButton = (page: Page) => page.$("button");
 
@@ -26,6 +29,16 @@ Deno.test("registers a user", async () => {
   await (await getButton(page))!.click();
   await page.waitForNavigation();
   assert((await page.content()).includes("registered"));
+  await page.close();
+  await suite.close();
+});
+
+Deno.test("validates that username must be filled out", async () => {
+  const suite = await browser();
+  const page = await suite.newPage(URL);
+  await (await getPasswordInput(page))!.type(crypto.randomUUID());
+  await (await getButton(page))!.click();
+  assertNotEquals(await getInvalidUsernameInput(page), null);
   await page.close();
   await suite.close();
 });
