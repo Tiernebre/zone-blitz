@@ -19,7 +19,7 @@ export const routeForRegistration: RouterFunction = (request, url) => {
   }
 };
 
-export const renderRegistrationPage = () =>
+const renderRegistrationPage = () =>
   htmlResponse(
     layout(/*html*/ `
       <form method="post">
@@ -32,7 +32,7 @@ export const renderRegistrationPage = () =>
     `),
   );
 
-export const register = (request: Request) =>
+const register = (request: Request) =>
   request.formData().then(mapFromForm).then(insert).then(renderSuccessPage)
     .catch(
       renderErrorPage,
