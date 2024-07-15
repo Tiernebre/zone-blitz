@@ -5,9 +5,9 @@ import { RouterFunction } from "./types.ts";
 export const routeForHome: RouterFunction = (request, url) => {
   if (url.pathname === "/" && request.method === HttpMethod.GET) {
     return renderHomePage();
-  } else {
-    return null;
   }
+
+  return null;
 };
 
 const renderHomePage = () =>

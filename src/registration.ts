@@ -14,9 +14,8 @@ export const routeForRegistration: RouterFunction = (request, url) => {
     return request.method === HttpMethod.GET
       ? renderRegistrationPage()
       : register(request);
-  } else {
-    return null;
   }
+  return null;
 };
 
 const renderRegistrationPage = () =>
