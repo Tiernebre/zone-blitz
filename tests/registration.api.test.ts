@@ -3,9 +3,7 @@ import { start } from "../src/server.ts";
 import { assert, assertEquals, assertNotEquals } from "@std/assert";
 import { Registration } from "../src/registration.ts";
 import { browser } from "./browser.ts";
-import { urlWithPath } from "./utils.ts";
-
-const URL = urlWithPath("registration");
+import { REGISTRATION_URL as URL } from "./utils.ts";
 
 await start();
 
