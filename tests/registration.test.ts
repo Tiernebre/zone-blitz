@@ -29,8 +29,7 @@ Deno.test("renders a form", async () => {
 Deno.test("does not allow empty requests", async () => {
   const response = await register({});
   assertEquals(response.status, STATUS_CODE.BadRequest);
-  const body = await response.text();
-  assert(body.includes("Got error when registering"));
+  assert((await response.text()).includes("Got error when registering"));
 });
 
 Deno.test("does not allow empty username", async () => {
@@ -38,8 +37,7 @@ Deno.test("does not allow empty username", async () => {
     password: "password",
   });
   assertEquals(response.status, STATUS_CODE.BadRequest);
-  const body = await response.text();
-  assert(body.includes("Got error when registering"));
+  assert((await response.text()).includes("Got error when registering"));
 });
 
 Deno.test("does not allow empty password", async () => {
@@ -47,8 +45,7 @@ Deno.test("does not allow empty password", async () => {
     password: "password",
   });
   assertEquals(response.status, STATUS_CODE.BadRequest);
-  const body = await response.text();
-  assert(body.includes("Got error when registering"));
+  assert((await response.text()).includes("Got error when registering"));
 });
 
 Deno.test("successfully registers", async () => {
@@ -57,6 +54,5 @@ Deno.test("successfully registers", async () => {
     password: "password",
   });
   assertEquals(response.status, STATUS_CODE.OK);
-  const body = await response.text();
-  assert(body.includes("registered"));
+  assert((await response.text()).includes("registered"));
 });
