@@ -6,7 +6,9 @@ import { routeForHome } from "./home.ts";
 export const start = async () => {
   await createSchema();
 
-  return Deno.serve(async (request) => {
+  return Deno.serve({
+    onListen: () => "",
+  }, async (request) => {
     const url = new URL(request.url);
     for (const router of [routeForHome, routeForRegistration]) {
       const response = await router(request, url);
