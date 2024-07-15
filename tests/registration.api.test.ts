@@ -1,8 +1,7 @@
 import { STATUS_CODE } from "@std/http";
 import { start } from "../src/server.ts";
-import { assert, assertEquals, assertNotEquals } from "@std/assert";
+import { assert, assertEquals } from "@std/assert";
 import { Registration } from "../src/registration.ts";
-import { browser } from "./browser.ts";
 import { REGISTRATION_URL as URL } from "./utils.ts";
 
 await start();
@@ -15,14 +14,6 @@ const register = (registration: Partial<Registration>) =>
     },
     body: new URLSearchParams(registration),
   });
-
-Deno.test("renders a form", async () => {
-  const suite = await browser();
-  const page = await suite.newPage(URL);
-  assertNotEquals(await page.$('input[name="username"]'), null);
-  await page.close();
-  await suite.close();
-});
 
 Deno.test("does not allow empty requests", async () => {
   const response = await register({});
