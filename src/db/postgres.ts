@@ -7,4 +7,6 @@ if (!url) {
   Deno.exit(1);
 }
 
-export const sql = postgres(url);
+export const sql = postgres(url, {
+  onnotice: () => "",
+});
