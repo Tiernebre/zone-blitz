@@ -8,5 +8,13 @@
   "tasks": {
     "dev": "deno run --watch -A index.ts",
     "test": "deno test -A"
+  },
+  "compilerOptions": {
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "deno.ns"
+    ]
   }
 }

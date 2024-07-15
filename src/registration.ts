@@ -24,9 +24,9 @@ const renderRegistrationPage = () =>
     layout(/*html*/ `
       <form method="post">
         <label for="username">Username</label>
-        <input id="username" name="username" type="text" required>
+        <input id="username" name="username" required>
         <label for="password">Password</label>
-        <input id="password" name="password" type="password">
+        <input id="password" name="password" type="password" required>
         <button>Register</button>
       </form>
     `),
