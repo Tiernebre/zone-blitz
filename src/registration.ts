@@ -3,6 +3,7 @@ import { sql } from "./db/postgres.ts";
 import { htmlResponse, HttpMethod } from "./http.ts";
 import { layout } from "./templates/layout.ts";
 import { RouterFunction } from "./types.ts";
+import argon2 from "npm:argon2@0.40.3";
 
 export type Registration = {
   username: string;
@@ -37,7 +38,7 @@ const register = (request: Request) =>
       renderErrorPage,
     );
 
-const mapFromForm = (formData: FormData): Registration => {
+const mapFromForm = async (formData: FormData): Promise<Registration> => {
   const username = formData.get("username");
   const password = formData.get("password");
   if (!username || !password) {
@@ -46,7 +47,7 @@ const mapFromForm = (formData: FormData): Registration => {
   if (typeof username !== "string" || typeof password !== "string") {
     throw new Error("Username and password must be strings.");
   }
-  return { username, password };
+  return { username, password: await argon2.hash(password) };
 };
 
 const insert = (registration: Registration) =>
