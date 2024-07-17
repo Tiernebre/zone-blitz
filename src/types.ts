@@ -1,4 +1,3 @@
-export type RouterFunction = (
+export type RouterHandler = (
   request: Request,
-  url: URL,
 ) => Promise<Response> | Response | undefined;
