@@ -1,8 +1,7 @@
 import { STATUS_CODE } from "@std/http";
-import { sql } from "./db/postgres.ts";
-import { htmlResponse, HttpMethod } from "./http.ts";
-import { layout } from "./templates/layout.ts";
-import { RouterFunction } from "./types.ts";
+import { sql } from "../db/postgres.ts";
+import { htmlResponse } from "../http.ts";
+import { layout } from "../templates/layout.ts";
 import argon2 from "argon2";
 
 export type Registration = {
@@ -10,15 +9,7 @@ export type Registration = {
   password: string;
 };
 
-export const routeForRegistration: RouterFunction = (request, url) => {
-  if (url.pathname === "/registration") {
-    return request.method === HttpMethod.GET
-      ? renderRegistrationPage()
-      : register(request);
-  }
-};
-
-const renderRegistrationPage = () =>
+export const get = () =>
   htmlResponse(
     layout(/*html*/ `
       <form method="post">
@@ -31,7 +22,7 @@ const renderRegistrationPage = () =>
     `),
   );
 
-const register = (request: Request) =>
+export const post = (request: Request) =>
   request.formData().then(mapFromForm).then(insert).then(renderSuccessPage)
     .catch(
       renderErrorPage,

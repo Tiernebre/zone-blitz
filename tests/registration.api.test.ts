@@ -1,7 +1,7 @@
 import { STATUS_CODE } from "@std/http";
 import { start } from "../src/server.ts";
 import { assert, assertEquals } from "@std/assert";
-import { Registration } from "../src/registration.ts";
+import { Registration } from "../src/routes/registration.ts";
 import { REGISTRATION_URL as URL } from "./utils.ts";
 
 await start();
