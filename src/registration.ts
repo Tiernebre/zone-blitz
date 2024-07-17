@@ -3,7 +3,7 @@ import { sql } from "./db/postgres.ts";
 import { htmlResponse, HttpMethod } from "./http.ts";
 import { layout } from "./templates/layout.ts";
 import { RouterFunction } from "./types.ts";
-import argon2 from "npm:argon2@0.40.3";
+import argon2 from "argon2";
 
 export type Registration = {
   username: string;
