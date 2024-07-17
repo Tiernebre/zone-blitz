@@ -6,8 +6,6 @@ export const routeForHome: RouterFunction = (request, url) => {
   if (url.pathname === "/" && request.method === HttpMethod.GET) {
     return renderHomePage();
   }
-
-  return null;
 };
 
 const renderHomePage = () =>

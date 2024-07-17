@@ -1,4 +1,4 @@
 export type RouterFunction = (
   request: Request,
   url: URL,
-) => Promise<Response> | Response | null;
+) => Promise<Response> | Response | undefined;

@@ -16,7 +16,6 @@ export const routeForRegistration: RouterFunction = (request, url) => {
       ? renderRegistrationPage()
       : register(request);
   }
-  return null;
 };
 
 const renderRegistrationPage = () =>

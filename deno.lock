@@ -435,7 +435,8 @@
       "jsr:@astral/astral@^0.4.3",
       "jsr:@std/assert@^1.0.0",
       "jsr:@std/html@^0.224.2",
-      "jsr:@std/http@^0.224.5"
+      "jsr:@std/http@^0.224.5",
+      "npm:argon2@0.40.3"
     ]
   }
 }
