@@ -17,9 +17,9 @@ export const start = async () => {
   for (const routeFile of await fs.promises.readdir(routesPath)) {
     Object.entries(await import(`${routesPath}/${routeFile}`)).forEach(
       ([method, handler]) => {
-        const routeName = routeFile.slice(0, -3);
-        routers[`${method}_${`/${routeName !== "index" ? routeName : ""}`}`] =
-          handler as RouterHandler;
+        routers[
+          `${method}_${`/${routeFile.slice(0, -3).replace("index", "")}`}`
+        ] = handler as RouterHandler;
       },
     );
   }
