@@ -12,16 +12,16 @@ export const start = async () => {
   });
 
   const routesPath = path.resolve(`${import.meta.dirname}/routes`);
-  const routeFiles = await fs.promises.readdir(routesPath);
   const routers: Record<string, RouterHandler> = {};
 
-  for (const routeFile of routeFiles) {
-    const routeModule = await import(`${routesPath}/${routeFile}`);
-    Object.entries(routeModule).forEach(([method, handler]) => {
-      const routeName = routeFile.slice(0, -3);
-      const key = `${method}_${`/${routeName !== "index" ? routeName : ""}`}`;
-      routers[key] = handler as RouterHandler;
-    });
+  for (const routeFile of await fs.promises.readdir(routesPath)) {
+    Object.entries(await import(`${routesPath}/${routeFile}`)).forEach(
+      ([method, handler]) => {
+        const routeName = routeFile.slice(0, -3);
+        routers[`${method}_${`/${routeName !== "index" ? routeName : ""}`}`] =
+          handler as RouterHandler;
+      },
+    );
   }
 
   return Deno.serve({
