@@ -12,7 +12,7 @@ export type RouterHandler = (
   urlPatternResult: URLPatternResult,
 ) => Promise<Response> | Response;
 
-type HttpHandlerOptions = {
+type HttpRouterOptions = {
   get?: RouterHandler;
   post?: RouterHandler;
 };
@@ -33,7 +33,7 @@ export const getRouters = async () => {
 };
 
 export const httpRouter =
-  (options: HttpHandlerOptions): RouterHandler => (request, ...args) => {
+  (options: HttpRouterOptions): RouterHandler => (request, ...args) => {
     let handler;
     switch (request.method) {
       case "GET":
