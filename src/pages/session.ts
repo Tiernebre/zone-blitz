@@ -21,7 +21,7 @@ const mapFromForm = (formData: FormData): SessionForm => {
 const getRegistration = async ({ username, password }: SessionForm) => {
   const [registration] = await sql<
     Registration[]
-  >`SELECT * FROM registration WHERE username = ${username}` || [];
+  >`SELECT * FROM registration WHERE username = ${username}`;
   if (!registration) {
     throw new Error(
       "Could not find an existing account with the given username or password.",
@@ -38,7 +38,7 @@ const getRegistration = async ({ username, password }: SessionForm) => {
 const createSession = async ({ id }: Registration) => {
   const [session] = await sql<
     Session[]
-  >`INSERT INTO session (registration_id) VALUES (${id}) RETURNING *` || [];
+  >`INSERT INTO session (registration_id) VALUES (${id}) RETURNING *`;
   if (!session) {
     throw new Error("Could not create session for the provided account.");
   }
