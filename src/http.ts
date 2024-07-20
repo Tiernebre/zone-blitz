@@ -14,7 +14,4 @@ export const htmlResponse = (
     },
   );
 
-export enum HttpMethod {
-  GET = "GET",
-  POST = "POST",
-}
+export type HttpMethod = "GET" | "POST";

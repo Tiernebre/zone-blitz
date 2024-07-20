@@ -9,6 +9,10 @@ export type Registration = {
   password: string;
 };
 
+export default (request: Request, _urlPatternResult: URLPatternResult) => {
+  return request.method === "GET" ? get() : post(request);
+};
+
 export const get = () =>
   htmlResponse(
     layout(/*html*/ `

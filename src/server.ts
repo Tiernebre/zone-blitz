@@ -1,37 +1,33 @@
 import { STATUS_CODE } from "@std/http";
 import { createSchema } from "./db/mod.ts";
-import fs from "node:fs";
+import { promises } from "node:fs";
 import path from "node:path";
-import { RouterHandler } from "./types.ts";
+import { Router } from "./types.ts";
 
 export const start = async () => {
   await createSchema();
 
-  const notFoundResponse = new Response("Not Found", {
-    status: STATUS_CODE.NotFound,
-  });
-
   const routesPath = path.resolve(`${import.meta.dirname}/routes`);
-  const routers: Record<string, RouterHandler> = {};
+  const routers: Router[] = [];
 
-  for (const routeFile of await fs.promises.readdir(routesPath)) {
-    Object.entries(await import(`${routesPath}/${routeFile}`)).forEach(
-      ([method, handler]) => {
-        routers[
-          `${method}_${`/${routeFile.slice(0, -3).replace("index", "")}`}`
-        ] = handler as RouterHandler;
-      },
-    );
+  for (const routeFile of await promises.readdir(routesPath)) {
+    routers.push({
+      urlPattern: new URLPattern({
+        pathname: `/${routeFile.slice(0, -3).replace("index", "")}`,
+      }),
+      handler: (await import(`${routesPath}/${routeFile}`)).default,
+    });
   }
 
-  return Deno.serve({
-    onListen: () => "",
-  }, async (request) => {
-    const handler = routers[
-      `${request.method.toLowerCase()}_${new URL(request.url).pathname}`
-    ];
-    return handler
-      ? await handler(request) || notFoundResponse
-      : notFoundResponse;
+  return Deno.serve((request) => {
+    for (const router of routers) {
+      const matchedUrl = router.urlPattern.exec(new URL(request.url));
+      if (matchedUrl) {
+        return router.handler(request, matchedUrl);
+      }
+    }
+    return new Response("Not Found", {
+      status: STATUS_CODE.NotFound,
+    });
   });
 };

@@ -1,3 +1,9 @@
+export type Router = {
+  urlPattern: URLPattern;
+  handler: RouterHandler;
+};
+
 export type RouterHandler = (
   request: Request,
-) => Promise<Response> | Response | undefined;
+  urlPatternResult: URLPatternResult,
+) => Promise<Response> | Response;
