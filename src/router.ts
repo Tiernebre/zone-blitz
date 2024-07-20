@@ -18,7 +18,7 @@ type HttpHandlerOptions = {
 };
 
 export const getRouters = async () => {
-  const routesPath = path.resolve(`${import.meta.dirname}/routes`);
+  const routesPath = path.resolve(`${import.meta.dirname}/pages`);
   const routers: Router[] = [];
 
   for (const routeFile of await fsPromises.readdir(routesPath)) {
