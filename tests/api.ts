@@ -15,6 +15,7 @@ export const register = async () => {
     username: crypto.randomUUID(),
     password: crypto.randomUUID(),
   };
-  await post(REGISTRATION_URL, registration);
+  const response = await post(REGISTRATION_URL, registration);
+  await response.text();
   return registration;
 };
