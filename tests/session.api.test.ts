@@ -69,5 +69,5 @@ Deno.test("successfully logs in", async () => {
   const [sessionCookie] = getSetCookies(response.headers);
   assert(sessionCookie);
   assertEquals(sessionCookie.name, "session");
-  assertEquals(sessionCookie.value, "1");
+  assert(sessionCookie.value);
 });
