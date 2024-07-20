@@ -13,5 +13,3 @@ export const htmlResponse = (
       },
     },
   );
-
-export type HttpMethod = "GET" | "POST";
