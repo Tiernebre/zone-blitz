@@ -37,10 +37,9 @@ Deno.test("validates that password must be filled out", async () => {
 });
 
 Deno.test("logs in a user", async () => {
-  const account = await register();
   await browserTest(URL, async (page) => {
-    await (await getUsernameInput(page))!.type(account.username);
-    await (await getPasswordInput(page))!.type(account.password);
+    await (await getUsernameInput(page))!.type(crypto.randomUUID());
+    await (await getPasswordInput(page))!.type(crypto.randomUUID());
     await (await getButton(page))!.click();
     await page.waitForNavigation();
     await page.screenshot();
