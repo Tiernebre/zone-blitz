@@ -1,9 +1,10 @@
 import { STATUS_CODE } from "@std/http";
 import { start } from "../src/server.ts";
-import { assert, assertEquals } from "@std/assert";
+import { assert, assertEquals, assertNotEquals } from "@std/assert";
 import { REGISTRATION_URL as URL } from "./utils.ts";
-import { RegistrationForm } from "../src/domain/registration.ts";
+import { Registration, RegistrationForm } from "../src/domain/registration.ts";
 import { post } from "./api.ts";
+import { sql } from "../src/db/mod.ts";
 
 await start();
 
@@ -33,10 +34,16 @@ Deno.test("does not allow empty password", async () => {
 });
 
 Deno.test("successfully registers", async () => {
+  const username = crypto.randomUUID();
+  const password = crypto.randomUUID();
   const response = await register({
-    username: crypto.randomUUID().toString(),
-    password: "password",
+    username,
+    password,
   });
   assertEquals(response.status, STATUS_CODE.OK);
   assert((await response.text()).includes("registered"));
+  const [persistedRegistration] = await sql<
+    Partial<Registration>[]
+  >`SELECT password FROM registration WHERE username = ${username}`;
+  assertNotEquals(persistedRegistration.password, password);
 });
