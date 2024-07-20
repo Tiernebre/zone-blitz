@@ -3,7 +3,7 @@ import { sql } from "../db/postgres.ts";
 import { htmlResponse } from "../http.ts";
 import { layout } from "../templates/layout.ts";
 import argon2 from "argon2";
-import { httpHandler } from "../router.ts";
+import { httpRouter } from "../router.ts";
 
 export type Registration = {
   username: string;
@@ -62,7 +62,7 @@ const renderErrorPage = (error: Error) =>
     STATUS_CODE.BadRequest,
   );
 
-export default httpHandler({
+export default httpRouter({
   get,
   post,
 });

@@ -32,7 +32,7 @@ export const getRouters = async () => {
   return routers;
 };
 
-export const httpHandler =
+export const httpRouter =
   (options: HttpHandlerOptions): RouterHandler => (request, ...args) => {
     let handler;
     switch (request.method) {

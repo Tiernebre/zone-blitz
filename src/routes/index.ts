@@ -1,5 +1,5 @@
 import { htmlResponse } from "../http.ts";
-import { httpHandler } from "../router.ts";
+import { httpRouter } from "../router.ts";
 import { layout } from "../templates/layout.ts";
 
 const get = () =>
@@ -9,6 +9,6 @@ const get = () =>
   `),
   );
 
-export default httpHandler({
+export default httpRouter({
   get,
 });
