@@ -1,4 +1,4 @@
-import { STATUS_CODE } from "@std/http";
+import { setCookie, STATUS_CODE } from "@std/http";
 import { sql } from "../db/mod.ts";
 import { Registration } from "../domain/registration.ts";
 import { Session, type SessionForm } from "../domain/session.ts";
@@ -45,19 +45,33 @@ const createSession = async ({ id }: Registration) => {
   return session;
 };
 
-const renderLoggedIn = (session: Session) =>
-  htmlResponse(
+const renderLoggedIn = (session: Session) => {
+  const headers = new Headers();
+  setCookie(headers, {
+    name: "session",
+    value: session.id,
+    httpOnly: true,
+    sameSite: "Strict",
+  });
+  headers.set("content-type", "text/html");
+  return new Response(
     /*html*/ `
-    <div>Logged in ${session.id}</div>
-  `,
+      <div>Logged in ${session.id}</div>
+    `,
+    {
+      headers,
+    },
   );
+};
 
 const renderError = (error: Error) =>
   htmlResponse(
     /*html*/ `
     <div>Could not login due to an error: ${error}</div>
   `,
-    STATUS_CODE.BadRequest,
+    {
+      status: STATUS_CODE.BadRequest,
+    },
   );
 
 const get = () =>

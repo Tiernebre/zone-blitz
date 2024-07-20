@@ -55,7 +55,9 @@ const renderErrorPage = (error: Error) =>
     layout(/*html*/ `
       <p>Got error when registering: ${error.message}</p>
     `),
-    STATUS_CODE.BadRequest,
+    {
+      status: STATUS_CODE.BadRequest,
+    },
   );
 
 export default httpRouter({

@@ -1,8 +1,13 @@
 import { STATUS_CODE, StatusCode } from "@std/http";
 
+type HtmlResponseParameters = {
+  status?: StatusCode;
+  headers?: HeadersInit;
+};
+
 export const htmlResponse = (
   html: string,
-  status: StatusCode = STATUS_CODE.OK,
+  { status = STATUS_CODE.OK, headers = {} }: HtmlResponseParameters = {},
 ) =>
   new Response(
     html,
@@ -10,6 +15,7 @@ export const htmlResponse = (
       status,
       headers: {
         "Content-Type": "text/html",
+        ...headers,
       },
     },
   );

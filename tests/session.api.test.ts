@@ -1,4 +1,4 @@
-import { STATUS_CODE } from "@std/http";
+import { getSetCookies, STATUS_CODE } from "@std/http";
 import { start } from "../src/server.ts";
 import { assert, assertEquals } from "@std/assert";
 import { SESSION_URL } from "./utils.ts";
@@ -66,4 +66,8 @@ Deno.test("successfully logs in", async () => {
   });
   assertEquals(response.status, STATUS_CODE.OK);
   assert((await response.text()).includes("Logged in"));
+  const [sessionCookie] = getSetCookies(response.headers);
+  assert(sessionCookie);
+  assertEquals(sessionCookie.name, "session");
+  assertEquals(sessionCookie.value, "1");
 });

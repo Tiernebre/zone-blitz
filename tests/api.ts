@@ -8,6 +8,7 @@ export const post = (url: string, body: Record<string, string>) =>
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams(body),
+    credentials: "include",
   });
 
 export const register = async () => {
