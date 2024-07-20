@@ -1,4 +1,4 @@
-import { STATUS_CODE } from "@std/http";
+import { notFound } from "./http.ts";
 
 export type Router = {
   urlPattern: URLPattern;
@@ -30,8 +30,3 @@ export const httpHandler =
     }
     return handler ? handler(request, ...args) : notFound();
   };
-
-export const notFound = () =>
-  new Response("Not Found", {
-    status: STATUS_CODE.NotFound,
-  });

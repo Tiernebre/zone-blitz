@@ -13,3 +13,8 @@ export const htmlResponse = (
       },
     },
   );
+
+export const notFound = () =>
+  new Response("Not Found", {
+    status: STATUS_CODE.NotFound,
+  });
