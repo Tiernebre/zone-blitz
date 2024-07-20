@@ -1,0 +1,9 @@
+{
+  "New Page": {
+    "prefix": "New Page",
+    "body": [
+      "import { notFound } from \"../http.ts\";\nimport { httpRouter } from \"../router.ts\";\n\nconst get = () => notFound()\nconst post = () => notFound()\n\nexport default httpRouter({\n  get,\n  post,\n});\n"
+    ],
+    "description": "New Page"
+  }
+}

@@ -4,11 +4,7 @@ import { htmlResponse } from "../http.ts";
 import { layout } from "../templates/layout.ts";
 import argon2 from "argon2";
 import { httpRouter } from "../router.ts";
-
-export type Registration = {
-  username: string;
-  password: string;
-};
+import type { RegistrationForm } from "../domain/registration.ts";
 
 const get = () =>
   htmlResponse(
@@ -29,7 +25,7 @@ const post = (request: Request) =>
       renderErrorPage,
     );
 
-const mapFromForm = async (formData: FormData): Promise<Registration> => {
+const mapFromForm = async (formData: FormData): Promise<RegistrationForm> => {
   const username = formData.get("username");
   const password = formData.get("password");
   if (!username || !password) {
@@ -41,7 +37,7 @@ const mapFromForm = async (formData: FormData): Promise<Registration> => {
   return { username, password: await argon2.hash(password) };
 };
 
-const insert = (registration: Registration) =>
+const insert = (registration: RegistrationForm) =>
   sql`
   INSERT INTO registration (username, password) VALUES (${registration.username}, ${registration.password})
 `;
