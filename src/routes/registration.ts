@@ -3,17 +3,14 @@ import { sql } from "../db/postgres.ts";
 import { htmlResponse } from "../http.ts";
 import { layout } from "../templates/layout.ts";
 import argon2 from "argon2";
+import { httpHandler } from "../router.ts";
 
 export type Registration = {
   username: string;
   password: string;
 };
 
-export default (request: Request, _urlPatternResult: URLPatternResult) => {
-  return request.method === "GET" ? get() : post(request);
-};
-
-export const get = () =>
+const get = () =>
   htmlResponse(
     layout(/*html*/ `
       <form method="post">
@@ -26,7 +23,7 @@ export const get = () =>
     `),
   );
 
-export const post = (request: Request) =>
+const post = (request: Request) =>
   request.formData().then(mapFromForm).then(insert).then(renderSuccessPage)
     .catch(
       renderErrorPage,
@@ -64,3 +61,8 @@ const renderErrorPage = (error: Error) =>
     `),
     STATUS_CODE.BadRequest,
   );
+
+export default httpHandler({
+  get,
+  post,
+});

@@ -2,7 +2,7 @@ import { STATUS_CODE } from "@std/http";
 import { createSchema } from "./db/mod.ts";
 import { promises } from "node:fs";
 import path from "node:path";
-import { Router } from "./types.ts";
+import { Router } from "./router.ts";
 
 export const start = async () => {
   await createSchema();
