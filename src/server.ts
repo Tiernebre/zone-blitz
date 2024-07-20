@@ -1,23 +1,10 @@
 import { createSchema } from "./db/mod.ts";
-import { promises } from "node:fs";
-import path from "node:path";
-import { Router } from "./router.ts";
 import { notFound } from "./http.ts";
+import { getRouters } from "./router.ts";
 
 export const start = async () => {
   await createSchema();
-
-  const routesPath = path.resolve(`${import.meta.dirname}/routes`);
-  const routers: Router[] = [];
-
-  for (const routeFile of await promises.readdir(routesPath)) {
-    routers.push({
-      urlPattern: new URLPattern({
-        pathname: `/${routeFile.slice(0, -3).replace("index", "")}`,
-      }),
-      handler: (await import(`${routesPath}/${routeFile}`)).default,
-    });
-  }
+  const routers = await getRouters();
 
   return Deno.serve((request) => {
     for (const router of routers) {
