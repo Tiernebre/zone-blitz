@@ -1,8 +1,8 @@
-import { STATUS_CODE } from "@std/http";
 import { createSchema } from "./db/mod.ts";
 import { promises } from "node:fs";
 import path from "node:path";
 import { Router } from "./router.ts";
+import { notFound } from "./http.ts";
 
 export const start = async () => {
   await createSchema();
@@ -26,8 +26,6 @@ export const start = async () => {
         return router.handler(request, matchedUrl);
       }
     }
-    return new Response("Not Found", {
-      status: STATUS_CODE.NotFound,
-    });
+    return notFound();
   });
 };
