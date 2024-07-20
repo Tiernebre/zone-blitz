@@ -33,6 +33,32 @@ Deno.test("does not allow empty password", async () => {
   assert((await response.text()).includes("Could not login due to an error"));
 });
 
+Deno.test("requires a valid username", async () => {
+  const response = await login({
+    username: crypto.randomUUID(),
+    password: crypto.randomUUID(),
+  });
+  assertEquals(response.status, STATUS_CODE.BadRequest);
+  assert(
+    (await response.text()).includes(
+      "Could not find an existing account with the given username or password.",
+    ),
+  );
+});
+
+Deno.test("requires a valid password", async () => {
+  const response = await login({
+    username: account.username,
+    password: crypto.randomUUID(),
+  });
+  assertEquals(response.status, STATUS_CODE.BadRequest);
+  assert(
+    (await response.text()).includes(
+      "Could not find an existing account with the given username or password.",
+    ),
+  );
+});
+
 Deno.test("successfully logs in", async () => {
   const response = await login({
     username: account.username,
