@@ -1,15 +1,21 @@
 import { notFound } from "./http.ts";
 import path from "node:path";
 import { promises as fsPromises } from "node:fs";
+import { Session } from "./domain/session.ts";
 
 export type Router = {
   urlPattern: URLPattern;
   handler: RouterHandler;
 };
 
+type RouterHandlerOptions = {
+  urlPatternResult: URLPatternResult;
+  session?: Session;
+};
+
 export type RouterHandler = (
   request: Request,
-  urlPatternResult: URLPatternResult,
+  options: RouterHandlerOptions,
 ) => Promise<Response> | Response;
 
 type HttpRouterOptions = {
