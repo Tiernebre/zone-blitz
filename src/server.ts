@@ -7,7 +7,11 @@ export const start = async () => {
   await createSchema();
   const routers = await getRouters();
 
-  return Deno.serve(async (request) => {
+  return Deno.serve({
+    onListen: () => {
+      console.log("Listening on https://dev.zoneblitz.app");
+    },
+  }, async (request) => {
     for (const router of routers) {
       const matchedUrl = router.urlPattern.exec(new URL(request.url));
       if (matchedUrl) {
