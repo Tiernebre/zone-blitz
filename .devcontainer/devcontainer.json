@@ -3,6 +3,9 @@
   "workspaceFolder": "/workspace",
   "service": "dev",
   "initializeCommand": ".devcontainer/initializeCommand.sh",
+  "otherPortsAttributes": {
+    "onAutoForward": "ignore"
+  },
   "features": {
     "ghcr.io/devcontainers-community/features/deno:1": {},
     "ghcr.io/meaningful-ooo/devcontainer-features/fish:1": {
@@ -18,6 +21,7 @@
         "forbeslindesay.vscode-sql-template-literal"
       ],
       "settings": {
+        "remote.autoForwardPorts": false,
         "terminal.integrated.defaultProfile.linux": "fish",
         "terminal.integrated.profiles.linux": {
           "zsh": {
