@@ -2,6 +2,7 @@
   "dockerComposeFile": "docker-compose.yml",
   "workspaceFolder": "/workspace",
   "service": "dev",
+  "initializeCommand": ".devcontainer/initializeCommand.sh",
   "features": {
     "ghcr.io/devcontainers-community/features/deno:1": {},
     "ghcr.io/meaningful-ooo/devcontainer-features/fish:1": {
