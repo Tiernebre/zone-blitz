@@ -1,6 +1,26 @@
 version: "3"
 
 services:
+  proxy:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--log.level=DEBUG"
+      - "--entryPoints.http.address=:80"
+      - "--entryPoints.http.http.redirections.entryPoint.to=https"
+      - "--entryPoints.http.http.redirections.entryPoint.scheme=https"
+      - "--entryPoints.https.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./certs-traefik.yml:/etc/traefik/dynamic/certs-traefik.yml
+      - ./certs:/etc/certs
+
   dev:
     image: mcr.microsoft.com/devcontainers/base:jammy
     platform: ${DEVCONTAINER_PLATFORM:-linux/amd64}
@@ -9,11 +29,19 @@ services:
     command: /bin/sh -c "while sleep 1000; do :; done"
     env_file:
       - devcontainer.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.tls=true"
+      - "traefik.http.routers.web.rule=Host(`dev.zoneblitz.app`)"
+    ports:
+      - "8000:8000"
   
   db:
     image: postgres:16
     env_file:
       - devcontainer.env
+    labels:
+      - "traefik.enable=false"
   
   pgweb:
     image: sosedoff/pgweb
@@ -24,3 +52,5 @@ services:
       - devcontainer.env
     depends_on:
       - db
+    labels:
+      - "traefik.enable=false"

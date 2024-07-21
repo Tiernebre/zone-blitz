@@ -1,0 +1,4 @@
+tls:
+  certificates:
+    - certFile: /etc/certs/dev.zoneblitz.app.cert
+      keyFile: /etc/certs/dev.zoneblitz.app.key
