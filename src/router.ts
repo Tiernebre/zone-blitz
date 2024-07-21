@@ -8,7 +8,7 @@ export type Router = {
   handler: RouterHandler;
 };
 
-type RouterHandlerOptions = {
+export type RouterHandlerOptions = {
   urlPatternResult: URLPatternResult;
   session?: Session;
 };

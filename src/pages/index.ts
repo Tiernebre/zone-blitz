@@ -1,11 +1,14 @@
 import { htmlResponse } from "../http.ts";
-import { httpRouter } from "../router.ts";
+import { httpRouter, RouterHandlerOptions } from "../router.ts";
 import { layout } from "../templates/layout.ts";
 
-const get = () =>
+const get = (_request: Request, { session }: RouterHandlerOptions) =>
   htmlResponse(
     layout(/*html*/ `
-    <div>Home</div>
+    <div>
+      Home
+      ${session ? `You are logged in! Welcome ${session.registrationId}` : ""}
+    </div>
   `),
   );
 

@@ -8,7 +8,7 @@ import { assertOnLoggedIn } from "./assertions.ts";
 
 await start();
 
-const account = await register();
+const { account } = await register();
 const login = (sessionForm: Partial<SessionForm> = {}) =>
   post(SESSION_URL, sessionForm);
 

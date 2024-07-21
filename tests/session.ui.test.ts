@@ -37,7 +37,7 @@ Deno.test("validates that password must be filled out", async () => {
 });
 
 Deno.test("logs in a user", async () => {
-  const account = await register();
+  const { account } = await register();
   await browserTest(URL, async (page) => {
     await (await getUsernameInput(page))!.type(account.username);
     await (await getPasswordInput(page))!.type(account.password);
@@ -45,6 +45,9 @@ Deno.test("logs in a user", async () => {
     await page.waitForNavigation();
     const message = await page.$("div");
     assert(message);
-    assertEquals(await message.innerText(), "Home");
+    assertEquals(
+      await message.innerText(),
+      "Home You are logged in! Welcome 1",
+    );
   });
 });

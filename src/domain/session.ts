@@ -17,7 +17,11 @@ export const getSession = async (
 ): Promise<Session | undefined> => {
   const sessionId = getCookies(request.headers)["session"];
   return sessionId
-    ? (await sql<Session[]>`SELECT * FROM session WHERE id = ${sessionId}`)[0]
+    ? (await sql<
+      Session[]
+    >`SELECT id, registration_id as "registrationId" FROM session WHERE id = ${sessionId}`)[
+      0
+    ]
     : undefined;
 };
 
