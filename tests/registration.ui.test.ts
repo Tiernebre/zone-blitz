@@ -25,7 +25,7 @@ Deno.test("registers a user", async () => {
     await (await getPasswordInput(page))!.type(crypto.randomUUID());
     await (await getButton(page))!.click();
     await page.waitForNavigation();
-    assert((await page.content()).includes("registered"));
+    assert((await page.content()).includes("Home"));
   });
 });
 

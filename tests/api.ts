@@ -9,6 +9,7 @@ export const post = (url: string, body: Record<string, string>) =>
     },
     body: new URLSearchParams(body),
     credentials: "include",
+    redirect: "manual",
   });
 
 export const register = async () => {

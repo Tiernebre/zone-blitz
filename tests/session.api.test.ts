@@ -1,9 +1,10 @@
-import { getSetCookies, STATUS_CODE } from "@std/http";
+import { STATUS_CODE } from "@std/http";
 import { start } from "../src/server.ts";
 import { assert, assertEquals } from "@std/assert";
 import { SESSION_URL } from "./utils.ts";
 import { post, register } from "./api.ts";
 import { SessionForm } from "../src/domain/session.ts";
+import { assertOnLoggedIn } from "./assertions.ts";
 
 await start();
 
@@ -60,14 +61,10 @@ Deno.test("requires a valid password", async () => {
 });
 
 Deno.test("successfully logs in", async () => {
-  const response = await login({
-    username: account.username,
-    password: account.password,
-  });
-  assertEquals(response.status, STATUS_CODE.OK);
-  assert((await response.text()).includes("Logged in"));
-  const [sessionCookie] = getSetCookies(response.headers);
-  assert(sessionCookie);
-  assertEquals(sessionCookie.name, "session");
-  assert(sessionCookie.value);
+  await assertOnLoggedIn(
+    await login({
+      username: account.username,
+      password: account.password,
+    }),
+  );
 });

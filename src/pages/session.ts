@@ -1,7 +1,11 @@
-import { setCookie, STATUS_CODE } from "@std/http";
+import { STATUS_CODE } from "@std/http";
 import { sql } from "../db/mod.ts";
 import { Registration } from "../domain/registration.ts";
-import { Session, type SessionForm } from "../domain/session.ts";
+import {
+  createSession,
+  respondWithSession,
+  type SessionForm,
+} from "../domain/session.ts";
 import { htmlResponse } from "../http.ts";
 import { httpRouter } from "../router.ts";
 import argon2 from "argon2";
@@ -35,35 +39,6 @@ const getRegistration = async ({ username, password }: SessionForm) => {
   return registration;
 };
 
-const createSession = async ({ id }: Registration) => {
-  const [session] = await sql<
-    Session[]
-  >`INSERT INTO session (registration_id) VALUES (${id}) RETURNING *`;
-  if (!session) {
-    throw new Error("Could not create session for the provided account.");
-  }
-  return session;
-};
-
-const renderLoggedIn = (session: Session) => {
-  const headers = new Headers();
-  setCookie(headers, {
-    name: "session",
-    value: session.id,
-    httpOnly: true,
-    sameSite: "Strict",
-  });
-  headers.set("content-type", "text/html");
-  return new Response(
-    /*html*/ `
-      <div>Logged in ${session.id}</div>
-    `,
-    {
-      headers,
-    },
-  );
-};
-
 const renderError = (error: Error) =>
   htmlResponse(
     /*html*/ `
@@ -87,7 +62,7 @@ const get = () =>
 const post = (request: Request) => {
   return request.formData().then(mapFromForm).then(getRegistration).then(
     createSession,
-  ).then(renderLoggedIn).catch(renderError);
+  ).then(respondWithSession).catch(renderError);
 };
 
 export default httpRouter({

@@ -45,6 +45,6 @@ Deno.test("logs in a user", async () => {
     await page.waitForNavigation();
     const message = await page.$("div");
     assert(message);
-    assertEquals(await message.innerText(), "Logged in 1");
+    assertEquals(await message.innerText(), "Home");
   });
 });

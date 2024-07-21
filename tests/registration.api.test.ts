@@ -5,6 +5,7 @@ import { REGISTRATION_URL as URL } from "./utils.ts";
 import { Registration, RegistrationForm } from "../src/domain/registration.ts";
 import { post } from "./api.ts";
 import { sql } from "../src/db/mod.ts";
+import { assertOnLoggedIn } from "./assertions.ts";
 
 await start();
 
@@ -40,10 +41,9 @@ Deno.test("successfully registers", async () => {
     username,
     password,
   });
-  assertEquals(response.status, STATUS_CODE.OK);
-  assert((await response.text()).includes("registered"));
   const [persistedRegistration] = await sql<
     Partial<Registration>[]
   >`SELECT password FROM registration WHERE username = ${username}`;
   assertNotEquals(persistedRegistration.password, password);
+  await assertOnLoggedIn(response);
 });

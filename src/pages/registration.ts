@@ -4,7 +4,8 @@ import { htmlResponse } from "../http.ts";
 import { layout } from "../templates/layout.ts";
 import argon2 from "argon2";
 import { httpRouter } from "../router.ts";
-import type { RegistrationForm } from "../domain/registration.ts";
+import type { Registration, RegistrationForm } from "../domain/registration.ts";
+import { createSession, respondWithSession } from "../domain/session.ts";
 
 const get = () =>
   htmlResponse(
@@ -20,7 +21,9 @@ const get = () =>
   );
 
 const post = (request: Request) =>
-  request.formData().then(mapFromForm).then(insert).then(renderSuccessPage)
+  request.formData().then(mapFromForm).then(insert).then(createSession).then(
+    respondWithSession,
+  )
     .catch(
       renderErrorPage,
     );
@@ -37,18 +40,17 @@ const mapFromForm = async (formData: FormData): Promise<RegistrationForm> => {
   return { username, password: await argon2.hash(password) };
 };
 
-const insert = (registration: RegistrationForm) =>
-  sql`
-  INSERT INTO registration (username, password) VALUES (${registration.username}, ${registration.password})
-`;
-
-const renderSuccessPage = () => (
-  htmlResponse(
-    layout(/*html*/ `
-      <p>registered</p>
-    `),
-  )
-);
+const insert = async (form: RegistrationForm) => {
+  const [registration] = await sql<Registration[]>`
+    INSERT INTO registration (username, password) VALUES (${form.username}, ${form.password}) RETURNING *
+  `;
+  if (!registration) {
+    throw new Error(
+      "Could not register an account from the given information.",
+    );
+  }
+  return registration;
+};
 
 const renderErrorPage = (error: Error) =>
   htmlResponse(
