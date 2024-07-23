@@ -23,17 +23,28 @@ type HttpRouterOptions = {
   post?: RouterHandler;
 };
 
-export const getRouters = async () => {
-  const routesPath = path.resolve(`${import.meta.dirname}/pages`);
-  const routers: Router[] = [];
+const rootPagesFolderPath = path.resolve(`${import.meta.dirname}/pages`);
 
-  for (const routeFile of await fsPromises.readdir(routesPath)) {
-    routers.push({
-      urlPattern: new URLPattern({
-        pathname: `/${routeFile.slice(0, -3).replace("index", "")}`,
-      }),
-      handler: (await import(`${routesPath}/${routeFile}`)).default,
-    });
+export const getRouters = async (path = "") => {
+  let routers: Router[] = [];
+  const base = `${rootPagesFolderPath}/${path}`;
+  const files = await fsPromises.readdir(base);
+  for (const file of files) {
+    const absolutePath = `${base}${file}`;
+    const fileStats = await fsPromises.stat(absolutePath);
+    if (fileStats.isDirectory()) {
+      routers = routers.concat(await getRouters(`${file}/`));
+    } else {
+      const pathname = `/${path.endsWith("/") ? path.slice(0, -1) : path}${
+        file.slice(0, -3).replace("index", "")
+      }`;
+      routers.push({
+        urlPattern: new URLPattern({
+          pathname,
+        }),
+        handler: (await import(absolutePath)).default,
+      });
+    }
   }
   return routers;
 };
