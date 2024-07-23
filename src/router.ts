@@ -31,8 +31,7 @@ export const getRouters = async (path = "") => {
   const files = await fsPromises.readdir(base);
   for (const file of files) {
     const absolutePath = `${base}${file}`;
-    const fileStats = await fsPromises.stat(absolutePath);
-    if (fileStats.isDirectory()) {
+    if ((await fsPromises.stat(absolutePath)).isDirectory()) {
       routers = routers.concat(await getRouters(`${file}/`));
     } else {
       const pathname = `/${path.endsWith("/") ? path.slice(0, -1) : path}${
