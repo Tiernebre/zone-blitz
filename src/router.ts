@@ -34,12 +34,11 @@ export const getRouters = async (path = "") => {
     if ((await fsPromises.stat(absolutePath)).isDirectory()) {
       routers = routers.concat(await getRouters(`${file}/`));
     } else {
-      const pathname = `/${path.endsWith("/") ? path.slice(0, -1) : path}${
-        file.slice(0, -3).replace("index", "")
-      }`;
       routers.push({
         urlPattern: new URLPattern({
-          pathname,
+          pathname: `/${path.endsWith("/") ? path.slice(0, -1) : path}${
+            file.slice(0, -3).replace("index", "")
+          }`,
         }),
         handler: (await import(absolutePath)).default,
       });
