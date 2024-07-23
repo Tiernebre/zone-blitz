@@ -42,6 +42,7 @@ export const respondWithSession = (session: Session) => {
     value: session.id,
     httpOnly: true,
     sameSite: "Strict",
+    secure: Deno.env.get("ZONE_BLITZ_ENV") !== "test",
   });
   headers.set("Location", "/");
   return new Response(

@@ -8,7 +8,7 @@
   },
   "tasks": {
     "dev": "deno run --watch -A index.ts",
-    "test": "deno test -A"
+    "test": "ZONE_BLITZ_ENV=test deno test -A"
   },
   "compilerOptions": {
     "lib": [
