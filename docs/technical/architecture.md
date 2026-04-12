@@ -12,7 +12,7 @@ structure, and design philosophy that all implementation work builds on.
 | -------------- | ----------------------------------- | ------------------------------------------------------------------------ |
 | Runtime        | Deno + TypeScript                   | Native TS, built-in tooling, shared language with frontend               |
 | Frontend       | Vite + React + Tailwind + shadcn/ui | SPA game UI; no SSR needed (see [UI Architecture](./ui-architecture.md)) |
-| API            | tRPC                                | End-to-end type safety with zero codegen; migrateable to GraphQL         |
+| API            | Hono RPC                            | End-to-end type safety with zero codegen; built into the HTTP framework  |
 | Database       | PostgreSQL                          | Relational data with complex queries (cap math, historical stats)        |
 | DB access      | Drizzle ORM                         | Type-safe SQL, first-class migrations, schema-as-code                    |
 | Authentication | Better Auth (Google OAuth)          | Drizzle adapter, session-based, OAuth-only                               |
@@ -51,15 +51,19 @@ sluggish — we extract those packages to Go or Rust behind the same interfaces.
 The API layer, multiplayer coordination, and database access stay in TypeScript
 where shared types and Zod schemas pay dividends.
 
-### Why tRPC
+### Why Hono RPC
 
-tRPC gives us type-safe API calls with no code generation step. The client knows
-the server's input/output types at compile time. This eliminates an entire class
-of integration bugs and makes refactoring safe.
+Hono's built-in RPC client (`hono/client`) gives us type-safe API calls with no
+code generation and no extra dependencies. Route definitions on the server are
+the single source of truth — the client infers types directly from them via
+`typeof app`.
 
-The migration path to GraphQL is feasible if we need it. tRPC procedures map
-conceptually to GraphQL queries/mutations. The domain types and validation
-schemas (Zod) remain unchanged — only the transport layer changes.
+Since we already use Hono as the HTTP framework, this eliminates an entire
+dependency layer (tRPC server + client + adapter) while keeping the same
+type-safety guarantees. It also means HTTP routes and WebSocket routes use the
+same framework — critical for a game that needs both REST endpoints and realtime
+connections for live drafts and trade negotiations. See
+[Backend Architecture](./backend-architecture.md) for the full pattern.
 
 ### Why Drizzle ORM
 
@@ -95,8 +99,8 @@ Configuration:
   defined in the Drizzle schema alongside domain tables. Migrations are unified
   — one migration history for the entire database.
 - **Session-based.** Better Auth manages sessions server-side with token-based
-  session lookup. The session provides the authenticated user identity that tRPC
-  procedures and WebSocket connections use for authorization.
+  session lookup. The session provides the authenticated user identity that API
+  routes and WebSocket connections use for authorization.
 - **Auth schema is auth-only.** The `user` table managed by Better Auth contains
   authentication concerns (email, OAuth accounts, sessions). Game domain
   concepts (GM profile, league membership, franchise ownership) are separate
@@ -165,7 +169,7 @@ what makes them extractable.
 
 **`server`** — The orchestrator.
 
-- tRPC API routes
+- Hono API routes
 - Drizzle schema definitions and database access
 - WebSocket server for realtime multiplayer
 - Season advancement orchestration (calls into simulation and ai packages)
@@ -175,7 +179,7 @@ what makes them extractable.
 **`ui`** — The frontend.
 
 - React SPA (see [UI Architecture](./ui-architecture.md))
-- tRPC client consuming server API
+- Hono RPC client consuming server API
 - WebSocket client for realtime events
 - Imports types from `shared` only — never from `server`, `simulation`, or `ai`
 
@@ -489,7 +493,7 @@ Server tests cover:
 
 - Domain logic (simulation, AI decisions, cap math)
 - Repository implementations against a real PostgreSQL database
-- tRPC procedure behavior
+- API route behavior
 - Auth configuration
 
 Tests that touch the database run against a dedicated test database. No mocking
