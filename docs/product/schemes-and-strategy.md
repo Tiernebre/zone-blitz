@@ -313,7 +313,7 @@ Lives in the pocket, wins with arm talent, accuracy, anticipation, and
 pre-snap reads. The classic NFL QB model.
 
 - **Primary attributes**: Accuracy (short, medium, deep), arm strength,
-  football IQ, decision-making, anticipation, composure
+  football IQ, decision-making, anticipation, clutch
 - **Secondary attributes**: Touch, release, pocket awareness
 - **Physical profile**: Size matters (taller QBs see the field better), speed
   is irrelevant
@@ -356,8 +356,8 @@ ball to playmakers, protects possession, and executes the scheme reliably.
 High-risk, high-reward arm talent. Launches bombs, throws into tight
 windows, makes jaw-dropping plays — and backbreaking turnovers.
 
-- **Primary attributes**: Arm strength, accuracy (deep), composure (or lack
-  thereof — a gunslinger with low composure is a disaster in big moments)
+- **Primary attributes**: Arm strength, accuracy (deep), clutch (or lack
+  thereof — a gunslinger with low clutch is a disaster in big moments)
 - **Secondary attributes**: Touch (often lacking), decision-making (the key
   variable — a gunslinger with elite decision-making is a franchise QB; one
   with poor decision-making is a turnover machine)
@@ -449,7 +449,7 @@ running, catches in traffic, creates yards after the catch in space.
 
 - **Primary attributes**: Route running, catching, run after catch, agility,
   acceleration
-- **Secondary attributes**: Composure (catching over the middle with a safety
+- **Secondary attributes**: Clutch (catching over the middle with a safety
   coming), toughness
 - **Physical profile**: 5'9"-6'0", 180-200 lbs typically; quickness over
   size
@@ -697,7 +697,7 @@ offense's best receiver). Plays press or off coverage, tracks a single
 receiver, and is responsible for his man or his deep third depending on the
 call.
 
-- **Primary attributes**: Man coverage, speed, agility, composure
+- **Primary attributes**: Man coverage, speed, agility, clutch
 - **Secondary attributes**: Jumping, anticipation
 - **Physical profile**: 5'11"-6'2", 185-200 lbs; length and speed matter;
   long arms and fluid hips are the physical hallmarks
@@ -727,7 +727,7 @@ eyes, and makes plays on the ball. The last line of defense.
 
 - **Primary attributes**: Zone coverage, speed, anticipation, football IQ,
   catching
-- **Secondary attributes**: Jumping, composure
+- **Secondary attributes**: Jumping, clutch
 - **Physical profile**: 5'11"-6'2", 195-210 lbs; range and ball skills
   matter more than size
 - **Scheme fit**: Single-high defenses (Cover 1, Cover 3) that ask the free
@@ -773,7 +773,7 @@ Big leg. Makes 55-yarders. Might miss the 38-yarder because accuracy isn't
 his thing.
 
 - **Primary attributes**: Kicking power
-- **Secondary attributes**: Kicking accuracy, composure
+- **Secondary attributes**: Kicking accuracy, clutch
 - **Scheme fit**: Teams that play in domes or warm weather, offenses that
   stall in the red zone (more long FG attempts), aggressive coaches who
   want the option to kick from 55+
@@ -782,7 +782,7 @@ his thing.
 Won't miss inside 45. Won't attempt from 55. Reliable, consistent, boring
 in the best possible way.
 
-- **Primary attributes**: Kicking accuracy, composure, consistency
+- **Primary attributes**: Kicking accuracy, clutch, consistency
 - **Secondary attributes**: Kicking power
 - **Scheme fit**: Any team, but particularly valuable for conservative
   coaches and playoff-caliber teams where a missed kick is the difference
@@ -793,7 +793,7 @@ Pins opponents inside the 10. Varies hang time, direction, and distance
 to control field position. Doesn't just kick it far — kicks it smart.
 
 - **Primary attributes**: Punting accuracy, punting power, football IQ
-- **Secondary attributes**: Composure (coffin corner punts under pressure)
+- **Secondary attributes**: Clutch (coffin corner punts under pressure)
 - **Scheme fit**: Teams with elite defenses that win the field position
   battle; a great punter on a great defense is a cheat code because every
   opponent drive starts with a long field
@@ -802,7 +802,7 @@ to control field position. Doesn't just kick it far — kicks it smart.
 You don't notice him when he's good. You absolutely notice him when he's
 bad. A botched snap loses games.
 
-- **Primary attributes**: Snap accuracy, consistency, composure
+- **Primary attributes**: Snap accuracy, consistency, clutch
 - **Scheme fit**: Every team. The long snapper is the ultimate "you don't
   know what you have until it's gone" position.
 
@@ -814,7 +814,7 @@ roster spot dedicated purely to the return game.
 
 - **Primary attributes**: Speed, acceleration, elusiveness, agility, ball
   carrying
-- **Secondary attributes**: Composure (fielding a punt with a gunner in
+- **Secondary attributes**: Clutch (fielding a punt with a gunner in
   your face), football IQ (knowing when to fair catch, when to let it go,
   when to take it out of the end zone)
 - **Physical profile**: Fast and elusive; size is irrelevant — what matters
@@ -885,7 +885,7 @@ those attributes or he doesn't. The degree of alignment IS the fit.
 ### How it works
 
 A West Coast OC's system weights short accuracy, touch, decision-making,
-and composure heavily. A QB with 85 short accuracy, 80 touch, and 75
+and clutch heavily. A QB with 85 short accuracy, 80 touch, and 75
 decision-making will perform well in this system. The same QB in an Air
 Raid system — which weights quick release, deep accuracy, and arm strength
 more heavily — might perform worse because the system is asking for

@@ -236,7 +236,7 @@ effectiveness. All of these are hidden from the user.
 - **Physical development** — ability to design training programs that maximize
   players' physical tools without increasing injury risk
 - **Mental development** — ability to improve players' football IQ, decision-
-  making, and composure; the "teaching" dimension
+  making, composure, and clutch; the "teaching" dimension
 - **Youth development** — specific aptitude for developing young, raw players;
   some coaches are great with veterans but can't develop rookies, and vice
   versa

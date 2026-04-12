@@ -184,8 +184,13 @@ surprise you — positively or negatively — once a player is on your roster.
   to throw it away, when to take the sack, when to force a throw
 - **Anticipation** — reading plays before they develop; throwing to where the
   receiver will be, jumping a route for an interception
-- **Composure** — performance under pressure; clutch moments, hostile
-  environments, playoff intensity; resistance to rattling
+- **Composure** — emotional control and discipline; resistance to drawing
+  penalties, unsportsmanlike conduct, off-field behavioral issues; how a player
+  handles adversity, frustration, and public scrutiny without it affecting his
+  game or the locker room
+- **Clutch** — performance in high-leverage game situations; the last two
+  minutes, 4th-quarter comebacks, playoff games, prime-time moments; some
+  players elevate when the stakes rise, others shrink
 - **Consistency** — how much variance there is game-to-game; a consistent
   player's floor is close to his ceiling; an inconsistent player has brilliant
   games and terrible ones
@@ -329,8 +334,12 @@ Mental attributes follow their own trajectory:
   better than rookies
 - **Decision-making** improves with reps and game experience but has a ceiling
   tied to the player's natural cognitive ability
-- **Composure** can improve (players get used to pressure) or decline (a
-  player who's been benched or booed might lose confidence)
+- **Composure** can improve (a player matures, learns to control his emotions)
+  or decline (frustration builds from losing, benchings, or off-field issues;
+  penalties and outbursts become more frequent)
+- **Clutch** can improve (players learn to thrive in big moments through
+  experience) or decline (a player who's been burned in late-game situations
+  might start playing tight when the stakes rise)
 - **Consistency** is relatively stable but can shift — a player who cleans up
   his lifestyle might become more consistent; one dealing with off-field
   issues might become less so
@@ -372,8 +381,8 @@ reps** for development purposes.
   doesn't test mental attributes the way a live game does.
 - **Game reps** accelerate development dramatically. The speed, pressure,
   unpredictability, and consequences of real games force adaptation that
-  practice can't replicate. A player's decision-making, composure, and
-  anticipation grow under fire in ways they never will holding a clipboard.
+  practice can't replicate. A player's decision-making, composure, clutch,
+  and anticipation grow under fire in ways they never will holding a clipboard.
 - The gap between practice and game development is largest for **mental
   attributes**. You can drill route running in practice. You can't drill
   reading a disguised Cover-2 with 70,000 fans screaming while the play clock
@@ -486,7 +495,8 @@ Key interactions:
 - Scouts **cannot see hidden potential** — they can guess at "ceiling" based on
   physical tools and age, but it's a guess
 - Mental attributes are the **hardest to scout** — a few interviews and film
-  sessions aren't enough to truly know a player's football IQ or composure
+  sessions aren't enough to truly know a player's football IQ, composure,
+  or clutch
 - Physical attributes are the **easiest to scout** — combine numbers and film
   give a relatively clear picture
 
@@ -504,7 +514,7 @@ system.
 The simulation engine consumes individual attributes — never an aggregate
 overall rating. On every play, the relevant attributes for each player in that
 context are what determine the outcome. A quarterback's deep accuracy matters
-on a go route. His composure matters when the pocket collapses. His football
+on a go route. His clutch matters in the final two minutes of a close game. His football
 IQ matters when reading a disguised coverage.
 
 This means a player can be dominant in one context and mediocre in another —
