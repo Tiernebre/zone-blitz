@@ -39,19 +39,19 @@ zone-blitz/
 
 ## Commands
 
-| Command | Description |
-| --- | --- |
-| `deno task setup` | One-time setup: deps, DB, migrations |
-| `deno task dev` | Start server + client in dev mode |
-| `deno task db:start` | Start PostgreSQL (Docker Compose) |
-| `deno task db:stop` | Stop PostgreSQL |
-| `deno task db:migrate` | Run database migrations |
-| `deno task test` | Run all unit/integration tests (server + client) |
-| `deno task test:server` | Run server tests |
-| `deno task test:client` | Run client tests (Vitest) |
-| `deno task test:e2e` | Run end-to-end tests (Playwright) |
-| `deno task build` | Build the client for production |
-| `deno task start` | Start the production server |
+| Command                 | Description                                      |
+| ----------------------- | ------------------------------------------------ |
+| `deno task setup`       | One-time setup: deps, DB, migrations             |
+| `deno task dev`         | Start server + client in dev mode                |
+| `deno task db:start`    | Start PostgreSQL (Docker Compose)                |
+| `deno task db:stop`     | Stop PostgreSQL                                  |
+| `deno task db:migrate`  | Run database migrations                          |
+| `deno task test`        | Run all unit/integration tests (server + client) |
+| `deno task test:server` | Run server tests                                 |
+| `deno task test:client` | Run client tests (Vitest)                        |
+| `deno task test:e2e`    | Run end-to-end tests (Playwright)                |
+| `deno task build`       | Build the client for production                  |
+| `deno task start`       | Start the production server                      |
 
 ## License
 
