@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { serveStatic } from "hono/deno";
 import { db } from "./db/connection.ts";
-import { sql } from "drizzle-orm";
 import { DomainError } from "@zone-blitz/shared";
 import { logger } from "./logger.ts";
 import { requestContextMiddleware } from "./middleware/request-context.ts";
@@ -13,19 +12,12 @@ import type { AppEnv } from "./env.ts";
 const GIT_SHA = Deno.env.get("GIT_SHA") ?? "unknown";
 const isProduction = Deno.env.get("DENO_ENV") === "production";
 
-const features = createFeatureRouters({ db, log: logger });
+const features = createFeatureRouters({ db, commit: GIT_SHA, log: logger });
 
 const app = new Hono<AppEnv>()
   .use(requestContextMiddleware(logger))
   .use(loggerMiddleware())
-  .get("/api/health", async (c) => {
-    try {
-      await db.execute(sql`SELECT 1`);
-      return c.json({ status: "ok", commit: GIT_SHA });
-    } catch {
-      return c.json({ status: "error", commit: GIT_SHA }, 500);
-    }
-  })
+  .route("/api/health", features.healthRouter)
   .route("/api/leagues", features.leagueRouter);
 
 // Domain error handler
