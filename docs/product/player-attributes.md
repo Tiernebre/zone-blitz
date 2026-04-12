@@ -16,18 +16,18 @@ player is the worst player in the game — which raises the question: what are
 
 The scale is calibrated to professional football:
 
-| Range | What it means | Real-world example |
-|-------|---------------|--------------------|
-| 95-100 | Generational. One per decade at a position, maybe. | Peak Tom Brady, Joe Montana, Walter Payton |
-| 85-94 | Elite. Perennial All-Pro, franchise-defining. | Patrick Mahomes, prime Aaron Donald |
-| 70-84 | Franchise-caliber starter. The guy you build around. | Josh Allen, Lamar Jackson |
-| 60-69 | Solid starter. Winning football, not losing you games. | Kirk Cousins, Derek Carr |
-| **50-59** | **The Mendoza line. You can start, but nobody's excited.** | **Geno Smith** |
-| 40-49 | Fringe starter / quality backup. Fills in without disaster. | Veteran bridge QB, journeyman guard |
-| 25-39 | Backup / roster depth. Contributes on special teams. | Typical QB2, rotational defensive end |
-| 15-24 | Practice squad. Developing or hanging on. | UDFA fighting for a roster spot |
-| 1-14 | Shouldn't be on a professional football field. | Guy off the street |
-| 0 | Horrendous. Cannot perform this skill at a professional level. | A punter trying to play linebacker |
+| Range     | What it means                                                  | Real-world example                         |
+| --------- | -------------------------------------------------------------- | ------------------------------------------ |
+| 95-100    | Generational. One per decade at a position, maybe.             | Peak Tom Brady, Joe Montana, Walter Payton |
+| 85-94     | Elite. Perennial All-Pro, franchise-defining.                  | Patrick Mahomes, prime Aaron Donald        |
+| 70-84     | Franchise-caliber starter. The guy you build around.           | Josh Allen, Lamar Jackson                  |
+| 60-69     | Solid starter. Winning football, not losing you games.         | Kirk Cousins, Derek Carr                   |
+| **50-59** | **The Mendoza line. You can start, but nobody's excited.**     | **Geno Smith**                             |
+| 40-49     | Fringe starter / quality backup. Fills in without disaster.    | Veteran bridge QB, journeyman guard        |
+| 25-39     | Backup / roster depth. Contributes on special teams.           | Typical QB2, rotational defensive end      |
+| 15-24     | Practice squad. Developing or hanging on.                      | UDFA fighting for a roster spot            |
+| 1-14      | Shouldn't be on a professional football field.                 | Guy off the street                         |
+| 0         | Horrendous. Cannot perform this skill at a professional level. | A punter trying to play linebacker         |
 
 **50 is the line.** Above it, you're a starter somewhere in this league. Below
 it, you're fighting for your job. The further above 50, the harder you are to
@@ -50,45 +50,45 @@ The distribution is **right-skewed with a steep dropoff at the elite end**:
 - Generational players (95+) may not exist in any given season. When one does
   exist, it's an event. There might be one per decade at a position.
 
-This means finding a 70+ player in the draft is a major win. Finding an 85+ is
-a franchise-altering event. And if you somehow land a 95+, you've found a
-player who will be discussed for decades.
+This means finding a 70+ player in the draft is a major win. Finding an 85+ is a
+franchise-altering event. And if you somehow land a 95+, you've found a player
+who will be discussed for decades.
 
 ### No overall rating
 
 There is no OVR. Not for the user, and not under the hood. The simulation
 doesn't care about a single number — it cares about specific attributes in
-specific contexts. A quarterback's arm strength matters on a deep out route.
-His pocket awareness matters under pressure. His speed matters on a bootleg.
-Reducing a player to one number would erase the very thing that makes
-evaluation interesting.
+specific contexts. A quarterback's arm strength matters on a deep out route. His
+pocket awareness matters under pressure. His speed matters on a bootleg.
+Reducing a player to one number would erase the very thing that makes evaluation
+interesting.
 
 What users see instead:
 
 - **The depth chart — set by your coaches, not by you.** Your coaching staff
   decides who starts, who backs up, and who's inactive. You don't drag names
-  around on a depth chart screen. You hired these coaches and you trust them
-  to evaluate the roster — or you don't, and you fire them. The depth chart
-  is the primary signal of how your coaches value your players. A coach who
-  values arm strength might start a cannon-armed gunslinger over a smart,
-  accurate QB. You'll figure that out when the gunslinger throws three
-  interceptions. The depth chart is coach output, not user input — and that
-  means the quality of your coaching staff directly affects whether the right
-  players are on the field.
+  around on a depth chart screen. You hired these coaches and you trust them to
+  evaluate the roster — or you don't, and you fire them. The depth chart is the
+  primary signal of how your coaches value your players. A coach who values arm
+  strength might start a cannon-armed gunslinger over a smart, accurate QB.
+  You'll figure that out when the gunslinger throws three interceptions. The
+  depth chart is coach output, not user input — and that means the quality of
+  your coaching staff directly affects whether the right players are on the
+  field.
 - **Statistics tell the story after the fact.** Yards, touchdowns, completion
   percentage, tackles, sacks — the numbers paint a picture of how a player
   actually performed. If your coaches have a guy starting and his stats are
   terrible, either the coaches are wrong about him or the scheme doesn't fit
-  him. You decide — by changing coaches, changing scheme, or acquiring
-  different players. Not by overriding the depth chart yourself.
+  him. You decide — by changing coaches, changing scheme, or acquiring different
+  players. Not by overriding the depth chart yourself.
 - **Scouting reports provide pre-acquisition assessments.** Before you draft or
   sign a player, your scouts give you their read — filtered through their own
   accuracy and biases (see [Scouting](./scouting.md)).
 
 The depth chart is your coaches' answer to "who's the best?" The box score is
-reality's answer. The gap between the two is where you, the GM, earn your
-keep — not by micromanaging who plays, but by building a roster and coaching
-staff where the right answers emerge naturally.
+reality's answer. The gap between the two is where you, the GM, earn your keep —
+not by micromanaging who plays, but by building a roster and coaching staff
+where the right answers emerge naturally.
 
 ---
 
@@ -99,14 +99,14 @@ Every player has attributes across four categories: **Physical**, **Technical**,
 each an independent value on the 0-100 scale. Personality traits use the same
 scale but affect off-field decisions and relationships rather than on-field
 performance. All attributes are position-agnostic in structure but
-position-specific in relevance — every player has an arm strength rating, but
-it only matters for quarterbacks.
+position-specific in relevance — every player has an arm strength rating, but it
+only matters for quarterbacks.
 
 ### Physical attributes
 
-Physical attributes represent a player's raw athletic traits. These are the
-most genetically constrained — a player's physical ceiling is largely set at
-birth. Physical attributes are also the most vulnerable to age-related decline.
+Physical attributes represent a player's raw athletic traits. These are the most
+genetically constrained — a player's physical ceiling is largely set at birth.
+Physical attributes are also the most vulnerable to age-related decline.
 
 - **Speed** — straight-line top-end speed
 - **Acceleration** — how quickly the player reaches top speed; burst off the
@@ -129,6 +129,7 @@ coaching, repetition, and experience. A player with average physical tools but
 elite technique can outperform a raw athlete who never develops his craft.
 
 **Passing:**
+
 - **Arm strength** — how far and how hard the ball can be thrown
 - **Accuracy (short)** — precision on throws within 15 yards
 - **Accuracy (medium)** — precision on throws between 15-30 yards
@@ -139,6 +140,7 @@ elite technique can outperform a raw athlete who never develops his craft.
 - **Release** — quickness of the throwing motion
 
 **Rushing / receiving:**
+
 - **Ball carrying** — securing the ball, protecting it in traffic
 - **Elusiveness** — making defenders miss in the open field; juke moves, spins,
   stiff arms
@@ -150,6 +152,7 @@ elite technique can outperform a raw athlete who never develops his craft.
 - **Run after catch** — ability to gain yards after the reception
 
 **Blocking:**
+
 - **Pass blocking** — technique and ability in pass protection; anchor, hand
   placement, footwork
 - **Run blocking** — technique and ability in run blocking; drive blocking,
@@ -157,6 +160,7 @@ elite technique can outperform a raw athlete who never develops his craft.
 - **Block shedding** — ability to disengage from blocks as a defender
 
 **Defense:**
+
 - **Tackling** — technique and reliability when making tackles
 - **Man coverage** — ability to cover a receiver one-on-one; mirroring, hip
   fluidity, recovery
@@ -168,6 +172,7 @@ elite technique can outperform a raw athlete who never develops his craft.
   run defense
 
 **Special teams:**
+
 - **Kicking power** — leg strength for field goals and kickoffs
 - **Kicking accuracy** — precision on field goal attempts
 - **Punting power** — leg strength for punts; distance and hang time
@@ -176,9 +181,9 @@ elite technique can outperform a raw athlete who never develops his craft.
 
 ### Mental attributes
 
-Mental attributes represent a player's cognitive and psychological makeup.
-These are the hardest to evaluate through scouting and the most likely to
-surprise you — positively or negatively — once a player is on your roster.
+Mental attributes represent a player's cognitive and psychological makeup. These
+are the hardest to evaluate through scouting and the most likely to surprise you
+— positively or negatively — once a player is on your roster.
 
 - **Football IQ** — understanding of the game; ability to read defenses/offenses
   pre-snap, make adjustments, understand complex schemes
@@ -208,55 +213,54 @@ surprise you — positively or negatively — once a player is on your roster.
 Personality traits represent who a player is off the field — his motivations,
 priorities, and psychological makeup. Unlike physical, technical, and mental
 attributes, personality traits don't directly affect on-field play outcomes.
-Instead, they drive decisions and relationships: how a player evaluates
-contract offers, how he responds to media pressure, whether he'll take a
-discount to stay, and how he reacts to being benched or tagged.
+Instead, they drive decisions and relationships: how a player evaluates contract
+offers, how he responds to media pressure, whether he'll take a discount to
+stay, and how he reacts to being benched or tagged.
 
-Personality traits are **hidden** and **hard to scout**. You get signals
-through interviews, agent behavior, and a player's history of decisions —
-but the true values are never visible. A player who *says* he wants to stay
-might leave for more money. A player who seems like a mercenary might
-surprise you with loyalty after years of winning together.
+Personality traits are **hidden** and **hard to scout**. You get signals through
+interviews, agent behavior, and a player's history of decisions — but the true
+values are never visible. A player who _says_ he wants to stay might leave for
+more money. A player who seems like a mercenary might surprise you with loyalty
+after years of winning together.
 
 - **Greed** — how heavily money weighs in the player's decisions; high-greed
   players almost always go to the highest bidder in free agency; low-greed
   players weigh other factors more heavily and are candidates for discounts
 - **Loyalty** — attachment to his current team and organization; a loyal player
-  gives a meaningful discount to re-sign and values relationships with
-  coaches and teammates; disloyalty doesn't mean the player is selfish — it
-  means he treats free agency as a purely professional transaction
+  gives a meaningful discount to re-sign and values relationships with coaches
+  and teammates; disloyalty doesn't mean the player is selfish — it means he
+  treats free agency as a purely professional transaction
 - **Ambition** — drive to win championships; high-ambition players take
-  discounts to join contenders, especially later in their careers when
-  they've already been paid; low-ambition players don't factor team
-  competitiveness into their decisions as heavily
+  discounts to join contenders, especially later in their careers when they've
+  already been paid; low-ambition players don't factor team competitiveness into
+  their decisions as heavily
 - **Vanity** — desire for the spotlight and big-market prestige; high-vanity
   players prefer large media markets, nationally televised games, and
-  franchise-player status; low-vanity players don't care whether they play
-  in New York or Jacksonville
+  franchise-player status; low-vanity players don't care whether they play in
+  New York or Jacksonville
 - **Scheme attachment** — how strongly a player prefers to stay in a familiar
   system; high scheme attachment means he'll weigh scheme fit heavily in free
-  agency and may resist transitions to new systems; low scheme attachment
-  means he's adaptable and treats scheme as a secondary consideration
+  agency and may resist transitions to new systems; low scheme attachment means
+  he's adaptable and treats scheme as a secondary consideration
 - **Media sensitivity** — how much media coverage affects the player's morale
-  and behavior; a media-sensitive player who gets praised plays with
-  confidence, but one who gets criticized may spiral; a media-insensitive
-  player tunes it all out — praise doesn't lift him, criticism doesn't
-  bother him
+  and behavior; a media-sensitive player who gets praised plays with confidence,
+  but one who gets criticized may spiral; a media-insensitive player tunes it
+  all out — praise doesn't lift him, criticism doesn't bother him
 
-These traits interact with each other and with game context. A player with
-high loyalty and high ambition faces a genuine internal conflict when his
-team is rebuilding — does he stay out of loyalty, or chase a ring elsewhere?
-A player with high greed but high scheme attachment might take the money even
-if the new team's scheme is a terrible fit — and then underperform because
-of it. The combinations create realistic, distinct personalities that drive
-the off-field drama of franchise management.
+These traits interact with each other and with game context. A player with high
+loyalty and high ambition faces a genuine internal conflict when his team is
+rebuilding — does he stay out of loyalty, or chase a ring elsewhere? A player
+with high greed but high scheme attachment might take the money even if the new
+team's scheme is a terrible fit — and then underperform because of it. The
+combinations create realistic, distinct personalities that drive the off-field
+drama of franchise management.
 
-Personality traits are mostly stable but can shift in response to major
-career events. A player who wins a championship might see his ambition
-decrease — he got his ring. A player who's been franchise-tagged twice
-might see his loyalty erode. A player who's been burned by media narratives
-might become more media-sensitive over time, or might harden and become
-less sensitive. These shifts are gradual and rare, not dramatic swings.
+Personality traits are mostly stable but can shift in response to major career
+events. A player who wins a championship might see his ambition decrease — he
+got his ring. A player who's been franchise-tagged twice might see his loyalty
+erode. A player who's been burned by media narratives might become more
+media-sensitive over time, or might harden and become less sensitive. These
+shifts are gradual and rare, not dramatic swings.
 
 ---
 
@@ -264,15 +268,15 @@ less sensitive. These shifts are gradual and rare, not dramatic swings.
 
 Every player carries every attribute, but the simulation weights them by
 position. Arm strength matters for a quarterback; it's irrelevant for a
-cornerback. The full attribute list per position isn't a design document —
-it's a simulation tuning exercise — but the principle is:
+cornerback. The full attribute list per position isn't a design document — it's
+a simulation tuning exercise — but the principle is:
 
 - **Each position has 5-8 primary attributes** that heavily influence
   performance in that role
 - **Secondary attributes** provide marginal benefits (a fast offensive lineman
   is nice, but technique matters far more)
-- **Irrelevant attributes** exist on every player but are ignored by the sim
-  for that position
+- **Irrelevant attributes** exist on every player but are ignored by the sim for
+  that position
 
 This means a player can have wildly different value depending on position. A
 safety with elite man coverage (75) but poor zone coverage (40) is a liability
@@ -283,9 +287,9 @@ don't change — the context does.
 
 ## Hidden Potential
 
-Every player has a **hidden potential ceiling** for each attribute. This is
-the maximum value that attribute can ever reach through development. Potential
-is set when a player is generated and never changes.
+Every player has a **hidden potential ceiling** for each attribute. This is the
+maximum value that attribute can ever reach through development. Potential is
+set when a player is generated and never changes.
 
 ### How potential works
 
@@ -297,12 +301,12 @@ is set when a player is generated and never changes.
   it. You only discover it by watching what happens when a player gets
   opportunities and coaching.
 - A player's **current attribute value** can be well below his potential. A
-  rookie WR with 40 route running and 80 potential in that attribute has room
-  to grow into a quality route runner — but only if he gets reps, good
-  coaching, and time.
-- A player whose current value already equals his potential in an attribute
-  has **maxed out** that skill. No amount of coaching will improve it further.
-  He is what he is.
+  rookie WR with 40 route running and 80 potential in that attribute has room to
+  grow into a quality route runner — but only if he gets reps, good coaching,
+  and time.
+- A player whose current value already equals his potential in an attribute has
+  **maxed out** that skill. No amount of coaching will improve it further. He is
+  what he is.
 
 ### The boom-or-bust dynamic
 
@@ -310,27 +314,27 @@ Hidden potential is what creates the most exciting moments in the game:
 
 - **The late-round steal**: A player drafted in the 5th round has low current
   attributes but sky-high hidden potential. He sits behind the starter for two
-  years, developing quietly. When the starter gets hurt, the backup steps in
-  and plays like a Pro Bowler. His potential was always there — he just needed
-  the opportunity and development time.
+  years, developing quietly. When the starter gets hurt, the backup steps in and
+  plays like a Pro Bowler. His potential was always there — he just needed the
+  opportunity and development time.
 - **The overdraft bust**: A player taken in the 1st round has high current
   attributes but low hidden potential. He looks great as a rookie because his
   skills are already near their ceiling. But he never improves. By year 3,
   mid-round picks have developed past him. His floor was his ceiling.
 - **The unexpected breakout**: A player whose potential is high but whose
   development has been slow suddenly clicks — a new coaching staff, a scheme
-  change, or just natural maturation. His attributes jump in a single
-  offseason. These are rare but unforgettable.
+  change, or just natural maturation. His attributes jump in a single offseason.
+  These are rare but unforgettable.
 - **The tragic decline**: A player whose physical potential ceiling is high but
-  whose durability is low. Injuries erode his physical attributes below even
-  his current level. The talent was there; the body betrayed him.
+  whose durability is low. Injuries erode his physical attributes below even his
+  current level. The talent was there; the body betrayed him.
 
 ### Why coaches can't see potential
 
 Coaches evaluate players based on what they can observe — current performance,
-practice habits, and game tape. A coach might say "this kid has a high motor
-and I think he can develop" — but that's the coach's imperfect read on the
-player's work ethic and coachability, not a direct view of hidden potential.
+practice habits, and game tape. A coach might say "this kid has a high motor and
+I think he can develop" — but that's the coach's imperfect read on the player's
+work ethic and coachability, not a direct view of hidden potential.
 
 A great coaching staff will develop players faster and closer to their ceilings.
 But even the best coaches can't make a player exceed his genetic limits on
@@ -358,8 +362,8 @@ Physical attributes are **genetically constrained and age-sensitive**:
   speed-dependent traits) and **decline with age**
 - The decline is **position-dependent**: running backs lose speed earlier than
   quarterbacks lose arm strength
-- Decline is **not linear** — a player might hold steady for years and then
-  drop off sharply, or erode gradually
+- Decline is **not linear** — a player might hold steady for years and then drop
+  off sharply, or erode gradually
 - Injuries can permanently reduce physical attributes below a player's
   age-adjusted level; a torn ACL might take 3 points off speed permanently
 - Physical attributes **cannot be coached up** beyond genetic ceiling — no
@@ -367,8 +371,8 @@ Physical attributes are **genetically constrained and age-sensitive**:
 
 ### Technical attributes
 
-Technical attributes are **the most improvable** and represent the primary
-axis of player development:
+Technical attributes are **the most improvable** and represent the primary axis
+of player development:
 
 - Improvement depends on: coaching quality, scheme stability, playing time
   (reps), work ethic, and coachability
@@ -377,8 +381,8 @@ axis of player development:
 - Technical development **continues through a player's prime** — a 30-year-old
   QB can still improve his accuracy if his mental processing and technique
   continue to sharpen
-- Technical attributes decline later than physical ones, and more gradually —
-  a veteran's technique often compensates for physical erosion
+- Technical attributes decline later than physical ones, and more gradually — a
+  veteran's technique often compensates for physical erosion
 - Scheme changes can effectively "reset" some technical development — a zone
   blocking guard moving to a power scheme may regress in run blocking
   temporarily as he learns new techniques
@@ -398,8 +402,8 @@ Mental attributes follow their own trajectory:
   experience) or decline (a player who's been burned in late-game situations
   might start playing tight when the stakes rise)
 - **Consistency** is relatively stable but can shift — a player who cleans up
-  his lifestyle might become more consistent; one dealing with off-field
-  issues might become less so
+  his lifestyle might become more consistent; one dealing with off-field issues
+  might become less so
 - **Work ethic** and **coachability** are mostly stable personality traits but
   can shift in response to major events (new coaching staff, contract year,
   personal maturation)
@@ -432,41 +436,41 @@ returns.
 Not all reps are equal. **Game reps are worth significantly more than practice
 reps** for development purposes.
 
-- **Practice reps** provide a slow, steady baseline of development. A backup
-  who never sees the field still improves — just glacially. Practice is
-  controlled, low-stakes, and repetitive. It builds technical foundations but
-  doesn't test mental attributes the way a live game does.
+- **Practice reps** provide a slow, steady baseline of development. A backup who
+  never sees the field still improves — just glacially. Practice is controlled,
+  low-stakes, and repetitive. It builds technical foundations but doesn't test
+  mental attributes the way a live game does.
 - **Game reps** accelerate development dramatically. The speed, pressure,
   unpredictability, and consequences of real games force adaptation that
-  practice can't replicate. A player's decision-making, composure, clutch,
-  and anticipation grow under fire in ways they never will holding a clipboard.
+  practice can't replicate. A player's decision-making, composure, clutch, and
+  anticipation grow under fire in ways they never will holding a clipboard.
 - The gap between practice and game development is largest for **mental
-  attributes**. You can drill route running in practice. You can't drill
-  reading a disguised Cover-2 with 70,000 fans screaming while the play clock
-  ticks down.
+  attributes**. You can drill route running in practice. You can't drill reading
+  a disguised Cover-2 with 70,000 fans screaming while the play clock ticks
+  down.
 
-This means a backup who's been "developing in practice" for three years is
-not the same as a player who started for three years — even if the raw
-practice hours are comparable. Game experience is irreplaceable.
+This means a backup who's been "developing in practice" for three years is not
+the same as a player who started for three years — even if the raw practice
+hours are comparable. Game experience is irreplaceable.
 
 #### Diminishing returns
 
-The development benefit of playing time follows a curve of diminishing
-returns, not a straight line.
+The development benefit of playing time follows a curve of diminishing returns,
+not a straight line.
 
-- The biggest jump comes from **going from zero game reps to meaningful
-  snaps**. A player who goes from clipboard holder to 20 snaps a game sees a
-  significant development boost.
+- The biggest jump comes from **going from zero game reps to meaningful snaps**.
+  A player who goes from clipboard holder to 20 snaps a game sees a significant
+  development boost.
 - Going from a rotational role to a full-time starter provides a real but
   smaller boost. The player is seeing more situations, more pressure, more
   complexity — but the marginal return per snap is lower.
 - Going from a full-time starter to an every-down, never-comes-off-the-field
-  workhorse provides **minimal additional development benefit**. At some
-  point, a player is getting enough reps that more reps don't teach him
-  anything new — they just add wear.
+  workhorse provides **minimal additional development benefit**. At some point,
+  a player is getting enough reps that more reps don't teach him anything new —
+  they just add wear.
 
-The implication: there's a sweet spot of playing time for development. A
-smart team finds it. A lazy team just runs its best players into the ground.
+The implication: there's a sweet spot of playing time for development. A smart
+team finds it. A lazy team just runs its best players into the ground.
 
 #### When playing time hurts
 
@@ -474,15 +478,15 @@ More snaps are not always better. Playing time can actively harm a player in
 several ways:
 
 - **Too much, too soon.** A raw player thrown into a starting role before he's
-  ready can suffer composure and confidence damage. Getting beaten repeatedly
-  on national television doesn't build character — it builds bad habits and
-  self-doubt. A young quarterback who's sacked 50 times behind a bad
-  offensive line doesn't "learn from adversity." He learns to hear footsteps.
+  ready can suffer composure and confidence damage. Getting beaten repeatedly on
+  national television doesn't build character — it builds bad habits and
+  self-doubt. A young quarterback who's sacked 50 times behind a bad offensive
+  line doesn't "learn from adversity." He learns to hear footsteps.
 - **Physical wear and tear.** Heavy snap counts accelerate physical decline,
   especially at punishing positions. A running back who carries the ball 350
   times a season develops his vision and ball carrying — but his speed,
-  durability, and stamina pay the price. The development gains on the
-  technical side may not be worth the physical erosion.
+  durability, and stamina pay the price. The development gains on the technical
+  side may not be worth the physical erosion.
 - **Bad coaching compounding with reps.** Playing time under a bad coach can
   reinforce bad habits. A cornerback getting 1,000 snaps in a poorly coached
   scheme might develop worse technique than a backup getting 200 snaps under a
@@ -495,15 +499,15 @@ The relationship between playing time and development is not uniform across
 positions. Positions with higher physical toll see the tradeoff between
 development benefit and physical cost more starkly:
 
-- **Running backs** are the extreme case. Heavy workloads develop rushing
-  vision and ball security but accelerate the decline of speed, durability,
-  and stamina faster than any other position. A bell-cow back who carries 300+
-  times is learning, but his legs are aging in dog years.
+- **Running backs** are the extreme case. Heavy workloads develop rushing vision
+  and ball security but accelerate the decline of speed, durability, and stamina
+  faster than any other position. A bell-cow back who carries 300+ times is
+  learning, but his legs are aging in dog years.
 - **Offensive and defensive linemen** absorb enormous physical punishment on
-  every snap. Their technical development benefits from reps, but the
-  cumulative toll on durability and stamina is real.
-- **Quarterbacks** benefit the most from game reps with the least physical
-  cost per snap (when protected). Mental and technical development from game
+  every snap. Their technical development benefits from reps, but the cumulative
+  toll on durability and stamina is real.
+- **Quarterbacks** benefit the most from game reps with the least physical cost
+  per snap (when protected). Mental and technical development from game
   experience is massive, and the physical toll is relatively low — unless the
   offensive line is bad, in which case the calculus changes entirely.
 - **Wide receivers and defensive backs** fall in between — game reps are
@@ -530,10 +534,10 @@ system is built to produce organically, without scripting it. The talent was
 always there. It just needed the opportunity to emerge.
 
 And this is also why workload management matters. The starter who got hurt?
-Maybe he was carrying too many snaps. Maybe his physical attributes were
-eroding under the load. Maybe the team that manages its depth chart — rotating
-players, protecting young talent, resting aging legs — is the team that's
-still standing in January.
+Maybe he was carrying too many snaps. Maybe his physical attributes were eroding
+under the load. Maybe the team that manages its depth chart — rotating players,
+protecting young talent, resting aging legs — is the team that's still standing
+in January.
 
 ---
 
@@ -541,10 +545,10 @@ still standing in January.
 
 ### Scouting
 
-Scouts evaluate attributes, but they never see the true values. A scout's
-report is his best guess at a player's current skill, filtered through his
-own accuracy, biases, and the depth of his evaluation. See
-[Scouting](./scouting.md) for how this works.
+Scouts evaluate attributes, but they never see the true values. A scout's report
+is his best guess at a player's current skill, filtered through his own
+accuracy, biases, and the depth of his evaluation. See [Scouting](./scouting.md)
+for how this works.
 
 Key interactions:
 
@@ -552,8 +556,8 @@ Key interactions:
 - Scouts **cannot see hidden potential** — they can guess at "ceiling" based on
   physical tools and age, but it's a guess
 - Mental attributes are the **hardest to scout** — a few interviews and film
-  sessions aren't enough to truly know a player's football IQ, composure,
-  or clutch
+  sessions aren't enough to truly know a player's football IQ, composure, or
+  clutch
 - Physical attributes are the **easiest to scout** — combine numbers and film
   give a relatively clear picture
 
@@ -562,34 +566,33 @@ Key interactions:
 Coaches interact with attributes in two ways: they **evaluate** players (depth
 chart decisions, scheme fit assessments) and they **develop** players (coaching
 up technical skills, managing confidence). Coaches have their own biases and
-accuracy — a coach who overvalues speed might start a fast but raw player over
-a polished but slow one. See [Coaches](./coaches.md) for the full coaching
-system.
+accuracy — a coach who overvalues speed might start a fast but raw player over a
+polished but slow one. See [Coaches](./coaches.md) for the full coaching system.
 
 ### Game simulation
 
 The simulation engine consumes individual attributes — never an aggregate
 overall rating. On every play, the relevant attributes for each player in that
-context are what determine the outcome. A quarterback's deep accuracy matters
-on a go route. His clutch matters in the final two minutes of a close game. His football
-IQ matters when reading a disguised coverage.
+context are what determine the outcome. A quarterback's deep accuracy matters on
+a go route. His clutch matters in the final two minutes of a close game. His
+football IQ matters when reading a disguised coverage.
 
 This means a player can be dominant in one context and mediocre in another —
-which is exactly how real football works. A power back with 85 strength and
-45 speed will dominate short-yardage situations and disappear in the open
-field. The attributes are the truth. The context determines which truth matters.
+which is exactly how real football works. A power back with 85 strength and 45
+speed will dominate short-yardage situations and disappear in the open field.
+The attributes are the truth. The context determines which truth matters.
 
 ### Contracts and market value
 
-A player's **perceived value** — what he can command on the market — is based
-on what's visible: statistics, awards, reputation, and age. Not on hidden
+A player's **perceived value** — what he can command on the market — is based on
+what's visible: statistics, awards, reputation, and age. Not on hidden
 attributes. This creates market inefficiencies:
 
 - A player whose stats are inflated by scheme may be overvalued
 - A player with elite hidden attributes who hasn't had opportunity may be
   undervalued
-- An aging player whose physical decline hasn't shown up in the stats yet may
-  be overvalued
+- An aging player whose physical decline hasn't shown up in the stats yet may be
+  overvalued
 - A young player whose technical development is about to take off may be
   undervalued
 

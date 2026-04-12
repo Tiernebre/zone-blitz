@@ -60,7 +60,7 @@ real.
 ## Contract Structure
 
 Contracts are the tools you use to manage the cap. The total dollar amount
-matters, but *how* you distribute those dollars across years and categories is
+matters, but _how_ you distribute those dollars across years and categories is
 where the real strategy lives.
 
 ### Base salary
@@ -113,12 +113,12 @@ where the real strategy lives.
 ### Incentives
 
 - Performance-based bonuses tied to specific statistical or team achievements
-- **Likely to be earned (LTBE)**: Based on previous-year performance, the
-  player is statistically likely to hit the threshold. Counts against the
-  current year's cap.
+- **Likely to be earned (LTBE)**: Based on previous-year performance, the player
+  is statistically likely to hit the threshold. Counts against the current
+  year's cap.
 - **Not likely to be earned (NLTBE)**: Player is unlikely to hit the threshold
-  based on last year. Does NOT count against the current cap — but if the
-  player earns them, the bonus hits *next year's* cap.
+  based on last year. Does NOT count against the current cap — but if the player
+  earns them, the bonus hits _next year's_ cap.
 - This distinction creates interesting planning scenarios: loading a contract
   with NLTBE incentives keeps the current cap clean, but a breakout season
   creates a surprise cap hit the following year
@@ -130,12 +130,12 @@ where the real strategy lives.
 - Example: A 2-year contract with 3 void years allows a signing bonus to be
   prorated over 5 years instead of 2 — dramatically reducing the per-year cap
   hit during the real contract years
-- When the void years activate, the remaining prorated bonus accelerates as
-  dead cap
+- When the void years activate, the remaining prorated bonus accelerates as dead
+  cap
 - Useful for short-term cap relief; creates future dead cap that limits
   flexibility
-- The game should make void year consequences clearly visible in cap
-  projections so players understand the tradeoff they're making
+- The game should make void year consequences clearly visible in cap projections
+  so players understand the tradeoff they're making
 
 ---
 
@@ -149,12 +149,12 @@ Managing the cap is an active, ongoing skill — not something you set and forge
 - This reduces the current-year cap hit (spreading the money over remaining
   contract years) but increases future-year cap hits
 - Can only restructure with the player's consent (players almost always agree
-  because they get the money upfront as a lump sum instead of spread across
-  game checks)
-- The classic "kicking the can down the road" — provides immediate relief at
-  the cost of future flexibility
-- Teams in championship windows restructure aggressively. Teams about to enter
-  a rebuild should almost never restructure.
+  because they get the money upfront as a lump sum instead of spread across game
+  checks)
+- The classic "kicking the can down the road" — provides immediate relief at the
+  cost of future flexibility
+- Teams in championship windows restructure aggressively. Teams about to enter a
+  rebuild should almost never restructure.
 
 ### Extensions
 
@@ -167,9 +167,9 @@ Managing the cap is an active, ongoing skill — not something you set and forge
 ### Post-June 1 designations
 
 - When cutting a player, you can designate the release as a "post-June 1" cut
-- Instead of all dead cap accelerating onto the current year, it's spread
-  across two years: the current year absorbs only the current year's prorated
-  amount, and next year absorbs the rest
+- Instead of all dead cap accelerating onto the current year, it's spread across
+  two years: the current year absorbs only the current year's prorated amount,
+  and next year absorbs the rest
 - Limited to two post-June 1 designations per team per year
 - Critical tool for teams trying to get out from under bad contracts while
   maintaining current-year competitiveness
@@ -188,48 +188,48 @@ Managing the cap is an active, ongoing skill — not something you set and forge
 
 ## The Cap and the Draft
 
-The draft is the most cap-efficient way to acquire talent, and the cap system
-is designed to reinforce this.
+The draft is the most cap-efficient way to acquire talent, and the cap system is
+designed to reinforce this.
 
 ### Rookie wage scale
 
 - Drafted players sign contracts with slotted values based on draft position
 - Higher picks get larger contracts, but even the #1 overall pick is cheap
   relative to a veteran free agent of similar ability
-- Rookie contracts are fully slotted — there's no negotiation on the total
-  value (unlike real-world holdouts of the past)
+- Rookie contracts are fully slotted — there's no negotiation on the total value
+  (unlike real-world holdouts of the past)
 - The rookie pool is a fixed total that comes from the team's cap — teams with
   more picks have a slightly larger rookie pool obligation
 
 ### The rookie cost advantage
 
 - A first-round pick who develops into a star is playing at a fraction of his
-  market value for 4-5 years. This cost advantage is the foundation of
-  roster construction.
-- The "rookie window" — the period where you have multiple cheap contributors
-  on rookie deals — is the optimal time to spend aggressively elsewhere on
-  the roster to build a contender
+  market value for 4-5 years. This cost advantage is the foundation of roster
+  construction.
+- The "rookie window" — the period where you have multiple cheap contributors on
+  rookie deals — is the optimal time to spend aggressively elsewhere on the
+  roster to build a contender
 - Smart GMs stagger their draft classes so rookie windows overlap, maintaining
   cost-efficient contributors at multiple positions simultaneously
 
 ### Fifth-year option
 
 - First-round picks have a fifth-year team option
-- The option salary is set by position (projected top-10 salary at the
-  position for options exercised on top-10 picks, projected 11-25 for others)
+- The option salary is set by position (projected top-10 salary at the position
+  for options exercised on top-10 picks, projected 11-25 for others)
 - Must decide by the end of the player's third season whether to exercise
 - Exercising the option guarantees the salary for injury, and it becomes fully
   guaranteed at the start of the player's fourth season
-- For a star player, the fifth-year option is still a below-market bargain.
-  For a bust, it's an overpay you're stuck with for a year.
+- For a star player, the fifth-year option is still a below-market bargain. For
+  a bust, it's an overpay you're stuck with for a year.
 
 ### UDFA budget
 
 - Separate signing bonus budget for undrafted free agents (does not count
   against the main cap)
 - UDFA contracts are minimum-salary deals with small signing bonuses
-- The UDFA pool is the one area where draft spending is somewhat flexible —
-  you can allocate more bonus money to UDFAs you really want
+- The UDFA pool is the one area where draft spending is somewhat flexible — you
+  can allocate more bonus money to UDFAs you really want
 
 ### Cap implications of draft-day trades
 
@@ -278,10 +278,10 @@ Different structures serve different team strategies:
   signing bonus accelerates as dead cap
 - The bigger and longer the original deal, the worse the dead cap if it goes
   wrong
-- "Bad contracts" aren't just about overpaying — they're about the dead cap
-  that lingers after you admit the mistake
-- The game should track and display dead cap projections clearly so GMs can
-  see the consequences of their decisions before they make them
+- "Bad contracts" aren't just about overpaying — they're about the dead cap that
+  lingers after you admit the mistake
+- The game should track and display dead cap projections clearly so GMs can see
+  the consequences of their decisions before they make them
 
 ### The franchise tag and cap impact
 
@@ -289,8 +289,8 @@ Different structures serve different team strategies:
   can carry
 - Tag value is calculated as the average of the top-5 salaries at the position
   (or 120% of the player's prior-year salary, whichever is greater)
-- Using the tag on a premium position (QB, edge, WR) can consume 15-20% of
-  your total cap
+- Using the tag on a premium position (QB, edge, WR) can consume 15-20% of your
+  total cap
 - The transition tag is cheaper but offers less retention certainty
 - Tag strategy interacts with long-term cap planning: do you eat the tag hit
   this year to buy time for an extension, or let the player walk and recoup a
@@ -302,17 +302,17 @@ Different structures serve different team strategies:
   they sign
 - Comp picks are awarded based on the contract value and playing time of
   departing vs. arriving free agents
-- This creates a deliberate strategy: let expensive veterans walk, sign
-  minimal free agents, and harvest 3rd-through-7th round compensatory picks
-- "Developer" GMs can systematically exploit this — draft well, develop
-  players, let them walk in free agency, collect comp picks, repeat
+- This creates a deliberate strategy: let expensive veterans walk, sign minimal
+  free agents, and harvest 3rd-through-7th round compensatory picks
+- "Developer" GMs can systematically exploit this — draft well, develop players,
+  let them walk in free agency, collect comp picks, repeat
 
 ---
 
 ## The Cap and Trading
 
-Every trade has cap implications. Understanding them is the difference between
-a roster-building move and a cap disaster.
+Every trade has cap implications. Understanding them is the difference between a
+roster-building move and a cap disaster.
 
 ### Absorbing contracts in trades
 
@@ -336,21 +336,21 @@ a roster-building move and a cap disaster.
 
 ### Dead cap from trades
 
-- When you trade a player, any remaining prorated signing bonus accelerates
-  as dead cap (same as cutting, unless post-June 1 designated)
+- When you trade a player, any remaining prorated signing bonus accelerates as
+  dead cap (same as cutting, unless post-June 1 designated)
 - This means trading a recently-signed player with a big signing bonus is
-  extremely expensive in dead cap — you're eating years of prorated bonus in
-  one shot
+  extremely expensive in dead cap — you're eating years of prorated bonus in one
+  shot
 - Teams need to factor dead cap into trade evaluations: the player you're
   getting might be great, but if trading the outgoing player creates $12M in
   dead cap, the real cost is much higher than it appears
 
 ### Salary matching in trades
 
-- For teams over the cap or close to it, trades may require salary to flow
-  both ways to make the math work
-- "Salary dumps" and "salary swaps" are common: a contender sends a pick for
-  a rental player but needs to include a salary-matching piece going back
+- For teams over the cap or close to it, trades may require salary to flow both
+  ways to make the math work
+- "Salary dumps" and "salary swaps" are common: a contender sends a pick for a
+  rental player but needs to include a salary-matching piece going back
 - Multi-player trades sometimes happen purely because of cap math, not talent
   evaluation
 
@@ -374,8 +374,8 @@ The game should provide robust tools for planning your cap future.
 ### Multi-year cap outlook
 
 - Project your cap situation 3-5 years into the future
-- Shows committed spending (existing contracts), projected cap growth,
-  estimated costs of upcoming extensions, and available space
+- Shows committed spending (existing contracts), projected cap growth, estimated
+  costs of upcoming extensions, and available space
 - Highlights "cliff years" where dead cap spikes or multiple contracts expire
   simultaneously
 - Essential for deciding whether to restructure, extend, or let players walk
@@ -386,10 +386,10 @@ The game should provide robust tools for planning your cap future.
   - "What if I cut Player X?" → shows dead cap impact and cap savings
   - "What if I restructure Player Y's contract?" → shows current-year savings
     and future-year cost
-  - "What if I extend Player Z for 4 years at $20M/year with $40M guaranteed?"
-    → shows the full cap projection with the new deal
-  - "What if I sign Free Agent A to this offer sheet?" → shows how it fits
-    into the current and future cap picture
+  - "What if I extend Player Z for 4 years at $20M/year with $40M guaranteed?" →
+    shows the full cap projection with the new deal
+  - "What if I sign Free Agent A to this offer sheet?" → shows how it fits into
+    the current and future cap picture
 - Multiple scenarios can be saved and compared side-by-side
 - This is where the spreadsheet-GM fantasy lives — the player who loves
   optimizing cap structures should have powerful, satisfying tools
@@ -412,8 +412,8 @@ current number.
 ### Flexibility score
 
 - A composite measure of how much room a team has to maneuver
-- Factors: available cap space, percentage of cap committed to guaranteed
-  money, dead cap obligations, number of players needing extensions soon
+- Factors: available cap space, percentage of cap committed to guaranteed money,
+  dead cap obligations, number of players needing extensions soon
 - Not a single number shown to the player — instead, qualitative indicators:
   "healthy," "tight," "inflexible," "cap hell"
 - Relative to the league: being $5M under the cap means different things in a
@@ -426,38 +426,37 @@ current number.
   health
 - A team with a great roster but no cap space is in "win now or suffer" mode
 - A team with lots of cap space but a weak roster is positioned to build
-- The best-run teams align their championship window (roster talent) with
-  their cap window (financial flexibility to supplement through free agency
-  and trades)
+- The best-run teams align their championship window (roster talent) with their
+  cap window (financial flexibility to supplement through free agency and
+  trades)
 
 ---
 
 ## NPC Cap Management
 
-AI-controlled teams must manage the cap realistically to keep the league
-feeling authentic.
+AI-controlled teams must manage the cap realistically to keep the league feeling
+authentic.
 
 ### Personality-driven cap strategies
 
-- **"Win Now" GMs**: Spend to the cap ceiling. Restructure aggressively.
-  Use void years. Front-load guaranteed money. Create championship windows
-  at the cost of future flexibility. Occasional cap hell.
+- **"Win Now" GMs**: Spend to the cap ceiling. Restructure aggressively. Use
+  void years. Front-load guaranteed money. Create championship windows at the
+  cost of future flexibility. Occasional cap hell.
 - **"Developer" GMs**: Stay under the cap. Accumulate rollover. Let expensive
   veterans walk for comp picks. Spend primarily on extensions for their own
   drafted players. Rarely make splashy free agent signings.
 - **"Moneyball" GMs**: Exploit inefficiencies. Target players other teams cut
-  for cap reasons. Structure incentive-heavy deals. Take on bad contracts
-  for draft pick compensation. Always have cap space because they rarely
-  overpay.
-- **"Old School" GMs**: Pay "their guys" — sometimes overpay for loyalty.
-  Less sophisticated with contract structure. Occasionally get into cap
-  trouble through emotional decisions rather than strategic ones.
-- **"Gambler" GMs** *(rare)*: The most reckless cap managers in the league.
+  for cap reasons. Structure incentive-heavy deals. Take on bad contracts for
+  draft pick compensation. Always have cap space because they rarely overpay.
+- **"Old School" GMs**: Pay "their guys" — sometimes overpay for loyalty. Less
+  sophisticated with contract structure. Occasionally get into cap trouble
+  through emotional decisions rather than strategic ones.
+- **"Gambler" GMs** _(rare)_: The most reckless cap managers in the league.
   Restructure everything, use void years liberally, and hand out massive
-  guaranteed deals to chase a championship *right now*. They cycle between
-  championship windows and brutal cap hell faster than any other archetype.
-  When a Gambler hits cap hell, they become a fire sale — other GMs can
-  scoop up talent shed for cap reasons.
+  guaranteed deals to chase a championship _right now_. They cycle between
+  championship windows and brutal cap hell faster than any other archetype. When
+  a Gambler hits cap hell, they become a fire sale — other GMs can scoop up
+  talent shed for cap reasons.
 
 ### NPC cap mistakes
 
@@ -465,9 +464,9 @@ feeling authentic.
 - Overpaying a mediocre player in free agency because of positional scarcity
 - Restructuring too aggressively and creating future cap problems
 - Holding onto an aging veteran's contract too long out of loyalty
-- These mistakes create opportunities for human GMs to exploit — trade for
-  cap casualties, sign players cut for financial reasons, target NPC teams
-  desperate to shed salary
+- These mistakes create opportunities for human GMs to exploit — trade for cap
+  casualties, sign players cut for financial reasons, target NPC teams desperate
+  to shed salary
 
 ---
 
@@ -480,14 +479,14 @@ The best cap moments:
 
 - "I can sign this star free agent, but I'd have to restructure two contracts
   and I know I'll need that cap space in two years for my QB extension."
-- "I'm in cap hell but my roster is stacked. If we don't win this year, the
-  next three years are going to be painful."
+- "I'm in cap hell but my roster is stacked. If we don't win this year, the next
+  three years are going to be painful."
 - "That team just cut a Pro Bowler because they couldn't afford him. I've been
   accumulating rollover for exactly this moment."
 - "I structured my QB's contract with void years to open a three-year window.
-  Year one: made the conference championship. Year two starts now. The clock
-  is ticking."
-- "I traded a 3rd to absorb a bad contract, and the player I got actually
-  turned into a solid starter. Cap arbitrage at its finest."
-- "My rival just signed three big free agents. I'll just sit here with my
-  comp picks and cap space, watching them mortgage their future."
+  Year one: made the conference championship. Year two starts now. The clock is
+  ticking."
+- "I traded a 3rd to absorb a bad contract, and the player I got actually turned
+  into a solid starter. Cap arbitrage at its finest."
+- "My rival just signed three big free agents. I'll just sit here with my comp
+  picks and cap space, watching them mortgage their future."

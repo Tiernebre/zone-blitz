@@ -2,25 +2,25 @@
 
 ## Stack Overview
 
-| Layer            | Technology                        | Purpose                            |
-| ---------------- | --------------------------------- | ---------------------------------- |
-| Build tool       | Vite                              | Fast dev server, bundling          |
-| Framework        | React + TypeScript                | UI rendering, type safety          |
-| Styling          | Tailwind CSS                      | Utility-first CSS                  |
-| Component system | shadcn/ui (Radix UI primitives)   | Accessible, customizable UI kit    |
-| Data tables      | TanStack Table                    | Headless table logic               |
-| Charts           | Recharts                          | Composable chart components        |
-| Forms            | React Hook Form + Zod             | Performant forms, runtime schemas  |
-| Shared schemas   | Zod (shared package)              | Validation shared with backend     |
-| Theming          | Tailwind + CSS variables          | Dark mode from day one             |
+| Layer            | Technology                      | Purpose                           |
+| ---------------- | ------------------------------- | --------------------------------- |
+| Build tool       | Vite                            | Fast dev server, bundling         |
+| Framework        | React + TypeScript              | UI rendering, type safety         |
+| Styling          | Tailwind CSS                    | Utility-first CSS                 |
+| Component system | shadcn/ui (Radix UI primitives) | Accessible, customizable UI kit   |
+| Data tables      | TanStack Table                  | Headless table logic              |
+| Charts           | Recharts                        | Composable chart components       |
+| Forms            | React Hook Form + Zod           | Performant forms, runtime schemas |
+| Shared schemas   | Zod (shared package)            | Validation shared with backend    |
+| Theming          | Tailwind + CSS variables        | Dark mode from day one            |
 
 ## Why This Stack
 
 ### No server-side rendering
 
-This is a web game, not a content site. There is no SEO requirement. Vite + React
-gives us a fast SPA with simple deployment — no SSR complexity, no hydration
-bugs, no server infrastructure for the frontend.
+This is a web game, not a content site. There is no SEO requirement. Vite +
+React gives us a fast SPA with simple deployment — no SSR complexity, no
+hydration bugs, no server infrastructure for the frontend.
 
 ### Tailwind CSS + shadcn/ui
 
@@ -46,9 +46,9 @@ Why this matters for the project:
 
 ### TanStack Table + Recharts
 
-Data tables and charts are the two most important UI elements in the application.
-Rosters, draft boards, cap sheets, scouting reports, player comparisons — nearly
-every screen is a table, a chart, or both.
+Data tables and charts are the two most important UI elements in the
+application. Rosters, draft boards, cap sheets, scouting reports, player
+comparisons — nearly every screen is a table, a chart, or both.
 
 - **TanStack Table** is headless — it provides sorting, filtering, pagination,
   column resizing, and row selection as logic, not as a styled component. We
@@ -128,10 +128,10 @@ more code to the flow.
 
 Components live in one of two places:
 
-| Location                      | Scope                                           |
-| ----------------------------- | ----------------------------------------------- |
-| `src/components/`             | Shared across features                          |
-| `src/features/<name>/components/` | Scoped to a single feature                  |
+| Location                          | Scope                      |
+| --------------------------------- | -------------------------- |
+| `src/components/`                 | Shared across features     |
+| `src/features/<name>/components/` | Scoped to a single feature |
 
 **The rule:** if a component is used by more than one feature, it moves to
 `src/components/`. If it is only used within a single feature, it stays scoped

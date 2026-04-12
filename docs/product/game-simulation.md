@@ -8,29 +8,31 @@ into game outcomes.
 ## Design Philosophy
 
 The sim doesn't need to be a play-by-play action game. It needs to produce
-**believable, interesting results** that reward good team-building decisions.
-A well-constructed roster with good scheme fit and quality coaching should
-win more than it loses — but not always. Upsets happen. Injuries happen. Bad
-bounces happen. That variance is what makes each season unpredictable.
+**believable, interesting results** that reward good team-building decisions. A
+well-constructed roster with good scheme fit and quality coaching should win
+more than it loses — but not always. Upsets happen. Injuries happen. Bad bounces
+happen. That variance is what makes each season unpredictable.
 
 ### Fidelity Spectrum
 
 The simulation can operate at different levels of fidelity:
 
 **Box score level (MVP / starting point)**
-- Produces a final score and key stats (passing yards, rushing yards,
-  turnovers, etc.)
-- Scheme matchups, personnel quality, and coaching modifiers determine
-  outcomes
+
+- Produces a final score and key stats (passing yards, rushing yards, turnovers,
+  etc.)
+- Scheme matchups, personnel quality, and coaching modifiers determine outcomes
 - Fast to compute, easy to validate
 
 **Drive-level simulation**
+
 - Each game is a series of drives with outcomes (touchdown, field goal, punt,
   turnover)
 - More granular stats and a sense of game flow
 - Enables comeback narratives, clock management, momentum swings
 
 **Play-by-play simulation (aspirational)**
+
 - Individual play outcomes
 - Full box scores with realistic stat distributions
 - Game logs you can read through
@@ -72,8 +74,8 @@ Even a dominant team should lose occasionally:
 
 - Turnovers are high-variance
 - Injuries during games can change outcomes
-- Any given Sunday — the worst team in the league can beat the best on the
-  right day
+- Any given Sunday — the worst team in the league can beat the best on the right
+  day
 
 ### Positional importance reflects real football
 
@@ -106,13 +108,12 @@ Relevant attributes for the play context
 
 This means the same player can dominate in one context and disappear in another.
 A power back with elite strength and poor speed will thrive in short yardage and
-struggle in the open field. Better players have great games more often — but
-any given play depends on which attributes are relevant.
+struggle in the open field. Better players have great games more often — but any
+given play depends on which attributes are relevant.
 
 ### Injuries
 
-- Injuries occur during games based on durability, position risk, and
-  randomness
+- Injuries occur during games based on durability, position risk, and randomness
 - Severity ranges from missing a play to season-ending
 - Injury-prone players get hurt more often
 - Playing a not-fully-recovered player risks re-injury
@@ -128,9 +129,9 @@ for the full model. The key dynamics at season level:
 
 ### Mid-season coaching changes
 
-Firing a coach mid-season has immediate consequences on game simulation —
-this isn't a clean offseason transition. See [Coaches](./coaches.md) for
-the full system; the key sim-level effects:
+Firing a coach mid-season has immediate consequences on game simulation — this
+isn't a clean offseason transition. See [Coaches](./coaches.md) for the full
+system; the key sim-level effects:
 
 - **Scheme fit disruption** — players lose their scheme fit alignment
   immediately; the new coach's tendencies demand different attributes, and
@@ -138,25 +139,25 @@ the full system; the key sim-level effects:
   following a coaching change, especially if the new scheme is fundamentally
   different from the old one.
 - **Staff disruption** — a fired HC often means coordinators and position
-  coaches leave too (see [Coaches — Firing Consequences](./coaches.md)).
-  Interim or hastily-hired replacements are typically less effective than
-  established staff, further depressing game-day performance.
+  coaches leave too (see [Coaches — Firing Consequences](./coaches.md)). Interim
+  or hastily-hired replacements are typically less effective than established
+  staff, further depressing game-day performance.
 - **Morale impact** — players loyal to the fired coach may see morale dip,
-  affecting effort and consistency. Other players may get a motivational
-  boost from the change. The net effect depends on the locker room dynamics.
+  affecting effort and consistency. Other players may get a motivational boost
+  from the change. The net effect depends on the locker room dynamics.
 - **New coach learning curve** — a mid-season hire starts from scratch
-  evaluating the roster. His initial depth chart decisions may be wrong,
-  and his game-planning against opponents he hasn't studied is less
-  effective. This improves week over week but costs games early.
-- **Scheme transition timeline** — young players adapt faster than veterans
-  (see [Schemes & Strategy — Scheme Transitions](./schemes-and-strategy.md)).
-  A mid-season change doesn't allow a full installation — the new coach runs
-  a simplified version of his system until the offseason.
+  evaluating the roster. His initial depth chart decisions may be wrong, and his
+  game-planning against opponents he hasn't studied is less effective. This
+  improves week over week but costs games early.
+- **Scheme transition timeline** — young players adapt faster than veterans (see
+  [Schemes & Strategy — Scheme Transitions](./schemes-and-strategy.md)). A
+  mid-season change doesn't allow a full installation — the new coach runs a
+  simplified version of his system until the offseason.
 
-The sim should reflect that mid-season coaching changes are disruptive in
-the short term, even when they're the right long-term decision. A team that
-fires its coach in week 8 and immediately starts winning is the exception,
-not the rule.
+The sim should reflect that mid-season coaching changes are disruptive in the
+short term, even when they're the right long-term decision. A team that fires
+its coach in week 8 and immediately starts winning is the exception, not the
+rule.
 
 ### Retirement
 

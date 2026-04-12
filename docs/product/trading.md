@@ -15,11 +15,11 @@ fill out a form and click "propose." It's the back-and-forth: "I'll give you my
 ### No visible trade values
 
 Human players never see a trade value number attached to a player or pick. Real
-GMs don't have a number hovering over a player that says "trade value: 73."
-They use judgment, context, scouting, and negotiation.
+GMs don't have a number hovering over a player that says "trade value: 73." They
+use judgment, context, scouting, and negotiation.
 
 If we show trade values, trades become math — "my 75 for your 73 plus a pick."
-If we hide them, trades become *arguments*, which is way more fun. You learn
+If we hide them, trades become _arguments_, which is way more fun. You learn
 what the market values by making offers and seeing reactions.
 
 The NPC AI uses an internal value model, but it's opaque to the player.
@@ -113,8 +113,8 @@ The trade deadline should create urgency and drama:
 
 NPC teams don't just wait for you to call. They:
 
-- **Initiate trade offers to you** — "The Packers are interested in your
-  veteran DE and are offering a 3rd round pick"
+- **Initiate trade offers to you** — "The Packers are interested in your veteran
+  DE and are offering a 3rd round pick"
 - **Trade with each other** — you check the news feed and see deals you had
   nothing to do with. The league is alive.
 - **Shop players** — an NPC in rebuild mode might let it be known that their
@@ -134,11 +134,11 @@ Different AI archetypes approach trades differently:
   contracts that other teams want to dump, exploit desperation
 - **"Old School" GMs** prefer to build through the draft, skeptical of
   blockbuster trades, value "their guys"
-- **"Gambler" GMs** *(rare)* the most active traders in the league; initiate
+- **"Gambler" GMs** _(rare)_ the most active traders in the league; initiate
   blockbuster offers constantly, trade up aggressively in the draft, always
-  willing to mortgage future picks for the player they're convinced about;
-  they warp the trade market when they're in your league — other GMs can
-  exploit their impulsiveness or get outbid when they drive up the price
+  willing to mortgage future picks for the player they're convinced about; they
+  warp the trade market when they're in your league — other GMs can exploit
+  their impulsiveness or get outbid when they drive up the price
 
 ### NPC trade evaluation
 
@@ -147,8 +147,8 @@ The AI should feel like a tough but fair negotiator:
 - **No fleecing**: The AI won't accept wildly lopsided trades. You should be
   able to "win" a trade, but not rob a team blind.
 - **Context-aware**: An NPC in rebuild mode values future picks more. An NPC
-  contender values win-now players more. The same player has different value
-  to different teams.
+  contender values win-now players more. The same player has different value to
+  different teams.
 - **Scheme-aware**: An NPC running a 3-4 values 3-4 players more. They might
   sell a player who doesn't fit their scheme at a discount.
 - **Not a brick wall**: If you're offering fair value, the AI should engage.
