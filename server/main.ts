@@ -1,41 +1,60 @@
 import { Hono } from "hono";
-import { serveStatic } from "hono/deno";
+import { serveStatic } from "hono/adapter/deno";
 import { db } from "./db/connection.ts";
 import { sql } from "drizzle-orm";
+import { DomainError } from "@zone-blitz/shared";
+import { logger } from "./logger.ts";
+import { requestContextMiddleware } from "./middleware/request-context.ts";
+import { loggerMiddleware } from "./middleware/logger.ts";
 import { spaRouteGuard } from "./middleware/spa-fallback.ts";
-
-const app = new Hono();
+import { createFeatureRouters } from "./features/mod.ts";
+import type { AppEnv } from "./env.ts";
 
 const GIT_SHA = Deno.env.get("GIT_SHA") ?? "unknown";
+const isProduction = Deno.env.get("DENO_ENV") === "production";
 
-app.get("/api/health", async (c) => {
-  try {
-    await db.execute(sql`SELECT 1`);
-    return c.json({ status: "ok", commit: GIT_SHA });
-  } catch {
-    return c.json({ status: "error", commit: GIT_SHA }, 500);
+const features = createFeatureRouters({ db, log: logger });
+
+const app = new Hono<AppEnv>()
+  .use(requestContextMiddleware(logger))
+  .use(loggerMiddleware())
+  .get("/api/health", async (c) => {
+    try {
+      await db.execute(sql`SELECT 1`);
+      return c.json({ status: "ok", commit: GIT_SHA });
+    } catch {
+      return c.json({ status: "error", commit: GIT_SHA }, 500);
+    }
+  })
+  .route("/api/leagues", features.leagueRouter);
+
+// Domain error handler
+app.onError((err, c) => {
+  if (err instanceof DomainError) {
+    return c.json({ error: err.code, message: err.message }, 400);
   }
+  const log = c.get("log");
+  log.error({ err }, "unhandled error");
+  return c.json({ error: "INTERNAL" }, 500);
 });
 
-// In production, serve the built client assets
-if (Deno.env.get("DENO_ENV") === "production") {
+// Production static asset serving
+if (isProduction) {
   app.use("/*", serveStatic({ root: "../client/dist" }));
 }
-
 app.get("/*", spaRouteGuard());
-
-if (Deno.env.get("DENO_ENV") === "production") {
+if (isProduction) {
   app.get("/*", serveStatic({ root: "../client/dist", path: "index.html" }));
 }
 
-if (import.meta.main) {
-  const isProduction = Deno.env.get("DENO_ENV") === "production";
+export type AppType = typeof app;
 
+if (import.meta.main) {
   Deno.serve({
     port: 3000,
     onListen: ({ hostname, port }) => {
       if (isProduction) {
-        console.log(`Listening on http://${hostname}:${port}/`);
+        logger.info({ hostname, port }, "server started");
       } else {
         const bold = (s: string) => `\x1b[1m${s}\x1b[0m`;
         const cyan = (s: string) => `\x1b[36m${s}\x1b[0m`;

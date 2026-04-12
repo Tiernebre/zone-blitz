@@ -8,7 +8,8 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "paths": {
-      "@zone-blitz/shared": ["../packages/shared/mod.ts"]
+      "@zone-blitz/shared": ["../packages/shared/mod.ts"],
+      "@zone-blitz/server": ["../server/main.ts"]
     }
   },
   "include": ["src"]
