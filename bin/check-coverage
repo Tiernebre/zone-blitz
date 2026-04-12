@@ -1,0 +1,37 @@
+#!/bin/sh
+# Checks that Deno test coverage meets the 100% threshold.
+# Expects coverage profiles in coverage/ (written by `deno test --coverage`).
+
+set -e
+
+output=$(NO_COLOR=1 deno coverage coverage/ 2>&1)
+echo "$output"
+
+all_files_line=$(echo "$output" | grep "^| All files")
+
+if [ -z "$all_files_line" ]; then
+  echo "error: no 'All files' line found in coverage output"
+  exit 1
+fi
+
+# Extract the three percentage values from the "All files" row
+branch=$(echo "$all_files_line" | awk -F'|' '{print $3}' | tr -d ' ')
+func=$(echo "$all_files_line" | awk -F'|' '{print $4}' | tr -d ' ')
+line=$(echo "$all_files_line" | awk -F'|' '{print $5}' | tr -d ' ')
+
+failed=0
+
+for metric in "branch:$branch" "function:$func" "line:$line"; do
+  name="${metric%%:*}"
+  value="${metric#*:}"
+  if [ "$value" != "100.0" ]; then
+    echo "error: $name coverage is $value%, expected 100.0%"
+    failed=1
+  fi
+done
+
+if [ "$failed" -eq 1 ]; then
+  exit 1
+fi
+
+echo "All coverage thresholds met (100%)."
