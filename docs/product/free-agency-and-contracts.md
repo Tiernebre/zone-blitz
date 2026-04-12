@@ -2,8 +2,8 @@
 
 Free agency is the other half of team-building, and it should feel
 fundamentally different from trading. Trading is a negotiation between two
-parties. Free agency is a blind auction — you're bidding against 31 other teams
-and you can't see their offers.
+parties. Free agency is a blind auction — you're bidding against every other team
+in the league and you can't see their offers.
 
 ## Design Philosophy
 
