@@ -82,3 +82,5 @@ Each of these has a dedicated vision document:
   mechanical effects of public perception
 - [Owners](./owners.md) — the authority above the GM; personality, patience,
   directives, and job security
+- [Teams & Branding](./teams-and-branding.md) — fictional franchises, market
+  size, relocation, divisions, visual identity, and custom team uploads
