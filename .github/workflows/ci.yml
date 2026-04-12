@@ -50,7 +50,14 @@ jobs:
         with:
           deno-version: v2.7.11
       - run: deno install
-      - run: deno task test
+      - name: Run migrations
+        run: deno task db:migrate
+        env:
+          DATABASE_URL: postgres://zone_blitz:zone_blitz@localhost:5432/zone_blitz
+      - name: Run tests
+        run: deno task test
+        env:
+          DATABASE_URL: postgres://zone_blitz:zone_blitz@localhost:5432/zone_blitz
 
   e2e:
     name: E2E Tests
