@@ -7,6 +7,7 @@ COPY deno.json deno.lock ./
 COPY server/deno.json ./server/
 COPY client/deno.json client/package.json ./client/
 COPY packages/shared/deno.json ./packages/shared/
+COPY e2e/deno.json ./e2e/
 RUN deno install
 
 # Build stage: build the client
