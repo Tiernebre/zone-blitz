@@ -92,18 +92,18 @@ what the file does.
 These are components wired together through the composition root. They receive
 dependencies via factory function parameters.
 
-| Suffix             | Role                                                      |
-| ------------------ | --------------------------------------------------------- |
-| `.router.ts`       | Hono route group — validates input (Zod), delegates to services, returns responses. No business logic. |
-| `.service.ts`      | Business logic — domain rule enforcement, orchestration across repositories and other services. No direct DB access. |
-| `.repository.ts`   | Data access — Drizzle queries. Returns domain-shaped data. No business logic. |
+| Suffix           | Role                                                                                                                 |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `.router.ts`     | Hono route group — validates input (Zod), delegates to services, returns responses. No business logic.               |
+| `.service.ts`    | Business logic — domain rule enforcement, orchestration across repositories and other services. No direct DB access. |
+| `.repository.ts` | Data access — Drizzle queries. Returns domain-shaped data. No business logic.                                        |
 
 ### Declarative files
 
-| Suffix             | Role                                                      |
-| ------------------ | --------------------------------------------------------- |
-| `.schema.ts`       | Drizzle table definitions for this feature's tables.      |
-| `mod.ts`           | Barrel file — the feature's public API. Only file imported by the composition root. |
+| Suffix       | Role                                                                                |
+| ------------ | ----------------------------------------------------------------------------------- |
+| `.schema.ts` | Drizzle table definitions for this feature's tables.                                |
+| `mod.ts`     | Barrel file — the feature's public API. Only file imported by the composition root. |
 
 ### Pure domain logic files
 
@@ -123,9 +123,9 @@ If it's pure computation, it's a named domain logic file.**
 
 ### Tests
 
-| Suffix             | Role                                                      |
-| ------------------ | --------------------------------------------------------- |
-| `.test.ts`         | Colocated test file. Named after the file under test (`draft.service.test.ts` tests `draft.service.ts`). |
+| Suffix     | Role                                                                                                     |
+| ---------- | -------------------------------------------------------------------------------------------------------- |
+| `.test.ts` | Colocated test file. Named after the file under test (`draft.service.test.ts` tests `draft.service.ts`). |
 
 ---
 
@@ -259,14 +259,11 @@ import { authenticated } from "../../middleware/auth.ts";
 export function createDraftRouter(draftService: DraftService) {
   return new Hono<AuthedEnv>()
     .use(authenticated())
-    .post("/pick",
-      zValidator("json", pickInputSchema),
-      async (c) => {
-        const input = c.req.valid("json");
-        const result = await draftService.makePick(input);
-        return c.json(result);
-      },
-    )
+    .post("/pick", zValidator("json", pickInputSchema), async (c) => {
+      const input = c.req.valid("json");
+      const result = await draftService.makePick(input);
+      return c.json(result);
+    })
     .get("/current-pick/:draftId", async (c) => {
       const pick = await draftService.getCurrentPick(c.req.param("draftId"));
       return c.json(pick);
@@ -276,9 +273,9 @@ export function createDraftRouter(draftService: DraftService) {
 
 ### Why factory functions, not classes
 
-Factory functions returning interface-typed objects are lighter than classes. The
-destructured `deps` parameter is constructor injection without the ceremony. The
-return type is the interface — callers never see the implementation shape.
+Factory functions returning interface-typed objects are lighter than classes.
+The destructured `deps` parameter is constructor injection without the ceremony.
+The return type is the interface — callers never see the implementation shape.
 
 That said — if a feature grows complex enough that a class with methods reads
 cleaner, use a class. The convention is **the interface**, not the
@@ -306,9 +303,17 @@ only place that knows which concrete implementations fulfill which interfaces.
 // server/features/mod.ts
 import type { Database } from "../db/connection.ts";
 import { logger } from "../logger.ts";
-import { createDraftRepository, createDraftService, createDraftRouter } from "./draft/mod.ts";
+import {
+  createDraftRepository,
+  createDraftRouter,
+  createDraftService,
+} from "./draft/mod.ts";
 import { createRosterRepository } from "./roster/mod.ts";
-import { createLeagueRepository, createLeagueService, createLeagueRouter } from "./league/mod.ts";
+import {
+  createLeagueRepository,
+  createLeagueRouter,
+  createLeagueService,
+} from "./league/mod.ts";
 
 export function createFeatureRouters(db: Database) {
   const log = logger;
@@ -374,15 +379,12 @@ import { authenticated } from "../../middleware/auth.ts";
 export function createLeagueRouter(leagueService: LeagueService) {
   return new Hono<AuthedEnv>()
     .use(authenticated())
-    .post("/",
-      zValidator("json", createLeagueSchema),
-      async (c) => {
-        const user = c.get("user");
-        const input = c.req.valid("json");
-        const league = await leagueService.create(user.id, input);
-        return c.json(league);
-      },
-    )
+    .post("/", zValidator("json", createLeagueSchema), async (c) => {
+      const user = c.get("user");
+      const input = c.req.valid("json");
+      const league = await leagueService.create(user.id, input);
+      return c.json(league);
+    })
     .get("/:id", async (c) => {
       const league = await leagueService.getById(c.req.param("id"));
       return c.json(league);
@@ -498,7 +500,7 @@ export const api = hc<AppType>("/");
 
 ```typescript
 // client/src/hooks/use-leagues.ts
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api.ts";
 
 export function useLeagues() {
@@ -534,9 +536,7 @@ function LeagueListPage() {
 
   return (
     <>
-      {leagues?.map((league) => (
-        <LeagueCard key={league.id} league={league} />
-      ))}
+      {leagues?.map((league) => <LeagueCard key={league.id} league={league} />)}
       <button onClick={() => createLeague.mutate({ name: "..." })}>
         Create League
       </button>
@@ -565,8 +565,8 @@ import { createLeagueSchema } from "@zone-blitz/shared";
 )
 ```
 
-Validation targets: `"json"` for request bodies, `"query"` for query
-parameters, `"param"` for URL parameters.
+Validation targets: `"json"` for request bodies, `"query"` for query parameters,
+`"param"` for URL parameters.
 
 ---
 
@@ -784,9 +784,9 @@ These are domain concepts with names — not utilities.
 
 ## Simulation and AI Packages
 
-The `simulation` and `ai` packages are separate Deno workspace members. They
-are **pure** — no I/O, no database, no HTTP. They implement interfaces defined
-in `@zone-blitz/shared`.
+The `simulation` and `ai` packages are separate Deno workspace members. They are
+**pure** — no I/O, no database, no HTTP. They implement interfaces defined in
+`@zone-blitz/shared`.
 
 ### Package structure
 
@@ -837,7 +837,7 @@ export function createFeatureRouters(db: Database) {
 
   // ... routers ...
 
-  return { /* ... */ };
+  return {/* ... */};
 }
 ```
 
@@ -891,9 +891,9 @@ queries and migrations work correctly. No mocking the database.
 ```typescript
 Deno.test("calculateSnakeOrder reverses direction each round", () => {
   const order = calculateSnakeOrder(4, 3);
-  assertEquals(order[0].teamIndex, 0);  // Round 1: 0,1,2,3
-  assertEquals(order[4].teamIndex, 3);  // Round 2: 3,2,1,0
-  assertEquals(order[8].teamIndex, 0);  // Round 3: 0,1,2,3
+  assertEquals(order[0].teamIndex, 0); // Round 1: 0,1,2,3
+  assertEquals(order[4].teamIndex, 3); // Round 2: 3,2,1,0
+  assertEquals(order[8].teamIndex, 0); // Round 3: 0,1,2,3
 });
 ```
 
@@ -940,8 +940,8 @@ makes every cross-feature relationship explicit.
 ### Schema ownership
 
 Each feature defines its own tables in its `.schema.ts` file. A top-level
-`db/schema.ts` re-exports all feature schemas so `drizzle-kit` sees the
-complete database.
+`db/schema.ts` re-exports all feature schemas so `drizzle-kit` sees the complete
+database.
 
 ```typescript
 // server/db/schema.ts
