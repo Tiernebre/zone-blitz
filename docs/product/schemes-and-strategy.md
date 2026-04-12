@@ -1,10 +1,13 @@
 # Schemes & Strategy
 
-Football schemes are the connective tissue of the entire game. Your scheme
-defines what kind of players you need, which prospects you value, which free
-agents you target, and how your team performs on the field. Changing your scheme
-is one of the biggest decisions you can make — it ripples through every other
-system.
+Football schemes are the connective tissue of the entire game. Your team's
+scheme defines what kind of players you need, which prospects you value, which
+free agents you target, and how your team performs on the field. But you don't
+pick a scheme from a menu — **your coaches determine your scheme**. You want to
+run a 3-4 defense? Hire a DC who runs a 3-4. You want a spread offense? Hire an
+OC who installs one. Your scheme decision is a coaching hire decision, and
+changing your scheme means changing your coaches — which ripples through every
+other system.
 
 ## Why Schemes Matter
 
@@ -251,13 +254,21 @@ talent still matters most — but scheme advantages create edges:
 
 ### Scheme Transitions
 
-Changing schemes is costly:
+Changing coaches means changing schemes, and changing schemes is costly:
 
 - Players lose their scheme fit bonus during transition (1-2 season adjustment)
 - Some players may never fit the new scheme and need to be moved
 - Young players adapt faster than veterans
 - Coaching staff continuity accelerates the transition
-- The payoff is worth it if the new scheme better fits your long-term vision
+- The payoff is worth it if the new coaching staff better fits your long-term
+  roster vision
 
-This creates one of the game's deepest strategic questions: do you build your
-scheme around your players, or build your roster around your scheme?
+This is why firing a coach is never just about the coach — it's about the
+cascade. A new DC who runs a Cover 3 inherits a roster built for Cover 2.
+Your $15M free safety you signed for his range is now a box safety in a
+scheme that needs a different skill set. The coaching hire decision IS the
+scheme decision, and both are roster decisions.
+
+This creates one of the game's deepest strategic questions: do you hire
+coaches who fit your current players, or draft players who fit the coaches
+you want?
