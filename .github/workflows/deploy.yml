@@ -85,7 +85,7 @@ jobs:
         run: |
           expected="${{ github.sha }}"
           for i in $(seq 1 10); do
-            body=$(curl -s http://${{ secrets.DROPLET_IP }}/api/health || echo "")
+            body=$(curl -s https://zoneblitz.app/api/health || echo "")
             commit=$(printf '%s' "$body" | jq -r '.commit // empty' 2>/dev/null || echo "")
             if [ "$commit" = "$expected" ]; then
               echo "Health check passed: /api/health.commit = $commit"
