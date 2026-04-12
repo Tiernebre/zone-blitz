@@ -3,3 +3,4 @@ node_modules/
 .claude/worktrees/
 scheduled_tasks.lock
 dist/
+coverage/

@@ -49,5 +49,15 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     setupFiles: [],
+    coverage: {
+      provider: "v8",
+      enabled: true,
+      thresholds: {
+        lines: 100,
+        functions: 100,
+        branches: 100,
+        statements: 100,
+      },
+    },
   },
 });

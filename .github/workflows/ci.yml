@@ -58,6 +58,8 @@ jobs:
         run: deno task test
         env:
           DATABASE_URL: postgres://zone_blitz:zone_blitz@localhost:5432/zone_blitz
+      - name: Check Deno coverage thresholds
+        run: deno task test:coverage
 
   e2e:
     name: E2E Tests
