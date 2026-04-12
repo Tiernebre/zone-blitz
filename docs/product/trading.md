@@ -134,6 +134,11 @@ Different AI archetypes approach trades differently:
   contracts that other teams want to dump, exploit desperation
 - **"Old School" GMs** prefer to build through the draft, skeptical of
   blockbuster trades, value "their guys"
+- **"Gambler" GMs** *(rare)* the most active traders in the league; initiate
+  blockbuster offers constantly, trade up aggressively in the draft, always
+  willing to mortgage future picks for the player they're convinced about;
+  they warp the trade market when they're in your league — other GMs can
+  exploit their impulsiveness or get outbid when they drive up the price
 
 ### NPC trade evaluation
 

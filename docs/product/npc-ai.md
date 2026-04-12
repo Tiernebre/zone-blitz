@@ -82,10 +82,13 @@ offenses. Overpays for "football players" — big linemen, physical backs, tough
 linebackers. Dismissive of smaller, faster players regardless of production.
 Hires coaches who share the philosophy.
 
-**"The Gambler"**
-High risk tolerance, loves trades, always in motion. Will trade three firsts
-to move up for "their guy." Makes splashy free agent signings. The roster is
-always in flux. Exciting to watch, inconsistent results.
+**"The Gambler"** *(rare)*
+The rarest archetype — most leagues will have one or two at most. High risk
+tolerance, loves trades, always in motion. Will trade three firsts to move up
+for "their guy." Makes splashy free agent signings. The roster is always in
+flux. Exciting to watch, inconsistent results. When a Gambler GM lands in your
+league, everyone notices — he warps the trade market, overpays in free agency,
+and creates chaos that other GMs can exploit or get burned by.
 
 ## Front Office Decision-Making
 
