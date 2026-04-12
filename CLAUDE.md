@@ -57,3 +57,5 @@
      worktree's `main` ref catches up.
 - After a PR is pushed, immediately exit/delete the worktree and return to
   `main`.
+- PR descriptions should include a **Summary** section only. Do not add a test
+  plan section.
