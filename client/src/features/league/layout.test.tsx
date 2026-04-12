@@ -30,4 +30,11 @@ describe("LeagueLayout", () => {
     render(<LeagueLayout />);
     expect(screen.getByRole("navigation")).toBeDefined();
   });
+
+  it("renders a link back to the league select page", () => {
+    render(<LeagueLayout />);
+    const backLink = screen.getByRole("link", { name: /leagues/i });
+    expect(backLink).toBeDefined();
+    expect(backLink.getAttribute("href")).toBe("/");
+  });
 });
