@@ -70,32 +70,39 @@ The gap between truth and perception is the game:
 
 ### Prospect traits and intangibles
 
-Beyond physical and skill attributes, every prospect has traits that affect
-their career trajectory:
+Beyond physical and technical attributes, every prospect has mental attributes
+and personality traits that affect their career trajectory. These are defined
+in [Player Attributes](./player-attributes.md) — the same attributes that
+drive every player in the simulation also exist on prospects before the draft.
 
-- **Work ethic**: High work ethic accelerates development. Low work ethic means
-  talent might never be realized.
-- **Football IQ**: Affects how quickly they learn a scheme and make in-game
-  adjustments. Critical for QBs and MLB.
-- **Durability**: Injury proneness. Some players are iron men; others are always
-  one hit away from missing time.
-- **Consistency**: High-consistency players perform near their ability every
-  game. Low-consistency players have wide variance — brilliant one week,
-  invisible the next.
-- **Clutch factor**: How they perform under pressure. Playoffs, 4th quarter,
-  prime time.
-- **Leadership**: Locker room presence. High-leadership players can elevate
-  teammates (small but real effect).
-- **Character concerns**: Off-field risk. A prospect with character red flags
-  might be fine, or might be a locker room problem. Some scouts weigh this
-  heavily; others ignore it.
-- **Coachability**: How well they respond to coaching. High coachability +
-  great coaching staff = accelerated development.
+What makes these traits special for drafting is that **they're the hardest
+things to scout accurately**. Physical measurables are relatively objective —
+you can time a 40. Technical skills show up on film. But a prospect's mental
+makeup and personality are opaque:
 
-These traits are **hard to scout accurately**. Physical measurables are
-relatively objective (you can time a 40). But "work ethic" and "football IQ"
-are subjective assessments that scouts get wrong all the time. This is where
-scouting depth and scout quality really matter.
+- **Work ethic, coachability, football IQ** — the traits that determine
+  development trajectory. A scout gets a few interviews and background calls
+  to assess years of hidden habits. High-work-ethic players who seem lazy in
+  interviews, and lazy players who interview brilliantly, are both common
+  scouting traps.
+- **Composure, clutch, consistency** — how a prospect handles pressure,
+  big moments, and week-to-week variance. College data is noisy — a
+  prospect who was "clutch" against Big 12 defenses might fold against
+  NFL pressure. Small sample sizes make these almost impossible to
+  evaluate with confidence.
+- **Leadership** — locker room presence and impact on teammates. Some
+  prospects are obvious leaders. Others are quiet until they earn trust.
+  Scouts overvalue vocal leadership and undervalue the subtle kind.
+- **Personality traits** (greed, loyalty, ambition, vanity, scheme
+  attachment, media sensitivity) — these drive off-field decisions but are
+  nearly invisible in a pre-draft setting. A prospect's agent, interview
+  demeanor, and college decision history provide faint signals, but
+  personality is the area scouts get wrong most often.
+
+This is where scouting depth and scout quality really matter. A quick look
+might surface physical and technical assessments. Getting a real read on
+mental and personality traits requires deep dives, multiple interviews, and
+extensive background work — and even then, scouts get it wrong all the time.
 
 ---
 
