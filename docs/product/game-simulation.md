@@ -126,6 +126,38 @@ Player development and decline are driven by the attribute system — see
 [Player Attributes: Progression and Regression](./player-attributes.md#progression-and-regression)
 for the full model. The key dynamics at season level:
 
+### Mid-season coaching changes
+
+Firing a coach mid-season has immediate consequences on game simulation —
+this isn't a clean offseason transition. See [Coaches](./coaches.md) for
+the full system; the key sim-level effects:
+
+- **Scheme fit disruption** — players lose their scheme fit alignment
+  immediately; the new coach's tendencies demand different attributes, and
+  players haven't had time to adjust. Expect a performance dip in the weeks
+  following a coaching change, especially if the new scheme is fundamentally
+  different from the old one.
+- **Staff disruption** — a fired HC often means coordinators and position
+  coaches leave too (see [Coaches — Firing Consequences](./coaches.md)).
+  Interim or hastily-hired replacements are typically less effective than
+  established staff, further depressing game-day performance.
+- **Morale impact** — players loyal to the fired coach may see morale dip,
+  affecting effort and consistency. Other players may get a motivational
+  boost from the change. The net effect depends on the locker room dynamics.
+- **New coach learning curve** — a mid-season hire starts from scratch
+  evaluating the roster. His initial depth chart decisions may be wrong,
+  and his game-planning against opponents he hasn't studied is less
+  effective. This improves week over week but costs games early.
+- **Scheme transition timeline** — young players adapt faster than veterans
+  (see [Schemes & Strategy — Scheme Transitions](./schemes-and-strategy.md)).
+  A mid-season change doesn't allow a full installation — the new coach runs
+  a simplified version of his system until the offseason.
+
+The sim should reflect that mid-season coaching changes are disruptive in
+the short term, even when they're the right long-term decision. A team that
+fires its coach in week 8 and immediately starts winning is the exception,
+not the rule.
+
 ### Retirement
 
 - Players retire based on age, performance decline, and personality
