@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import type { Database } from "../db/connection.ts";
 import type pino from "pino";
 import { createHealthRouter, createHealthService } from "./health/mod.ts";
+import { createAuth, createAuthRouter } from "./auth/mod.ts";
 import {
   createLeagueRepository,
   createLeagueRouter,
@@ -23,6 +24,10 @@ export function createFeatureRouters(
   });
   const healthRouter = createHealthRouter(healthService);
 
+  // Auth
+  const auth = createAuth({ db });
+  const authRouter = createAuthRouter(auth);
+
   // Repositories
   const leagueRepo = createLeagueRepository({ db, log });
 
@@ -32,5 +37,5 @@ export function createFeatureRouters(
   // Routers
   const leagueRouter = createLeagueRouter(leagueService);
 
-  return { healthRouter, leagueRouter };
+  return { auth, authRouter, healthRouter, leagueRouter };
 }
