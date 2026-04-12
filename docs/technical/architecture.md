@@ -15,6 +15,7 @@ structure, and design philosophy that all implementation work builds on.
 | API              | tRPC                              | End-to-end type safety with zero codegen; migrateable to GraphQL |
 | Database         | PostgreSQL                        | Relational data with complex queries (cap math, historical stats)|
 | DB access        | Drizzle ORM                       | Type-safe SQL, first-class migrations, schema-as-code            |
+| Authentication   | Better Auth (Google OAuth)        | Drizzle adapter, session-based, OAuth-only                       |
 | Realtime         | WebSockets                        | Live drafts, trade negotiations, multiplayer coordination        |
 | Monorepo         | TypeScript workspace packages     | Enforced dependency boundaries between layers                    |
 
@@ -58,6 +59,30 @@ Key properties:
 - **Two query APIs.** The relational API handles simple reads cleanly. The core
   query builder handles complex domain queries as type-safe SQL. Both are
   available; use whichever fits.
+
+### Why Better Auth
+
+[Better Auth](https://www.better-auth.com/) handles authentication with a
+Drizzle adapter that shares the same database and schema definitions as the
+rest of the application. No separate auth database, no external auth service
+dependency.
+
+Configuration:
+
+- **OAuth-only.** Google as the social provider. No email/password — no
+  password reset flows, no email verification complexity. Adding providers
+  (Discord, GitHub) later is trivial with Better Auth's social provider API.
+- **Drizzle adapter.** Auth tables (user, session, account, verification) are
+  defined in the Drizzle schema alongside domain tables. Migrations are
+  unified — one migration history for the entire database.
+- **Session-based.** Better Auth manages sessions server-side with token-based
+  session lookup. The session provides the authenticated user identity that
+  tRPC procedures and WebSocket connections use for authorization.
+- **Auth schema is auth-only.** The `user` table managed by Better Auth
+  contains authentication concerns (email, OAuth accounts, sessions). Game
+  domain concepts (GM profile, league membership, franchise ownership) are
+  separate tables that reference the auth user by ID. NPC GMs are modeled
+  entirely outside the auth schema — they are domain entities, not users.
 
 ---
 
