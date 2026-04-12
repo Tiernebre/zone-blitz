@@ -14,6 +14,8 @@
   "tasks": {
     "setup": "./bin/setup",
     "dev": "./bin/dev",
+    "dev:server": "deno run --env --watch --allow-net --allow-env --allow-read --allow-sys server/main.ts",
+    "dev:client": "cd client && deno run -A npm:vite",
     "db:start": "docker compose up -d --wait",
     "db:stop": "docker compose down",
     "db:migrate": "cd server && deno run --env=../.env --allow-net --allow-env --allow-read --allow-sys db/migrate.ts",
