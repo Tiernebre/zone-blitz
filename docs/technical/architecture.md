@@ -10,23 +10,43 @@ structure, and design philosophy that all implementation work builds on.
 
 | Layer            | Choice                            | Rationale                                                        |
 | ---------------- | --------------------------------- | ---------------------------------------------------------------- |
-| Runtime          | Node.js + TypeScript              | Shared language with frontend; Zod schemas cross the boundary    |
+| Runtime          | Deno + TypeScript                 | Native TS, built-in tooling, shared language with frontend       |
 | Frontend         | Vite + React + Tailwind + shadcn/ui | SPA game UI; no SSR needed (see [UI Architecture](./ui-architecture.md)) |
 | API              | tRPC                              | End-to-end type safety with zero codegen; migrateable to GraphQL |
 | Database         | PostgreSQL                        | Relational data with complex queries (cap math, historical stats)|
 | DB access        | Drizzle ORM                       | Type-safe SQL, first-class migrations, schema-as-code            |
 | Authentication   | Better Auth (Google OAuth)        | Drizzle adapter, session-based, OAuth-only                       |
 | Realtime         | WebSockets                        | Live drafts, trade negotiations, multiplayer coordination        |
-| Monorepo         | TypeScript workspace packages     | Enforced dependency boundaries between layers                    |
+| Monorepo         | Deno workspace                    | Enforced dependency boundaries between layers                    |
+
+### Why Deno
+
+Deno runs TypeScript natively — no build step, no `ts-node`, no `tsconfig`
+gymnastics for the server. Write `.ts`, run it. This eliminates an entire
+layer of tooling configuration that accumulates friction over a long-lived
+project.
+
+Beyond native TypeScript, Deno provides:
+
+- **Built-in test runner.** `deno test` works out of the box with no
+  framework configuration. Tests are colocated with source files.
+- **Built-in formatter and linter.** `deno fmt` and `deno lint` replace
+  Prettier and ESLint config files.
+- **Deno workspaces.** Native monorepo support through `deno.json` workspace
+  configuration, enforcing package boundaries without third-party tooling.
+- **Web standard APIs.** fetch, WebSocket, streams — standards-aligned rather
+  than runtime-specific.
+- **Permissions model.** Explicit `--allow-net`, `--allow-env`, etc. provides
+  a security baseline.
 
 ### Why TypeScript end-to-end
 
 The simulation workload is **bursty, not sustained** — game sims run when the
-season advances, not continuously. Node.js handles this fine. The real payoff
+season advances, not continuously. Deno handles this fine. The real payoff
 is a single language across the entire stack with shared types and validation.
 
 The compute-heavy modules (simulation engine, NPC AI) are designed as pure,
-extractable packages. If we outgrow Node's performance ceiling — realistically,
+extractable packages. If we outgrow Deno's performance ceiling — realistically,
 when play-by-play simulation with thousands of play resolutions per game
 becomes sluggish — we extract those packages to Go or Rust behind the same
 interfaces. The API layer, multiplayer coordination, and database access stay
@@ -393,7 +413,7 @@ Trade executes
 ## Future Extraction Path
 
 The architecture is designed so that the `simulation` and `ai` packages can be
-extracted from the Node.js monorepo into standalone services without rewriting
+extracted from the Deno monorepo into standalone services without rewriting
 the rest of the system.
 
 ### What extraction looks like
@@ -442,7 +462,7 @@ Not yet. Extract when:
 - Play-by-play simulation becomes a bottleneck (thousands of play resolutions
   per game × 272 games per season advance)
 - NPC AI decision-making for 31 teams during time-sensitive events (draft
-  picks with timers) needs lower latency than Node provides
+  picks with timers) needs lower latency than Deno provides
 - Profiling confirms the bottleneck is CPU-bound computation, not I/O or
   database queries
 
