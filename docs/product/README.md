@@ -80,5 +80,5 @@ Each of these has a dedicated vision document:
   trees, the GM-coach relationship, and the coaching market
 - [Media](./media.md) — analysts, headlines, grades, narratives, and the
   mechanical effects of public perception
-- [Owners](./owners.md) — *(TODO)* the authority above the GM; expectations,
-  patience, and job security
+- [Owners](./owners.md) — the authority above the GM; personality, patience,
+  directives, and job security
