@@ -468,3 +468,144 @@ Not yet. Extract when:
 
 Until then, the single-language monorepo is a productivity advantage we
 shouldn't give up prematurely.
+
+---
+
+## Testing Strategy
+
+Testing is split into three layers, each with its own tooling and purpose.
+
+### Server tests — Deno's native test runner
+
+Server-side code uses `deno test` directly. No framework to configure, no
+test runner to install.
+
+```
+deno test server/ --allow-env --allow-net --allow-read --allow-sys
+```
+
+Server tests cover:
+
+- Domain logic (simulation, AI decisions, cap math)
+- Repository implementations against a real PostgreSQL database
+- tRPC procedure behavior
+- Auth configuration
+
+Tests that touch the database run against a dedicated test database. No
+mocking the database in integration tests — the test hits real PostgreSQL so
+migration and query correctness are verified end-to-end.
+
+### Client tests — Vitest + Testing Library
+
+The React SPA uses Vitest (integrated with Vite) and Testing Library:
+
+- **Vitest** runs in the happy-dom environment for fast DOM simulation
+- **Testing Library** provides user-centric queries (`getByRole`,
+  `getByText`) that test behavior, not implementation
+- **Test setup** polyfills browser APIs (WebSocket, matchMedia) that
+  happy-dom doesn't provide
+
+```
+cd ui && deno run -A npm:vitest run
+```
+
+Client tests cover:
+
+- Component rendering and interaction
+- Hook behavior
+- Form validation flows
+- Event handling (draft events, trade notifications)
+
+### E2E tests — Playwright
+
+End-to-end tests run a real server against a real database with a real
+browser. Playwright drives Chromium through full user journeys.
+
+**Infrastructure:**
+
+- A dedicated E2E database is created and migrated before the test suite runs
+- The E2E setup script creates the database if missing and runs Drizzle
+  migrations
+- Docker Compose provides the local PostgreSQL instance (shared with
+  development, separate database name for E2E)
+
+**Authentication in E2E:**
+
+E2E tests bypass the OAuth flow by injecting session cookies directly into
+the browser context. A test fixture:
+
+1. Seeds a test user with a pre-signed session token into the database
+2. Signs the session token using HMAC-SHA256 with the `BETTER_AUTH_SECRET`
+3. Sets the session cookie on the Playwright browser context
+
+This gives each test an authenticated user without touching Google OAuth.
+Multiple test users (authenticated page 1, authenticated page 2) support
+multiplayer interaction tests.
+
+**Database isolation:**
+
+Each test starts with a clean database. A `resetDatabase()` helper truncates
+all tables in dependency order before each authenticated test. Seed helpers
+create deterministic test data (leagues, drafts, rosters) for specific
+scenarios.
+
+**Test structure:**
+
+```
+e2e/
+  fixtures/
+    auth.ts           # Authenticated page fixtures
+  helpers/
+    db.ts             # Database reset and connection
+    seed-data.ts      # Test user and session data
+    seed-league.ts    # League/roster seeding for specific scenarios
+  tests/
+    smoke.spec.ts     # Health check, auth redirects, basic rendering
+    league.spec.ts    # League creation, management
+    draft.spec.ts     # Draft room interactions
+  setup.ts            # Database creation and migration
+  playwright.config.ts
+```
+
+**Playwright configuration:**
+
+- Fully parallel execution locally, single worker in CI for stability
+- 2 retries in CI, 0 locally
+- Auto-starts the server (builds client, starts server in production mode)
+- Captures traces on first retry for debugging failures
+- HTML report generated on failure
+
+### CI pipeline
+
+CI runs as a GitHub Actions workflow:
+
+1. **Lint** — `deno lint`
+2. **Format** — `deno fmt --check`
+3. **Migration journal** — validates migration file ordering
+4. **Test** — server + client tests against a PostgreSQL service container
+5. **E2E** — Playwright tests against a full server + database (depends on
+   test job passing first)
+6. **Docker smoke** — builds the Docker image, starts it, polls the health
+   endpoint
+
+E2E failures upload the Playwright report as a CI artifact for debugging.
+
+### Test execution scripts
+
+```
+bin/test       # Runs server + client tests
+bin/test-e2e   # Creates E2E database, runs migrations, runs Playwright
+```
+
+Deno tasks in `deno.json` provide the canonical test commands:
+
+```json
+{
+  "tasks": {
+    "test": "deno task test:server && deno task test:client",
+    "test:server": "deno test server/ --allow-env --allow-net --allow-read --allow-sys",
+    "test:client": "cd ui && deno run -A npm:vitest run",
+    "test:e2e": "./bin/test-e2e"
+  }
+}
+```
