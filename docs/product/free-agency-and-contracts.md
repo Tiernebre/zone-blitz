@@ -198,13 +198,11 @@ who remind them of that.
 
 ## Compensatory Picks
 
-Losing free agents to other teams earns compensatory draft picks:
-
-- Based on the quality and contract size of departing vs. arriving free agents
-- Picks awarded in the 3rd through 7th rounds
-- Creates a strategic lever: deliberately let expensive veterans walk, collect
-  comp picks, reload through the draft
-- "Developer" type GMs can exploit this systematically
+Losing free agents to other teams earns compensatory draft picks. This creates
+a strategic lever: deliberately let expensive veterans walk, collect comp picks,
+and reload through the draft. For the full formula and how "Developer" type GMs
+exploit this systematically, see
+[Salary Cap — Compensatory Pick Formula](./salary-cap.md#compensatory-pick-formula).
 
 ## NPC Free Agency Behavior
 
