@@ -78,3 +78,5 @@ Each of these has a dedicated vision document:
   potential, and progression
 - [Coaches](./coaches.md) — the coaching staff; hidden attributes, coaching
   trees, the GM-coach relationship, and the coaching market
+- [Media](./media.md) — analysts, headlines, grades, narratives, and the
+  mechanical effects of public perception
