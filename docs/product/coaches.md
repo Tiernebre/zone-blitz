@@ -663,16 +663,17 @@ incentives are unlikely to pay out in year one.
 
 ### Coaching budget
 
-Your organization has a finite coaching budget that forces real tradeoffs:
+Coaching salaries count against the salary cap — the same cap that pays your
+players. This means every dollar spent on coaches is a dollar not available
+for roster construction. An elite coaching staff is an investment that
+competes directly with player acquisitions for cap space.
 
 - **Total coaching spend** — the sum of all coaching salaries, buyouts, and
-  incentive payouts; you can't spend unlimited money on coaches
-- **Coaching vs. scouting** — money spent on elite coaches is money not spent
-  on elite scouts and scouting infrastructure; a team with a great coaching
-  staff but a thin scouting department might develop players well but draft
-  poorly
-- **Coaching vs. roster** — in salary cap management, every dollar matters;
-  an expensive coaching staff reduces flexibility for player acquisitions
+  incentive payouts; this comes out of the same cap as player contracts
+- **Coaching vs. roster** — an expensive coaching staff reduces flexibility
+  for player acquisitions; a team paying top dollar for an elite HC, two
+  star coordinators, and a deep position coaching staff has meaningfully
+  less cap room for players than a team running a cheap, unproven staff
 - **The diminishing returns question** — is the difference between a $3M OL
   coach and a $1.5M OL coach worth the extra spend? Maybe. You won't know
   until you've seen both work. And by then, the cheaper one might have been
@@ -680,6 +681,11 @@ Your organization has a finite coaching budget that forces real tradeoffs:
 - **Staff depth vs. star power** — do you pay top dollar for an elite DC and
   fill the rest of the staff with cheap unknowns? Or do you spread the
   budget evenly for a solid-across-the-board staff?
+- **The rebuild calculus** — a rebuilding team with a cheap roster has cap
+  room to invest in elite coaches who develop young talent. A contending
+  team pushing the cap ceiling might be forced to let a great coordinator
+  walk because they can't afford both his salary and the roster upgrades
+  they need
 
 ### College coaches
 
