@@ -94,11 +94,13 @@ staff where the right answers emerge naturally.
 
 ## Attribute Categories
 
-Every player has attributes across three categories: **Physical**, **Technical**,
-and **Mental**. Each attribute is an independent value on the 0-100 scale.
-Attributes are position-agnostic in structure but position-specific in
-relevance — every player has an arm strength rating, but it only matters for
-quarterbacks.
+Every player has attributes across four categories: **Physical**, **Technical**,
+**Mental**, and **Personality**. Physical, technical, and mental attributes are
+each an independent value on the 0-100 scale. Personality traits use the same
+scale but affect off-field decisions and relationships rather than on-field
+performance. All attributes are position-agnostic in structure but
+position-specific in relevance — every player has an arm strength rating, but
+it only matters for quarterbacks.
 
 ### Physical attributes
 
@@ -200,6 +202,61 @@ surprise you — positively or negatively — once a player is on your roster.
   receptiveness to scheme changes and technique adjustments
 - **Leadership** — impact on teammates' performance and morale; locker room
   presence
+
+### Personality traits
+
+Personality traits represent who a player is off the field — his motivations,
+priorities, and psychological makeup. Unlike physical, technical, and mental
+attributes, personality traits don't directly affect on-field play outcomes.
+Instead, they drive decisions and relationships: how a player evaluates
+contract offers, how he responds to media pressure, whether he'll take a
+discount to stay, and how he reacts to being benched or tagged.
+
+Personality traits are **hidden** and **hard to scout**. You get signals
+through interviews, agent behavior, and a player's history of decisions —
+but the true values are never visible. A player who *says* he wants to stay
+might leave for more money. A player who seems like a mercenary might
+surprise you with loyalty after years of winning together.
+
+- **Greed** — how heavily money weighs in the player's decisions; high-greed
+  players almost always go to the highest bidder in free agency; low-greed
+  players weigh other factors more heavily and are candidates for discounts
+- **Loyalty** — attachment to his current team and organization; a loyal player
+  gives a meaningful discount to re-sign and values relationships with
+  coaches and teammates; disloyalty doesn't mean the player is selfish — it
+  means he treats free agency as a purely professional transaction
+- **Ambition** — drive to win championships; high-ambition players take
+  discounts to join contenders, especially later in their careers when
+  they've already been paid; low-ambition players don't factor team
+  competitiveness into their decisions as heavily
+- **Vanity** — desire for the spotlight and big-market prestige; high-vanity
+  players prefer large media markets, nationally televised games, and
+  franchise-player status; low-vanity players don't care whether they play
+  in New York or Jacksonville
+- **Scheme attachment** — how strongly a player prefers to stay in a familiar
+  system; high scheme attachment means he'll weigh scheme fit heavily in free
+  agency and may resist transitions to new systems; low scheme attachment
+  means he's adaptable and treats scheme as a secondary consideration
+- **Media sensitivity** — how much media coverage affects the player's morale
+  and behavior; a media-sensitive player who gets praised plays with
+  confidence, but one who gets criticized may spiral; a media-insensitive
+  player tunes it all out — praise doesn't lift him, criticism doesn't
+  bother him
+
+These traits interact with each other and with game context. A player with
+high loyalty and high ambition faces a genuine internal conflict when his
+team is rebuilding — does he stay out of loyalty, or chase a ring elsewhere?
+A player with high greed but high scheme attachment might take the money even
+if the new team's scheme is a terrible fit — and then underperform because
+of it. The combinations create realistic, distinct personalities that drive
+the off-field drama of franchise management.
+
+Personality traits are mostly stable but can shift in response to major
+career events. A player who wins a championship might see his ambition
+decrease — he got his ring. A player who's been franchise-tagged twice
+might see his loyalty erode. A player who's been burned by media narratives
+might become more media-sensitive over time, or might harden and become
+less sensitive. These shifts are gradual and rare, not dramatic swings.
 
 ---
 
