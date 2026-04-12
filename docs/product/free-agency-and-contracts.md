@@ -101,13 +101,18 @@ Players aren't just chasing dollars. Their decision weighs multiple factors:
 
 ### Player personality
 
-Players have personality traits that bias their decisions:
+Every player has hidden personality traits — greed, loyalty, ambition, vanity,
+scheme attachment, and media sensitivity — that bias their free agency
+decisions. See [Player Attributes — Personality](./player-attributes.md#personality-traits)
+for the full trait definitions.
 
-- **Money-motivated**: Will almost always go to the highest bidder
-- **Ring chaser**: Prioritizes competitiveness, especially later in career
-- **Loyalty-driven**: Gives a discount to re-sign with their current team
-- **Market-driven**: Values the "brand" of playing for a big-market team
-- **Scheme-loyal**: Strongly prefers familiar systems
+The key traits for free agency:
+
+- **Greed** drives how heavily money weighs against other factors
+- **Loyalty** determines whether a player gives a discount to re-sign
+- **Ambition** makes veterans chase contenders, even for less money
+- **Vanity** pulls players toward big-market teams and the spotlight
+- **Scheme attachment** biases players toward teams running familiar systems
 
 This means you can "win" a free agent without the highest bid — if your team,
 scheme, and situation are attractive. That makes team-building holistic, not
@@ -173,9 +178,8 @@ than market value to stay requires a specific combination of factors:
   players well — good coaching, honest front office, player-friendly culture
 - **Personal fit**: The player feels valued in their role and believes the
   scheme maximizes their ability
-- **Loyalty personality**: Only players with the loyalty-driven personality
-  trait are even candidates for a meaningful discount. Most players take
-  the best offer.
+- **High loyalty trait**: Only players with high loyalty are even candidates
+  for a meaningful discount. Most players take the best offer.
 
 Even when all conditions are met, the discount is modest — a few percent off
 market value, not a dramatic pay cut. Players have short careers and agents

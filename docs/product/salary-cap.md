@@ -179,8 +179,8 @@ Managing the cap is an active, ongoing skill — not something you set and forge
 - Ask a player to take a reduced salary
 - Players may agree if the alternative is being cut, especially veterans who
   want to stay with a contender
-- Player personality affects willingness: loyalty-driven players are more
-  likely to accept; money-motivated players almost never will
+- Player personality affects willingness: players with high loyalty are more
+  likely to accept; players with high greed almost never will
 - Success rate depends on the player's market — if they'd get more elsewhere,
   why would they take less?
 
