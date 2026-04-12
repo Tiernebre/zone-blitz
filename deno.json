@@ -27,7 +27,7 @@
     "db:stop": "docker compose down",
     "db:migrate": "cd server && deno run --env=../.env --allow-net --allow-env --allow-read --allow-sys db/migrate.ts",
     "test": "deno task test:server && deno task test:packages && deno task test:client",
-    "test:server": "deno test server/ --allow-env --allow-net --allow-read --allow-sys",
+    "test:server": "deno test server/ --env=.env --allow-env --allow-net --allow-read --allow-sys",
     "test:packages": "deno test packages/simulation/ packages/ai/",
     "test:client": "cd client && deno run -A npm:vitest run",
     "test:e2e": "./bin/test-e2e",
