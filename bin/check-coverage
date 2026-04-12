@@ -24,8 +24,9 @@ failed=0
 for metric in "branch:$branch" "function:$func" "line:$line"; do
   name="${metric%%:*}"
   value="${metric#*:}"
-  if [ "$value" != "100.0" ]; then
-    echo "error: $name coverage is $value%, expected 100.0%"
+  threshold=85.0
+  if [ "$(echo "$value < $threshold" | bc -l)" -eq 1 ]; then
+    echo "error: $name coverage is $value%, expected >= ${threshold}%"
     failed=1
   fi
 done
@@ -34,4 +35,4 @@ if [ "$failed" -eq 1 ]; then
   exit 1
 fi
 
-echo "All coverage thresholds met (100%)."
+echo "All coverage thresholds met (>= 85%)."

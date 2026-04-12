@@ -6,6 +6,7 @@ import { logger } from "./logger.ts";
 import { requestContextMiddleware } from "./middleware/request-context.ts";
 import { loggerMiddleware } from "./middleware/logger.ts";
 import { spaRouteGuard } from "./middleware/spa-fallback.ts";
+import { sessionMiddleware } from "./middleware/session.ts";
 import { createFeatureRouters } from "./features/mod.ts";
 import type { AppEnv } from "./env.ts";
 
@@ -17,6 +18,8 @@ const features = createFeatureRouters({ db, commit: GIT_SHA, log: logger });
 const app = new Hono<AppEnv>()
   .use(requestContextMiddleware(logger))
   .use(loggerMiddleware())
+  .use(sessionMiddleware(features.auth))
+  .route("/api/auth", features.authRouter)
   .route("/api/health", features.healthRouter)
   .route("/api/leagues", features.leagueRouter);
 
