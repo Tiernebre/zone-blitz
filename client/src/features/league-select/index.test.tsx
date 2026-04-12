@@ -7,12 +7,13 @@ import {
 } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { App } from "./app.tsx";
+import { LeagueSelect } from "./index.tsx";
 
 const mockGet = vi.fn();
 const mockPost = vi.fn();
+const mockNavigate = vi.fn();
 
-vi.mock("./api.ts", () => ({
+vi.mock("../../api.ts", () => ({
   api: {
     api: {
       leagues: {
@@ -23,13 +24,17 @@ vi.mock("./api.ts", () => ({
   },
 }));
 
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => mockNavigate,
+}));
+
 function renderWithProviders() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <App />
+      <LeagueSelect />
     </QueryClientProvider>,
   );
 }
@@ -39,7 +44,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("App", () => {
+describe("LeagueSelect", () => {
   it("renders the Zone Blitz heading", () => {
     mockGet.mockReturnValue(
       Promise.resolve({ json: () => Promise.resolve([]) }),
@@ -84,7 +89,7 @@ describe("App", () => {
     });
   });
 
-  it("renders a list of leagues", async () => {
+  it("renders a table of leagues", async () => {
     mockGet.mockReturnValue(
       Promise.resolve({
         json: () =>
@@ -98,6 +103,24 @@ describe("App", () => {
     await waitFor(() => {
       expect(screen.getByText("NFL League")).toBeDefined();
       expect(screen.getByText("XFL League")).toBeDefined();
+    });
+  });
+
+  it("navigates to a league when clicking a league row", async () => {
+    mockGet.mockReturnValue(
+      Promise.resolve({
+        json: () => Promise.resolve([{ id: 42, name: "My League" }]),
+      }),
+    );
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText("My League")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByText("My League"));
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: "/leagues/$leagueId",
+      params: { leagueId: "42" },
     });
   });
 
@@ -140,7 +163,6 @@ describe("App", () => {
     });
 
     fireEvent.submit(screen.getByRole("button", { name: "Create" }));
-
     expect(mockPost).not.toHaveBeenCalled();
   });
 

@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useCreateLeague, useLeagues } from "./hooks/use-leagues.ts";
+import { useNavigate } from "@tanstack/react-router";
+import { useCreateLeague, useLeagues } from "../../hooks/use-leagues.ts";
 
-export function App() {
+export function LeagueSelect() {
   const { data: leagues, isLoading, error } = useLeagues();
   const createLeague = useCreateLeague();
+  const navigate = useNavigate();
   const [newName, setNewName] = useState("");
 
   return (
@@ -47,9 +49,7 @@ export function App() {
             <p className="text-sm text-gray-500">Loading leagues...</p>
           )}
           {error && (
-            <p className="text-sm text-red-400">
-              Failed to load leagues
-            </p>
+            <p className="text-sm text-red-400">Failed to load leagues</p>
           )}
           {leagues && leagues.length === 0 && (
             <p className="text-sm text-gray-500">
@@ -57,16 +57,32 @@ export function App() {
             </p>
           )}
           {leagues && leagues.length > 0 && (
-            <ul className="space-y-2">
-              {leagues.map((league) => (
-                <li
-                  key={league.id}
-                  className="rounded bg-gray-800 border border-gray-700 px-4 py-3"
-                >
-                  <span className="font-medium">{league.name}</span>
-                </li>
-              ))}
-            </ul>
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="py-2 text-sm font-medium text-gray-400">
+                    Name
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {leagues.map((league) => (
+                  <tr
+                    key={league.id}
+                    onClick={() =>
+                      navigate({
+                        to: "/leagues/$leagueId",
+                        params: { leagueId: String(league.id) },
+                      })}
+                    className="cursor-pointer border-b border-gray-800 hover:bg-gray-800"
+                  >
+                    <td className="py-3 text-sm font-medium">
+                      {league.name}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       </div>
