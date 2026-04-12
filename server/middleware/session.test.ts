@@ -1,73 +1,65 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { Hono } from "hono";
 import { sessionMiddleware } from "./session.ts";
-import { createAuth } from "../features/auth/auth.ts";
-import { createAuthRouter } from "../features/auth/auth.router.ts";
-import { db } from "../db/connection.ts";
+import type { Auth } from "../features/auth/mod.ts";
 import type { AppEnv } from "../env.ts";
 
-const auth = createAuth({ db });
-const authRouter = createAuthRouter(auth);
+function createMockAuth(
+  sessionData: { user: object; session: object } | null = null,
+): Auth {
+  return {
+    api: {
+      getSession: () => Promise.resolve(sessionData),
+    },
+  } as unknown as Auth;
+}
 
-function createTestApp() {
-  const app = new Hono<AppEnv>()
+function createTestApp(auth: Auth) {
+  return new Hono<AppEnv>()
     .use(sessionMiddleware(auth))
-    .route("/api/auth", authRouter)
     .get("/api/me", (c) => {
       const user = c.get("user");
       const session = c.get("session");
       return c.json({ user, session });
     });
-  return app;
 }
 
-Deno.test({
-  name: "session middleware sets user and session to null when unauthenticated",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
-    const app = createTestApp();
-    const res = await app.request("/api/me");
-    assertEquals(res.status, 200);
-    const body = await res.json();
-    assertEquals(body.user, null);
-    assertEquals(body.session, null);
-  },
-});
+Deno.test("session middleware", async (t) => {
+  await t.step(
+    "sets user and session to null when unauthenticated",
+    async () => {
+      const app = createTestApp(createMockAuth(null));
+      const res = await app.request("/api/me");
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.user, null);
+      assertEquals(body.session, null);
+    },
+  );
 
-Deno.test({
-  name: "session middleware populates user and session when authenticated",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
-    const app = createTestApp();
-    const email = `session-test-${crypto.randomUUID()}@example.com`;
+  await t.step(
+    "populates user and session when authenticated",
+    async () => {
+      const mockUser = {
+        id: "user-1",
+        name: "Test User",
+        email: "test@example.com",
+      };
+      const mockSession = {
+        id: "session-1",
+        userId: "user-1",
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      };
 
-    const signUpRes = await app.request("/api/auth/sign-up/email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: "Session User",
-        email,
-        password: "password1234",
-      }),
-    });
-    assertEquals(signUpRes.status, 200);
-
-    // Extract the session cookie
-    const setCookie = signUpRes.headers.get("set-cookie");
-    const cookieHeader = setCookie
-      ?.split(",")
-      .map((c) => c.trim().split(";")[0])
-      .join("; ") ?? "";
-
-    const meRes = await app.request("/api/me", {
-      headers: { cookie: cookieHeader },
-    });
-    assertEquals(meRes.status, 200);
-    const body = await meRes.json();
-    assertEquals(body.user.email, email);
-    assertEquals(body.user.name, "Session User");
-    assertExists(body.session);
-  },
+      const app = createTestApp(
+        createMockAuth({ user: mockUser, session: mockSession }),
+      );
+      const res = await app.request("/api/me");
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.user.email, "test@example.com");
+      assertEquals(body.user.name, "Test User");
+      assertExists(body.session);
+    },
+  );
 });

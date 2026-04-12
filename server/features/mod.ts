@@ -10,7 +10,13 @@ import {
 } from "./league/mod.ts";
 
 export function createFeatureRouters(
-  deps: { db: Database; commit: string; log: pino.Logger },
+  deps: {
+    db: Database;
+    commit: string;
+    log: pino.Logger;
+    googleClientId: string;
+    googleClientSecret: string;
+  },
 ) {
   const { db, commit, log } = deps;
 
@@ -25,7 +31,11 @@ export function createFeatureRouters(
   const healthRouter = createHealthRouter(healthService);
 
   // Auth
-  const auth = createAuth({ db });
+  const auth = createAuth({
+    db,
+    googleClientId: deps.googleClientId,
+    googleClientSecret: deps.googleClientSecret,
+  });
   const authRouter = createAuthRouter(auth);
 
   // Repositories

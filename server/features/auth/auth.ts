@@ -3,7 +3,9 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import type { Database } from "../../db/connection.ts";
 import * as authSchema from "./auth.schema.ts";
 
-export function createAuth(deps: { db: Database }) {
+export function createAuth(
+  deps: { db: Database; googleClientId: string; googleClientSecret: string },
+) {
   return betterAuth({
     database: drizzleAdapter(deps.db, {
       provider: "pg",
@@ -15,8 +17,11 @@ export function createAuth(deps: { db: Database }) {
       },
     }),
     basePath: "/api/auth",
-    emailAndPassword: {
-      enabled: true,
+    socialProviders: {
+      google: {
+        clientId: deps.googleClientId,
+        clientSecret: deps.googleClientSecret,
+      },
     },
   });
 }

@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createAppRouter, createTestRouter } from "./router.tsx";
 
 const mockGet = vi.fn();
+const mockUseSession = vi.fn();
 
 vi.mock("./api.ts", () => ({
   api: {
@@ -13,6 +14,15 @@ vi.mock("./api.ts", () => ({
         $get: (...args: unknown[]) => mockGet(...args),
         $post: vi.fn(),
       },
+    },
+  },
+}));
+
+vi.mock("./lib/auth-client.ts", () => ({
+  authClient: {
+    useSession: () => mockUseSession(),
+    signIn: {
+      social: vi.fn(),
     },
   },
 }));
@@ -42,7 +52,38 @@ describe("createAppRouter", () => {
 });
 
 describe("Router", () => {
-  it("renders the league select page at /", async () => {
+  it("renders the login page at /login", async () => {
+    renderRouter("/login");
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /sign in with google/i }),
+      ).toBeDefined();
+    });
+  });
+
+  it("redirects to /login when unauthenticated at /", async () => {
+    mockUseSession.mockReturnValue({ data: null, isPending: false });
+    renderRouter("/");
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /sign in with google/i }),
+      ).toBeDefined();
+    });
+  });
+
+  it("shows loading state while session is pending", async () => {
+    mockUseSession.mockReturnValue({ data: null, isPending: true });
+    renderRouter("/");
+    await waitFor(() => {
+      expect(screen.getByText("Loading...")).toBeDefined();
+    });
+  });
+
+  it("renders the league select page at / when authenticated", async () => {
+    mockUseSession.mockReturnValue({
+      data: { user: { id: "1", name: "Test" }, session: { id: "s1" } },
+      isPending: false,
+    });
     mockGet.mockReturnValue(
       Promise.resolve({ json: () => Promise.resolve([]) }),
     );
@@ -54,7 +95,11 @@ describe("Router", () => {
     });
   });
 
-  it("renders the league layout and home page at /leagues/:leagueId", async () => {
+  it("renders the league layout and home page at /leagues/:leagueId when authenticated", async () => {
+    mockUseSession.mockReturnValue({
+      data: { user: { id: "1", name: "Test" }, session: { id: "s1" } },
+      isPending: false,
+    });
     renderRouter("/leagues/1");
     await waitFor(() => {
       expect(screen.getByRole("navigation")).toBeDefined();
