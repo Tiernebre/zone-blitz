@@ -30,6 +30,19 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:3000",
         changeOrigin: true,
+        configure: (proxy) => {
+          const originalEmit = proxy.emit.bind(proxy);
+          proxy.emit = (event: string, ...args: unknown[]) => {
+            if (
+              event === "error" &&
+              args[0] instanceof Error &&
+              /abort|cancel/i.test(args[0].message)
+            ) {
+              return true;
+            }
+            return originalEmit(event, ...args);
+          };
+        },
       },
     },
   },
