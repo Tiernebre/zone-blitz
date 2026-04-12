@@ -6,6 +6,12 @@ export function LeagueLayout() {
   return (
     <div className="flex min-h-screen bg-gray-950 text-gray-100">
       <nav className="w-60 border-r border-gray-800 p-4">
+        <Link
+          to="/"
+          className="mb-4 block text-sm text-gray-400 hover:text-gray-200"
+        >
+          &larr; All Leagues
+        </Link>
         <ul>
           <li>
             <Link
