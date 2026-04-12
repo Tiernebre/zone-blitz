@@ -65,23 +65,30 @@ evaluation interesting.
 
 What users see instead:
 
-- **Coaches assess players through the depth chart.** Your coaching staff ranks
-  players at each position — "he's our starter, he's the backup." This
-  reflects the coaches' evaluation, filtered through their own biases and
-  scheme preferences. A coach who values arm strength might bench a smart,
-  accurate QB in favor of a cannon-armed gunslinger. You'll figure that out
-  when the gunslinger throws three interceptions.
+- **The depth chart — set by your coaches, not by you.** Your coaching staff
+  decides who starts, who backs up, and who's inactive. You don't drag names
+  around on a depth chart screen. You hired these coaches and you trust them
+  to evaluate the roster — or you don't, and you fire them. The depth chart
+  is the primary signal of how your coaches value your players. A coach who
+  values arm strength might start a cannon-armed gunslinger over a smart,
+  accurate QB. You'll figure that out when the gunslinger throws three
+  interceptions. The depth chart is coach output, not user input — and that
+  means the quality of your coaching staff directly affects whether the right
+  players are on the field.
 - **Statistics tell the story after the fact.** Yards, touchdowns, completion
   percentage, tackles, sacks — the numbers paint a picture of how a player
   actually performed. If your coaches have a guy starting and his stats are
   terrible, either the coaches are wrong about him or the scheme doesn't fit
-  him. You decide.
+  him. You decide — by changing coaches, changing scheme, or acquiring
+  different players. Not by overriding the depth chart yourself.
 - **Scouting reports provide pre-acquisition assessments.** Before you draft or
   sign a player, your scouts give you their read — filtered through their own
   accuracy and biases (see [Scouting](./scouting.md)).
 
 The depth chart is your coaches' answer to "who's the best?" The box score is
-reality's answer. The gap between the two is where you, the GM, earn your keep.
+reality's answer. The gap between the two is where you, the GM, earn your
+keep — not by micromanaging who plays, but by building a roster and coaching
+staff where the right answers emerge naturally.
 
 ---
 
