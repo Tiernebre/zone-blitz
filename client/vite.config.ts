@@ -22,6 +22,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@zone-blitz/shared": resolve(__dirname, "../packages/shared/mod.ts"),
+      "@zone-blitz/server": resolve(__dirname, "../server/main.ts"),
     },
   },
   server: {

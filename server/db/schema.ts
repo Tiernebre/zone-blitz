@@ -5,3 +5,6 @@ export const healthChecks = pgTable("health_checks", {
   status: text("status").notNull(),
   checkedAt: timestamp("checked_at").defaultNow().notNull(),
 });
+
+// Feature schemas
+export { leagues } from "../features/league/league.schema.ts";

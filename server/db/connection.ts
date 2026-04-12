@@ -9,3 +9,5 @@ if (!databaseUrl) {
 
 const client = postgres(databaseUrl);
 export const db = drizzle(client, { schema });
+
+export type Database = typeof db;
