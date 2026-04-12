@@ -1,4 +1,5 @@
 FROM denoland/deno:2.7.11 AS base
+LABEL org.opencontainers.image.source=https://github.com/tiernebre/zone-blitz
 WORKDIR /app
 
 # Cache dependencies by copying config files first
