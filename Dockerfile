@@ -5,12 +5,19 @@ WORKDIR /app
 # Cache dependencies by copying config files first
 COPY deno.json deno.lock ./
 COPY server/deno.json ./server/
+COPY client/deno.json client/package.json ./client/
 COPY packages/shared/deno.json ./packages/shared/
 RUN deno install
+
+# Build stage: build the client
+FROM base AS build
+COPY . .
+RUN cd client && deno task build
 
 # Production stage
 FROM base AS production
 COPY . .
+COPY --from=build /app/client/dist ./client/dist
 
 # Baked at build time by CI (--build-arg GIT_SHA=$GITHUB_SHA) so the
 # running container can report which commit it's on via /api/health.

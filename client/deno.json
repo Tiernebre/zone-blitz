@@ -1,0 +1,9 @@
+{
+  "name": "@zone-blitz/client",
+  "exports": "./src/main.tsx",
+  "tasks": {
+    "dev": "deno run -A npm:vite",
+    "build": "deno run -A npm:vite build",
+    "test": "deno run -A npm:vitest run"
+  }
+}

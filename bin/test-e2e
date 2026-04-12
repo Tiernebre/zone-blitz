@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Ensure the E2E database exists and is migrated
+deno run --allow-net --allow-env --allow-read --allow-run --allow-sys e2e/setup.ts
+
+# Run Playwright tests
+cd e2e && npx playwright test "$@"

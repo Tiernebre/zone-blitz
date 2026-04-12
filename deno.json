@@ -1,5 +1,5 @@
 {
-  "workspace": ["./packages/shared", "./server"],
+  "workspace": ["./packages/shared", "./server", "./client", "./e2e"],
   "nodeModulesDir": "auto",
   "fmt": {
     "indentWidth": 2,
@@ -17,9 +17,11 @@
     "db:start": "docker compose up -d --wait",
     "db:stop": "docker compose down",
     "db:migrate": "cd server && deno run --allow-net --allow-env --allow-read --allow-sys db/migrate.ts",
-    "test": "deno task test:server",
+    "test": "deno task test:server && deno task test:client",
     "test:server": "deno test server/ --allow-env --allow-net --allow-read --allow-sys",
-    "build": "echo 'No client build yet'",
+    "test:client": "cd client && deno run -A npm:vitest run",
+    "test:e2e": "./bin/test-e2e",
+    "build": "cd client && deno task build",
     "start": "cd server && deno run --allow-net --allow-env --allow-read --allow-sys main.ts"
   }
 }
