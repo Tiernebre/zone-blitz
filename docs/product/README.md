@@ -4,8 +4,8 @@ An open-source, web-based football franchise simulation game focused on the
 front-office experience: scouting, drafting, trading, and team-building strategy.
 
 This is not an action game. You never control a player on the field. You are the
-General Manager. You build the roster, hire the coaches, set the scheme, scout
-the prospects, make the trades, manage the cap, and live with the consequences
+General Manager. You build the roster, hire the coaches, scout the prospects,
+make the trades, manage the cap, and live with the consequences
 for years to come.
 
 ## Inspirations
@@ -65,8 +65,10 @@ Each of these has a dedicated vision document:
 - [Schemes & Strategy](./schemes-and-strategy.md) — football identity and
   personnel philosophy
 - [Trading](./trading.md) — negotiation, deal-making, and the social game
-- [Free Agency & Contracts](./free-agency-and-contracts.md) — the salary cap
-  puzzle and market competition
+- [Salary Cap Management](./salary-cap.md) — the cap constraint, contract
+  structure, and multi-year financial planning
+- [Free Agency & Contracts](./free-agency-and-contracts.md) — market
+  competition, player decisions, and the bidding game
 - [NPC AI](./npc-ai.md) — making the league feel alive with distinct,
   intelligent opponents
 - [League Management](./league-management.md) — seasons, scheduling, and the
@@ -74,5 +76,5 @@ Each of these has a dedicated vision document:
 - [Game Simulation](./game-simulation.md) — what happens on the field
 - [Player Attributes](./player-attributes.md) — the true 0-100 scale, hidden
   potential, and progression
-- Coaches — *TODO: coaching staff vision (biases, accuracy, depth chart
-  management, player development influence)*
+- [Coaches](./coaches.md) — the coaching staff; hidden attributes, coaching
+  trees, the GM-coach relationship, and the coaching market

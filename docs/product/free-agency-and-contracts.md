@@ -16,53 +16,11 @@ tradeoffs that play out over years.
 
 ## The Salary Cap
 
-The cap is the central constraint of roster construction. It creates scarcity,
-forces tradeoffs, and rewards planning.
-
-### Cap mechanics
-
-- Hard salary cap — every team has the same ceiling
-- Salary floor — minimum spending requirement to prevent tanking through
-  austerity
-- Cap carries over — unused cap space rolls into the next year
-- Cap grows over time — reflecting league revenue growth (configurable per
-  league)
-
-### Contract structure
-
-Contracts are the tools you use to manage the cap. Structure matters as much
-as total value:
-
-- **Base salary**: Counts fully against the cap in the year it's paid
-- **Signing bonus**: Prorated equally across the life of the contract (up to 5
-  years). Great for pushing cap hits into the future.
-- **Guaranteed money**: The total the player is guaranteed regardless of
-  performance or cuts. This is what players care about most.
-- **Roster bonus**: Paid (and counted against cap) when the player is on the
-  roster at a specific date
-- **Incentives**: Performance-based bonuses. "Likely to be earned" count
-  against the current cap; "not likely to be earned" count against next year's
-  cap if earned.
-- **Void years**: Years added to a contract solely to spread out a signing
-  bonus's cap hit. The player won't actually play those years — the cap hit
-  just gets pushed further out. Useful for short-term relief, creates future
-  dead cap.
-
-### Cap gymnastics
-
-Managing the cap is a skill:
-
-- **Restructuring**: Convert base salary to signing bonus to free up current-
-  year space (at the cost of future cap hits)
-- **Post-June 1 designation**: Spreading dead cap from a cut over two years
-  instead of one
-- **Contract extensions**: Adding years to reduce per-year cap hit
-- **Dead cap**: The remaining prorated bonus money owed to a player you cut
-  or trade. This is the hangover from aggressive cap management.
-
-The cap system should reward forward-thinking GMs and punish short-term
-thinking. Going all-in with restructures and void years can create a
-championship window — and a brutal cap hell when the bill comes due.
+The salary cap is the central constraint that makes free agency a
+resource-allocation puzzle rather than a shopping spree. For the full cap
+system — mechanics, contract structure, cap manipulation tools, and how the cap
+interacts with drafting, trading, and free agency — see the dedicated
+[Salary Cap Management](./salary-cap.md) document.
 
 ## Free Agency Periods
 
@@ -157,16 +115,82 @@ just a salary cap spreadsheet.
 
 ## Re-Signing Your Own Players
 
-Before free agency, you can negotiate extensions with your own players:
+Before free agency, you get an exclusive negotiating window with your own
+pending free agents. But re-signing isn't automatic — a player's willingness
+depends on how they feel about your organization.
 
-- Players give a "hometown discount" (varies by loyalty personality)
-- Exclusive negotiating window before other teams can talk to them
-- Franchise tag and transition tag as retention tools:
-  - **Franchise tag**: Guarantees a one-year deal at the top-5 positional
-    salary average. Expensive but retains the player. Can only tag one
-    player per year.
-  - **Transition tag**: Lower guaranteed salary, but other teams can make
-    offers and you have right of first refusal
+### Player-team relationship
+
+Every player has a **morale** toward their current team that evolves over the
+course of their tenure. It reflects how they feel about their experience — not
+just winning, but their role, usage, and how they've been treated.
+
+Factors that build morale:
+
+- **Winning**: Players on competitive, playoff-caliber teams are happier
+- **Role and usage**: A player who's been a featured starter feels valued. A
+  player buried on the bench or misused in a scheme that doesn't fit them
+  feels undervalued.
+- **Team culture**: Organizations that develop players, keep a stable coaching
+  staff, and build a positive locker room earn goodwill over time
+- **Contract history**: Players remember if you extended them fairly in the
+  past or if you let them play out a below-market deal without renegotiating
+
+Factors that damage morale:
+
+- **Being benched or demoted** without a clear performance reason
+- **Scheme changes** that marginalize the player's skillset (e.g., switching
+  to a system where their position is devalued)
+- **Failed negotiations**: Lowball offers or prolonged holdouts sour the
+  relationship
+- **Franchise tag overuse**: Tagging a player — especially multiple years in a
+  row — signals that you want to control them cheaply rather than commit
+  long-term. Most players resent it.
+- **Losing culture**: Repeated losing seasons with no visible plan erode
+  confidence in the organization
+
+### Burnt bridges
+
+When morale drops low enough, the relationship is **burnt**. A player with a
+burnt bridge will not re-sign with your team under any circumstances — they
+want out, full stop. They'll test free agency and sign elsewhere, even for
+less money.
+
+Bridges don't burn overnight. It takes sustained mistreatment or a single
+egregious act (like publicly shopping a franchise player in trade talks that
+leak). Once burnt, a bridge is extremely difficult to repair — it may take a
+coaching change, front office turnover, or years of separation before a player
+would consider returning.
+
+### Hometown discounts
+
+Hometown discounts are **uncommon, not the default**. A player taking less
+than market value to stay requires a specific combination of factors:
+
+- **Team success**: The team is a contender or clearly trending upward. No one
+  takes a discount to stay on a rebuilding team.
+- **Strong culture**: The organization has built a reputation for treating
+  players well — good coaching, honest front office, player-friendly culture
+- **Personal fit**: The player feels valued in their role and believes the
+  scheme maximizes their ability
+- **Loyalty personality**: Only players with the loyalty-driven personality
+  trait are even candidates for a meaningful discount. Most players take
+  the best offer.
+
+Even when all conditions are met, the discount is modest — a few percent off
+market value, not a dramatic pay cut. Players have short careers and agents
+who remind them of that.
+
+### Retention tools
+
+- **Exclusive negotiating window**: You get first crack at your own free
+  agents before other teams can talk to them
+- **Franchise tag**: Guarantees a one-year deal at the top-5 positional
+  salary average. Expensive but retains the player. Can only tag one
+  player per year. Players generally dislike being tagged (see morale
+  impact above).
+- **Transition tag**: Lower guaranteed salary, but other teams can make
+  offers and you have right of first refusal
 
 ## Compensatory Picks
 

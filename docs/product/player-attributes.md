@@ -350,31 +350,124 @@ How fast a player develops is influenced by:
 - **Coachability** — coachable players absorb coaching faster
 - **Coaching quality** — better coaches develop players faster (see
   [Coaches](./coaches.md))
-- **Playing time** — players who play develop faster than those who sit; but
-  throwing a raw player into the fire before he's ready can damage confidence
-  (composure hit)
+- **Playing time** — see below
 - **Scheme stability** — players in the same scheme year after year develop
   technical skills faster than those learning a new system annually
 - **Age** — younger players develop faster; development rate slows with age
 
+### Playing time and development
+
+Playing time is one of the most important factors in player development — but
+its effects are nuanced, not uniformly positive, and subject to diminishing
+returns.
+
+#### Practice reps vs. game reps
+
+Not all reps are equal. **Game reps are worth significantly more than practice
+reps** for development purposes.
+
+- **Practice reps** provide a slow, steady baseline of development. A backup
+  who never sees the field still improves — just glacially. Practice is
+  controlled, low-stakes, and repetitive. It builds technical foundations but
+  doesn't test mental attributes the way a live game does.
+- **Game reps** accelerate development dramatically. The speed, pressure,
+  unpredictability, and consequences of real games force adaptation that
+  practice can't replicate. A player's decision-making, composure, and
+  anticipation grow under fire in ways they never will holding a clipboard.
+- The gap between practice and game development is largest for **mental
+  attributes**. You can drill route running in practice. You can't drill
+  reading a disguised Cover-2 with 70,000 fans screaming while the play clock
+  ticks down.
+
+This means a backup who's been "developing in practice" for three years is
+not the same as a player who started for three years — even if the raw
+practice hours are comparable. Game experience is irreplaceable.
+
+#### Diminishing returns
+
+The development benefit of playing time follows a curve of diminishing
+returns, not a straight line.
+
+- The biggest jump comes from **going from zero game reps to meaningful
+  snaps**. A player who goes from clipboard holder to 20 snaps a game sees a
+  significant development boost.
+- Going from a rotational role to a full-time starter provides a real but
+  smaller boost. The player is seeing more situations, more pressure, more
+  complexity — but the marginal return per snap is lower.
+- Going from a full-time starter to an every-down, never-comes-off-the-field
+  workhorse provides **minimal additional development benefit**. At some
+  point, a player is getting enough reps that more reps don't teach him
+  anything new — they just add wear.
+
+The implication: there's a sweet spot of playing time for development. A
+smart team finds it. A lazy team just runs its best players into the ground.
+
+#### When playing time hurts
+
+More snaps are not always better. Playing time can actively harm a player in
+several ways:
+
+- **Too much, too soon.** A raw player thrown into a starting role before he's
+  ready can suffer composure and confidence damage. Getting beaten repeatedly
+  on national television doesn't build character — it builds bad habits and
+  self-doubt. A young quarterback who's sacked 50 times behind a bad
+  offensive line doesn't "learn from adversity." He learns to hear footsteps.
+- **Physical wear and tear.** Heavy snap counts accelerate physical decline,
+  especially at punishing positions. A running back who carries the ball 350
+  times a season develops his vision and ball carrying — but his speed,
+  durability, and stamina pay the price. The development gains on the
+  technical side may not be worth the physical erosion.
+- **Bad coaching compounding with reps.** Playing time under a bad coach can
+  reinforce bad habits. A cornerback getting 1,000 snaps in a poorly coached
+  scheme might develop worse technique than a backup getting 200 snaps under a
+  great position coach. Reps amplify whatever a player is learning — good or
+  bad.
+
+#### Position-specific snap effects
+
+The relationship between playing time and development is not uniform across
+positions. Positions with higher physical toll see the tradeoff between
+development benefit and physical cost more starkly:
+
+- **Running backs** are the extreme case. Heavy workloads develop rushing
+  vision and ball security but accelerate the decline of speed, durability,
+  and stamina faster than any other position. A bell-cow back who carries 300+
+  times is learning, but his legs are aging in dog years.
+- **Offensive and defensive linemen** absorb enormous physical punishment on
+  every snap. Their technical development benefits from reps, but the
+  cumulative toll on durability and stamina is real.
+- **Quarterbacks** benefit the most from game reps with the least physical
+  cost per snap (when protected). Mental and technical development from game
+  experience is massive, and the physical toll is relatively low — unless the
+  offensive line is bad, in which case the calculus changes entirely.
+- **Wide receivers and defensive backs** fall in between — game reps are
+  valuable for route running, coverage technique, and anticipation, with
+  moderate physical cost.
+
 ### The opportunity question
 
-This is where hidden potential creates its most compelling stories. A backup
-with enormous hidden potential sits behind an established starter. His
-attributes develop slowly because he's not getting game reps — just practice.
-Then the starter gets hurt.
+This is where playing time and hidden potential combine to create the most
+compelling stories in the game. A backup with enormous hidden potential sits
+behind an established starter. His attributes develop slowly because he's not
+getting game reps — just practice. Then the starter gets hurt.
 
 The backup steps in and performs well — not because he magically got better
 overnight, but because:
 
-1. His practice reps have been slowly developing his technical skills
+1. His practice reps have been slowly developing his technical foundations
 2. His hidden potential means he has room to grow that the starter didn't
-3. Game reps now accelerate his development
+3. Game reps now accelerate his development dramatically
 4. The coaching staff — and you — had no idea he was this close to being good
 
 This is the Tom Brady story. The Kurt Warner story. The story this attribute
 system is built to produce organically, without scripting it. The talent was
 always there. It just needed the opportunity to emerge.
+
+And this is also why workload management matters. The starter who got hurt?
+Maybe he was carrying too many snaps. Maybe his physical attributes were
+eroding under the load. Maybe the team that manages its depth chart — rotating
+players, protecting young talent, resting aging legs — is the team that's
+still standing in January.
 
 ---
 
