@@ -72,3 +72,7 @@ Each of these has a dedicated vision document:
 - [League Management](./league-management.md) — seasons, scheduling, and the
   multiplayer experience
 - [Game Simulation](./game-simulation.md) — what happens on the field
+- [Player Attributes](./player-attributes.md) — the true 0-100 scale, hidden
+  potential, and progression
+- Coaches — *TODO: coaching staff vision (biases, accuracy, depth chart
+  management, player development influence)*

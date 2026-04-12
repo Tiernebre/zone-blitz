@@ -84,34 +84,30 @@ interdependence matters.
 
 ## Player Performance Model
 
-### Attributes drive performance
-
-Every player has attributes that feed into the simulation:
-
-- **Physical**: Speed, strength, agility, stamina, durability
-- **Skill**: Position-specific skills (arm strength, route running, coverage,
-  block shedding, etc.)
-- **Mental**: Football IQ, decision-making, consistency, clutch performance
-- **Scheme fit**: How well the player's attributes align with the team's scheme
-  (derived, not stored — calculated based on scheme requirements vs. player
-  attributes)
+Player attributes are the engine of the simulation. For the full attribute
+system — the 0-100 scale, attribute categories, hidden potential, and
+progression/regression — see [Player Attributes](./player-attributes.md).
 
 ### Game-day performance
 
-A player's performance in any given game is:
+The simulation consumes individual attributes — never an aggregate overall
+rating. On every play, the relevant attributes for each player in that context
+determine the outcome:
 
 ```
-Base performance (from attributes)
-  + Scheme fit modifier
-  + Coaching modifier
-  + Matchup modifier (vs. specific opponent)
+Relevant attributes for the play context
+  + Scheme fit modifier (derived from attribute alignment with scheme)
+  + Coaching modifier (see Coaches)
+  + Matchup modifier (vs. specific opponent's attributes)
   + Game context (weather, home/away, rivalry, playoff pressure)
   + Random variance
-  = Game performance
+  = Play outcome contribution
 ```
 
-This means the same player can have great games and bad games — but better
-players have great games more often.
+This means the same player can dominate in one context and disappear in another.
+A power back with elite strength and poor speed will thrive in short yardage and
+struggle in the open field. Better players have great games more often — but
+any given play depends on which attributes are relevant.
 
 ### Injuries
 
@@ -126,18 +122,9 @@ players have great games more often.
 
 ### Player progression and regression
 
-Between seasons, players change:
-
-- **Young players develop**: Based on talent potential, coaching quality,
-  playing time, and scheme stability
-- **Veterans decline**: Physical attributes erode with age, position-dependent
-  (RBs decline earlier than QBs)
-- **Breakout seasons**: Occasionally a player takes a leap beyond projections
-- **Unexpected declines**: Sometimes a player falls off a cliff
-
-Development is partially random — you can invest in a player and have them
-not pan out. This is intentional. Uncertainty in player development is part of
-what makes long-term team-building challenging.
+Player development and decline are driven by the attribute system — see
+[Player Attributes: Progression and Regression](./player-attributes.md#progression-and-regression)
+for the full model. The key dynamics at season level:
 
 ### Retirement
 
