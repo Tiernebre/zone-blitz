@@ -380,17 +380,15 @@ Media coverage shapes how free agents perceive your organization:
 
 ### Owner patience
 
-While there's no GM firing mechanic currently, the owner's patience is a
-background pressure that media affects:
+Media coverage affects the owner's patience with your performance. The full
+owner system is not yet designed — see [Owners](./owners.md) for the open
+questions and planned scope. The key interaction with media:
 
 - Sustained negative media coverage — losing seasons, criticized
   transactions, public narratives about dysfunction — erodes the owner's
   patience over time
 - Positive coverage — praised moves, playoff runs, "franchise turnaround"
   narratives — builds goodwill and runway
-- Owner patience manifests as subtle pressure: the owner may push for
-  win-now moves, express displeasure with a rebuild timeline, or demand
-  a coaching change. You can resist this pressure, but it exists.
 - The owner reads the same media you do. When every analyst is saying your
   team needs to fire the coach, the owner starts thinking the same thing.
 
