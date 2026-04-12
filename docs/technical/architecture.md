@@ -609,3 +609,88 @@ Deno tasks in `deno.json` provide the canonical test commands:
   }
 }
 ```
+
+---
+
+## Deployment
+
+### Model
+
+Single DigitalOcean Droplet running Docker Compose. The application is a
+single container (Deno server serving the built React SPA) alongside a
+PostgreSQL container. Simple, cheap, sufficient for early multiplayer leagues.
+
+### Docker image
+
+The Dockerfile uses a multi-stage build:
+
+1. **Base stage** — `denoland/deno` image, installs dependencies from
+   workspace config files (cached layer)
+2. **Build stage** — copies source, builds the React client with Vite
+3. **Production stage** — copies source + built client assets, runs migrations
+   on startup, then starts the server
+
+```dockerfile
+# Migrations run automatically on container start
+CMD ["sh", "-c", "cd server && deno run ... db/migrate.ts && deno run ... main.ts"]
+```
+
+The image is tagged with `GIT_SHA` as a build arg so the running container
+can report which commit it's on via the health endpoint. This enables
+deployment verification.
+
+### Compose files
+
+**`docker-compose.yml`** — local development:
+
+- PostgreSQL 17 with health check
+- Init script creates the E2E test database alongside the dev database
+- No application container — the server runs directly via `deno task dev`
+
+**`docker-compose.prod.yml`** — production on the Droplet:
+
+- Application container from GHCR, port 80 → 3000
+- PostgreSQL 17 with persistent named volume
+- `depends_on` with health check condition ensures the database is ready
+  before the app starts
+- `restart: unless-stopped` for both services
+- Environment variables via `.env` file on the Droplet
+
+### CI/CD pipeline
+
+Deployment is a GitHub Actions workflow triggered on push to `main`:
+
+1. **CI must pass first** — lint, format, tests, E2E, Docker smoke
+2. **Build and push** — Docker image built with `GIT_SHA` arg, pushed to GHCR
+3. **SCP compose file** — `docker-compose.prod.yml` copied to the Droplet
+4. **Deploy via SSH** — pull image, `docker compose up -d`
+5. **Verification** — confirm the running container is on the expected image
+   digest (not a stale container from a failed pull)
+6. **Smoke test** — poll the health endpoint and assert the `commit` field
+   matches the deployed SHA
+7. **Cleanup** — prune images older than 24 hours (keep recent for rollback)
+
+### Safety checks
+
+- **Disk pressure check** before `docker pull` — abort if root filesystem
+  exceeds 85% to prevent failed pulls from leaving orphaned layers
+- **Image digest verification** after `docker compose up` — confirm the
+  running container matches the image we just pushed, catching silent no-op
+  recreates
+- **Commit SHA smoke test** — the health endpoint returns the baked-in
+  `GIT_SHA`, and the deploy workflow asserts it matches. A stale container
+  returning 200 on a different commit fails the deploy.
+
+### Health endpoint
+
+The server exposes `/api/health` which returns:
+
+```json
+{
+  "status": "ok",
+  "commit": "abc123..."
+}
+```
+
+Used by the deploy workflow's smoke test and by the Docker smoke CI job. The
+commit field is the `GIT_SHA` build arg baked into the image at build time.
