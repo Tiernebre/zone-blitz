@@ -9,10 +9,14 @@ test("health endpoint returns ok", async ({ request }) => {
 
 test("homepage renders Zone Blitz heading", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Zone Blitz" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Zone Blitz" }),
+  ).toBeVisible();
 });
 
-test("homepage shows health status", async ({ page }) => {
+test("homepage shows leagues section", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("Connected")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Leagues" }),
+  ).toBeVisible();
 });
