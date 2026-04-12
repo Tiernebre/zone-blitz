@@ -4,5 +4,8 @@
   "imports": {
     "@playwright/test": "npm:@playwright/test@^1.52",
     "postgres": "npm:postgres@^3"
+  },
+  "lint": {
+    "exclude": ["playwright.config.ts", "tests/"]
   }
 }

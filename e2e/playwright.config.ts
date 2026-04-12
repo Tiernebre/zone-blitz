@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const isCI = !!Deno.env.get("CI");
+const isCI = !!process.env.CI;
 
 export default defineConfig({
   testDir: "./tests",
@@ -26,7 +26,7 @@ export default defineConfig({
     reuseExistingServer: !isCI,
     env: {
       DENO_ENV: "production",
-      DATABASE_URL: Deno.env.get("DATABASE_URL_E2E") ??
+      DATABASE_URL: process.env.DATABASE_URL_E2E ??
         "postgres://zone_blitz:zone_blitz@localhost:5432/zone_blitz_e2e",
     },
   },
