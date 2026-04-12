@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { serveStatic } from "hono/adapter/deno";
+import { serveStatic } from "hono/deno";
 import { db } from "./db/connection.ts";
 import { sql } from "drizzle-orm";
 import { DomainError } from "@zone-blitz/shared";
