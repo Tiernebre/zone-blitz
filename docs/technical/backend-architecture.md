@@ -38,7 +38,7 @@ server/
     mod.ts                        # Feature routers factory — creates all repos, services, routers
     league/
       mod.ts                      # Public API — exports factories
-      league.router.ts            # tRPC router: procedures that delegate to service
+      league.router.ts            # Hono routes: validate input, delegate to service
       league.service.ts           # Orchestration + domain rule enforcement
       league.service.test.ts
       league.repository.ts        # Data access: Drizzle queries
@@ -66,21 +66,18 @@ server/
     scouting/
     coaching/
     season/
-  trpc/
-    trpc.ts                       # tRPC init, base procedure, protectedProcedure
-    context.ts                    # tRPC context factory (db, session, user, logger)
-    router.ts                     # Root appRouter — assembles all feature routers
+  middleware/
+    auth.ts                       # Authentication middleware — resolves session, narrows context
+    request-context.ts            # Per-request child logger + requestId
+    logger.ts                     # HTTP lifecycle logging
   db/
     connection.ts                 # Drizzle client
     migrate.ts                    # Migration runner
     schema.ts                     # Re-exports all feature schemas
     migrations/                   # Generated SQL files
-  middleware/
-    request-context.ts            # Per-request child logger + requestId
-    logger.ts                     # HTTP lifecycle logging
   logger.ts                       # Root Pino logger
   env.ts                          # AppEnv type (Hono context variables)
-  main.ts                         # Hono app, tRPC adapter, auth routes
+  main.ts                         # Hono app — mounts middleware, auth, and feature routes
 ```
 
 ---
@@ -97,7 +94,7 @@ dependencies via factory function parameters.
 
 | Suffix             | Role                                                      |
 | ------------------ | --------------------------------------------------------- |
-| `.router.ts`       | tRPC router — defines procedures that validate input (Zod) and delegate to services. No business logic. |
+| `.router.ts`       | Hono route group — validates input (Zod), delegates to services, returns responses. No business logic. |
 | `.service.ts`      | Business logic — domain rule enforcement, orchestration across repositories and other services. No direct DB access. |
 | `.repository.ts`   | Data access — Drizzle queries. Returns domain-shaped data. No business logic. |
 
@@ -252,23 +249,28 @@ export function createDraftService(deps: {
 
 ```typescript
 // server/features/draft/draft.router.ts
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
 import type { DraftService } from "@zone-blitz/shared";
-import { protectedProcedure, router } from "../../trpc/trpc.ts";
 import { pickInputSchema } from "@zone-blitz/shared";
+import type { AuthedEnv } from "../../env.ts";
+import { authenticated } from "../../middleware/auth.ts";
 
 export function createDraftRouter(draftService: DraftService) {
-  return router({
-    makePick: protectedProcedure
-      .input(pickInputSchema)
-      .mutation(({ input }) => {
-        return draftService.makePick(input);
-      }),
-    getCurrentPick: protectedProcedure
-      .input(z.object({ draftId: z.string().uuid() }))
-      .query(({ input }) => {
-        return draftService.getCurrentPick(input.draftId);
-      }),
-  });
+  return new Hono<AuthedEnv>()
+    .use(authenticated())
+    .post("/pick",
+      zValidator("json", pickInputSchema),
+      async (c) => {
+        const input = c.req.valid("json");
+        const result = await draftService.makePick(input);
+        return c.json(result);
+      },
+    )
+    .get("/current-pick/:draftId", async (c) => {
+      const pick = await draftService.getCurrentPick(c.req.param("draftId"));
+      return c.json(pick);
+    });
 }
 ```
 
@@ -328,255 +330,198 @@ export function createFeatureRouters(db: Database) {
 }
 ```
 
-The root tRPC router (`server/trpc/router.ts`) calls `createFeatureRouters`
-and assembles the `appRouter`. See the [tRPC section](#trpc) for the full
-picture.
+`main.ts` calls `createFeatureRouters` and mounts the returned Hono sub-apps.
+See the [Hono RPC section](#hono-rpc) for the full picture.
 
 One file to see every dependency relationship. No hidden singletons. Tests
 bypass this entirely — they construct services with mocks directly.
 
 ---
 
-## tRPC
+## Hono RPC
 
-tRPC provides end-to-end type safety between the server and client with no code
-generation. The server defines typed procedures; the client calls them with full
-type inference.
+Hono's built-in RPC client provides end-to-end type safety between the server
+and client with no extra dependencies or code generation. Route definitions on
+the server are the single source of truth — the client infers types directly
+from them.
 
-### Initialization
+### Why Hono RPC over tRPC
 
-```typescript
-// server/trpc/trpc.ts
-import { initTRPC, TRPCError } from "@trpc/server";
-import { logger } from "../logger.ts";
-import type { Context } from "./context.ts";
+- **Zero extra dependencies.** Already using Hono — no additional packages.
+- **Standard HTTP.** Real routes, real REST semantics, standard fetch. Not a
+  custom protocol tunneled through POST.
+- **One routing model.** HTTP and WebSocket routes use the same Hono framework.
+  Live drafts and trade negotiations need WebSockets — having one framework for
+  both avoids maintaining two API paradigms.
+- **Simpler stack.** No separate router/procedure/context/adapter layer on top
+  of Hono.
 
-const fallbackLog = logger.child({ module: "trpc" });
+### How it works
 
-const t = initTRPC.context<Context>().create({
-  errorFormatter({ shape, error, path, input, ctx }) {
-    const log = ctx?.log ?? fallbackLog;
-    log.error(
-      { code: shape.code, path, input, cause: error.cause },
-      "tRPC error: %s",
-      shape.message,
-    );
-    return shape;
-  },
-});
-
-export const router = t.router;
-export const procedure = t.procedure;
-
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.session || !ctx.user) {
-    ctx.log.debug("unauthorized request — no session or user");
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-  ctx.log.debug("authenticated procedure call");
-  return next({
-    ctx: { ...ctx, session: ctx.session, user: ctx.user },
-  });
-});
-```
-
-Three exports:
-
-- **`router`** — creates a router from a record of procedures.
-- **`procedure`** — public procedure, no auth required.
-- **`protectedProcedure`** — enforces authentication via middleware. Narrows
-  `ctx.session` and `ctx.user` to non-null types downstream.
-
-The `errorFormatter` logs every tRPC error with structured context (code, path,
-input, cause) so failures are traceable in production.
-
-### Context
-
-The tRPC context is created per-request. It carries the database client,
-authenticated session, and a request-scoped logger.
-
-```typescript
-// server/trpc/context.ts
-import type pino from "pino";
-import { auth } from "../auth/mod.ts";
-import { db } from "../db/connection.ts";
-import { logger } from "../logger.ts";
-
-const fallbackLog = logger.child({ module: "trpc.context" });
-
-export async function createContext(
-  req: Request,
-  requestLog?: pino.Logger,
-) {
-  const log = requestLog ?? fallbackLog;
-
-  const sessionData = await auth.api.getSession({
-    headers: req.headers,
-  });
-
-  const userId = sessionData?.user?.id ?? null;
-  const contextLog = userId ? log.child({ userId }) : log;
-
-  contextLog.debug(
-    { hasSession: !!sessionData?.session },
-    "trpc context created",
-  );
-
-  return {
-    db,
-    session: sessionData?.session ?? null,
-    user: sessionData?.user ?? null,
-    log: contextLog,
-  };
-}
-
-export type Context = Awaited<ReturnType<typeof createContext>>;
-```
-
-The logger is enriched progressively:
-
-1. `requestContextMiddleware` adds `{ requestId }`.
-2. `createContext` adds `{ userId }` when a session exists.
-
-Every log line from a tRPC procedure carries both fields automatically.
-
-### Root router
-
-The root router assembles all feature routers into a single `appRouter`. The
-`AppRouter` type is exported for the client.
-
-```typescript
-// server/trpc/router.ts
-import { createFeatureRouters } from "../features/mod.ts";
-import { procedure, router } from "./trpc.ts";
-import { db } from "../db/connection.ts";
-
-const features = createFeatureRouters(db);
-
-export const appRouter = router({
-  health: router({
-    check: procedure.query(async ({ ctx }) => {
-      await ctx.db.execute(sql`SELECT 1`);
-      return {
-        status: "ok",
-        commit: Deno.env.get("GIT_SHA") ?? "unknown",
-      };
-    }),
-  }),
-  draft: features.draftRouter,
-  league: features.leagueRouter,
-  // ... other feature routers
-});
-
-export type AppRouter = typeof appRouter;
-```
-
-### Feature routers
-
-Each feature defines a `.router.ts` file that creates a tRPC router. The router
-receives its service dependency and defines procedures that delegate to it.
+The key is **method chaining** on the Hono instance. When routes are chained,
+Hono infers the full route tree as a type. Exporting that type gives the client
+full type safety.
 
 ```typescript
 // server/features/league/league.router.ts
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
 import type { LeagueService } from "@zone-blitz/shared";
-import { protectedProcedure, router } from "../../trpc/trpc.ts";
 import { createLeagueSchema } from "@zone-blitz/shared";
-import { z } from "zod";
+import type { AuthedEnv } from "../../env.ts";
+import { authenticated } from "../../middleware/auth.ts";
 
 export function createLeagueRouter(leagueService: LeagueService) {
-  return router({
-    create: protectedProcedure
-      .input(createLeagueSchema)
-      .mutation(({ ctx, input }) => {
-        return leagueService.create(ctx.user.id, input);
-      }),
-    getById: protectedProcedure
-      .input(z.object({ id: z.string().uuid() }))
-      .query(({ input }) => {
-        return leagueService.getById(input.id);
-      }),
-  });
+  return new Hono<AuthedEnv>()
+    .use(authenticated())
+    .post("/",
+      zValidator("json", createLeagueSchema),
+      async (c) => {
+        const user = c.get("user");
+        const input = c.req.valid("json");
+        const league = await leagueService.create(user.id, input);
+        return c.json(league);
+      },
+    )
+    .get("/:id", async (c) => {
+      const league = await leagueService.getById(c.req.param("id"));
+      return c.json(league);
+    });
 }
 ```
 
-Routers are thin — they validate input via Zod schemas and delegate to the
-service. No business logic lives here.
+Routers are thin — they validate input via `zValidator`, delegate to the
+service, and return JSON. No business logic lives here.
 
-### Hono integration
+### Authentication middleware
 
-tRPC is mounted on Hono via the fetch adapter. The request-scoped logger from
-Hono's context is passed into `createContext` so tRPC procedures inherit the
-`requestId`.
+The `authenticated()` middleware resolves the session from Better Auth and
+narrows the Hono context to include `user` and `session`. This replaces tRPC's
+`protectedProcedure` pattern.
+
+```typescript
+// server/middleware/auth.ts
+import type { MiddlewareHandler } from "hono";
+import type { AuthedEnv } from "../env.ts";
+import { auth } from "../auth/mod.ts";
+
+export function authenticated(): MiddlewareHandler<AuthedEnv> {
+  return async (c, next) => {
+    const sessionData = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    });
+    if (!sessionData?.user) {
+      const log = c.get("log");
+      log.debug("unauthorized request — no session");
+      return c.json({ error: "UNAUTHORIZED" }, 401);
+    }
+    c.set("user", sessionData.user);
+    c.set("session", sessionData.session);
+
+    // Enrich logger with userId
+    const log = c.get("log").child({ userId: sessionData.user.id });
+    c.set("log", log);
+
+    await next();
+  };
+}
+```
+
+```typescript
+// server/env.ts
+import type pino from "pino";
+
+export type AppEnv = {
+  Variables: {
+    requestId: string;
+    log: pino.Logger;
+  };
+};
+
+export type AuthedEnv = {
+  Variables: AppEnv["Variables"] & {
+    user: User;
+    session: Session;
+  };
+};
+```
+
+Feature routers that require authentication use `AuthedEnv` and apply
+`authenticated()` as middleware. Public routes use `AppEnv` directly.
+
+### App assembly and type export
+
+The Hono app is assembled in `main.ts` by mounting feature routers. The chained
+app type is exported for the client.
 
 ```typescript
 // server/main.ts
 import { Hono } from "hono";
-import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { appRouter } from "./trpc/router.ts";
-import { createContext } from "./trpc/context.ts";
+import { db } from "./db/connection.ts";
+import { createFeatureRouters } from "./features/mod.ts";
 import { requestContextMiddleware } from "./middleware/request-context.ts";
 import { loggerMiddleware } from "./middleware/logger.ts";
 import { logger } from "./logger.ts";
+import type { AppEnv } from "./env.ts";
 
-const app = new Hono<AppEnv>();
+const features = createFeatureRouters(db);
 
-app.use(requestContextMiddleware(logger));
-app.use(loggerMiddleware());
+const app = new Hono<AppEnv>()
+  .use(requestContextMiddleware(logger))
+  .use(loggerMiddleware())
+  .route("/api/leagues", features.leagueRouter)
+  .route("/api/drafts", features.draftRouter);
 
-// Auth routes (before tRPC so OAuth flows work)
+// Auth routes
 app.on(["GET", "POST"], "/api/auth/**", (c) => {
   return auth.handler(c.req.raw);
 });
 
-// tRPC
-app.all("/api/trpc/*", (c) => {
-  const requestLog = c.get("log");
-  return fetchRequestHandler({
-    endpoint: "/api/trpc",
-    req: c.req.raw,
-    router: appRouter,
-    createContext: ({ req }) => createContext(req, requestLog),
-  });
-});
+export type AppType = typeof app;
 ```
+
+The `AppType` export is the key — it carries the full route tree as a type that
+the client can consume.
 
 ### Client setup
 
-The React client uses `@trpc/react-query` for type-safe data fetching.
+The React client uses `hono/client` for typed API calls, paired with
+`@tanstack/react-query` for caching and state management.
 
 ```typescript
-// client/src/trpc.ts
-import { createTRPCReact } from "@trpc/react-query";
-import { httpBatchLink } from "@trpc/client";
-import { QueryClient } from "@tanstack/react-query";
-import type { AppRouter } from "../../server/trpc/router.ts";
+// client/src/api.ts
+import { hc } from "hono/client";
+import type { AppType } from "../../server/main.ts";
 
-export const trpc = createTRPCReact<AppRouter>();
-
-export const queryClient = new QueryClient();
-
-export const trpcClient = trpc.createClient({
-  links: [
-    httpBatchLink({
-      url: "/api/trpc",
-    }),
-  ],
-});
+export const api = hc<AppType>("/");
 ```
 
 ```typescript
-// client/src/App.tsx
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient, trpc, trpcClient } from "./trpc";
+// client/src/hooks/use-leagues.ts
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "../api.ts";
 
-export function App() {
-  return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        {/* Routes */}
-      </QueryClientProvider>
-    </trpc.Provider>
-  );
+export function useLeagues() {
+  return useQuery({
+    queryKey: ["leagues"],
+    queryFn: async () => {
+      const res = await api.api.leagues.$get();
+      return res.json();
+    },
+  });
+}
+
+export function useCreateLeague() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { name: string }) => {
+      const res = await api.api.leagues.$post({ json: input });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leagues"] });
+    },
+  });
 }
 ```
 
@@ -584,15 +529,15 @@ Usage in components:
 
 ```typescript
 function LeagueListPage() {
-  const { data: leagues } = trpc.league.list.useQuery();
-  const createMutation = trpc.league.create.useMutation();
+  const { data: leagues } = useLeagues();
+  const createLeague = useCreateLeague();
 
   return (
     <>
       {leagues?.map((league) => (
         <LeagueCard key={league.id} league={league} />
       ))}
-      <button onClick={() => createMutation.mutate({ name: "..." })}>
+      <button onClick={() => createLeague.mutate({ name: "..." })}>
         Create League
       </button>
     </>
@@ -600,19 +545,28 @@ function LeagueListPage() {
 }
 ```
 
-### Dev tooling — tRPC Panel
+### Zod validation with `zValidator`
 
-In development, a tRPC Panel UI is available for exploring and testing
-procedures without writing client code.
+Input validation uses `@hono/zod-validator`. Schemas are defined in
+`@zone-blitz/shared` and used by both the server (validation) and client (form
+validation, type inference).
 
 ```typescript
-// In main.ts (dev only)
-if (Deno.env.get("DENO_ENV") !== "production") {
-  app.get("/dev/trpc/ui", (c) => {
-    return c.html(renderTrpcPanel(appRouter, { url: "/api/trpc" }));
-  });
-}
+import { zValidator } from "@hono/zod-validator";
+import { createLeagueSchema } from "@zone-blitz/shared";
+
+// In a router:
+.post("/",
+  zValidator("json", createLeagueSchema),
+  async (c) => {
+    const input = c.req.valid("json");  // fully typed from the schema
+    // ...
+  },
+)
 ```
+
+Validation targets: `"json"` for request bodies, `"query"` for query
+parameters, `"param"` for URL parameters.
 
 ---
 
