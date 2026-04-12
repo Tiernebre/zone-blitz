@@ -16,12 +16,12 @@
     "dev": "./bin/dev",
     "db:start": "docker compose up -d --wait",
     "db:stop": "docker compose down",
-    "db:migrate": "cd server && deno run --allow-net --allow-env --allow-read --allow-sys db/migrate.ts",
+    "db:migrate": "cd server && deno run --env=../.env --allow-net --allow-env --allow-read --allow-sys db/migrate.ts",
     "test": "deno task test:server && deno task test:client",
     "test:server": "deno test server/ --allow-env --allow-net --allow-read --allow-sys",
     "test:client": "cd client && deno run -A npm:vitest run",
     "test:e2e": "./bin/test-e2e",
     "build": "cd client && deno task build",
-    "start": "cd server && deno run --allow-net --allow-env --allow-read --allow-sys main.ts"
+    "start": "cd server && deno run --env=../.env --allow-net --allow-env --allow-read --allow-sys main.ts"
   }
 }
