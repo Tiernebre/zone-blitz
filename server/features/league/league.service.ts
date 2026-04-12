@@ -11,7 +11,7 @@ export function createLeagueService(deps: {
   return {
     async getAll() {
       log.debug("fetching all leagues");
-      return deps.leagueRepo.getAll();
+      return await deps.leagueRepo.getAll();
     },
 
     async getById(id) {
@@ -25,7 +25,7 @@ export function createLeagueService(deps: {
 
     async create(input) {
       log.info({ name: input.name }, "creating league");
-      return deps.leagueRepo.create(input);
+      return await deps.leagueRepo.create(input);
     },
   };
 }

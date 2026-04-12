@@ -13,7 +13,7 @@ export function createLeagueRepository(deps: {
   return {
     async getAll() {
       log.debug("fetching all leagues");
-      return deps.db.select().from(leagues);
+      return await deps.db.select().from(leagues);
     },
 
     async getById(id) {

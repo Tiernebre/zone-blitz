@@ -1,6 +1,11 @@
 {
   "name": "@zone-blitz/server",
   "exports": "./main.ts",
+  "lint": {
+    "rules": {
+      "exclude": ["no-slow-types"]
+    }
+  },
   "imports": {
     "hono": "npm:hono@^4",
     "hono/": "npm:/hono@^4/",
