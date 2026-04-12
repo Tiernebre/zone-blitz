@@ -218,6 +218,10 @@ AI GMs approach free agency according to their personality:
   in free agency. Let expensive veterans walk and collect comp picks.
 - **"Old School" GMs**: Value toughness and character. Overpay for "their type"
   of player. Avoid paying premium for finesse positions.
+- **"Gambler" GMs** *(rare)*: Make the biggest splashes in the opening frenzy.
+  Outbid everyone for the marquee free agent, overpay dramatically, hand out
+  massive guaranteed money. They inflate the market for everyone — when a
+  Gambler is bidding, every other team's offers look cheap by comparison.
 
 NPC teams get into bidding wars with each other. The market should feel alive —
 you're not the only one trying to sign the top corner.

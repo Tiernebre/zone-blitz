@@ -452,6 +452,12 @@ feeling authentic.
 - **"Old School" GMs**: Pay "their guys" — sometimes overpay for loyalty.
   Less sophisticated with contract structure. Occasionally get into cap
   trouble through emotional decisions rather than strategic ones.
+- **"Gambler" GMs** *(rare)*: The most reckless cap managers in the league.
+  Restructure everything, use void years liberally, and hand out massive
+  guaranteed deals to chase a championship *right now*. They cycle between
+  championship windows and brutal cap hell faster than any other archetype.
+  When a Gambler hits cap hell, they become a fire sale — other GMs can
+  scoop up talent shed for cap reasons.
 
 ### NPC cap mistakes
 
