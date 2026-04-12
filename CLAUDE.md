@@ -33,8 +33,8 @@
   2. **Green** — Write the minimum code to make the test pass.
   3. **Refactor** — Clean up the implementation while keeping tests green.
 - Never write implementation before a failing test. Tests drive the design.
-- **100% code coverage is enforced.** Every line, branch, function, and
-  statement must be covered by tests. CI will fail if coverage drops below 100%.
+- **Code coverage thresholds are enforced.** CI will fail if coverage drops
+  below the configured minimums (85% for Deno server/packages, 95% for client).
   - Deno tests (server/packages): `deno test --coverage` +
     `deno task test:coverage` (runs `bin/check-coverage`)
   - Client tests (Vitest): coverage thresholds configured in
