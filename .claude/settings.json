@@ -10,6 +10,13 @@
             "command": "deno fmt && git add -u",
             "timeout": 30,
             "statusMessage": "Formatting with deno fmt..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push:*)",
+            "command": "deno lint",
+            "timeout": 60,
+            "statusMessage": "Running deno lint..."
           }
         ]
       }
