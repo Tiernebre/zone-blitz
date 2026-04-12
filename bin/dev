@@ -6,6 +6,6 @@ deno task db:start
 deno task db:migrate
 
 echo "Starting server and client..."
-deno run --watch --allow-net --allow-env --allow-read --allow-sys server/main.ts &
+deno run --env --watch --allow-net --allow-env --allow-read --allow-sys server/main.ts &
 cd client && deno run -A npm:vite &
 wait
