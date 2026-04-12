@@ -2,9 +2,9 @@
 
 NPC teams make or break a franchise sim. In single-player, they ARE the game —
 every team you're not controlling needs to feel like it's run by a real person
-with opinions, biases, and a plan. In multiplayer, NPC teams fill out the
-league and must be competent enough that human GMs can't exploit them but
-interesting enough to create storylines.
+with opinions, biases, and a plan. In multiplayer, NPC teams fill out the league
+and must be competent enough that human GMs can't exploit them but interesting
+enough to create storylines.
 
 ## Design Philosophy
 
@@ -24,32 +24,38 @@ cosmetic labels — they drive every decision the AI makes.
 ### Personality Axes
 
 **Risk tolerance**
+
 - Low: conservative, avoids boom-or-bust moves, prefers safe picks
 - High: trades up aggressively, gambles on upside, willing to mortgage the
   future for a shot at a title
 
 **Time horizon**
+
 - Short: builds for this year, values veterans, impatient with losing
-- Long: builds for 3 years out, values youth and draft capital, tolerates
-  losing seasons as part of a plan
+- Long: builds for 3 years out, values youth and draft capital, tolerates losing
+  seasons as part of a plan
 
 **Positional value bias**
+
 - Every GM has positions they value more or less than market consensus
 - Some believe in paying running backs; others never will
 - Some prioritize OL investment; others believe in skill positions first
 - These biases show up in drafting, free agency, and trade evaluation
 
 **Analytics trust**
+
 - High: values measurables, combine data, and efficiency metrics
 - Low: values game tape, intangibles, and "eye test"
 - Affects scouting emphasis and how they evaluate players
 
 **Scheme loyalty**
-- High: forces players into the scheme, will tear down a roster to fit a
-  new coaching hire's system
+
+- High: forces players into the scheme, will tear down a roster to fit a new
+  coaching hire's system
 - Low: adapts the scheme to fit available personnel, pragmatic about playstyle
 
 **Aggressiveness in transactions**
+
 - How often they initiate trades vs. wait for offers
 - How aggressively they bid in free agency
 - How willing they are to make blockbuster moves
@@ -59,36 +65,33 @@ cosmetic labels — they drive every decision the AI makes.
 Archetypes are starting templates — individual GMs may blend traits from
 multiple archetypes.
 
-**"The Moneyball GM"**
-Analytics-driven. Exploits market inefficiencies. Avoids overpaying free agents.
-Targets undervalued positions and contract situations. Lets expensive veterans
-walk and collects compensatory picks. Wins through process, not splash moves.
+**"The Moneyball GM"** Analytics-driven. Exploits market inefficiencies. Avoids
+overpaying free agents. Targets undervalued positions and contract situations.
+Lets expensive veterans walk and collects compensatory picks. Wins through
+process, not splash moves.
 
-**"Win Now"**
-Trades future picks aggressively for proven talent. Signs the biggest free
-agents. Impatient with rebuilds. If the team is 6-4, they're buying at the
-deadline. If they're 3-7, they might panic-fire the coach. High risk, high
-reward — sometimes builds a dynasty, sometimes creates cap hell.
+**"Win Now"** Trades future picks aggressively for proven talent. Signs the
+biggest free agents. Impatient with rebuilds. If the team is 6-4, they're buying
+at the deadline. If they're 3-7, they might panic-fire the coach. High risk,
+high reward — sometimes builds a dynasty, sometimes creates cap hell.
 
-**"The Developer"**
-Prioritizes draft picks and player development. Patient, multi-year plans.
-Rarely makes blockbuster trades. Prefers to re-sign homegrown talent. Builds
-through the draft, develops players, wins when the talent matures. The roster
-moves slowly but steadily.
+**"The Developer"** Prioritizes draft picks and player development. Patient,
+multi-year plans. Rarely makes blockbuster trades. Prefers to re-sign homegrown
+talent. Builds through the draft, develops players, wins when the talent
+matures. The roster moves slowly but steadily.
 
-**"Old School"**
-Values size, toughness, and running the ball. Skeptical of analytics and spread
-offenses. Overpays for "football players" — big linemen, physical backs, tough
-linebackers. Dismissive of smaller, faster players regardless of production.
-Hires coaches who share the philosophy.
+**"Old School"** Values size, toughness, and running the ball. Skeptical of
+analytics and spread offenses. Overpays for "football players" — big linemen,
+physical backs, tough linebackers. Dismissive of smaller, faster players
+regardless of production. Hires coaches who share the philosophy.
 
-**"The Gambler"** *(rare)*
-The rarest archetype — most leagues will have one or two at most. High risk
-tolerance, loves trades, always in motion. Will trade three firsts to move up
-for "their guy." Makes splashy free agent signings. The roster is always in
-flux. Exciting to watch, inconsistent results. When a Gambler GM lands in your
-league, everyone notices — he warps the trade market, overpays in free agency,
-and creates chaos that other GMs can exploit or get burned by.
+**"The Gambler"** _(rare)_ The rarest archetype — most leagues will have one or
+two at most. High risk tolerance, loves trades, always in motion. Will trade
+three firsts to move up for "their guy." Makes splashy free agent signings. The
+roster is always in flux. Exciting to watch, inconsistent results. When a
+Gambler GM lands in your league, everyone notices — he warps the trade market,
+overpays in free agency, and creates chaos that other GMs can exploit or get
+burned by.
 
 ## Front Office Decision-Making
 
@@ -128,10 +131,10 @@ behavior. Key points:
 When a coaching position opens, the NPC GM:
 
 - Identifies candidates with scheme expertise they prefer
-- Weighs experience vs. upside (analytics GMs may hire an unproven
-  coordinator; old school GMs want a veteran head coach)
-- Coaching hires shape the team's identity for years — this is a
-  consequential NPC decision
+- Weighs experience vs. upside (analytics GMs may hire an unproven coordinator;
+  old school GMs want a veteran head coach)
+- Coaching hires shape the team's identity for years — this is a consequential
+  NPC decision
 
 ### Roster Construction
 
@@ -139,8 +142,8 @@ Day-to-day decisions:
 
 - Depth chart management based on scheme and performance
 - Practice squad decisions — who to stash, who to cut
-- IR decisions — shut down an injured player for the season or hope for a
-  quick return?
+- IR decisions — shut down an injured player for the season or hope for a quick
+  return?
 - 53-man roster cuts — painful decisions with cap implications
 
 ### Rebuild vs. Contend
@@ -150,8 +153,8 @@ NPCs should recognize their competitive window:
 - A team that starts 1-6 with an aging roster should become a seller at the
   deadline
 - A team with a young QB on a rookie deal and cap space should be aggressive
-- These state transitions should happen organically based on the AI's
-  assessment of their roster, not a hard-coded trigger
+- These state transitions should happen organically based on the AI's assessment
+  of their roster, not a hard-coded trigger
 
 ## Coaching AI
 
@@ -163,8 +166,8 @@ Separate from the front office, coaching AI handles:
 - The coaching staff selects schemes based on their expertise and the available
   personnel
 - A great coach adapts to their roster; a stubborn coach forces their system
-- Coaching staff and GM may conflict — a run-first coach on a team the GM
-  built around passing creates tension (and a realistic dynamic)
+- Coaching staff and GM may conflict — a run-first coach on a team the GM built
+  around passing creates tension (and a realistic dynamic)
 
 ### Game Planning
 
@@ -177,10 +180,10 @@ Separate from the front office, coaching AI handles:
 
 - Coaches influence player development rates
 - A great QB coach accelerates a young QB's growth
-- Scheme familiarity affects development — a player in the same system for
-  years develops faster than one in a new system
-- Development focus — coaches prioritize developing certain players based on
-  the team's needs
+- Scheme familiarity affects development — a player in the same system for years
+  develops faster than one in a new system
+- Development focus — coaches prioritize developing certain players based on the
+  team's needs
 
 ## What Makes Good NPC AI
 
@@ -189,14 +192,14 @@ The best NPC AI creates **stories**:
 - The rival GM who always seems to draft the player you wanted
 - The perennial contender that finally collapses when their QB retires and
   they're in cap hell from years of aggressive spending
-- The rebuilding team that suddenly trades up for a franchise QB and
-  becomes the next dynasty
+- The rebuilding team that suddenly trades up for a franchise QB and becomes the
+  next dynasty
 - The old school GM who refuses to adapt to the modern game and slowly falls
   behind
-- The trade deadline frenzy where three NPC teams are all bidding for the
-  same rental player
+- The trade deadline frenzy where three NPC teams are all bidding for the same
+  rental player
 
 These narratives emerge from consistent, personality-driven decision-making —
-not from scripted events. The AI doesn't need to be "smart" in an optimal
-sense. It needs to be **coherent** — making decisions that follow logically
-from its personality and situation, even if those decisions are sometimes wrong.
+not from scripted events. The AI doesn't need to be "smart" in an optimal sense.
+It needs to be **coherent** — making decisions that follow logically from its
+personality and situation, even if those decisions are sometimes wrong.

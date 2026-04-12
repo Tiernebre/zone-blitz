@@ -1,0 +1,25 @@
+{
+  "workspace": ["./packages/shared", "./server"],
+  "nodeModulesDir": "auto",
+  "fmt": {
+    "indentWidth": 2,
+    "useTabs": false,
+    "singleQuote": false
+  },
+  "compilerOptions": {
+    "strict": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
+  },
+  "tasks": {
+    "setup": "./bin/setup",
+    "dev": "./bin/dev",
+    "db:start": "docker compose up -d --wait",
+    "db:stop": "docker compose down",
+    "db:migrate": "cd server && deno run --allow-net --allow-env --allow-read --allow-sys db/migrate.ts",
+    "test": "deno task test:server",
+    "test:server": "deno test server/ --allow-env --allow-net --allow-read --allow-sys",
+    "build": "echo 'No client build yet'",
+    "start": "cd server && deno run --allow-net --allow-env --allow-read --allow-sys main.ts"
+  }
+}

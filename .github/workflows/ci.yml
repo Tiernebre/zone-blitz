@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  workflow_call:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.11
+      - run: deno lint
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.11
+      - run: deno fmt --check
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: zone_blitz
+          POSTGRES_PASSWORD: zone_blitz
+          POSTGRES_DB: zone_blitz
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U zone_blitz"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.11
+      - run: deno install
+      - run: deno task test
+
+  docker-smoke:
+    name: Docker Smoke Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: zone_blitz
+          POSTGRES_PASSWORD: zone_blitz
+          POSTGRES_DB: zone_blitz
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U zone_blitz"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t zone-blitz:smoke .
+      - name: Start container
+        run: |
+          docker run -d --name smoke-app \
+            --network host \
+            -e DATABASE_URL="postgres://zone_blitz:zone_blitz@localhost:5432/zone_blitz" \
+            zone-blitz:smoke
+      - name: Curl health endpoint
+        run: |
+          for i in $(seq 1 15); do
+            status=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/health 2>/dev/null || echo "000")
+            if [ "$status" = "200" ]; then
+              echo "Smoke test passed (HTTP $status)"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $status, retrying in 2s..."
+            sleep 2
+          done
+          echo "Smoke test failed. Container logs:"
+          docker logs smoke-app
+          exit 1

@@ -8,55 +8,54 @@ structure, and design philosophy that all implementation work builds on.
 
 ## Stack Overview
 
-| Layer            | Choice                            | Rationale                                                        |
-| ---------------- | --------------------------------- | ---------------------------------------------------------------- |
-| Runtime          | Deno + TypeScript                 | Native TS, built-in tooling, shared language with frontend       |
-| Frontend         | Vite + React + Tailwind + shadcn/ui | SPA game UI; no SSR needed (see [UI Architecture](./ui-architecture.md)) |
-| API              | tRPC                              | End-to-end type safety with zero codegen; migrateable to GraphQL |
-| Database         | PostgreSQL                        | Relational data with complex queries (cap math, historical stats)|
-| DB access        | Drizzle ORM                       | Type-safe SQL, first-class migrations, schema-as-code            |
-| Authentication   | Better Auth (Google OAuth)        | Drizzle adapter, session-based, OAuth-only                       |
-| Realtime         | WebSockets                        | Live drafts, trade negotiations, multiplayer coordination        |
-| Monorepo         | Deno workspace                    | Enforced dependency boundaries between layers                    |
+| Layer          | Choice                              | Rationale                                                                |
+| -------------- | ----------------------------------- | ------------------------------------------------------------------------ |
+| Runtime        | Deno + TypeScript                   | Native TS, built-in tooling, shared language with frontend               |
+| Frontend       | Vite + React + Tailwind + shadcn/ui | SPA game UI; no SSR needed (see [UI Architecture](./ui-architecture.md)) |
+| API            | tRPC                                | End-to-end type safety with zero codegen; migrateable to GraphQL         |
+| Database       | PostgreSQL                          | Relational data with complex queries (cap math, historical stats)        |
+| DB access      | Drizzle ORM                         | Type-safe SQL, first-class migrations, schema-as-code                    |
+| Authentication | Better Auth (Google OAuth)          | Drizzle adapter, session-based, OAuth-only                               |
+| Realtime       | WebSockets                          | Live drafts, trade negotiations, multiplayer coordination                |
+| Monorepo       | Deno workspace                      | Enforced dependency boundaries between layers                            |
 
 ### Why Deno
 
 Deno runs TypeScript natively — no build step, no `ts-node`, no `tsconfig`
-gymnastics for the server. Write `.ts`, run it. This eliminates an entire
-layer of tooling configuration that accumulates friction over a long-lived
-project.
+gymnastics for the server. Write `.ts`, run it. This eliminates an entire layer
+of tooling configuration that accumulates friction over a long-lived project.
 
 Beyond native TypeScript, Deno provides:
 
-- **Built-in test runner.** `deno test` works out of the box with no
-  framework configuration. Tests are colocated with source files.
-- **Built-in formatter and linter.** `deno fmt` and `deno lint` replace
-  Prettier and ESLint config files.
+- **Built-in test runner.** `deno test` works out of the box with no framework
+  configuration. Tests are colocated with source files.
+- **Built-in formatter and linter.** `deno fmt` and `deno lint` replace Prettier
+  and ESLint config files.
 - **Deno workspaces.** Native monorepo support through `deno.json` workspace
   configuration, enforcing package boundaries without third-party tooling.
 - **Web standard APIs.** fetch, WebSocket, streams — standards-aligned rather
   than runtime-specific.
-- **Permissions model.** Explicit `--allow-net`, `--allow-env`, etc. provides
-  a security baseline.
+- **Permissions model.** Explicit `--allow-net`, `--allow-env`, etc. provides a
+  security baseline.
 
 ### Why TypeScript end-to-end
 
 The simulation workload is **bursty, not sustained** — game sims run when the
-season advances, not continuously. Deno handles this fine. The real payoff
-is a single language across the entire stack with shared types and validation.
+season advances, not continuously. Deno handles this fine. The real payoff is a
+single language across the entire stack with shared types and validation.
 
 The compute-heavy modules (simulation engine, NPC AI) are designed as pure,
 extractable packages. If we outgrow Deno's performance ceiling — realistically,
-when play-by-play simulation with thousands of play resolutions per game
-becomes sluggish — we extract those packages to Go or Rust behind the same
-interfaces. The API layer, multiplayer coordination, and database access stay
-in TypeScript where shared types and Zod schemas pay dividends.
+when play-by-play simulation with thousands of play resolutions per game becomes
+sluggish — we extract those packages to Go or Rust behind the same interfaces.
+The API layer, multiplayer coordination, and database access stay in TypeScript
+where shared types and Zod schemas pay dividends.
 
 ### Why tRPC
 
-tRPC gives us type-safe API calls with no code generation step. The client
-knows the server's input/output types at compile time. This eliminates an
-entire class of integration bugs and makes refactoring safe.
+tRPC gives us type-safe API calls with no code generation step. The client knows
+the server's input/output types at compile time. This eliminates an entire class
+of integration bugs and makes refactoring safe.
 
 The migration path to GraphQL is feasible if we need it. tRPC procedures map
 conceptually to GraphQL queries/mutations. The domain types and validation
@@ -83,26 +82,26 @@ Key properties:
 ### Why Better Auth
 
 [Better Auth](https://www.better-auth.com/) handles authentication with a
-Drizzle adapter that shares the same database and schema definitions as the
-rest of the application. No separate auth database, no external auth service
+Drizzle adapter that shares the same database and schema definitions as the rest
+of the application. No separate auth database, no external auth service
 dependency.
 
 Configuration:
 
-- **OAuth-only.** Google as the social provider. No email/password — no
-  password reset flows, no email verification complexity. Adding providers
-  (Discord, GitHub) later is trivial with Better Auth's social provider API.
+- **OAuth-only.** Google as the social provider. No email/password — no password
+  reset flows, no email verification complexity. Adding providers (Discord,
+  GitHub) later is trivial with Better Auth's social provider API.
 - **Drizzle adapter.** Auth tables (user, session, account, verification) are
-  defined in the Drizzle schema alongside domain tables. Migrations are
-  unified — one migration history for the entire database.
+  defined in the Drizzle schema alongside domain tables. Migrations are unified
+  — one migration history for the entire database.
 - **Session-based.** Better Auth manages sessions server-side with token-based
-  session lookup. The session provides the authenticated user identity that
-  tRPC procedures and WebSocket connections use for authorization.
-- **Auth schema is auth-only.** The `user` table managed by Better Auth
-  contains authentication concerns (email, OAuth accounts, sessions). Game
-  domain concepts (GM profile, league membership, franchise ownership) are
-  separate tables that reference the auth user by ID. NPC GMs are modeled
-  entirely outside the auth schema — they are domain entities, not users.
+  session lookup. The session provides the authenticated user identity that tRPC
+  procedures and WebSocket connections use for authorization.
+- **Auth schema is auth-only.** The `user` table managed by Better Auth contains
+  authentication concerns (email, OAuth accounts, sessions). Game domain
+  concepts (GM profile, league membership, franchise ownership) are separate
+  tables that reference the auth user by ID. NPC GMs are modeled entirely
+  outside the auth schema — they are domain entities, not users.
 
 ---
 
@@ -129,10 +128,10 @@ server       → shared, simulation, ai
 ui           → shared
 ```
 
-The critical invariant: **`simulation` and `ai` never depend on `server`.**
-They have no knowledge of databases, HTTP, WebSockets, or any I/O. They are
-pure logic packages that take domain types in and produce domain types out.
-This is what makes them extractable.
+The critical invariant: **`simulation` and `ai` never depend on `server`.** They
+have no knowledge of databases, HTTP, WebSockets, or any I/O. They are pure
+logic packages that take domain types in and produce domain types out. This is
+what makes them extractable.
 
 ### Package responsibilities
 
@@ -184,10 +183,10 @@ This is what makes them extractable.
 
 ## Interface-Driven Design
 
-Interfaces are the primary tool for decoupling. The domain logic in
-`simulation` and `ai` depends on abstractions defined in `shared`. The
-`server` package provides concrete implementations. This enables testing,
-substitution, and future extraction.
+Interfaces are the primary tool for decoupling. The domain logic in `simulation`
+and `ai` depends on abstractions defined in `shared`. The `server` package
+provides concrete implementations. This enables testing, substitution, and
+future extraction.
 
 ### Design pattern strategy
 
@@ -209,8 +208,8 @@ interface IGMStrategy {
 ```
 
 Individual strategy implementations (WinNowStrategy, DeveloperStrategy, etc.)
-live in the `ai` package. A GM's personality axes determine which strategy —
-or weighted blend of strategies — drives their decisions. This is not a rigid
+live in the `ai` package. A GM's personality axes determine which strategy — or
+weighted blend of strategies — drives their decisions. This is not a rigid
 one-archetype-per-GM mapping; the axes create a continuous space of behavior.
 
 **Repository — Data access abstraction**
@@ -234,8 +233,8 @@ service contract.
 
 **Observer / Domain Events — System coordination**
 
-When something happens in the domain (a trade executes, a player is drafted,
-a coach is fired), the system emits a domain event. Subsystems subscribe
+When something happens in the domain (a trade executes, a player is drafted, a
+coach is fired), the system emits a domain event. Subsystems subscribe
 independently.
 
 ```typescript
@@ -244,7 +243,7 @@ interface IDomainEventBus {
   publish(event: DomainEvent): void;
   subscribe<T extends DomainEvent>(
     eventType: string,
-    handler: (event: T) => void
+    handler: (event: T) => void,
   ): void;
 }
 
@@ -254,7 +253,7 @@ type DomainEvent =
   | CoachFiredEvent
   | SeasonAdvancedEvent
   | FreeAgentSignedEvent;
-  // ...
+// ...
 ```
 
 A single trade execution triggers:
@@ -265,8 +264,8 @@ A single trade execution triggers:
 - League history records the transaction
 - Compensatory pick tracking updates
 
-Each of these is an independent subscriber. No subsystem needs to know about
-the others. Adding a new reaction to an event means adding a subscriber, not
+Each of these is an independent subscriber. No subsystem needs to know about the
+others. Adding a new reaction to an event means adding a subscriber, not
 modifying the trade execution code.
 
 **Factory — Procedural generation**
@@ -286,9 +285,8 @@ interface ICoachFactory {
 }
 ```
 
-This keeps generation logic testable (deterministic with seeded randomness)
-and swappable (different generation strategies for different league
-configurations).
+This keeps generation logic testable (deterministic with seeded randomness) and
+swappable (different generation strategies for different league configurations).
 
 ### Interface placement
 
@@ -316,9 +314,9 @@ shared/src/
 
 Database tables are defined in TypeScript in the `server` package. Drizzle
 infers TypeScript types from the schema — these are the canonical types for
-database rows. Domain types in `shared` may differ from database row types
-(the domain model is not the persistence model), and mapping between them
-happens in the repository implementations.
+database rows. Domain types in `shared` may differ from database row types (the
+domain model is not the persistence model), and mapping between them happens in
+the repository implementations.
 
 ```
 server/src/
@@ -351,8 +349,8 @@ These are not always the same:
   cap if cut) that aren't stored columns
 - The simulation engine works with domain types — it never sees a database row
 
-Repository implementations in `server` handle the mapping. This keeps the
-domain model clean and the persistence model optimizable independently.
+Repository implementations in `server` handle the mapping. This keeps the domain
+model clean and the persistence model optimizable independently.
 
 ---
 
@@ -390,12 +388,14 @@ Trade executes
 ### Key realtime scenarios
 
 **Live draft:**
+
 - Server manages pick timer and turn order
 - On-the-clock events, pick announcements, and trade offers are pushed to all
   clients
 - If a client disconnects, auto-draft from their pre-set board kicks in
 
 **Trade negotiations:**
+
 - A negotiation is a private channel between two clients (or a client and the
   NPC AI)
 - Asset changes and messages are pushed in real time
@@ -403,6 +403,7 @@ Trade executes
 - Other league members see the completed trade, not the negotiation
 
 **Season advancement:**
+
 - Commissioner or ready-check triggers advancement
 - Server runs simulation (calls into `simulation` package)
 - Results are pushed to all clients as they're produced
@@ -413,8 +414,8 @@ Trade executes
 ## Future Extraction Path
 
 The architecture is designed so that the `simulation` and `ai` packages can be
-extracted from the Deno monorepo into standalone services without rewriting
-the rest of the system.
+extracted from the Deno monorepo into standalone services without rewriting the
+rest of the system.
 
 ### What extraction looks like
 
@@ -434,15 +435,15 @@ server → gRPC/HTTP call → Go simulation service → returns GameResult
 server → gRPC/HTTP call → Go AI service → returns TradeDecision
 ```
 
-The server's code changes from a function call to a service call. The
-interfaces in `shared` become the gRPC/HTTP contract. The domain types become
-the message schema.
+The server's code changes from a function call to a service call. The interfaces
+in `shared` become the gRPC/HTTP contract. The domain types become the message
+schema.
 
 ### What makes this possible
 
-1. **No I/O in simulation or ai.** They don't touch databases, file systems,
-   or networks. Pure in, pure out. A Go rewrite implements the same logic
-   without untangling I/O dependencies.
+1. **No I/O in simulation or ai.** They don't touch databases, file systems, or
+   networks. Pure in, pure out. A Go rewrite implements the same logic without
+   untangling I/O dependencies.
 
 2. **Interfaces defined in shared.** The contracts are already explicit. They
    translate directly to service API definitions.
@@ -453,7 +454,7 @@ the message schema.
 
 4. **The server is the only orchestrator.** It decides when to call the sim
    engine, what state to pass, and what to do with the results. Extraction
-   changes *how* it calls, not *what* it calls or *when*.
+   changes _how_ it calls, not _what_ it calls or _when_.
 
 ### When to extract
 
@@ -461,8 +462,8 @@ Not yet. Extract when:
 
 - Play-by-play simulation becomes a bottleneck (thousands of play resolutions
   per game × 272 games per season advance)
-- NPC AI decision-making for 31 teams during time-sensitive events (draft
-  picks with timers) needs lower latency than Deno provides
+- NPC AI decision-making for 31 teams during time-sensitive events (draft picks
+  with timers) needs lower latency than Deno provides
 - Profiling confirms the bottleneck is CPU-bound computation, not I/O or
   database queries
 
@@ -477,8 +478,8 @@ Testing is split into three layers, each with its own tooling and purpose.
 
 ### Server tests — Deno's native test runner
 
-Server-side code uses `deno test` directly. No framework to configure, no
-test runner to install.
+Server-side code uses `deno test` directly. No framework to configure, no test
+runner to install.
 
 ```
 deno test server/ --allow-env --allow-net --allow-read --allow-sys
@@ -491,19 +492,19 @@ Server tests cover:
 - tRPC procedure behavior
 - Auth configuration
 
-Tests that touch the database run against a dedicated test database. No
-mocking the database in integration tests — the test hits real PostgreSQL so
-migration and query correctness are verified end-to-end.
+Tests that touch the database run against a dedicated test database. No mocking
+the database in integration tests — the test hits real PostgreSQL so migration
+and query correctness are verified end-to-end.
 
 ### Client tests — Vitest + Testing Library
 
 The React SPA uses Vitest (integrated with Vite) and Testing Library:
 
 - **Vitest** runs in the happy-dom environment for fast DOM simulation
-- **Testing Library** provides user-centric queries (`getByRole`,
-  `getByText`) that test behavior, not implementation
-- **Test setup** polyfills browser APIs (WebSocket, matchMedia) that
-  happy-dom doesn't provide
+- **Testing Library** provides user-centric queries (`getByRole`, `getByText`)
+  that test behavior, not implementation
+- **Test setup** polyfills browser APIs (WebSocket, matchMedia) that happy-dom
+  doesn't provide
 
 ```
 cd ui && deno run -A npm:vitest run
@@ -518,8 +519,8 @@ Client tests cover:
 
 ### E2E tests — Playwright
 
-End-to-end tests run a real server against a real database with a real
-browser. Playwright drives Chromium through full user journeys.
+End-to-end tests run a real server against a real database with a real browser.
+Playwright drives Chromium through full user journeys.
 
 **Infrastructure:**
 
@@ -531,8 +532,8 @@ browser. Playwright drives Chromium through full user journeys.
 
 **Authentication in E2E:**
 
-E2E tests bypass the OAuth flow by injecting session cookies directly into
-the browser context. A test fixture:
+E2E tests bypass the OAuth flow by injecting session cookies directly into the
+browser context. A test fixture:
 
 1. Seeds a test user with a pre-signed session token into the database
 2. Signs the session token using HMAC-SHA256 with the `BETTER_AUTH_SECRET`
@@ -544,10 +545,9 @@ multiplayer interaction tests.
 
 **Database isolation:**
 
-Each test starts with a clean database. A `resetDatabase()` helper truncates
-all tables in dependency order before each authenticated test. Seed helpers
-create deterministic test data (leagues, drafts, rosters) for specific
-scenarios.
+Each test starts with a clean database. A `resetDatabase()` helper truncates all
+tables in dependency order before each authenticated test. Seed helpers create
+deterministic test data (leagues, drafts, rosters) for specific scenarios.
 
 **Test structure:**
 
@@ -583,8 +583,8 @@ CI runs as a GitHub Actions workflow:
 2. **Format** — `deno fmt --check`
 3. **Migration journal** — validates migration file ordering
 4. **Test** — server + client tests against a PostgreSQL service container
-5. **E2E** — Playwright tests against a full server + database (depends on
-   test job passing first)
+5. **E2E** — Playwright tests against a full server + database (depends on test
+   job passing first)
 6. **Docker smoke** — builds the Docker image, starts it, polls the health
    endpoint
 
@@ -616,16 +616,16 @@ Deno tasks in `deno.json` provide the canonical test commands:
 
 ### Model
 
-Single DigitalOcean Droplet running Docker Compose. The application is a
-single container (Deno server serving the built React SPA) alongside a
-PostgreSQL container. Simple, cheap, sufficient for early multiplayer leagues.
+Single DigitalOcean Droplet running Docker Compose. The application is a single
+container (Deno server serving the built React SPA) alongside a PostgreSQL
+container. Simple, cheap, sufficient for early multiplayer leagues.
 
 ### Docker image
 
 The Dockerfile uses a multi-stage build:
 
-1. **Base stage** — `denoland/deno` image, installs dependencies from
-   workspace config files (cached layer)
+1. **Base stage** — `denoland/deno` image, installs dependencies from workspace
+   config files (cached layer)
 2. **Build stage** — copies source, builds the React client with Vite
 3. **Production stage** — copies source + built client assets, runs migrations
    on startup, then starts the server
@@ -635,9 +635,9 @@ The Dockerfile uses a multi-stage build:
 CMD ["sh", "-c", "cd server && deno run ... db/migrate.ts && deno run ... main.ts"]
 ```
 
-The image is tagged with `GIT_SHA` as a build arg so the running container
-can report which commit it's on via the health endpoint. This enables
-deployment verification.
+The image is tagged with `GIT_SHA` as a build arg so the running container can
+report which commit it's on via the health endpoint. This enables deployment
+verification.
 
 ### Compose files
 
@@ -651,8 +651,8 @@ deployment verification.
 
 - Application container from GHCR, port 80 → 3000
 - PostgreSQL 17 with persistent named volume
-- `depends_on` with health check condition ensures the database is ready
-  before the app starts
+- `depends_on` with health check condition ensures the database is ready before
+  the app starts
 - `restart: unless-stopped` for both services
 - Environment variables via `.env` file on the Droplet
 
@@ -674,9 +674,8 @@ Deployment is a GitHub Actions workflow triggered on push to `main`:
 
 - **Disk pressure check** before `docker pull` — abort if root filesystem
   exceeds 85% to prevent failed pulls from leaving orphaned layers
-- **Image digest verification** after `docker compose up` — confirm the
-  running container matches the image we just pushed, catching silent no-op
-  recreates
+- **Image digest verification** after `docker compose up` — confirm the running
+  container matches the image we just pushed, catching silent no-op recreates
 - **Commit SHA smoke test** — the health endpoint returns the baked-in
   `GIT_SHA`, and the deploy workflow asserts it matches. A stale container
   returning 200 on a different commit fails the deploy.

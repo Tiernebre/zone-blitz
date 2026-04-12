@@ -1,9 +1,9 @@
 # League Management
 
-The league is the container for everything else. It defines the rules,
-schedule, and structure within which all the strategic decisions play out. It
-needs to support both single-player franchise experiences and online
-multiplayer leagues seamlessly.
+The league is the container for everything else. It defines the rules, schedule,
+and structure within which all the strategic decisions play out. It needs to
+support both single-player franchise experiences and online multiplayer leagues
+seamlessly.
 
 ## League Modes
 
@@ -45,8 +45,7 @@ The season follows a calendar that creates natural pacing and drama:
 
 ### Offseason
 
-1. **Season awards and review** — MVP, All-Pro selections, end-of-season
-   recaps
+1. **Season awards and review** — MVP, All-Pro selections, end-of-season recaps
 2. **Coaching carousel** — firings, hirings, coordinator changes
 3. **Combine and pro days** — public prospect evaluation
 4. **Free agency** — legal tampering, then open market
@@ -71,8 +70,8 @@ The season follows a calendar that creates natural pacing and drama:
 
 ### Trade Deadline
 
-A fixed point in the season after which no trades can occur. Creates urgency
-and drama.
+A fixed point in the season after which no trades can occur. Creates urgency and
+drama.
 
 ### Playoffs
 
@@ -95,8 +94,8 @@ The trickiest multiplayer design problem. Options:
 
 - **Commissioner-controlled**: The commissioner advances the season when they
   decide everyone is ready
-- **Ready-check system**: Each human GM marks "ready" — season advances when
-  all are ready (or after a configurable timeout)
+- **Ready-check system**: Each human GM marks "ready" — season advances when all
+  are ready (or after a configurable timeout)
 - **Scheduled advancement**: Leagues set a real-world schedule (e.g., advance
   every 48 hours). You have until the deadline to make your moves.
 - **Hybrid**: Different phases advance differently. Free agency might be
@@ -108,8 +107,8 @@ The trickiest multiplayer design problem. Options:
 - Pause the league
 - Veto trades
 - Adjust league settings mid-season
-- Manage NPC team assignments (replace a departing human GM with AI, or
-  assign a new human to an NPC team)
+- Manage NPC team assignments (replace a departing human GM with AI, or assign a
+  new human to an NPC team)
 - Handle disputes
 
 ### Handling Absent Managers
@@ -117,8 +116,8 @@ The trickiest multiplayer design problem. Options:
 When a human GM goes inactive:
 
 - Auto-pilot mode: their team runs on NPC AI until they return
-- Commissioner can reassign the team to a new human or permanently convert
-  to NPC
+- Commissioner can reassign the team to a new human or permanently convert to
+  NPC
 - Auto-draft with pre-set board for absent GMs during drafts
 - Notification system to remind inactive managers to make their moves
 
@@ -162,5 +161,5 @@ A narrative history of the league:
 - Records broken
 - Rivalries that developed organically
 
-This history is what gives a 20-season franchise its weight. Every decision
-you made is recorded, and you can look back and trace the consequences.
+This history is what gives a 20-season franchise its weight. Every decision you
+made is recorded, and you can look back and trace the consequences.

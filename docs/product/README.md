@@ -1,12 +1,13 @@
 # Product Vision
 
 An open-source, web-based football franchise simulation game focused on the
-front-office experience: scouting, drafting, trading, and team-building strategy.
+front-office experience: scouting, drafting, trading, and team-building
+strategy.
 
 This is not an action game. You never control a player on the field. You are the
 General Manager. You build the roster, hire the coaches, scout the prospects,
-make the trades, manage the cap, and live with the consequences
-for years to come.
+make the trades, manage the cap, and live with the consequences for years to
+come.
 
 ## Inspirations
 
