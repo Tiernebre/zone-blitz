@@ -221,7 +221,10 @@ lifecycle:
   automatically more reliable, it's just a second opinion
 
 **Staff size and budget**
-- You have a finite scouting budget
+- You have a finite scouting budget that is **separate from the salary cap**.
+  Scouting is a front office operating expense — it doesn't compete with
+  player or coaching salaries for cap space. But it is still finite, and
+  how you allocate it is a real strategic decision.
 - More scouts = more coverage, but each additional scout has diminishing returns
 - Salary varies: experienced scouts with strong reputations command higher pay,
   but a cheaper unknown scout might outperform an expensive name
