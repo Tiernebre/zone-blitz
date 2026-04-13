@@ -1,5 +1,6 @@
 import type {
   Coach,
+  Contract,
   DraftProspect,
   FrontOfficeStaff,
   Player,
@@ -21,6 +22,17 @@ export interface GeneratedPersonnel {
   draftProspects: Omit<DraftProspect, "id" | "createdAt" | "updatedAt">[];
 }
 
+export interface ContractGeneratorInput {
+  salaryCap: number;
+  players: Pick<Player, "id" | "teamId">[];
+}
+
+export type GeneratedContract = Omit<
+  Contract,
+  "id" | "createdAt" | "updatedAt"
+>;
+
 export interface PersonnelGenerator {
   generate(input: PersonnelGeneratorInput): GeneratedPersonnel;
+  generateContracts(input: ContractGeneratorInput): GeneratedContract[];
 }

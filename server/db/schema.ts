@@ -17,6 +17,7 @@ export {
   players,
   scouts,
 } from "../features/personnel/personnel.schema.ts";
+export { contracts } from "../features/personnel/contract.schema.ts";
 export {
   accounts,
   sessions,
