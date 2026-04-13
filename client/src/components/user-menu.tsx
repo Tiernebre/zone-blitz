@@ -14,7 +14,11 @@ import {
 
 export function UserMenu({
   side = "bottom",
-}: { side?: "top" | "bottom" } = {}) {
+  trigger,
+}: {
+  side?: "top" | "bottom";
+  trigger?: React.ReactElement;
+} = {}) {
   const { data: session } = authClient.useSession();
   const deleteAccount = useDeleteAccount();
 
@@ -23,12 +27,12 @@ export function UserMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={
+        render={trigger ?? (
           <Button variant="ghost" className="w-full justify-start gap-2">
             <UserIcon className="size-4" />
             Profile
           </Button>
-        }
+        )}
       />
       <DropdownMenuContent side={side} className="w-64">
         <DropdownMenuGroup>

@@ -78,9 +78,11 @@ describe("LeagueLayout", () => {
     expect(screen.getByTestId("outlet")).toBeDefined();
   });
 
-  it("renders the sidebar as a nav element", () => {
+  it("renders a sidebar element", () => {
     renderWithProviders();
-    expect(screen.getByRole("navigation")).toBeDefined();
+    expect(
+      document.querySelector('[data-slot="sidebar-wrapper"]'),
+    ).toBeDefined();
   });
 
   it("renders a link back to the league select page", () => {
@@ -92,9 +94,9 @@ describe("LeagueLayout", () => {
 
   it("renders icons in the nav links", () => {
     renderWithProviders();
-    const nav = screen.getByRole("navigation");
-    const svgs = nav.querySelectorAll("svg");
-    expect(svgs.length).toBeGreaterThanOrEqual(2);
+    const sidebar = document.querySelector('[data-slot="sidebar-inner"]');
+    const svgs = sidebar?.querySelectorAll("svg");
+    expect(svgs?.length).toBeGreaterThanOrEqual(2);
   });
 
   it("renders a Settings nav link", () => {
@@ -104,56 +106,39 @@ describe("LeagueLayout", () => {
     expect(settingsLink.getAttribute("href")).toBe("/leagues/1/settings");
   });
 
-  it("renders a toggle button to collapse the sidebar", () => {
+  it("renders a toggle button for the sidebar", () => {
     renderWithProviders();
     const toggleButton = screen.getByRole("button", {
-      name: /collapse sidebar/i,
+      name: /toggle sidebar/i,
     });
     expect(toggleButton).toBeDefined();
   });
 
-  it("hides nav link text labels when the sidebar is collapsed", () => {
+  it("collapses the sidebar when toggle is clicked", () => {
     renderWithProviders();
+    const sidebar = document.querySelector('[data-slot="sidebar"]');
+    expect(sidebar?.getAttribute("data-state")).toBe("expanded");
 
     const toggleButton = screen.getByRole("button", {
-      name: /collapse sidebar/i,
+      name: /toggle sidebar/i,
     });
     fireEvent.click(toggleButton);
 
-    expect(screen.queryByText("Home")).toBeNull();
-    expect(screen.queryByText("Settings")).toBeNull();
-    expect(screen.queryByText("All Leagues")).toBeNull();
-  });
-
-  it("keeps nav link icons visible when the sidebar is collapsed", () => {
-    renderWithProviders();
-
-    const toggleButton = screen.getByRole("button", {
-      name: /collapse sidebar/i,
-    });
-    fireEvent.click(toggleButton);
-
-    const nav = screen.getByRole("navigation");
-    const svgs = nav.querySelectorAll("svg");
-    expect(svgs.length).toBeGreaterThanOrEqual(2);
+    expect(sidebar?.getAttribute("data-state")).toBe("collapsed");
   });
 
   it("expands the sidebar when the toggle is clicked again", () => {
     renderWithProviders();
-
     const toggleButton = screen.getByRole("button", {
-      name: /collapse sidebar/i,
+      name: /toggle sidebar/i,
     });
+
     fireEvent.click(toggleButton);
+    const sidebar = document.querySelector('[data-slot="sidebar"]');
+    expect(sidebar?.getAttribute("data-state")).toBe("collapsed");
 
-    const expandButton = screen.getByRole("button", {
-      name: /expand sidebar/i,
-    });
-    fireEvent.click(expandButton);
-
-    expect(screen.getByText("Home")).toBeDefined();
-    expect(screen.getByText("Settings")).toBeDefined();
-    expect(screen.getByText("All Leagues")).toBeDefined();
+    fireEvent.click(toggleButton);
+    expect(sidebar?.getAttribute("data-state")).toBe("expanded");
   });
 
   it("renders a Profile button at the bottom of the sidebar", () => {

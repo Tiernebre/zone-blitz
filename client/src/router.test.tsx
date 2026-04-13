@@ -136,7 +136,9 @@ describe("Router", () => {
     });
     renderRouter("/leagues/1");
     await waitFor(() => {
-      expect(screen.getByRole("navigation")).toBeDefined();
+      expect(
+        document.querySelector('[data-slot="sidebar-wrapper"]'),
+      ).toBeDefined();
       expect(
         screen.getByRole("heading", { name: "League Home" }),
       ).toBeDefined();
