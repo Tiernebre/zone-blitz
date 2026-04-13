@@ -11,6 +11,7 @@ export type {
   Player,
   Scout,
 } from "./types/personnel.ts";
+export type { Game } from "./types/game.ts";
 
 // Interfaces — repositories
 export type { LeagueRepository } from "./interfaces/repositories/league-repository.ts";
@@ -26,6 +27,12 @@ export type {
   PersonnelGenerator,
   PersonnelGeneratorInput,
 } from "./interfaces/generators/personnel-generator.ts";
+export type {
+  GeneratedGame,
+  ScheduleGenerator,
+  ScheduleGeneratorInput,
+  TeamDivisionInfo,
+} from "./interfaces/generators/schedule-generator.ts";
 
 // Interfaces — services
 export type { HealthService } from "./interfaces/services/health-service.ts";

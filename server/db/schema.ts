@@ -18,6 +18,7 @@ export {
   scouts,
 } from "../features/personnel/personnel.schema.ts";
 export { contracts } from "../features/personnel/contract.schema.ts";
+export { games } from "../features/schedule/game.schema.ts";
 export {
   accounts,
   sessions,
