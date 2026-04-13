@@ -158,9 +158,15 @@ function createMockScheduleGenerator(): ScheduleGenerator {
 // deno-lint-ignore no-explicit-any
 function createMockDb(): any {
   const mockInsert = () => ({
-    values: () => ({
-      returning: () => Promise.resolve([{ id: "player-1", teamId: "team-1" }]),
-    }),
+    values: (v: unknown[]) => {
+      if (!Array.isArray(v) || v.length === 0) {
+        throw new Error("values() must be called with at least one value");
+      }
+      return {
+        returning: () =>
+          Promise.resolve([{ id: "player-1", teamId: "team-1" }]),
+      };
+    },
   });
   return { insert: mockInsert };
 }

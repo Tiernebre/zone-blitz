@@ -70,15 +70,29 @@ export function createLeagueService(deps: {
         rosterSize: league.rosterSize,
       });
 
-      const insertedPlayers = await deps.db
-        .insert(players)
-        .values(personnel.players)
-        .returning({ id: players.id, teamId: players.teamId });
+      let insertedPlayers: { id: string; teamId: string | null }[] = [];
 
-      await deps.db.insert(coaches).values(personnel.coaches);
-      await deps.db.insert(scouts).values(personnel.scouts);
-      await deps.db.insert(frontOfficeStaff).values(personnel.frontOfficeStaff);
-      await deps.db.insert(draftProspects).values(personnel.draftProspects);
+      if (personnel.players.length > 0) {
+        insertedPlayers = await deps.db
+          .insert(players)
+          .values(personnel.players)
+          .returning({ id: players.id, teamId: players.teamId });
+      }
+
+      if (personnel.coaches.length > 0) {
+        await deps.db.insert(coaches).values(personnel.coaches);
+      }
+      if (personnel.scouts.length > 0) {
+        await deps.db.insert(scouts).values(personnel.scouts);
+      }
+      if (personnel.frontOfficeStaff.length > 0) {
+        await deps.db
+          .insert(frontOfficeStaff)
+          .values(personnel.frontOfficeStaff);
+      }
+      if (personnel.draftProspects.length > 0) {
+        await deps.db.insert(draftProspects).values(personnel.draftProspects);
+      }
 
       log.info(
         {
