@@ -7,6 +7,7 @@ import {
   Home,
   Settings,
 } from "lucide-react";
+import { UserMenu } from "../../components/user-menu.tsx";
 
 export function LeagueLayout() {
   const { leagueId } = useParams({ strict: false });
@@ -15,9 +16,9 @@ export function LeagueLayout() {
   return (
     <div className="flex min-h-screen bg-gray-950 text-gray-100">
       <nav
-        className={`${
+        className={`flex ${
           collapsed ? "w-14" : "w-60"
-        } border-r border-gray-800 p-4 transition-all duration-200`}
+        } flex-col border-r border-gray-800 p-4 transition-all duration-200`}
       >
         <div className="flex items-center justify-between mb-4">
           {!collapsed && (
@@ -39,7 +40,7 @@ export function LeagueLayout() {
             </Link>
           )}
         </div>
-        <ul>
+        <ul className="flex-1">
           <li>
             <Link
               to={`/leagues/${leagueId}`}
@@ -65,6 +66,9 @@ export function LeagueLayout() {
             </Link>
           </li>
         </ul>
+        <div className="border-t border-gray-800 pt-2">
+          <UserMenu />
+        </div>
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
