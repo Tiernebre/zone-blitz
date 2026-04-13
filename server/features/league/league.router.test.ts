@@ -2,25 +2,29 @@ import { assertEquals } from "@std/assert";
 import { createLeagueRouter } from "./league.router.ts";
 import type { League, LeagueService } from "@zone-blitz/shared";
 
+function createMockLeague(overrides: Partial<League> = {}): League {
+  return {
+    id: "1",
+    name: "Test",
+    numberOfTeams: 32,
+    seasonLength: 17,
+    salaryCap: 255_000_000,
+    capFloorPercent: 89,
+    capGrowthRate: 5,
+    rosterSize: 53,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  };
+}
+
 function createMockLeagueService(
   overrides: Partial<LeagueService> = {},
 ): LeagueService {
   return {
     getAll: () => Promise.resolve([]),
-    getById: () =>
-      Promise.resolve({
-        id: "1",
-        name: "Test",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
-    create: () =>
-      Promise.resolve({
-        id: "new-id",
-        name: "Test",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
+    getById: () => Promise.resolve(createMockLeague()),
+    create: () => Promise.resolve(createMockLeague({ id: "new-id" })),
     deleteById: () => Promise.resolve(),
     ...overrides,
   };
@@ -29,18 +33,8 @@ function createMockLeagueService(
 Deno.test("league.router", async (t) => {
   await t.step("GET / returns all leagues", async () => {
     const leagues: League[] = [
-      {
-        id: "1",
-        name: "League One",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: "2",
-        name: "League Two",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
+      createMockLeague({ id: "1", name: "League One" }),
+      createMockLeague({ id: "2", name: "League Two" }),
     ];
     const router = createLeagueRouter(
       createMockLeagueService({ getAll: () => Promise.resolve(leagues) }),
@@ -66,12 +60,7 @@ Deno.test("league.router", async (t) => {
   });
 
   await t.step("GET /:id returns a league by id", async () => {
-    const league: League = {
-      id: "42",
-      name: "Found League",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    const league = createMockLeague({ id: "42", name: "Found League" });
     const router = createLeagueRouter(
       createMockLeagueService({ getById: () => Promise.resolve(league) }),
     );
@@ -85,12 +74,7 @@ Deno.test("league.router", async (t) => {
   });
 
   await t.step("POST / creates a league and returns 201", async () => {
-    const created: League = {
-      id: "new-id",
-      name: "New League",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    const created = createMockLeague({ id: "new-id", name: "New League" });
     const router = createLeagueRouter(
       createMockLeagueService({ create: () => Promise.resolve(created) }),
     );

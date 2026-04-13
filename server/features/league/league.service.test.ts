@@ -8,19 +8,29 @@ function createTestLogger() {
   return pino({ level: "silent" });
 }
 
+function createMockLeague(overrides: Partial<League> = {}): League {
+  return {
+    id: "1",
+    name: "Test",
+    numberOfTeams: 32,
+    seasonLength: 17,
+    salaryCap: 255_000_000,
+    capFloorPercent: 89,
+    capGrowthRate: 5,
+    rosterSize: 53,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  };
+}
+
 function createMockRepo(
   overrides: Partial<LeagueRepository> = {},
 ): LeagueRepository {
   return {
     getAll: () => Promise.resolve([]),
     getById: () => Promise.resolve(undefined),
-    create: () =>
-      Promise.resolve({
-        id: "new-id",
-        name: "Test",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }),
+    create: () => Promise.resolve(createMockLeague({ id: "new-id" })),
     deleteById: () => Promise.resolve(),
     ...overrides,
   };
@@ -29,18 +39,8 @@ function createMockRepo(
 Deno.test("league.service", async (t) => {
   await t.step("getAll returns all leagues from repository", async () => {
     const leagues: League[] = [
-      {
-        id: "1",
-        name: "League One",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: "2",
-        name: "League Two",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
+      createMockLeague({ id: "1", name: "League One" }),
+      createMockLeague({ id: "2", name: "League Two" }),
     ];
     const service = createLeagueService({
       leagueRepo: createMockRepo({ getAll: () => Promise.resolve(leagues) }),
@@ -53,12 +53,7 @@ Deno.test("league.service", async (t) => {
   });
 
   await t.step("getById returns league when found", async () => {
-    const league: League = {
-      id: "1",
-      name: "Found League",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    const league = createMockLeague({ id: "1", name: "Found League" });
     const service = createLeagueService({
       leagueRepo: createMockRepo({ getById: () => Promise.resolve(league) }),
       log: createTestLogger(),
@@ -84,12 +79,7 @@ Deno.test("league.service", async (t) => {
   await t.step(
     "create delegates to repository and returns league",
     async () => {
-      const created: League = {
-        id: "new-id",
-        name: "New League",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const created = createMockLeague({ id: "new-id", name: "New League" });
       const service = createLeagueService({
         leagueRepo: createMockRepo({ create: () => Promise.resolve(created) }),
         log: createTestLogger(),
@@ -105,12 +95,7 @@ Deno.test("league.service", async (t) => {
     "deleteById delegates to repository when league exists",
     async () => {
       let deletedId: string | undefined;
-      const league: League = {
-        id: "delete-me",
-        name: "Delete Me",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const league = createMockLeague({ id: "delete-me", name: "Delete Me" });
       const service = createLeagueService({
         leagueRepo: createMockRepo({
           getById: () => Promise.resolve(league),
