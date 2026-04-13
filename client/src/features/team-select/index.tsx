@@ -1,5 +1,7 @@
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useTeams } from "../../hooks/use-teams.ts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface Team {
   id: string;
@@ -34,17 +36,17 @@ function TeamCard({
     <button
       type="button"
       onClick={() => onSelect(team)}
-      className="flex items-center gap-3 rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-left transition hover:border-gray-500 hover:bg-gray-750 w-full"
+      className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-left transition hover:border-muted-foreground hover:bg-accent w-full"
     >
       <div
         className="h-8 w-8 rounded-full shrink-0"
         style={{ backgroundColor: team.primaryColor }}
       />
       <div className="min-w-0">
-        <p className="text-sm font-medium text-gray-100 truncate">
+        <p className="text-sm font-medium text-card-foreground truncate">
           {team.city} {team.name}
         </p>
-        <p className="text-xs text-gray-400">{team.abbreviation}</p>
+        <p className="text-xs text-muted-foreground">{team.abbreviation}</p>
       </div>
     </button>
   );
@@ -64,16 +66,16 @@ export function TeamSelect() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
-        <p className="text-gray-400">Loading teams...</p>
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <p className="text-muted-foreground">Loading teams...</p>
       </div>
     );
   }
 
   if (error || !teams) {
     return (
-      <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
-        <p className="text-red-400">Failed to load teams</p>
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <p className="text-destructive">Failed to load teams</p>
       </div>
     );
   }
@@ -82,45 +84,46 @@ export function TeamSelect() {
   const conferences = [...new Set((teams as Team[]).map((t) => t.conference))];
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-8">
+    <div className="min-h-screen bg-background text-foreground p-8">
       <div className="max-w-5xl mx-auto space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">
             Choose Your Team
           </h1>
-          <p className="text-gray-400">
+          <p className="text-muted-foreground">
             Select the franchise you want to manage.
           </p>
         </div>
 
         {conferences.map((conference) => (
-          <div key={conference} className="space-y-6">
-            <h2 className="text-xl font-semibold text-gray-200 border-b border-gray-700 pb-2">
-              {conference}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[...divisions.entries()]
-                .filter(([div]) =>
-                  div.startsWith(conference)
-                )
-                .map(([division, divTeams]) => (
-                  <div key={division} className="space-y-2">
-                    <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider">
-                      {division}
-                    </h3>
-                    <div className="space-y-1">
-                      {divTeams.map((team) => (
-                        <TeamCard
-                          key={team.id}
-                          team={team}
-                          onSelect={handleSelect}
-                        />
-                      ))}
+          <Card key={conference}>
+            <CardHeader>
+              <CardTitle className="text-xl">{conference}</CardTitle>
+            </CardHeader>
+            <Separator />
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[...divisions.entries()]
+                  .filter(([div]) => div.startsWith(conference))
+                  .map(([division, divTeams]) => (
+                    <div key={division} className="space-y-2">
+                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                        {division}
+                      </h3>
+                      <div className="space-y-1">
+                        {divTeams.map((team) => (
+                          <TeamCard
+                            key={team.id}
+                            team={team}
+                            onSelect={handleSelect}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-            </div>
-          </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>
