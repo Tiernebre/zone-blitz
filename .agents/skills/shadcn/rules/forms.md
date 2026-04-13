@@ -25,10 +25,11 @@ Always use `FieldGroup` + `Field` — never raw `div` with `space-y-*`:
     <FieldLabel htmlFor="password">Password</FieldLabel>
     <Input id="password" type="password" />
   </Field>
-</FieldGroup>
+</FieldGroup>;
 ```
 
-Use `Field orientation="horizontal"` for settings pages. Use `FieldLabel className="sr-only"` for visually hidden labels.
+Use `Field orientation="horizontal"` for settings pages. Use
+`FieldLabel className="sr-only"` for visually hidden labels.
 
 **Choosing form controls:**
 
@@ -53,7 +54,7 @@ Never use raw `Input` or `Textarea` inside an `InputGroup`.
 ```tsx
 <InputGroup>
   <Input placeholder="Search..." />
-</InputGroup>
+</InputGroup>;
 ```
 
 **Correct:**
@@ -70,7 +71,8 @@ import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 
 ## Buttons inside inputs use InputGroup + InputGroupAddon
 
-Never place a `Button` directly inside or adjacent to an `Input` with custom positioning.
+Never place a `Button` directly inside or adjacent to an `Input` with custom
+positioning.
 
 **Incorrect:**
 
@@ -80,7 +82,7 @@ Never place a `Button` directly inside or adjacent to an `Input` with custom pos
   <Button className="absolute right-0 top-0" size="icon">
     <SearchIcon />
   </Button>
-</div>
+</div>;
 ```
 
 **Correct:**
@@ -144,16 +146,18 @@ Combine with `Field` for labelled toggle groups:
     <ToggleGroupItem value="dark">Dark</ToggleGroupItem>
     <ToggleGroupItem value="system">System</ToggleGroupItem>
   </ToggleGroup>
-</Field>
+</Field>;
 ```
 
-> **Note:** `defaultValue` and `type`/`multiple` props differ between base and radix. See [base-vs-radix.md](./base-vs-radix.md#togglegroup).
+> **Note:** `defaultValue` and `type`/`multiple` props differ between base and
+> radix. See [base-vs-radix.md](./base-vs-radix.md#togglegroup).
 
 ---
 
 ## FieldSet + FieldLegend for grouping related fields
 
-Use `FieldSet` + `FieldLegend` for related checkboxes, radios, or switches — not `div` with a heading:
+Use `FieldSet` + `FieldLegend` for related checkboxes, radios, or switches — not
+`div` with a heading:
 
 ```tsx
 <FieldSet>
@@ -165,14 +169,15 @@ Use `FieldSet` + `FieldLegend` for related checkboxes, radios, or switches — n
       <FieldLabel htmlFor="dark" className="font-normal">Dark mode</FieldLabel>
     </Field>
   </FieldGroup>
-</FieldSet>
+</FieldSet>;
 ```
 
 ---
 
 ## Field validation and disabled states
 
-Both attributes are needed — `data-invalid`/`data-disabled` styles the field (label, description), while `aria-invalid`/`disabled` styles the control.
+Both attributes are needed — `data-invalid`/`data-disabled` styles the field
+(label, description), while `aria-invalid`/`disabled` styles the control.
 
 ```tsx
 // Invalid.
@@ -189,4 +194,5 @@ Both attributes are needed — `data-invalid`/`data-disabled` styles the field (
 </Field>
 ```
 
-Works for all controls: `Input`, `Textarea`, `Select`, `Checkbox`, `RadioGroupItem`, `Switch`, `Slider`, `NativeSelect`, `InputOTP`.
+Works for all controls: `Input`, `Textarea`, `Select`, `Checkbox`,
+`RadioGroupItem`, `Switch`, `Slider`, `NativeSelect`, `InputOTP`.

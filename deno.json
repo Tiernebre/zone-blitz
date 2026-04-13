@@ -36,5 +36,5 @@
     "build": "cd client && deno task build",
     "start": "cd server && deno run --env=../.env --allow-net --allow-env --allow-read --allow-sys main.ts"
   },
-  "allowScripts": ["npm:msw@2.13.2"]
+  "allowScripts": []
 }
