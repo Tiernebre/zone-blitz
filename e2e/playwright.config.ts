@@ -28,6 +28,10 @@ export default defineConfig({
       DENO_ENV: "production",
       DATABASE_URL: process.env.DATABASE_URL_E2E ??
         "postgres://zone_blitz:zone_blitz@localhost:5432/zone_blitz_e2e",
+      BETTER_AUTH_SECRET: "e2e-test-secret-not-real",
+      BETTER_AUTH_URL: "http://localhost:3000",
+      GOOGLE_CLIENT_ID: "fake-e2e-client-id",
+      GOOGLE_CLIENT_SECRET: "fake-e2e-client-secret",
     },
   },
 });
