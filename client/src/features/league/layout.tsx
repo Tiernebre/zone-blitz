@@ -1,5 +1,5 @@
 import { Link, Outlet, useParams } from "@tanstack/react-router";
-import { ArrowLeftIcon, HomeIcon, SettingsIcon } from "lucide-react";
+import { ArrowLeftIcon, HomeIcon, SettingsIcon, UserIcon } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -60,7 +60,19 @@ export function LeagueLayout() {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <UserMenu />
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <UserMenu
+                side="top"
+                trigger={
+                  <SidebarMenuButton tooltip="Profile">
+                    <UserIcon />
+                    <span>Profile</span>
+                  </SidebarMenuButton>
+                }
+              />
+            </SidebarMenuItem>
+          </SidebarMenu>
           <SidebarSeparator />
           <SidebarTrigger />
         </SidebarFooter>

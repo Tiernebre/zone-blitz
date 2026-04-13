@@ -8,7 +8,6 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { UserMenu } from "./user-menu.tsx";
-import { SidebarProvider } from "@/components/ui/sidebar";
 
 const mockSignOut = vi.fn();
 const mockDelete = vi.fn();
@@ -49,9 +48,7 @@ function renderWithProviders() {
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <UserMenu />
-      </SidebarProvider>
+      <UserMenu />
     </QueryClientProvider>,
   );
 }
