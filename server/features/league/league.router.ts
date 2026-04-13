@@ -18,5 +18,9 @@ export function createLeagueRouter(leagueService: LeagueService) {
       const input = c.req.valid("json");
       const league = await leagueService.create(input);
       return c.json(league, 201);
+    })
+    .delete("/:id", async (c) => {
+      await leagueService.deleteById(c.req.param("id"));
+      return c.body(null, 204);
     });
 }

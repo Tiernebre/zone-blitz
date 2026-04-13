@@ -23,3 +23,15 @@ export function useCreateLeague() {
     },
   });
 }
+
+export function useDeleteLeague() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.api.leagues[":id"].$delete({ param: { id } });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leagues"] });
+    },
+  });
+}
