@@ -20,7 +20,7 @@ export function UserMenu({ dropDown = false }: { dropDown?: boolean } = {}) {
           setIsOpen(!isOpen);
           if (isOpen) setShowConfirm(false);
         }}
-        className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-gray-100"
+        className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-gray-100"
       >
         <User size={16} />
         Profile
