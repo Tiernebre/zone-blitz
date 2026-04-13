@@ -12,7 +12,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { UserMenu } from "../../components/user-menu.tsx";
@@ -73,11 +72,12 @@ export function LeagueLayout() {
               />
             </SidebarMenuItem>
           </SidebarMenu>
-          <SidebarSeparator />
-          <SidebarTrigger />
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
+        <header className="flex h-12 items-center px-4">
+          <SidebarTrigger />
+        </header>
         <Outlet />
       </SidebarInset>
     </SidebarProvider>
