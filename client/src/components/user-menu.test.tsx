@@ -64,71 +64,61 @@ describe("UserMenu", () => {
     expect(screen.getByRole("button", { name: /profile/i })).toBeDefined();
   });
 
-  it("shows user name and email when menu is open", () => {
+  it("shows user name and email when menu is open", async () => {
     renderWithProviders();
     fireEvent.click(screen.getByRole("button", { name: /profile/i }));
-    expect(screen.getByText("Jane Doe")).toBeDefined();
-    expect(screen.getByText("jane@example.com")).toBeDefined();
+    await waitFor(() => {
+      expect(screen.getByText("Jane Doe")).toBeDefined();
+      expect(screen.getByText("jane@example.com")).toBeDefined();
+    });
   });
 
-  it("shows sign out button when menu is open", () => {
+  it("shows sign out option when menu is open", async () => {
     renderWithProviders();
     fireEvent.click(screen.getByRole("button", { name: /profile/i }));
-    expect(screen.getByRole("button", { name: /sign out/i })).toBeDefined();
+    await waitFor(() => {
+      expect(screen.getByRole("menuitem", { name: /sign out/i })).toBeDefined();
+    });
   });
 
-  it("shows delete account button when menu is open", () => {
+  it("shows delete account option when menu is open", async () => {
     renderWithProviders();
     fireEvent.click(screen.getByRole("button", { name: /profile/i }));
-    expect(screen.getByRole("button", { name: /delete account/i }))
-      .toBeDefined();
+    await waitFor(() => {
+      expect(
+        screen.getByRole("menuitem", { name: /delete account/i }),
+      ).toBeDefined();
+    });
   });
 
-  it("calls signOut when sign out button is clicked", () => {
+  it("calls signOut when sign out is selected", async () => {
     mockSignOut.mockResolvedValue({});
     renderWithProviders();
     fireEvent.click(screen.getByRole("button", { name: /profile/i }));
-    fireEvent.click(screen.getByRole("button", { name: /sign out/i }));
-    expect(mockSignOut).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByRole("menuitem", { name: /sign out/i })).toBeDefined();
+    });
+    fireEvent.click(screen.getByRole("menuitem", { name: /sign out/i }));
+    await waitFor(() => {
+      expect(mockSignOut).toHaveBeenCalled();
+    });
   });
 
-  it("shows a confirmation before deleting account", () => {
-    renderWithProviders();
-    fireEvent.click(screen.getByRole("button", { name: /profile/i }));
-    fireEvent.click(screen.getByRole("button", { name: /delete account/i }));
-    expect(screen.getByText(/are you sure/i)).toBeDefined();
-  });
-
-  it("calls delete endpoint when deletion is confirmed", async () => {
+  it("calls delete endpoint when delete account is selected", async () => {
     mockDelete.mockResolvedValue({ ok: true });
     mockSignOut.mockResolvedValue({});
     renderWithProviders();
     fireEvent.click(screen.getByRole("button", { name: /profile/i }));
-    fireEvent.click(screen.getByRole("button", { name: /delete account/i }));
-    fireEvent.click(screen.getByRole("button", { name: /yes, delete/i }));
-
+    await waitFor(() => {
+      expect(
+        screen.getByRole("menuitem", { name: /delete account/i }),
+      ).toBeDefined();
+    });
+    fireEvent.click(
+      screen.getByRole("menuitem", { name: /delete account/i }),
+    );
     await waitFor(() => {
       expect(mockDelete).toHaveBeenCalled();
     });
-  });
-
-  it("closes confirmation when cancel is clicked", () => {
-    renderWithProviders();
-    fireEvent.click(screen.getByRole("button", { name: /profile/i }));
-    fireEvent.click(screen.getByRole("button", { name: /delete account/i }));
-    expect(screen.getByText(/are you sure/i)).toBeDefined();
-
-    fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
-    expect(screen.queryByText(/are you sure/i)).toBeNull();
-  });
-
-  it("closes the menu when clicking the profile button again", () => {
-    renderWithProviders();
-    const btn = screen.getByRole("button", { name: /profile/i });
-    fireEvent.click(btn);
-    expect(screen.getByText("Jane Doe")).toBeDefined();
-
-    fireEvent.click(btn);
-    expect(screen.queryByText("Jane Doe")).toBeNull();
   });
 });

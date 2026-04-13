@@ -26,8 +26,8 @@ function AuthenticatedLayout() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
-        <p className="text-gray-400">Loading...</p>
+      <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }

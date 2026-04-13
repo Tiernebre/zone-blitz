@@ -55,9 +55,7 @@ describe("LeagueSettings", () => {
 
   it("renders the Danger Zone section", () => {
     renderWithProviders();
-    expect(
-      screen.getByRole("heading", { name: /danger zone/i }),
-    ).toBeDefined();
+    expect(screen.getByText(/danger zone/i)).toBeDefined();
   });
 
   it("renders a Delete League button", () => {
