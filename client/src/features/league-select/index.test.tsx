@@ -147,7 +147,7 @@ describe("LeagueSelect", () => {
     });
   });
 
-  it("submits the create league form", async () => {
+  it("submits the create league form and navigates to team select", async () => {
     mockGet.mockReturnValue(
       Promise.resolve({ json: () => Promise.resolve([]) }),
     );
@@ -170,6 +170,13 @@ describe("LeagueSelect", () => {
 
     await waitFor(() => {
       expect(mockPost).toHaveBeenCalledWith({ json: { name: "New League" } });
+    });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith({
+        to: "/leagues/$leagueId/team-select",
+        params: { leagueId: "3" },
+      });
     });
   });
 

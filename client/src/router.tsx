@@ -12,6 +12,7 @@ import { LeagueSelect } from "./features/league-select/index.tsx";
 import { LeagueLayout } from "./features/league/layout.tsx";
 import { LeagueHome } from "./features/league/index.tsx";
 import { LeagueSettings } from "./features/league/settings.tsx";
+import { TeamSelect } from "./features/team-select/index.tsx";
 
 const rootRoute = createRootRoute();
 
@@ -51,6 +52,12 @@ const leagueSelectRoute = createRoute({
   component: LeagueSelect,
 });
 
+const teamSelectRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "leagues/$leagueId/team-select",
+  component: TeamSelect,
+});
+
 const leagueLayoutRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "leagues/$leagueId",
@@ -73,6 +80,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   authenticatedRoute.addChildren([
     leagueSelectRoute,
+    teamSelectRoute,
     leagueLayoutRoute.addChildren([leagueHomeRoute, leagueSettingsRoute]),
   ]),
 ]);

@@ -13,6 +13,7 @@ import {
   createUserRouter,
   createUserService,
 } from "./user/mod.ts";
+import { createTeamRepository, createTeamRouter } from "./team/mod.ts";
 
 export function createFeatureRouters(
   deps: {
@@ -46,6 +47,7 @@ export function createFeatureRouters(
   // Repositories
   const leagueRepo = createLeagueRepository({ db, log });
   const userRepo = createUserRepository({ db, log });
+  const teamRepo = createTeamRepository({ db, log });
 
   // Services
   const leagueService = createLeagueService({ leagueRepo, log });
@@ -54,6 +56,14 @@ export function createFeatureRouters(
   // Routers
   const leagueRouter = createLeagueRouter(leagueService);
   const userRouter = createUserRouter(userService);
+  const teamRouter = createTeamRouter(teamRepo);
 
-  return { auth, authRouter, healthRouter, leagueRouter, userRouter };
+  return {
+    auth,
+    authRouter,
+    healthRouter,
+    leagueRouter,
+    userRouter,
+    teamRouter,
+  };
 }

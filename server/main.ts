@@ -35,7 +35,10 @@ const app = new Hono<AppEnv>()
   .route("/api/leagues", features.leagueRouter)
   .use("/api/users/*", authGuard())
   .use("/api/users", authGuard())
-  .route("/api/users", features.userRouter);
+  .route("/api/users", features.userRouter)
+  .use("/api/teams/*", authGuard())
+  .use("/api/teams", authGuard())
+  .route("/api/teams", features.teamRouter);
 
 // Domain error handler
 app.onError((err, c) => {
