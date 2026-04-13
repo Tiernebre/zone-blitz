@@ -1,29 +1,18 @@
-import type { ScheduleGenerator } from "../schedule/schedule.generator.interface.ts";
-import type { PersonnelGenerator } from "../personnel/personnel.generator.interface.ts";
-import type { LeagueService } from "./league.service.interface.ts";
-import type { LeagueRepository } from "./league.repository.interface.ts";
-import type { SeasonRepository } from "../season/season.repository.interface.ts";
-import type { TeamRepository } from "../team/team.repository.interface.ts";
 import { DomainError } from "@zone-blitz/shared";
 import type pino from "pino";
-import type { Database } from "../../db/connection.ts";
-import {
-  coaches,
-  draftProspects,
-  frontOfficeStaff,
-  players,
-  scouts,
-} from "../personnel/personnel.schema.ts";
-import { contracts } from "../personnel/contract.schema.ts";
-import { games } from "../schedule/game.schema.ts";
+import type { LeagueRepository } from "./league.repository.interface.ts";
+import type { LeagueService } from "./league.service.interface.ts";
+import type { SeasonService } from "../season/season.service.interface.ts";
+import type { TeamService } from "../team/team.service.interface.ts";
+import type { PersonnelService } from "../personnel/personnel.service.interface.ts";
+import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
 
 export function createLeagueService(deps: {
   leagueRepo: LeagueRepository;
-  seasonRepo: SeasonRepository;
-  teamRepo: TeamRepository;
-  personnelGenerator: PersonnelGenerator;
-  scheduleGenerator: ScheduleGenerator;
-  db: Database;
+  seasonService: SeasonService;
+  teamService: TeamService;
+  personnelService: PersonnelService;
+  scheduleService: ScheduleService;
   log: pino.Logger;
 }): LeagueService {
   const log = deps.log.child({ module: "league.service" });
@@ -46,81 +35,25 @@ export function createLeagueService(deps: {
     async create(input) {
       log.info({ name: input.name }, "creating league");
 
-      // 1. Create the league
       const league = await deps.leagueRepo.create(input);
 
-      // 2. Create Season 1 (Preseason, Week 1)
-      const season = await deps.seasonRepo.create({ leagueId: league.id });
+      const season = await deps.seasonService.create({ leagueId: league.id });
       log.info(
         { leagueId: league.id, seasonId: season.id },
         "created season 1",
       );
 
-      // 3. Get all teams for generation
-      const teams = await deps.teamRepo.getAll();
-      const teamIds = teams.map((t) => t.id);
+      const teams = await deps.teamService.getAll();
 
-      // 4. Generate and persist personnel
-      const personnel = deps.personnelGenerator.generate({
+      await deps.personnelService.generateAndPersist({
         leagueId: league.id,
         seasonId: season.id,
-        teamIds,
+        teamIds: teams.map((t) => t.id),
         rosterSize: league.rosterSize,
-      });
-
-      let insertedPlayers: { id: string; teamId: string | null }[] = [];
-
-      if (personnel.players.length > 0) {
-        insertedPlayers = await deps.db
-          .insert(players)
-          .values(personnel.players)
-          .returning({ id: players.id, teamId: players.teamId });
-      }
-
-      if (personnel.coaches.length > 0) {
-        await deps.db.insert(coaches).values(personnel.coaches);
-      }
-      if (personnel.scouts.length > 0) {
-        await deps.db.insert(scouts).values(personnel.scouts);
-      }
-      if (personnel.frontOfficeStaff.length > 0) {
-        await deps.db
-          .insert(frontOfficeStaff)
-          .values(personnel.frontOfficeStaff);
-      }
-      if (personnel.draftProspects.length > 0) {
-        await deps.db.insert(draftProspects).values(personnel.draftProspects);
-      }
-
-      log.info(
-        {
-          leagueId: league.id,
-          players: insertedPlayers.length,
-          coaches: personnel.coaches.length,
-          scouts: personnel.scouts.length,
-          frontOffice: personnel.frontOfficeStaff.length,
-          draftProspects: personnel.draftProspects.length,
-        },
-        "generated personnel",
-      );
-
-      // 5. Generate and persist contracts for rostered players
-      const generatedContracts = deps.personnelGenerator.generateContracts({
         salaryCap: league.salaryCap,
-        players: insertedPlayers,
       });
 
-      if (generatedContracts.length > 0) {
-        await deps.db.insert(contracts).values(generatedContracts);
-      }
-
-      log.info(
-        { leagueId: league.id, contracts: generatedContracts.length },
-        "generated contracts",
-      );
-
-      // 6. Generate and persist schedule
-      const generatedGames = deps.scheduleGenerator.generate({
+      await deps.scheduleService.generateAndPersist({
         seasonId: season.id,
         teams: teams.map((t) => ({
           teamId: t.id,
@@ -129,15 +62,6 @@ export function createLeagueService(deps: {
         })),
         seasonLength: league.seasonLength,
       });
-
-      if (generatedGames.length > 0) {
-        await deps.db.insert(games).values(generatedGames);
-      }
-
-      log.info(
-        { leagueId: league.id, games: generatedGames.length },
-        "generated schedule",
-      );
 
       return league;
     },
