@@ -89,16 +89,19 @@ describe("TeamSelect", () => {
     });
   });
 
-  it("shows loading state while fetching teams", () => {
+  it("shows skeleton loading state while fetching teams", () => {
     mockTeamsGet.mockReturnValue(new Promise(() => {}));
     renderWithProviders();
-    expect(screen.getByText("Loading teams...")).toBeDefined();
+    const skeletons = document.querySelectorAll('[data-slot="skeleton"]');
+    expect(skeletons.length).toBeGreaterThan(0);
   });
 
-  it("shows error state when fetch fails", async () => {
+  it("shows alert error state when fetch fails", async () => {
     mockTeamsGet.mockReturnValue(Promise.reject(new Error("network error")));
     renderWithProviders();
     await waitFor(() => {
+      const alert = screen.getByRole("alert");
+      expect(alert).toBeDefined();
       expect(screen.getByText("Failed to load teams")).toBeDefined();
     });
   });

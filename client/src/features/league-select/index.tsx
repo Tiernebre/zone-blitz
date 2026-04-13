@@ -12,6 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function LeagueSelect() {
   const { data: leagues, isLoading, error } = useLeagues();
@@ -69,10 +71,17 @@ export function LeagueSelect() {
           </form>
 
           {isLoading && (
-            <p className="text-sm text-muted-foreground">Loading leagues...</p>
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-3/4" />
+            </div>
           )}
           {error && (
-            <p className="text-sm text-destructive">Failed to load leagues</p>
+            <Alert variant="destructive">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>Failed to load leagues</AlertDescription>
+            </Alert>
           )}
           {leagues && leagues.length === 0 && (
             <p className="text-sm text-muted-foreground">
