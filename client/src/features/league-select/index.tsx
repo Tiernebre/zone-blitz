@@ -29,7 +29,17 @@ export function LeagueSelect() {
             onSubmit={(e) => {
               e.preventDefault();
               if (!newName.trim()) return;
-              createLeague.mutate({ name: newName.trim() });
+              createLeague.mutate(
+                { name: newName.trim() },
+                {
+                  onSuccess: (league) => {
+                    navigate({
+                      to: "/leagues/$leagueId/team-select",
+                      params: { leagueId: String(league.id) },
+                    });
+                  },
+                },
+              );
               setNewName("");
             }}
           >
