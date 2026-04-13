@@ -13,25 +13,19 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { UserMenu } from "../../components/user-menu.tsx";
+import { useLeague } from "../../hooks/use-league.ts";
 
 export function LeagueLayout() {
   const { leagueId } = useParams({ strict: false });
+  const { data: league } = useLeague(leagueId ?? "");
 
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton tooltip="All Leagues" render={<Link to="/" />}>
-                <ArrowLeftIcon />
-                <span>All Leagues</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
+        <LeagueSidebarHeader name={league?.name} />
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent>
@@ -61,6 +55,12 @@ export function LeagueLayout() {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
+              <SidebarMenuButton tooltip="All Leagues" render={<Link to="/" />}>
+                <ArrowLeftIcon />
+                <span>All Leagues</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
               <UserMenu
                 side="top"
                 trigger={
@@ -75,11 +75,36 @@ export function LeagueLayout() {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex h-12 items-center px-4">
-          <SidebarTrigger />
-        </header>
         <Outlet />
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+function LeagueSidebarHeader({ name }: { name?: string }) {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  if (isCollapsed) {
+    return (
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarTrigger className="w-full" />
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+    );
+  }
+
+  return (
+    <SidebarHeader>
+      <div className="flex items-center justify-between gap-2 px-2 py-1">
+        <span className="truncate text-sm font-semibold">
+          {name ?? "League"}
+        </span>
+        <SidebarTrigger />
+      </div>
+    </SidebarHeader>
   );
 }
