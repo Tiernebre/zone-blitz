@@ -6,6 +6,6 @@
     "postgres": "npm:postgres@^3"
   },
   "lint": {
-    "exclude": ["playwright.config.ts", "tests/"]
+    "exclude": ["."]
   }
 }
