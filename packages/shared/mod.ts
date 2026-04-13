@@ -5,6 +5,7 @@ export type { Team } from "./types/team.ts";
 export type { NewSeason, Season, SeasonPhase } from "./types/season.ts";
 export type {
   Coach,
+  Contract,
   DraftProspect,
   FrontOfficeStaff,
   Player,
@@ -19,6 +20,8 @@ export type { SeasonRepository } from "./interfaces/repositories/season-reposito
 
 // Interfaces — generators
 export type {
+  ContractGeneratorInput,
+  GeneratedContract,
   GeneratedPersonnel,
   PersonnelGenerator,
   PersonnelGeneratorInput,

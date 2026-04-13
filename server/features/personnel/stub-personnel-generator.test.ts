@@ -84,6 +84,39 @@ Deno.test("generates draft prospects linked to seasonId", () => {
   }
 });
 
+Deno.test("generates contracts for rostered players only", () => {
+  const generator = createStubPersonnelGenerator();
+  const players = [
+    { id: "p1", teamId: "team-1" },
+    { id: "p2", teamId: "team-1" },
+    { id: "p3", teamId: null },
+  ];
+
+  const contracts = generator.generateContracts({
+    salaryCap: 255_000_000,
+    players,
+  });
+
+  assertEquals(contracts.length, 2);
+  assertEquals(contracts.every((c) => c.teamId === "team-1"), true);
+});
+
+Deno.test("stub contracts distribute salary evenly under cap", () => {
+  const generator = createStubPersonnelGenerator();
+  const salaryCap = 255_000_000;
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+
+  const contracts = generator.generateContracts({ salaryCap, players });
+
+  const totalAnnual = contracts.reduce((sum, c) => sum + c.annualSalary, 0);
+  assertEquals(totalAnnual <= salaryCap, true);
+  assertEquals(contracts.every((c) => c.totalYears === 3), true);
+  assertEquals(contracts.every((c) => c.currentYear === 1), true);
+});
+
 Deno.test("all generated personnel have non-empty names", () => {
   const generator = createStubPersonnelGenerator();
   const result = generator.generate(INPUT);

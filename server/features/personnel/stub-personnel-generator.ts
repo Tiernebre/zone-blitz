@@ -1,4 +1,6 @@
 import type {
+  ContractGeneratorInput,
+  GeneratedContract,
   GeneratedPersonnel,
   PersonnelGenerator,
   PersonnelGeneratorInput,
@@ -219,6 +221,24 @@ export function createStubPersonnelGenerator(): PersonnelGenerator {
       }
 
       return { players, coaches, scouts, frontOfficeStaff, draftProspects };
+    },
+
+    generateContracts(input: ContractGeneratorInput): GeneratedContract[] {
+      const rosteredPlayers = input.players.filter((p) => p.teamId !== null);
+      const perPlayerSalary = Math.floor(
+        input.salaryCap / Math.max(rosteredPlayers.length, 1),
+      );
+
+      return rosteredPlayers.map((player) => ({
+        playerId: player.id,
+        teamId: player.teamId!,
+        totalYears: 3,
+        currentYear: 1,
+        totalSalary: perPlayerSalary * 3,
+        annualSalary: perPlayerSalary,
+        guaranteedMoney: perPlayerSalary,
+        signingBonus: 0,
+      }));
     },
   };
 }
