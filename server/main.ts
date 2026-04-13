@@ -7,13 +7,22 @@ import { requestContextMiddleware } from "./middleware/request-context.ts";
 import { loggerMiddleware } from "./middleware/logger.ts";
 import { spaRouteGuard } from "./middleware/spa-fallback.ts";
 import { sessionMiddleware } from "./middleware/session.ts";
+import { authGuard } from "./middleware/auth-guard.ts";
 import { createFeatureRouters } from "./features/mod.ts";
 import type { AppEnv } from "./env.ts";
 
 const GIT_SHA = Deno.env.get("GIT_SHA") ?? "unknown";
 const isProduction = Deno.env.get("DENO_ENV") === "production";
+const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID") ?? "";
+const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET") ?? "";
 
-const features = createFeatureRouters({ db, commit: GIT_SHA, log: logger });
+const features = createFeatureRouters({
+  db,
+  commit: GIT_SHA,
+  log: logger,
+  googleClientId: GOOGLE_CLIENT_ID,
+  googleClientSecret: GOOGLE_CLIENT_SECRET,
+});
 
 const app = new Hono<AppEnv>()
   .use(requestContextMiddleware(logger))
@@ -21,6 +30,8 @@ const app = new Hono<AppEnv>()
   .use(sessionMiddleware(features.auth))
   .route("/api/auth", features.authRouter)
   .route("/api/health", features.healthRouter)
+  .use("/api/leagues/*", authGuard())
+  .use("/api/leagues", authGuard())
   .route("/api/leagues", features.leagueRouter);
 
 // Domain error handler
