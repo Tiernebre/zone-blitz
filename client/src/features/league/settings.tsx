@@ -1,5 +1,4 @@
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { useState } from "react";
 import { useDeleteLeague } from "../../hooks/use-leagues.ts";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,12 +8,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function LeagueSettings() {
   const { leagueId } = useParams({ strict: false });
   const navigate = useNavigate();
   const deleteLeague = useDeleteLeague();
-  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleDelete = () => {
     if (!leagueId) return;
@@ -38,32 +47,32 @@ export function LeagueSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {!showConfirm
-            ? (
-              <Button
-                variant="destructive"
-                onClick={() => setShowConfirm(true)}
-              >
-                Delete League
-              </Button>
-            )
-            : (
-              <div className="flex items-center gap-3">
-                <Button
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={<Button variant="destructive" />}
+            >
+              Delete League
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this league?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. All league data including teams,
+                  players, and seasons will be permanently deleted.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
                   variant="destructive"
                   onClick={handleDelete}
                   disabled={deleteLeague.isPending}
                 >
                   {deleteLeague.isPending ? "Deleting..." : "Confirm Delete"}
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowConfirm(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </div>
