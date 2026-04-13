@@ -17,6 +17,8 @@ export function createAuth(
       },
     }),
     basePath: "/api/auth",
+    trustedOrigins: Deno.env.get("BETTER_AUTH_TRUSTED_ORIGINS")?.split(",") ??
+      [],
     socialProviders: {
       google: {
         clientId: deps.googleClientId,

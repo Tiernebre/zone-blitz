@@ -16,7 +16,7 @@ export function LoginPage() {
               provider: "google",
               callbackURL: "/",
             })}
-          className="rounded bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-500"
+          className="cursor-pointer rounded bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-500"
         >
           Sign in with Google
         </button>
