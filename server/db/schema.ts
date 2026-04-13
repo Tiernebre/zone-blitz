@@ -11,6 +11,13 @@ export { leagues } from "../features/league/league.schema.ts";
 export { teams } from "../features/team/team.schema.ts";
 export { seasonPhaseEnum, seasons } from "../features/season/season.schema.ts";
 export {
+  coaches,
+  draftProspects,
+  frontOfficeStaff,
+  players,
+  scouts,
+} from "../features/personnel/personnel.schema.ts";
+export {
   accounts,
   sessions,
   users,
