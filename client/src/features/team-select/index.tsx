@@ -2,6 +2,8 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useTeams } from "../../hooks/use-teams.ts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Team {
   id: string;
@@ -66,8 +68,15 @@ export function TeamSelect() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <p className="text-muted-foreground">Loading teams...</p>
+      <div className="min-h-screen bg-background text-foreground p-8">
+        <div className="max-w-5xl mx-auto space-y-8">
+          <div className="text-center space-y-2">
+            <Skeleton className="h-9 w-64 mx-auto" />
+            <Skeleton className="h-5 w-80 mx-auto" />
+          </div>
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
       </div>
     );
   }
@@ -75,7 +84,10 @@ export function TeamSelect() {
   if (error || !teams) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <p className="text-destructive">Failed to load teams</p>
+        <Alert variant="destructive" className="max-w-md">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>Failed to load teams</AlertDescription>
+        </Alert>
       </div>
     );
   }

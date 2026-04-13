@@ -86,16 +86,19 @@ describe("LeagueSelect", () => {
     expect(screen.getByText(/football franchise simulation/i)).toBeDefined();
   });
 
-  it("shows loading state while fetching leagues", () => {
+  it("shows skeleton loading state while fetching leagues", () => {
     mockGet.mockReturnValue(new Promise(() => {}));
     renderWithProviders();
-    expect(screen.getByText("Loading leagues...")).toBeDefined();
+    const skeletons = document.querySelectorAll('[data-slot="skeleton"]');
+    expect(skeletons.length).toBeGreaterThan(0);
   });
 
-  it("shows error state when fetch fails", async () => {
+  it("shows alert error state when fetch fails", async () => {
     mockGet.mockReturnValue(Promise.reject(new Error("network error")));
     renderWithProviders();
     await waitFor(() => {
+      const alert = screen.getByRole("alert");
+      expect(alert).toBeDefined();
       expect(screen.getByText("Failed to load leagues")).toBeDefined();
     });
   });
