@@ -10,7 +10,7 @@ const router = createAppRouter();
 
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+    <TooltipProvider delay={700}>
       <RouterProvider router={router} />
     </TooltipProvider>
   </QueryClientProvider>,
