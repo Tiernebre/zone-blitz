@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useTeams } from "../../hooks/use-teams.ts";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
@@ -33,10 +34,10 @@ function TeamCard({
   onSelect: (team: Team) => void;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      variant="outline"
       onClick={() => onSelect(team)}
-      className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-left transition hover:border-muted-foreground hover:bg-accent w-full"
+      className="flex items-center gap-3 px-4 py-3 text-left h-auto w-full justify-start"
     >
       <div
         className="h-8 w-8 rounded-full shrink-0"
@@ -48,7 +49,7 @@ function TeamCard({
         </p>
         <p className="text-xs text-muted-foreground">{team.abbreviation}</p>
       </div>
-    </button>
+    </Button>
   );
 }
 
