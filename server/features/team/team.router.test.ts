@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { createTeamRouter } from "./team.router.ts";
 import type { Team } from "@zone-blitz/shared";
-import type { TeamRepository } from "./team.repository.interface.ts";
+import type { TeamService } from "./team.service.interface.ts";
 
 function createMockTeam(overrides: Partial<Team> = {}): Team {
   return {
@@ -20,12 +20,12 @@ function createMockTeam(overrides: Partial<Team> = {}): Team {
   };
 }
 
-function createMockTeamRepo(
-  overrides: Partial<TeamRepository> = {},
-): TeamRepository {
+function createMockTeamService(
+  overrides: Partial<TeamService> = {},
+): TeamService {
   return {
     getAll: () => Promise.resolve([]),
-    getById: () => Promise.resolve(undefined),
+    getById: () => Promise.resolve(createMockTeam()),
     ...overrides,
   };
 }
@@ -37,7 +37,7 @@ Deno.test("team.router", async (t) => {
       createMockTeam({ id: "2", name: "Team B" }),
     ];
     const router = createTeamRouter(
-      createMockTeamRepo({ getAll: () => Promise.resolve(teams) }),
+      createMockTeamService({ getAll: () => Promise.resolve(teams) }),
     );
 
     const res = await router.request("/");
@@ -50,7 +50,7 @@ Deno.test("team.router", async (t) => {
   });
 
   await t.step("GET / returns empty array when no teams", async () => {
-    const router = createTeamRouter(createMockTeamRepo());
+    const router = createTeamRouter(createMockTeamService());
 
     const res = await router.request("/");
     assertEquals(res.status, 200);

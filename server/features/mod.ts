@@ -13,7 +13,11 @@ import {
   createUserRouter,
   createUserService,
 } from "./user/mod.ts";
-import { createTeamRepository, createTeamRouter } from "./team/mod.ts";
+import {
+  createTeamRepository,
+  createTeamRouter,
+  createTeamService,
+} from "./team/mod.ts";
 import { createSeasonRepository } from "./season/mod.ts";
 import { createStubPersonnelGenerator } from "./personnel/mod.ts";
 import { createStubScheduleGenerator } from "./schedule/mod.ts";
@@ -68,11 +72,12 @@ export function createFeatureRouters(
     log,
   });
   const userService = createUserService({ userRepo, log });
+  const teamService = createTeamService({ teamRepo, log });
 
   // Routers
   const leagueRouter = createLeagueRouter(leagueService);
   const userRouter = createUserRouter(userService);
-  const teamRouter = createTeamRouter(teamRepo);
+  const teamRouter = createTeamRouter(teamService);
 
   return {
     auth,

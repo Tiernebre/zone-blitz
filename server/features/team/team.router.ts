@@ -1,11 +1,11 @@
 import { Hono } from "hono";
-import type { TeamRepository } from "./team.repository.interface.ts";
+import type { TeamService } from "./team.service.interface.ts";
 import type { AppEnv } from "../../env.ts";
 
-export function createTeamRouter(teamRepo: TeamRepository) {
+export function createTeamRouter(teamService: TeamService) {
   return new Hono<AppEnv>()
     .get("/", async (c) => {
-      const teams = await teamRepo.getAll();
+      const teams = await teamService.getAll();
       return c.json(teams);
     });
 }
