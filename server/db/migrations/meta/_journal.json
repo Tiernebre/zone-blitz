@@ -57,6 +57,13 @@
       "when": 1776116142125,
       "tag": "0007_small_rogue",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1776116477104,
+      "tag": "0008_little_taskmaster",
+      "breakpoints": true
     }
   ]
 }
