@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useCreateLeague, useLeagues } from "../../hooks/use-leagues.ts";
+import { UserMenu } from "../../components/user-menu.tsx";
 
 export function LeagueSelect() {
   const { data: leagues, isLoading, error } = useLeagues();
@@ -9,7 +10,10 @@ export function LeagueSelect() {
   const [newName, setNewName] = useState("");
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
+    <div className="relative min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center">
+      <div className="absolute top-4 right-4">
+        <UserMenu dropDown />
+      </div>
       <div className="text-center space-y-6 max-w-lg w-full px-4">
         <h1 className="text-5xl font-bold tracking-tight">Zone Blitz</h1>
         <p className="text-lg text-gray-400 max-w-md mx-auto">
