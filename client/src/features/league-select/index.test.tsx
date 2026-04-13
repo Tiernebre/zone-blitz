@@ -20,7 +20,30 @@ vi.mock("../../api.ts", () => ({
         $get: (...args: unknown[]) => mockGet(...args),
         $post: (...args: unknown[]) => mockPost(...args),
       },
+      users: {
+        me: {
+          $delete: vi.fn(),
+        },
+      },
     },
+  },
+}));
+
+vi.mock("../../lib/auth-client.ts", () => ({
+  authClient: {
+    useSession: () => ({
+      data: {
+        user: {
+          id: "u1",
+          name: "Test User",
+          email: "test@example.com",
+          image: null,
+        },
+        session: { id: "s1" },
+      },
+      isPending: false,
+    }),
+    signOut: vi.fn(),
   },
 }));
 
@@ -183,6 +206,14 @@ describe("LeagueSelect", () => {
     fireEvent.submit(screen.getByRole("button", { name: "Create" }));
 
     expect(mockPost).not.toHaveBeenCalled();
+  });
+
+  it("renders a profile button in the top right", () => {
+    mockGet.mockReturnValue(
+      Promise.resolve({ json: () => Promise.resolve([]) }),
+    );
+    renderWithProviders();
+    expect(screen.getByRole("button", { name: /profile/i })).toBeDefined();
   });
 
   it("shows Creating... text while mutation is pending", async () => {

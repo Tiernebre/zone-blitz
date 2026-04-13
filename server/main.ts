@@ -32,7 +32,10 @@ const app = new Hono<AppEnv>()
   .route("/api/health", features.healthRouter)
   .use("/api/leagues/*", authGuard())
   .use("/api/leagues", authGuard())
-  .route("/api/leagues", features.leagueRouter);
+  .route("/api/leagues", features.leagueRouter)
+  .use("/api/users/*", authGuard())
+  .use("/api/users", authGuard())
+  .route("/api/users", features.userRouter);
 
 // Domain error handler
 app.onError((err, c) => {
