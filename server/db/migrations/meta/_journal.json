@@ -29,6 +29,13 @@
       "when": 1776113752467,
       "tag": "0003_lame_iron_fist",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776114459832,
+      "tag": "0004_chunky_silver_fox",
+      "breakpoints": true
     }
   ]
 }
