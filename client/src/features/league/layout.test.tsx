@@ -172,4 +172,35 @@ describe("LeagueLayout", () => {
     const footer = document.querySelector('[data-slot="sidebar-footer"]');
     expect(footer?.textContent).toContain("All Leagues");
   });
+
+  it.each([
+    ["Team"],
+    ["Team Building"],
+    ["League"],
+  ])("renders the %s sidebar group label", (label) => {
+    renderWithProviders();
+    const labels = Array.from(
+      document.querySelectorAll('[data-sidebar="group-label"]'),
+    ).map((el) => el.textContent);
+    expect(labels).toContain(label);
+  });
+
+  it.each([
+    ["Roster", "/leagues/1/roster"],
+    ["Coaches", "/leagues/1/coaches"],
+    ["Schemes", "/leagues/1/schemes"],
+    ["Scouting", "/leagues/1/scouting"],
+    ["Draft", "/leagues/1/draft"],
+    ["Trades", "/leagues/1/trades"],
+    ["Free Agency", "/leagues/1/free-agency"],
+    ["Salary Cap", "/leagues/1/salary-cap"],
+    ["Standings", "/leagues/1/standings"],
+    ["Schedule", "/leagues/1/schedule"],
+    ["Media", "/leagues/1/media"],
+    ["Owner", "/leagues/1/owner"],
+  ])("renders a %s nav link pointing to %s", (name, href) => {
+    renderWithProviders();
+    const link = screen.getByRole("link", { name });
+    expect(link.getAttribute("href")).toBe(href);
+  });
 });

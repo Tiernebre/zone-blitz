@@ -12,6 +12,18 @@ import { LeagueSelect } from "./features/league-select/index.tsx";
 import { LeagueLayout } from "./features/league/layout.tsx";
 import { LeagueHome } from "./features/league/index.tsx";
 import { LeagueSettings } from "./features/league/settings.tsx";
+import { Roster } from "./features/league/roster.tsx";
+import { Coaches } from "./features/league/coaches.tsx";
+import { Schemes } from "./features/league/schemes.tsx";
+import { Scouting } from "./features/league/scouting.tsx";
+import { Draft } from "./features/league/draft.tsx";
+import { Trades } from "./features/league/trades.tsx";
+import { FreeAgency } from "./features/league/free-agency.tsx";
+import { SalaryCap } from "./features/league/salary-cap.tsx";
+import { Standings } from "./features/league/standings.tsx";
+import { Schedule } from "./features/league/schedule.tsx";
+import { Media } from "./features/league/media.tsx";
+import { Owner } from "./features/league/owner.tsx";
 import { TeamSelect } from "./features/team-select/index.tsx";
 
 const rootRoute = createRootRoute();
@@ -76,12 +88,99 @@ const leagueSettingsRoute = createRoute({
   component: LeagueSettings,
 });
 
+const rosterRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "roster",
+  component: Roster,
+});
+
+const coachesRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "coaches",
+  component: Coaches,
+});
+
+const schemesRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "schemes",
+  component: Schemes,
+});
+
+const scoutingRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "scouting",
+  component: Scouting,
+});
+
+const draftRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "draft",
+  component: Draft,
+});
+
+const tradesRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "trades",
+  component: Trades,
+});
+
+const freeAgencyRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "free-agency",
+  component: FreeAgency,
+});
+
+const salaryCapRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "salary-cap",
+  component: SalaryCap,
+});
+
+const standingsRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "standings",
+  component: Standings,
+});
+
+const scheduleRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "schedule",
+  component: Schedule,
+});
+
+const mediaRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "media",
+  component: Media,
+});
+
+const ownerRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "owner",
+  component: Owner,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   authenticatedRoute.addChildren([
     leagueSelectRoute,
     teamSelectRoute,
-    leagueLayoutRoute.addChildren([leagueHomeRoute, leagueSettingsRoute]),
+    leagueLayoutRoute.addChildren([
+      leagueHomeRoute,
+      leagueSettingsRoute,
+      rosterRoute,
+      coachesRoute,
+      schemesRoute,
+      scoutingRoute,
+      draftRoute,
+      tradesRoute,
+      freeAgencyRoute,
+      salaryCapRoute,
+      standingsRoute,
+      scheduleRoute,
+      mediaRoute,
+      ownerRoute,
+    ]),
   ]),
 ]);
 
