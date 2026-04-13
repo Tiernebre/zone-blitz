@@ -1,5 +1,5 @@
 import { Link, Outlet, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Home } from "lucide-react";
+import { ArrowLeft, Home, Settings } from "lucide-react";
 
 export function LeagueLayout() {
   const { leagueId } = useParams({ strict: false });
@@ -22,6 +22,15 @@ export function LeagueLayout() {
             >
               <Home size={16} />
               Home
+            </Link>
+          </li>
+          <li>
+            <Link
+              to={`/leagues/${leagueId}/settings`}
+              className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-gray-100"
+            >
+              <Settings size={16} />
+              Settings
             </Link>
           </li>
         </ul>

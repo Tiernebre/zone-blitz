@@ -122,3 +122,28 @@ Deno.test({
     }
   },
 });
+
+Deno.test({
+  name: "leagueRepository.deleteById: deletes the league from the database",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const repo = createLeagueRepository({ db, log: createTestLogger() });
+
+    try {
+      const [created] = await db.insert(leagues).values({
+        name: "Delete Me",
+      }).returning();
+
+      await repo.deleteById(created.id);
+
+      const [row] = await db.select().from(leagues).where(
+        eq(leagues.id, created.id),
+      );
+      assertEquals(row, undefined);
+    } finally {
+      await client.end();
+    }
+  },
+});

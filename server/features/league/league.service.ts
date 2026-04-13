@@ -27,5 +27,14 @@ export function createLeagueService(deps: {
       log.info({ name: input.name }, "creating league");
       return await deps.leagueRepo.create(input);
     },
+
+    async deleteById(id) {
+      log.info({ id }, "deleting league");
+      const league = await deps.leagueRepo.getById(id);
+      if (!league) {
+        throw new DomainError("NOT_FOUND", `League ${id} not found`);
+      }
+      await deps.leagueRepo.deleteById(id);
+    },
   };
 }

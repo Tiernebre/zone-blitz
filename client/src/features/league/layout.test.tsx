@@ -54,4 +54,11 @@ describe("LeagueLayout", () => {
     const svgs = nav.querySelectorAll("svg");
     expect(svgs.length).toBeGreaterThanOrEqual(2);
   });
+
+  it("renders a Settings nav link", () => {
+    render(<LeagueLayout />);
+    const settingsLink = screen.getByRole("link", { name: /settings/i });
+    expect(settingsLink).toBeDefined();
+    expect(settingsLink.getAttribute("href")).toBe("/leagues/1/settings");
+  });
 });

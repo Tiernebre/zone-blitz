@@ -21,6 +21,7 @@ function createMockRepo(
         createdAt: new Date(),
         updatedAt: new Date(),
       }),
+    deleteById: () => Promise.resolve(),
     ...overrides,
   };
 }
@@ -97,6 +98,50 @@ Deno.test("league.service", async (t) => {
       const result = await service.create({ name: "New League" });
       assertEquals(result.id, "new-id");
       assertEquals(result.name, "New League");
+    },
+  );
+
+  await t.step(
+    "deleteById delegates to repository when league exists",
+    async () => {
+      let deletedId: string | undefined;
+      const league: League = {
+        id: "delete-me",
+        name: "Delete Me",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      const service = createLeagueService({
+        leagueRepo: createMockRepo({
+          getById: () => Promise.resolve(league),
+          deleteById: (id) => {
+            deletedId = id;
+            return Promise.resolve();
+          },
+        }),
+        log: createTestLogger(),
+      });
+
+      await service.deleteById("delete-me");
+      assertEquals(deletedId, "delete-me");
+    },
+  );
+
+  await t.step(
+    "deleteById throws NOT_FOUND when league does not exist",
+    async () => {
+      const service = createLeagueService({
+        leagueRepo: createMockRepo({
+          getById: () => Promise.resolve(undefined),
+        }),
+        log: createTestLogger(),
+      });
+
+      await assertRejects(
+        () => service.deleteById("missing"),
+        DomainError,
+        "not found",
+      );
     },
   );
 });

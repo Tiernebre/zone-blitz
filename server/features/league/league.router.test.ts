@@ -21,6 +21,7 @@ function createMockLeagueService(
         createdAt: new Date(),
         updatedAt: new Date(),
       }),
+    deleteById: () => Promise.resolve(),
     ...overrides,
   };
 }
@@ -141,4 +142,20 @@ Deno.test("league.router", async (t) => {
       assertEquals(res.status, 400);
     },
   );
+
+  await t.step("DELETE /:id deletes a league and returns 204", async () => {
+    let deletedId: string | undefined;
+    const router = createLeagueRouter(
+      createMockLeagueService({
+        deleteById: (id) => {
+          deletedId = id;
+          return Promise.resolve();
+        },
+      }),
+    );
+
+    const res = await router.request("/some-uuid", { method: "DELETE" });
+    assertEquals(res.status, 204);
+    assertEquals(deletedId, "some-uuid");
+  });
 });

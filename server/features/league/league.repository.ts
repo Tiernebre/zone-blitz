@@ -34,5 +34,10 @@ export function createLeagueRepository(deps: {
         .returning();
       return league;
     },
+
+    async deleteById(id) {
+      log.debug({ id }, "deleting league by id");
+      await deps.db.delete(leagues).where(eq(leagues.id, id));
+    },
   };
 }
