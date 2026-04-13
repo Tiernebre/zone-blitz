@@ -18,11 +18,23 @@
   users and is needed before the real-time draft room can function.
   ```
 
-## Domain
+## Documentation
 
-- Domain documentation lives in [`docs/domain/`](./docs/domain/). Read the
-  relevant domain doc before working on a feature to understand the ubiquitous
-  language, entities, and rules.
+- **Product/domain docs:** [`docs/product/`](./docs/product/) — ubiquitous
+  language, entities, and rules. Read the relevant doc before working on a
+  feature.
+- **Architecture:**
+  [`docs/technical/architecture.md`](./docs/technical/architecture.md) — stack
+  overview, monorepo structure, dependency rules, deployment model.
+- **Backend patterns:**
+  [`docs/technical/backend-architecture.md`](./docs/technical/backend-architecture.md)
+  — feature structure, DI via factory functions, Hono RPC, logging, domain
+  errors.
+- **UI architecture:**
+  [`docs/technical/ui-architecture.md`](./docs/technical/ui-architecture.md) —
+  React SPA structure, feature/flow/component organization, shadcn/ui usage.
+- **Incidents:** [`docs/incidents/`](./docs/incidents/) — postmortems with root
+  cause analysis and action items.
 
 ## Testing
 
