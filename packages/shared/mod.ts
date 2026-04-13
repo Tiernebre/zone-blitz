@@ -13,14 +13,6 @@ export type {
 } from "./types/personnel.ts";
 export type { Game } from "./types/game.ts";
 
-// Interfaces — generators
-export type {
-  GeneratedGame,
-  ScheduleGenerator,
-  ScheduleGeneratorInput,
-  TeamDivisionInfo,
-} from "./interfaces/generators/schedule-generator.ts";
-
 // Interfaces — simulation
 export type {
   GameEvent,

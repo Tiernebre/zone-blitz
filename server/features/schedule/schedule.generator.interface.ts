@@ -1,4 +1,4 @@
-import type { Game } from "../../types/game.ts";
+import type { Game } from "@zone-blitz/shared";
 
 export interface TeamDivisionInfo {
   teamId: string;

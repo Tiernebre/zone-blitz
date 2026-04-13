@@ -1,4 +1,4 @@
-import type { ScheduleGenerator } from "@zone-blitz/shared";
+import type { ScheduleGenerator } from "../schedule/schedule.generator.interface.ts";
 import type { PersonnelGenerator } from "../personnel/personnel.generator.interface.ts";
 import type { LeagueService } from "./league.service.interface.ts";
 import type { LeagueRepository } from "./league.repository.interface.ts";

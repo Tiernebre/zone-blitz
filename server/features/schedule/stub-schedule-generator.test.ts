@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { createStubScheduleGenerator } from "./stub-schedule-generator.ts";
 import { DEFAULT_TEAMS } from "../team/default-teams.ts";
-import type { TeamDivisionInfo } from "@zone-blitz/shared";
+import type { TeamDivisionInfo } from "./schedule.generator.interface.ts";
 
 const TEAMS: TeamDivisionInfo[] = DEFAULT_TEAMS.map((t, i) => ({
   teamId: `team-${i}`,

@@ -3,7 +3,7 @@ import type {
   ScheduleGenerator,
   ScheduleGeneratorInput,
   TeamDivisionInfo,
-} from "@zone-blitz/shared";
+} from "./schedule.generator.interface.ts";
 
 const TOTAL_WEEKS = 18;
 
