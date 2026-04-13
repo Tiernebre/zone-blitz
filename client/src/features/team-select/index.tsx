@@ -32,6 +32,7 @@ function TeamCard({
 }) {
   return (
     <button
+      type="button"
       onClick={() => onSelect(team)}
       className="flex items-center gap-3 rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-left transition hover:border-gray-500 hover:bg-gray-750 w-full"
     >
