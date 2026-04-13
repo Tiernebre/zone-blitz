@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import type { LeagueService } from "@zone-blitz/shared";
+import type { LeagueService } from "./league.service.interface.ts";
 import { createLeagueSchema } from "@zone-blitz/shared";
 import type { AppEnv } from "../../env.ts";
 

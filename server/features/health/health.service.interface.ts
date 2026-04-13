@@ -1,4 +1,4 @@
-import type { HealthStatus } from "../../types/health.ts";
+import type { HealthStatus } from "@zone-blitz/shared";
 
 export interface HealthService {
   check(): Promise<HealthStatus>;

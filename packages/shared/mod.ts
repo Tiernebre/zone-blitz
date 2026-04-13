@@ -28,11 +28,6 @@ export type {
   TeamDivisionInfo,
 } from "./interfaces/generators/schedule-generator.ts";
 
-// Interfaces — services
-export type { HealthService } from "./interfaces/services/health-service.ts";
-export type { LeagueService } from "./interfaces/services/league-service.ts";
-export type { UserService } from "./interfaces/services/user-service.ts";
-
 // Interfaces — simulation
 export type {
   GameEvent,

@@ -1,4 +1,4 @@
-import type { HealthService } from "@zone-blitz/shared";
+import type { HealthService } from "./health.service.interface.ts";
 import type pino from "pino";
 
 export function createHealthService(deps: {

@@ -1,4 +1,4 @@
-import type { League, NewLeague } from "../../types/league.ts";
+import type { League, NewLeague } from "@zone-blitz/shared";
 
 export interface LeagueService {
   getAll(): Promise<League[]>;

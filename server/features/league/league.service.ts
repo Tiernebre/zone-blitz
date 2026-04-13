@@ -1,8 +1,5 @@
-import type {
-  LeagueService,
-  PersonnelGenerator,
-  ScheduleGenerator,
-} from "@zone-blitz/shared";
+import type { PersonnelGenerator, ScheduleGenerator } from "@zone-blitz/shared";
+import type { LeagueService } from "./league.service.interface.ts";
 import type { LeagueRepository } from "./league.repository.interface.ts";
 import type { SeasonRepository } from "../season/season.repository.interface.ts";
 import type { TeamRepository } from "../team/team.repository.interface.ts";

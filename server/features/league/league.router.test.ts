@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { createLeagueRouter } from "./league.router.ts";
-import type { League, LeagueService } from "@zone-blitz/shared";
+import type { League } from "@zone-blitz/shared";
+import type { LeagueService } from "./league.service.interface.ts";
 
 function createMockLeague(overrides: Partial<League> = {}): League {
   return {
