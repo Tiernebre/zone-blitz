@@ -64,7 +64,7 @@ describe("UserMenu", () => {
     expect(screen.getByRole("button", { name: /profile/i })).toBeDefined();
   });
 
-  it("shows user name and email when menu is open", async () => {
+  it("shows user name and email when menu is open", () => {
     renderWithProviders();
     fireEvent.click(screen.getByRole("button", { name: /profile/i }));
     expect(screen.getByText("Jane Doe")).toBeDefined();
@@ -84,7 +84,7 @@ describe("UserMenu", () => {
       .toBeDefined();
   });
 
-  it("calls signOut when sign out button is clicked", async () => {
+  it("calls signOut when sign out button is clicked", () => {
     mockSignOut.mockResolvedValue({});
     renderWithProviders();
     fireEvent.click(screen.getByRole("button", { name: /profile/i }));
