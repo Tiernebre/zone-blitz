@@ -15,13 +15,6 @@ export type { Game } from "./types/game.ts";
 
 // Interfaces — generators
 export type {
-  ContractGeneratorInput,
-  GeneratedContract,
-  GeneratedPersonnel,
-  PersonnelGenerator,
-  PersonnelGeneratorInput,
-} from "./interfaces/generators/personnel-generator.ts";
-export type {
   GeneratedGame,
   ScheduleGenerator,
   ScheduleGeneratorInput,

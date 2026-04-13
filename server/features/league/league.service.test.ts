@@ -2,11 +2,8 @@ import { assertEquals, assertRejects } from "@std/assert";
 import { createLeagueService } from "./league.service.ts";
 import { DomainError } from "@zone-blitz/shared";
 import pino from "pino";
-import type {
-  League,
-  PersonnelGenerator,
-  ScheduleGenerator,
-} from "@zone-blitz/shared";
+import type { League, ScheduleGenerator } from "@zone-blitz/shared";
+import type { PersonnelGenerator } from "../personnel/personnel.generator.interface.ts";
 import type { LeagueRepository } from "./league.repository.interface.ts";
 import type { SeasonRepository } from "../season/season.repository.interface.ts";
 import type { TeamRepository } from "../team/team.repository.interface.ts";

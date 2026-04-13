@@ -4,7 +4,7 @@ import type {
   GeneratedPersonnel,
   PersonnelGenerator,
   PersonnelGeneratorInput,
-} from "@zone-blitz/shared";
+} from "./personnel.generator.interface.ts";
 
 const FIRST_NAMES = [
   "James",

@@ -5,7 +5,7 @@ import type {
   FrontOfficeStaff,
   Player,
   Scout,
-} from "../../types/personnel.ts";
+} from "@zone-blitz/shared";
 
 export interface PersonnelGeneratorInput {
   leagueId: string;
