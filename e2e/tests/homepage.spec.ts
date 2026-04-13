@@ -11,5 +11,7 @@ test("unauthorized user gets navigated to login", async ({ page }) => {
 test("authorized user gets navigated to leagues", async ({ authenticatedPage }) => {
   await authenticatedPage.goto("/");
   await expect(authenticatedPage).not.toHaveURL(/\/login/);
-  await expect(authenticatedPage.getByText(/No leagues yet/i)).toBeVisible();
+  await expect(
+    authenticatedPage.getByRole("heading", { name: "Leagues" }),
+  ).toBeVisible();
 });
