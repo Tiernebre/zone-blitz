@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LeagueLayout } from "./layout.tsx";
@@ -45,6 +51,13 @@ vi.mock("../../api.ts", () => ({
       users: {
         me: {
           $delete: vi.fn(),
+        },
+      },
+      leagues: {
+        [":id"]: {
+          $get: vi.fn().mockResolvedValue({
+            json: () => Promise.resolve({ id: 1, name: "My League" }),
+          }),
         },
       },
     },
@@ -129,20 +142,34 @@ describe("LeagueLayout", () => {
 
   it("expands the sidebar when the toggle is clicked again", () => {
     renderWithProviders();
-    const toggleButton = screen.getByRole("button", {
-      name: /toggle sidebar/i,
-    });
 
-    fireEvent.click(toggleButton);
+    fireEvent.click(
+      screen.getByRole("button", { name: /toggle sidebar/i }),
+    );
     const sidebar = document.querySelector('[data-slot="sidebar"]');
     expect(sidebar?.getAttribute("data-state")).toBe("collapsed");
 
-    fireEvent.click(toggleButton);
+    fireEvent.click(
+      screen.getByRole("button", { name: /toggle sidebar/i }),
+    );
     expect(sidebar?.getAttribute("data-state")).toBe("expanded");
   });
 
   it("renders a Profile button at the bottom of the sidebar", () => {
     renderWithProviders();
     expect(screen.getByRole("button", { name: /profile/i })).toBeDefined();
+  });
+
+  it("renders the league name in the sidebar header", async () => {
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText("My League")).toBeDefined();
+    });
+  });
+
+  it("renders the All Leagues back link in the sidebar footer", () => {
+    renderWithProviders();
+    const footer = document.querySelector('[data-slot="sidebar-footer"]');
+    expect(footer?.textContent).toContain("All Leagues");
   });
 });
