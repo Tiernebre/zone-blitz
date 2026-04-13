@@ -1,4 +1,5 @@
-import type { UserRepository, UserService } from "@zone-blitz/shared";
+import type { UserRepository } from "./user.repository.interface.ts";
+import type { UserService } from "./user.service.interface.ts";
 import type pino from "pino";
 
 export function createUserService(deps: {

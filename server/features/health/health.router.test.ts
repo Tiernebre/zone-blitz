@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { createHealthRouter } from "./health.router.ts";
-import type { HealthService } from "@zone-blitz/shared";
+import type { HealthService } from "./health.service.interface.ts";
 
 function createMockHealthService(
   overrides: Partial<HealthService> = {},

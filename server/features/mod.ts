@@ -13,10 +13,20 @@ import {
   createUserRouter,
   createUserService,
 } from "./user/mod.ts";
-import { createTeamRepository, createTeamRouter } from "./team/mod.ts";
-import { createSeasonRepository } from "./season/mod.ts";
-import { createStubPersonnelGenerator } from "./personnel/mod.ts";
-import { createStubScheduleGenerator } from "./schedule/mod.ts";
+import {
+  createTeamRepository,
+  createTeamRouter,
+  createTeamService,
+} from "./team/mod.ts";
+import { createSeasonRepository, createSeasonService } from "./season/mod.ts";
+import {
+  createPersonnelService,
+  createStubPersonnelGenerator,
+} from "./personnel/mod.ts";
+import {
+  createScheduleService,
+  createStubScheduleGenerator,
+} from "./schedule/mod.ts";
 
 export function createFeatureRouters(
   deps: {
@@ -53,26 +63,33 @@ export function createFeatureRouters(
   const teamRepo = createTeamRepository({ db, log });
   const seasonRepo = createSeasonRepository({ db, log });
 
-  // Generators
-  const personnelGenerator = createStubPersonnelGenerator();
-  const scheduleGenerator = createStubScheduleGenerator();
-
   // Services
-  const leagueService = createLeagueService({
-    leagueRepo,
-    seasonRepo,
-    teamRepo,
-    personnelGenerator,
-    scheduleGenerator,
+  const userService = createUserService({ userRepo, log });
+  const teamService = createTeamService({ teamRepo, log });
+  const seasonService = createSeasonService({ seasonRepo, log });
+  const personnelService = createPersonnelService({
+    generator: createStubPersonnelGenerator(),
     db,
     log,
   });
-  const userService = createUserService({ userRepo, log });
+  const scheduleService = createScheduleService({
+    generator: createStubScheduleGenerator(),
+    db,
+    log,
+  });
+  const leagueService = createLeagueService({
+    leagueRepo,
+    seasonService,
+    teamService,
+    personnelService,
+    scheduleService,
+    log,
+  });
 
   // Routers
   const leagueRouter = createLeagueRouter(leagueService);
   const userRouter = createUserRouter(userService);
-  const teamRouter = createTeamRouter(teamRepo);
+  const teamRouter = createTeamRouter(teamService);
 
   return {
     auth,

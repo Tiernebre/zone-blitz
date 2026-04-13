@@ -13,32 +13,6 @@ export type {
 } from "./types/personnel.ts";
 export type { Game } from "./types/game.ts";
 
-// Interfaces — repositories
-export type { LeagueRepository } from "./interfaces/repositories/league-repository.ts";
-export type { TeamRepository } from "./interfaces/repositories/team-repository.ts";
-export type { UserRepository } from "./interfaces/repositories/user-repository.ts";
-export type { SeasonRepository } from "./interfaces/repositories/season-repository.ts";
-
-// Interfaces — generators
-export type {
-  ContractGeneratorInput,
-  GeneratedContract,
-  GeneratedPersonnel,
-  PersonnelGenerator,
-  PersonnelGeneratorInput,
-} from "./interfaces/generators/personnel-generator.ts";
-export type {
-  GeneratedGame,
-  ScheduleGenerator,
-  ScheduleGeneratorInput,
-  TeamDivisionInfo,
-} from "./interfaces/generators/schedule-generator.ts";
-
-// Interfaces — services
-export type { HealthService } from "./interfaces/services/health-service.ts";
-export type { LeagueService } from "./interfaces/services/league-service.ts";
-export type { UserService } from "./interfaces/services/user-service.ts";
-
 // Interfaces — simulation
 export type {
   GameEvent,

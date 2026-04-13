@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { Hono } from "hono";
 import { createUserRouter } from "./user.router.ts";
-import type { UserService } from "@zone-blitz/shared";
+import type { UserService } from "./user.service.interface.ts";
 import type { AppEnv } from "../../env.ts";
 
 function createMockUserService(
