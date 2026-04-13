@@ -1,9 +1,11 @@
 // Types
 export type { HealthStatus } from "./types/health.ts";
 export type { League, NewLeague } from "./types/league.ts";
+export type { Team } from "./types/team.ts";
 
 // Interfaces — repositories
 export type { LeagueRepository } from "./interfaces/repositories/league-repository.ts";
+export type { TeamRepository } from "./interfaces/repositories/team-repository.ts";
 
 // Interfaces — services
 export type { HealthService } from "./interfaces/services/health-service.ts";

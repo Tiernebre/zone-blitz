@@ -8,6 +8,7 @@ export const healthChecks = pgTable("health_checks", {
 
 // Feature schemas
 export { leagues } from "../features/league/league.schema.ts";
+export { teams } from "../features/team/team.schema.ts";
 export {
   accounts,
   sessions,
