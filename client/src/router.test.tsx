@@ -144,4 +144,32 @@ describe("Router", () => {
       ).toBeDefined();
     });
   });
+
+  const stubRoutes: Array<[string, string]> = [
+    ["roster", "Roster"],
+    ["coaches", "Coaches"],
+    ["schemes", "Schemes"],
+    ["scouting", "Scouting"],
+    ["draft", "Draft"],
+    ["trades", "Trades"],
+    ["free-agency", "Free Agency"],
+    ["salary-cap", "Salary Cap"],
+    ["standings", "Standings"],
+    ["schedule", "Schedule"],
+    ["media", "Media"],
+    ["owner", "Owner"],
+  ];
+
+  for (const [path, heading] of stubRoutes) {
+    it(`renders the ${heading} stub page at /leagues/:leagueId/${path}`, async () => {
+      mockUseSession.mockReturnValue({
+        data: { user: { id: "1", name: "Test" }, session: { id: "s1" } },
+        isPending: false,
+      });
+      renderRouter(`/leagues/1/${path}`);
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: heading })).toBeDefined();
+      });
+    });
+  }
 });

@@ -1,11 +1,29 @@
 import { Link, Outlet, useParams } from "@tanstack/react-router";
-import { ArrowLeftIcon, HomeIcon, SettingsIcon, UserIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ArrowLeftRightIcon,
+  BookOpenIcon,
+  CalendarIcon,
+  ClipboardListIcon,
+  CrownIcon,
+  DollarSignIcon,
+  HomeIcon,
+  ListOrderedIcon,
+  NewspaperIcon,
+  SearchIcon,
+  SettingsIcon,
+  TrophyIcon,
+  UserIcon,
+  UserPlusIcon,
+  UsersIcon,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -18,31 +36,92 @@ import {
 import { UserMenu } from "../../components/user-menu.tsx";
 import { useLeague } from "../../hooks/use-league.ts";
 
+type NavItem = {
+  label: string;
+  path: string;
+  Icon: typeof HomeIcon;
+};
+
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
+  {
+    label: "Team",
+    items: [
+      { label: "Home", path: "", Icon: HomeIcon },
+      { label: "Roster", path: "roster", Icon: UsersIcon },
+      { label: "Coaches", path: "coaches", Icon: ClipboardListIcon },
+      { label: "Schemes", path: "schemes", Icon: BookOpenIcon },
+    ],
+  },
+  {
+    label: "Team Building",
+    items: [
+      { label: "Scouting", path: "scouting", Icon: SearchIcon },
+      { label: "Draft", path: "draft", Icon: ListOrderedIcon },
+      { label: "Trades", path: "trades", Icon: ArrowLeftRightIcon },
+      { label: "Free Agency", path: "free-agency", Icon: UserPlusIcon },
+      { label: "Salary Cap", path: "salary-cap", Icon: DollarSignIcon },
+    ],
+  },
+  {
+    label: "League",
+    items: [
+      { label: "Standings", path: "standings", Icon: TrophyIcon },
+      { label: "Schedule", path: "schedule", Icon: CalendarIcon },
+      { label: "Media", path: "media", Icon: NewspaperIcon },
+      { label: "Owner", path: "owner", Icon: CrownIcon },
+    ],
+  },
+];
+
 export function LeagueLayout() {
   const { leagueId } = useParams({ strict: false });
   const { data: league } = useLeague(leagueId ?? "");
+
+  const basePath = `/leagues/${leagueId}`;
 
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
         <LeagueSidebarHeader name={league?.name} />
         <SidebarContent>
+          {navGroups.map((group) => (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => (
+                    <SidebarMenuItem key={item.label}>
+                      <SidebarMenuButton
+                        tooltip={item.label}
+                        render={
+                          <Link
+                            to={item.path
+                              ? `${basePath}/${item.path}`
+                              : basePath}
+                          />
+                        }
+                      >
+                        <item.Icon />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    tooltip="Home"
-                    render={<Link to={`/leagues/${leagueId}`} />}
-                  >
-                    <HomeIcon />
-                    <span>Home</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
                     tooltip="Settings"
-                    render={<Link to={`/leagues/${leagueId}/settings`} />}
+                    render={<Link to={`${basePath}/settings`} />}
                   >
                     <SettingsIcon />
                     <span>Settings</span>
