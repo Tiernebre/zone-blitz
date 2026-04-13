@@ -65,24 +65,35 @@ describe("LeagueSettings", () => {
     ).toBeDefined();
   });
 
-  it("shows confirmation buttons after clicking Delete League", () => {
+  it("shows alert dialog with confirmation after clicking Delete League", async () => {
     renderWithProviders();
     fireEvent.click(screen.getByRole("button", { name: "Delete League" }));
-    expect(
-      screen.getByRole("button", { name: "Confirm Delete" }),
-    ).toBeDefined();
-    expect(
-      screen.getByRole("button", { name: "Cancel" }),
-    ).toBeDefined();
+    await waitFor(() => {
+      expect(screen.getByText("Delete this league?")).toBeDefined();
+      expect(
+        screen.getByText(
+          /this action cannot be undone/i,
+        ),
+      ).toBeDefined();
+      expect(
+        screen.getByRole("button", { name: "Confirm Delete" }),
+      ).toBeDefined();
+      expect(
+        screen.getByRole("button", { name: "Cancel" }),
+      ).toBeDefined();
+    });
   });
 
-  it("hides confirmation buttons when Cancel is clicked", () => {
+  it("closes dialog when Cancel is clicked", async () => {
     renderWithProviders();
     fireEvent.click(screen.getByRole("button", { name: "Delete League" }));
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Cancel" })).toBeDefined();
+    });
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(
-      screen.getByRole("button", { name: "Delete League" }),
-    ).toBeDefined();
+    await waitFor(() => {
+      expect(screen.queryByText("Delete this league?")).toBeNull();
+    });
   });
 
   it("calls delete API when Confirm Delete is clicked", async () => {
@@ -90,6 +101,11 @@ describe("LeagueSettings", () => {
     renderWithProviders();
 
     fireEvent.click(screen.getByRole("button", { name: "Delete League" }));
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Confirm Delete" }),
+      ).toBeDefined();
+    });
     fireEvent.click(screen.getByRole("button", { name: "Confirm Delete" }));
 
     await waitFor(() => {
@@ -102,6 +118,11 @@ describe("LeagueSettings", () => {
     renderWithProviders();
 
     fireEvent.click(screen.getByRole("button", { name: "Delete League" }));
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Confirm Delete" }),
+      ).toBeDefined();
+    });
     fireEvent.click(screen.getByRole("button", { name: "Confirm Delete" }));
 
     await waitFor(() => {
@@ -114,6 +135,11 @@ describe("LeagueSettings", () => {
     renderWithProviders();
 
     fireEvent.click(screen.getByRole("button", { name: "Delete League" }));
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Confirm Delete" }),
+      ).toBeDefined();
+    });
     fireEvent.click(screen.getByRole("button", { name: "Confirm Delete" }));
 
     await waitFor(() => {
