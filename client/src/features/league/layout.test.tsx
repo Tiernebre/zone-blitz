@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LeagueLayout } from "./layout.tsx";
 
@@ -60,5 +60,57 @@ describe("LeagueLayout", () => {
     const settingsLink = screen.getByRole("link", { name: /settings/i });
     expect(settingsLink).toBeDefined();
     expect(settingsLink.getAttribute("href")).toBe("/leagues/1/settings");
+  });
+
+  it("renders a toggle button to collapse the sidebar", () => {
+    render(<LeagueLayout />);
+    const toggleButton = screen.getByRole("button", {
+      name: /collapse sidebar/i,
+    });
+    expect(toggleButton).toBeDefined();
+  });
+
+  it("hides nav link text labels when the sidebar is collapsed", () => {
+    render(<LeagueLayout />);
+
+    const toggleButton = screen.getByRole("button", {
+      name: /collapse sidebar/i,
+    });
+    fireEvent.click(toggleButton);
+
+    expect(screen.queryByText("Home")).toBeNull();
+    expect(screen.queryByText("Settings")).toBeNull();
+    expect(screen.queryByText("All Leagues")).toBeNull();
+  });
+
+  it("keeps nav link icons visible when the sidebar is collapsed", () => {
+    render(<LeagueLayout />);
+
+    const toggleButton = screen.getByRole("button", {
+      name: /collapse sidebar/i,
+    });
+    fireEvent.click(toggleButton);
+
+    const nav = screen.getByRole("navigation");
+    const svgs = nav.querySelectorAll("svg");
+    expect(svgs.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("expands the sidebar when the toggle is clicked again", () => {
+    render(<LeagueLayout />);
+
+    const toggleButton = screen.getByRole("button", {
+      name: /collapse sidebar/i,
+    });
+    fireEvent.click(toggleButton);
+
+    const expandButton = screen.getByRole("button", {
+      name: /expand sidebar/i,
+    });
+    fireEvent.click(expandButton);
+
+    expect(screen.getByText("Home")).toBeDefined();
+    expect(screen.getByText("Settings")).toBeDefined();
+    expect(screen.getByText("All Leagues")).toBeDefined();
   });
 });
