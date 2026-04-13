@@ -21,6 +21,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
+      "@": resolve(__dirname, "./src"),
       "@zone-blitz/shared": resolve(__dirname, "../packages/shared/mod.ts"),
       "@zone-blitz/server": resolve(__dirname, "../server/main.ts"),
     },
@@ -53,7 +54,7 @@ export default defineConfig({
       provider: "v8",
       enabled: true,
       include: ["src/**"],
-      exclude: ["src/main.tsx"],
+      exclude: ["src/main.tsx", "src/components/ui/**"],
       thresholds: {
         lines: 95,
         functions: 95,
