@@ -260,7 +260,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
     division: "NFC North",
   },
   {
-    name: "Pistons",
+    name: "Motors",
     city: "Detroit",
     abbreviation: "DET",
     primaryColor: "#0076B6",
