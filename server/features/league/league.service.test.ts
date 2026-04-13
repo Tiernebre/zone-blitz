@@ -4,12 +4,12 @@ import { DomainError } from "@zone-blitz/shared";
 import pino from "pino";
 import type {
   League,
-  LeagueRepository,
   PersonnelGenerator,
   ScheduleGenerator,
-  SeasonRepository,
-  TeamRepository,
 } from "@zone-blitz/shared";
+import type { LeagueRepository } from "./league.repository.interface.ts";
+import type { SeasonRepository } from "../season/season.repository.interface.ts";
+import type { TeamRepository } from "../team/team.repository.interface.ts";
 
 function createTestLogger() {
   return pino({ level: "silent" });

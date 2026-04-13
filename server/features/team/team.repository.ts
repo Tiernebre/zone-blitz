@@ -1,4 +1,4 @@
-import type { TeamRepository } from "@zone-blitz/shared";
+import type { TeamRepository } from "./team.repository.interface.ts";
 import type pino from "pino";
 import { eq } from "drizzle-orm";
 import type { Database } from "../../db/connection.ts";

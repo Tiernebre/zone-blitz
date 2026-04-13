@@ -13,12 +13,6 @@ export type {
 } from "./types/personnel.ts";
 export type { Game } from "./types/game.ts";
 
-// Interfaces — repositories
-export type { LeagueRepository } from "./interfaces/repositories/league-repository.ts";
-export type { TeamRepository } from "./interfaces/repositories/team-repository.ts";
-export type { UserRepository } from "./interfaces/repositories/user-repository.ts";
-export type { SeasonRepository } from "./interfaces/repositories/season-repository.ts";
-
 // Interfaces — generators
 export type {
   ContractGeneratorInput,

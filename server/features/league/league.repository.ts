@@ -1,4 +1,4 @@
-import type { LeagueRepository } from "@zone-blitz/shared";
+import type { LeagueRepository } from "./league.repository.interface.ts";
 import type pino from "pino";
 import { eq } from "drizzle-orm";
 import type { Database } from "../../db/connection.ts";

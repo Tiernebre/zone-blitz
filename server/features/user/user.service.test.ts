@@ -1,6 +1,6 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { createUserService } from "./user.service.ts";
-import type { UserRepository } from "@zone-blitz/shared";
+import type { UserRepository } from "./user.repository.interface.ts";
 
 function createMockUserRepo(
   overrides: Partial<UserRepository> = {},

@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { createTeamRouter } from "./team.router.ts";
-import type { Team, TeamRepository } from "@zone-blitz/shared";
+import type { Team } from "@zone-blitz/shared";
+import type { TeamRepository } from "./team.repository.interface.ts";
 
 function createMockTeam(overrides: Partial<Team> = {}): Team {
   return {

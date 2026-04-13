@@ -1,4 +1,4 @@
-import type { Team } from "../../types/team.ts";
+import type { Team } from "@zone-blitz/shared";
 
 export interface TeamRepository {
   getAll(): Promise<Team[]>;

@@ -1,4 +1,4 @@
-import type { NewSeason, Season } from "../../types/season.ts";
+import type { NewSeason, Season } from "@zone-blitz/shared";
 
 export interface SeasonRepository {
   getByLeagueId(leagueId: string): Promise<Season[]>;
