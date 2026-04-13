@@ -43,6 +43,13 @@
       "when": 1776114882838,
       "tag": "0005_exotic_jigsaw",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776115700590,
+      "tag": "0006_good_nebula",
+      "breakpoints": true
     }
   ]
 }
