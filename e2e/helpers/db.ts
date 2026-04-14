@@ -65,7 +65,7 @@ export async function seedTestUser(): Promise<{ sessionToken: string }> {
       ${TEST_SESSION.userAgent},
       ${TEST_SESSION.userId}
     )
-    ON CONFLICT (id) DO NOTHING
+    ON CONFLICT DO NOTHING
   `;
 
   return { sessionToken: TEST_SESSION.token };
