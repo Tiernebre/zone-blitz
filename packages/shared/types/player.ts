@@ -76,6 +76,37 @@ export interface PlayerOrigin {
   hometown: string | null;
 }
 
+export const PLAYER_TRANSACTION_TYPES = [
+  "drafted",
+  "signed",
+  "released",
+  "traded",
+  "extended",
+  "franchise_tagged",
+] as const;
+
+export type PlayerTransactionType = (typeof PLAYER_TRANSACTION_TYPES)[number];
+
+export interface PlayerTransactionEntry {
+  id: string;
+  type: PlayerTransactionType;
+  seasonYear: number;
+  occurredAt: string;
+  team: {
+    id: string;
+    name: string;
+    city: string;
+    abbreviation: string;
+  } | null;
+  counterpartyTeam: {
+    id: string;
+    name: string;
+    city: string;
+    abbreviation: string;
+  } | null;
+  detail: string | null;
+}
+
 export interface PlayerDetail {
   id: string;
   firstName: string;
@@ -95,6 +126,7 @@ export interface PlayerDetail {
   origin: PlayerOrigin;
   currentContract: CurrentContractSummary | null;
   contractHistory: ContractHistoryEntry[];
+  transactions: PlayerTransactionEntry[];
 }
 
 export interface Contract {

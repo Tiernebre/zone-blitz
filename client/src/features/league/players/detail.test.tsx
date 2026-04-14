@@ -113,6 +113,36 @@ const draftedPlayer = {
       endedInYear: null,
     },
   ],
+  transactions: [
+    {
+      id: "tx1",
+      type: "drafted",
+      seasonYear: 2020,
+      occurredAt: "2020-04-25T20:00:00.000Z",
+      team: {
+        id: "t2",
+        name: "Bengals",
+        city: "Cincinnati",
+        abbreviation: "CIN",
+      },
+      counterpartyTeam: null,
+      detail: "Round 1, pick 3 overall",
+    },
+    {
+      id: "tx2",
+      type: "extended",
+      seasonYear: 2024,
+      occurredAt: "2024-08-01T15:00:00.000Z",
+      team: {
+        id: "t2",
+        name: "Bengals",
+        city: "Cincinnati",
+        abbreviation: "CIN",
+      },
+      counterpartyTeam: null,
+      detail: null,
+    },
+  ],
 };
 
 afterEach(() => {
@@ -302,6 +332,7 @@ describe("PlayerDetail — header + origin", () => {
         ...draftedPlayer,
         currentContract: null,
         contractHistory: [],
+        transactions: [],
       },
       isLoading: false,
       error: null,
@@ -309,12 +340,24 @@ describe("PlayerDetail — header + origin", () => {
     renderDetail();
     expect(screen.getByTestId("player-no-current-contract")).toBeDefined();
     expect(screen.getByTestId("player-contract-history-empty")).toBeDefined();
+    expect(screen.getByTestId("player-transactions-empty")).toBeDefined();
   });
 
-  it("does not leak attributes, overall, or scout grade", () => {
+  it("renders a transactions table with labelled events", () => {
+    renderDetail();
+    const drafted = screen.getByTestId("player-transaction-row-tx1");
+    expect(drafted.textContent).toContain("Drafted");
+    expect(drafted.textContent).toContain("2020");
+    expect(drafted.textContent).toContain("Round 1, pick 3 overall");
+    const extended = screen.getByTestId("player-transaction-row-tx2");
+    expect(extended.textContent).toContain("Extended");
+  });
+
+  it("does not leak attributes, overall rating, or scout grade", () => {
     renderDetail();
     const main = document.body;
-    expect(main.textContent).not.toMatch(/overall/i);
+    expect(main.textContent).not.toMatch(/overall rating/i);
+    expect(main.textContent).not.toMatch(/\bOVR\b/);
     expect(main.textContent).not.toMatch(/scout grade/i);
     expect(main.textContent).not.toMatch(/potential/i);
   });

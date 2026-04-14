@@ -12,6 +12,7 @@ import {
 } from "./attributes.schema.ts";
 import { contracts } from "./contract.schema.ts";
 import { contractHistory } from "./contract-history.schema.ts";
+import { playerTransactions } from "./player-transaction.schema.ts";
 import type { PlayersGenerator } from "./players.generator.interface.ts";
 import type { PlayersRepository } from "./players.repository.interface.ts";
 import type { PlayersService } from "./players.service.interface.ts";
@@ -65,6 +66,55 @@ export function createPlayersService(deps: {
           ...generated.players[index].attributes,
         }));
         await chunkedInsert(exec, playerAttributes, attributeRows);
+
+        const currentLeagueYear = new Date().getUTCFullYear();
+        const transactionRows = insertedPlayers.flatMap((row, index) => {
+          const source = generated.players[index].player;
+          const events: {
+            playerId: string;
+            teamId: string | null;
+            counterpartyTeamId: string | null;
+            type: "drafted" | "signed";
+            seasonYear: number;
+            detail: string | null;
+          }[] = [];
+          if (
+            source.draftYear !== null &&
+            source.draftingTeamId !== null &&
+            source.draftRound !== null &&
+            source.draftPick !== null
+          ) {
+            events.push({
+              playerId: row.id,
+              teamId: source.draftingTeamId,
+              counterpartyTeamId: null,
+              type: "drafted",
+              seasonYear: source.draftYear,
+              detail:
+                `Round ${source.draftRound}, pick ${source.draftPick} overall`,
+            });
+          }
+          if (row.teamId !== null) {
+            const isOwnDraftTeam = source.draftingTeamId === row.teamId &&
+              source.draftYear !== null;
+            if (!isOwnDraftTeam) {
+              events.push({
+                playerId: row.id,
+                teamId: row.teamId,
+                counterpartyTeamId: null,
+                type: "signed",
+                seasonYear: currentLeagueYear,
+                detail: source.draftYear === null
+                  ? "Undrafted free agent"
+                  : null,
+              });
+            }
+          }
+          return events;
+        });
+        if (transactionRows.length > 0) {
+          await chunkedInsert(exec, playerTransactions, transactionRows);
+        }
       }
 
       if (generated.draftProspects.length > 0) {

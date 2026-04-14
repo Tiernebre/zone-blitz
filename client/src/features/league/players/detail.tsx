@@ -4,6 +4,8 @@ import type {
   ContractHistoryEntry,
   ContractTerminationReason,
   PlayerInjuryStatus,
+  PlayerTransactionEntry,
+  PlayerTransactionType,
 } from "@zone-blitz/shared/types/player.ts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +39,15 @@ const terminationLabels: Record<ContractTerminationReason, string> = {
   traded: "Traded",
   extended: "Extended",
   restructured: "Restructured",
+};
+
+const transactionLabels: Record<PlayerTransactionType, string> = {
+  drafted: "Drafted",
+  signed: "Signed",
+  released: "Released",
+  traded: "Traded",
+  extended: "Extended",
+  franchise_tagged: "Franchise tagged",
 };
 
 function injuryBadgeVariant(
@@ -107,6 +118,7 @@ export function PlayerDetail() {
       <Header detail={detail} leagueId={leagueId} />
       <Origin detail={detail} leagueId={leagueId} />
       <ContractSection detail={detail} leagueId={leagueId} />
+      <TransactionsSection detail={detail} leagueId={leagueId} />
       <PlaceholderSections />
     </div>
   );
@@ -333,6 +345,92 @@ function ContractHistoryTable(
   );
 }
 
+function TransactionsSection(
+  { detail, leagueId }: { detail: PlayerDetailData; leagueId: string },
+) {
+  const entries = detail.transactions;
+  return (
+    <Section title="Transactions">
+      {entries.length === 0
+        ? (
+          <p
+            className="text-sm text-muted-foreground"
+            data-testid="player-transactions-empty"
+          >
+            No transactions on record.
+          </p>
+        )
+        : (
+          <Card data-testid="player-transactions">
+            <CardContent className="pt-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Year</TableHead>
+                    <TableHead>Event</TableHead>
+                    <TableHead>Team</TableHead>
+                    <TableHead>Detail</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {entries.map((entry) => (
+                    <TransactionRow
+                      key={entry.id}
+                      entry={entry}
+                      leagueId={leagueId}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+    </Section>
+  );
+}
+
+function TransactionRow(
+  { entry, leagueId }: {
+    entry: PlayerTransactionEntry;
+    leagueId: string;
+  },
+) {
+  return (
+    <TableRow data-testid={`player-transaction-row-${entry.id}`}>
+      <TableCell>{entry.seasonYear}</TableCell>
+      <TableCell>{transactionLabels[entry.type]}</TableCell>
+      <TableCell>
+        {entry.team
+          ? (
+            <Link
+              to="/leagues/$leagueId/opponents/$teamId"
+              params={{ leagueId, teamId: entry.team.id }}
+              className="underline-offset-2 hover:underline"
+            >
+              {entry.team.abbreviation}
+            </Link>
+          )
+          : <span className="text-muted-foreground">—</span>}
+        {entry.counterpartyTeam && (
+          <>
+            {" ↔ "}
+            <Link
+              to="/leagues/$leagueId/opponents/$teamId"
+              params={{ leagueId, teamId: entry.counterpartyTeam.id }}
+              className="underline-offset-2 hover:underline"
+            >
+              {entry.counterpartyTeam.abbreviation}
+            </Link>
+          </>
+        )}
+      </TableCell>
+      <TableCell className="text-muted-foreground">
+        {entry.detail ?? "—"}
+      </TableCell>
+    </TableRow>
+  );
+}
+
 function PlaceholderSections() {
   return (
     <Card data-testid="player-detail-placeholder">
@@ -341,8 +439,7 @@ function PlaceholderSections() {
       </CardHeader>
       <CardContent className="text-sm text-muted-foreground">
         <p>
-          Career log, transaction log, and accolades will appear here once the
-          sim persists them.
+          Career log and accolades will appear here once the sim persists them.
         </p>
       </CardContent>
     </Card>

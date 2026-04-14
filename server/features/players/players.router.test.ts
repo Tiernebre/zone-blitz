@@ -53,6 +53,7 @@ Deno.test("players.router", async (t) => {
       },
       currentContract: null,
       contractHistory: [],
+      transactions: [],
     };
 
     const router = createPlayersRouter(

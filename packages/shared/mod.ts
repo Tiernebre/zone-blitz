@@ -66,6 +66,8 @@ export type {
   PlayerOrigin,
   PlayerPosition,
   PlayerStatus,
+  PlayerTransactionEntry,
+  PlayerTransactionType,
 } from "./types/player.ts";
 export {
   CONTRACT_TERMINATION_REASONS,
@@ -73,6 +75,7 @@ export {
   PLAYER_POSITION_GROUPS,
   PLAYER_POSITIONS,
   PLAYER_STATUSES,
+  PLAYER_TRANSACTION_TYPES,
 } from "./types/player.ts";
 export type {
   MentalAttributeKey,

@@ -66,6 +66,10 @@ export {
   contractHistory,
   contractTerminationReasonEnum,
 } from "../features/players/contract-history.schema.ts";
+export {
+  playerTransactions,
+  playerTransactionTypeEnum,
+} from "../features/players/player-transaction.schema.ts";
 export { games } from "../features/schedule/game.schema.ts";
 export {
   accounts,
