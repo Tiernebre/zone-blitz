@@ -62,7 +62,7 @@ export function createCoachTendenciesRepository(deps: {
       return row ? toCoachTendencies(row) : undefined;
     },
 
-    async upsert(input) {
+    async upsert(input, exec) {
       log.debug({ coachId: input.coachId }, "upserting coach tendencies");
       const { coachId, ...rest } = input;
       const updateSet: Record<string, number> = {};
@@ -78,7 +78,8 @@ export function createCoachTendenciesRepository(deps: {
         }
       }
 
-      const [row] = await deps.db
+      const executor = exec ?? deps.db;
+      const [row] = await executor
         .insert(coachTendencies)
         .values({ coachId, ...updateSet, updatedAt: new Date() })
         .onConflictDoUpdate({

@@ -30,6 +30,7 @@ import {
   createCoachesRepository,
   createCoachesRouter,
   createCoachesService,
+  createCoachTendenciesRepository,
   createStubCoachesGenerator,
 } from "./coaches/mod.ts";
 import {
@@ -88,6 +89,7 @@ export function createFeatureRouters(
   const teamRepo = createTeamRepository({ db, log });
   const seasonRepo = createSeasonRepository({ db, log });
   const coachesRepo = createCoachesRepository({ db, log });
+  const coachTendenciesRepo = createCoachTendenciesRepository({ db, log });
   const rosterRepo = createRosterRepository({ db, log });
   const scoutsRepo = createScoutsRepository({ db, log });
   const playersRepo = createPlayersRepository({ db, log });
@@ -105,6 +107,7 @@ export function createFeatureRouters(
   const coachesService = createCoachesService({
     generator: createStubCoachesGenerator(),
     repo: coachesRepo,
+    tendenciesRepo: coachTendenciesRepo,
     db,
     log,
   });
