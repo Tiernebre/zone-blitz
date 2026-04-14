@@ -1,16 +1,22 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
-import { useCreateLeague } from "./use-leagues.ts";
+import { useAssignUserTeam, useCreateLeague } from "./use-leagues.ts";
 import { createElement } from "react";
 
 const mockPost = vi.fn();
+const mockAssign = vi.fn();
 
 vi.mock("../api.ts", () => ({
   api: {
     api: {
       leagues: {
         $post: (...args: unknown[]) => mockPost(...args),
+        ":id": {
+          "user-team": {
+            $patch: (...args: unknown[]) => mockAssign(...args),
+          },
+        },
       },
     },
   },
@@ -58,6 +64,52 @@ describe("useCreateLeague", () => {
     });
 
     result.current.mutate({ name: "Test League" });
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+
+    expect(result.current.error).toBeInstanceOf(Error);
+  });
+});
+
+describe("useAssignUserTeam", () => {
+  it("returns the updated league on success", async () => {
+    const league = { id: "abc", userTeamId: "t1" };
+    mockAssign.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve(league),
+    });
+
+    const { result } = renderHook(() => useAssignUserTeam(), {
+      wrapper: createWrapper(),
+    });
+
+    result.current.mutate({ leagueId: "abc", userTeamId: "t1" });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(mockAssign).toHaveBeenCalledWith({
+      param: { id: "abc" },
+      json: { userTeamId: "t1" },
+    });
+    expect(result.current.data).toEqual(league);
+  });
+
+  it("rejects when the server responds with a non-ok status", async () => {
+    mockAssign.mockResolvedValue({
+      ok: false,
+      status: 500,
+    });
+
+    const { result } = renderHook(() => useAssignUserTeam(), {
+      wrapper: createWrapper(),
+    });
+
+    result.current.mutate({ leagueId: "abc", userTeamId: "t1" });
 
     await waitFor(() => {
       expect(result.current.isError).toBe(true);

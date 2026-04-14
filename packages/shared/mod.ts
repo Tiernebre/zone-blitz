@@ -4,6 +4,7 @@ export type {
   League,
   LeagueListItem,
   LeagueSeasonSummary,
+  LeagueUserTeamSummary,
   NewLeague,
 } from "./types/league.ts";
 export type { Team } from "./types/team.ts";
@@ -73,7 +74,7 @@ export type {
 } from "./interfaces/ai/gm-strategy.ts";
 
 // Schemas
-export { createLeagueSchema } from "./schemas/league.ts";
+export { assignUserTeamSchema, createLeagueSchema } from "./schemas/league.ts";
 export {
   attributeRatingSchema,
   playerAttributesSchema,

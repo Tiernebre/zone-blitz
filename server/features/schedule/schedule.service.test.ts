@@ -74,7 +74,6 @@ Deno.test("schedule.service", async (t) => {
       const result = await service.generate({
         seasonId: "s1",
         teams: TEAMS,
-        seasonLength: 17,
       });
 
       assertEquals(result.gameCount, 2);
@@ -100,7 +99,6 @@ Deno.test("schedule.service", async (t) => {
       const result = await service.generate({
         seasonId: "s1",
         teams: TEAMS,
-        seasonLength: 17,
       });
 
       assertEquals(result.gameCount, 0);
@@ -126,7 +124,7 @@ Deno.test("schedule.service", async (t) => {
       });
 
       await service.generate(
-        { seasonId: "s1", teams: TEAMS, seasonLength: 17 },
+        { seasonId: "s1", teams: TEAMS },
         tx,
       );
 
@@ -138,7 +136,7 @@ Deno.test("schedule.service", async (t) => {
   await t.step("generate forwards input to generator", async () => {
     const { db } = createMockDb();
     let receivedInput:
-      | { seasonId: string; teams: TeamDivisionInfo[]; seasonLength: number }
+      | { seasonId: string; teams: TeamDivisionInfo[] }
       | undefined;
     const generator: ScheduleGenerator = {
       generate: (input) => {
@@ -156,11 +154,9 @@ Deno.test("schedule.service", async (t) => {
     await service.generate({
       seasonId: "s1",
       teams: TEAMS,
-      seasonLength: 17,
     });
 
     assertEquals(receivedInput?.seasonId, "s1");
-    assertEquals(receivedInput?.seasonLength, 17);
     assertEquals(receivedInput?.teams.length, 2);
   });
 });

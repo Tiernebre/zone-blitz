@@ -12,7 +12,6 @@ const TEAMS: TeamDivisionInfo[] = DEFAULT_TEAMS.map((t, i) => ({
 const INPUT = {
   seasonId: "season-1",
   teams: TEAMS,
-  seasonLength: 17,
 };
 
 function generateSchedule() {

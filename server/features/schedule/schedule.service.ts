@@ -19,7 +19,6 @@ export function createScheduleService(deps: {
       const generatedGames = deps.generator.generate({
         seasonId: input.seasonId,
         teams: input.teams,
-        seasonLength: input.seasonLength,
       });
 
       if (generatedGames.length > 0) {

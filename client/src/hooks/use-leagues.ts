@@ -27,6 +27,27 @@ export function useCreateLeague() {
   });
 }
 
+export function useAssignUserTeam() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      { leagueId, userTeamId }: { leagueId: string; userTeamId: string },
+    ) => {
+      const res = await api.api.leagues[":id"]["user-team"].$patch({
+        param: { id: leagueId },
+        json: { userTeamId },
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to assign team (${res.status})`);
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leagues"] });
+    },
+  });
+}
+
 export function useDeleteLeague() {
   const queryClient = useQueryClient();
   return useMutation({

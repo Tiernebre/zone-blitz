@@ -31,10 +31,22 @@ export function createLeagueService(deps: {
               !latest || season.year > latest.year ? season : latest,
             undefined,
           );
+          const userTeam = league.userTeamId
+            ? await deps.teamService.getById(league.userTeamId)
+            : null;
           return {
             ...league,
             currentSeason: current
               ? { year: current.year, phase: current.phase, week: current.week }
+              : null,
+            userTeam: userTeam
+              ? {
+                id: userTeam.id,
+                name: userTeam.name,
+                city: userTeam.city,
+                abbreviation: userTeam.abbreviation,
+                primaryColor: userTeam.primaryColor,
+              }
               : null,
           };
         }),
@@ -88,11 +100,24 @@ export function createLeagueService(deps: {
             conference: t.conference,
             division: t.division,
           })),
-          seasonLength: league.seasonLength,
         }, tx);
 
         return league;
       });
+    },
+
+    async assignUserTeam(id, userTeamId) {
+      log.info({ id, userTeamId }, "assigning user team to league");
+      const league = await deps.leagueRepo.getById(id);
+      if (!league) {
+        throw new DomainError("NOT_FOUND", `League ${id} not found`);
+      }
+      await deps.teamService.getById(userTeamId);
+      const updated = await deps.leagueRepo.updateUserTeam(id, userTeamId);
+      if (!updated) {
+        throw new DomainError("NOT_FOUND", `League ${id} not found`);
+      }
+      return updated;
     },
 
     async deleteById(id) {

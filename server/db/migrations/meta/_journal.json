@@ -99,6 +99,13 @@
       "when": 1776175006288,
       "tag": "0013_lazy_namora",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1776175100000,
+      "tag": "0014_league_slim_fields",
+      "breakpoints": true
     }
   ]
 }

@@ -27,8 +27,7 @@ function createMockLeague(overrides: Partial<League> = {}): League {
   return {
     id: "1",
     name: "Test",
-    numberOfTeams: 32,
-    seasonLength: 17,
+    userTeamId: null,
     salaryCap: 255_000_000,
     capFloorPercent: 89,
     capGrowthRate: 5,
@@ -46,6 +45,7 @@ function createMockRepo(
     getAll: () => Promise.resolve([]),
     getById: () => Promise.resolve(undefined),
     create: () => Promise.resolve(createMockLeague({ id: "new-id" })),
+    updateUserTeam: () => Promise.resolve(createMockLeague({ id: "new-id" })),
     deleteById: () => Promise.resolve(),
     ...overrides,
   };
@@ -190,6 +190,65 @@ Deno.test("league.service", async (t) => {
   );
 
   await t.step(
+    "getAll embeds userTeam summary when league has userTeamId",
+    async () => {
+      const teamId = "team-42";
+      const service = createService({
+        leagueRepo: {
+          getAll: () =>
+            Promise.resolve([
+              createMockLeague({ id: "lg-1", userTeamId: teamId }),
+            ]),
+        },
+        teamService: {
+          getById: (id) =>
+            Promise.resolve({
+              id,
+              name: "Falcons",
+              cityId: "city-1",
+              city: "Atlanta",
+              state: "GA",
+              abbreviation: "ATL",
+              primaryColor: "#A71930",
+              secondaryColor: "#000",
+              accentColor: "#FFF",
+              conference: "NFC",
+              division: "NFC South",
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }),
+        },
+      });
+
+      const result = await service.getAll();
+      assertEquals(result[0].userTeam, {
+        id: teamId,
+        name: "Falcons",
+        city: "Atlanta",
+        abbreviation: "ATL",
+        primaryColor: "#A71930",
+      });
+    },
+  );
+
+  await t.step(
+    "getAll returns userTeam null when userTeamId is null",
+    async () => {
+      const service = createService({
+        leagueRepo: {
+          getAll: () =>
+            Promise.resolve([
+              createMockLeague({ id: "lg-1", userTeamId: null }),
+            ]),
+        },
+      });
+
+      const result = await service.getAll();
+      assertEquals(result[0].userTeam, null);
+    },
+  );
+
+  await t.step(
     "getAll returns currentSeason null when a league has no seasons",
     async () => {
       const service = createService({
@@ -268,7 +327,6 @@ Deno.test("league.service", async (t) => {
         generate: (input) => {
           scheduleCalled = true;
           assertEquals(input.seasonId, "season-1");
-          assertEquals(input.seasonLength, 17);
           return Promise.resolve({ gameCount: 0 });
         },
       },
@@ -389,6 +447,87 @@ Deno.test("league.service", async (t) => {
     assertEquals(result.id, "new-id");
     assertEquals(result.name, "Test");
   });
+
+  await t.step(
+    "assignUserTeam validates team exists then updates the league",
+    async () => {
+      let updatedWith: { id?: string; userTeamId?: string } = {};
+      let teamLookedUp: string | undefined;
+      const league = createMockLeague({ id: "lg-1" });
+      const service = createService({
+        leagueRepo: {
+          getById: () => Promise.resolve(league),
+          updateUserTeam: (id, userTeamId) => {
+            updatedWith = { id, userTeamId };
+            return Promise.resolve(
+              createMockLeague({ id, userTeamId: userTeamId }),
+            );
+          },
+        },
+        teamService: {
+          getById: (id) => {
+            teamLookedUp = id;
+            return Promise.resolve({
+              id,
+              name: "Team A",
+              cityId: "city-1",
+              city: "City A",
+              state: "NY",
+              abbreviation: "TA",
+              primaryColor: "#000",
+              secondaryColor: "#FFF",
+              accentColor: "#F00",
+              conference: "AFC",
+              division: "AFC East",
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          },
+        },
+      });
+
+      const result = await service.assignUserTeam("lg-1", "team-1");
+      assertEquals(teamLookedUp, "team-1");
+      assertEquals(updatedWith, { id: "lg-1", userTeamId: "team-1" });
+      assertEquals(result.userTeamId, "team-1");
+    },
+  );
+
+  await t.step(
+    "assignUserTeam throws NOT_FOUND when league missing",
+    async () => {
+      const service = createService({
+        leagueRepo: { getById: () => Promise.resolve(undefined) },
+      });
+
+      await assertRejects(
+        () => service.assignUserTeam("missing", "team-1"),
+        DomainError,
+        "not found",
+      );
+    },
+  );
+
+  await t.step(
+    "assignUserTeam propagates team lookup failure",
+    async () => {
+      const service = createService({
+        leagueRepo: {
+          getById: () => Promise.resolve(createMockLeague({ id: "lg-1" })),
+        },
+        teamService: {
+          getById: () =>
+            Promise.reject(new DomainError("NOT_FOUND", "Team not found")),
+        },
+      });
+
+      await assertRejects(
+        () => service.assignUserTeam("lg-1", "missing-team"),
+        DomainError,
+        "Team not found",
+      );
+    },
+  );
 
   await t.step(
     "deleteById delegates to repository when league exists",

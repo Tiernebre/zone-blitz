@@ -4,7 +4,6 @@ import type { Executor } from "../../db/connection.ts";
 export interface ScheduleGenerateInput {
   seasonId: string;
   teams: TeamDivisionInfo[];
-  seasonLength: number;
 }
 
 export interface ScheduleGenerateResult {
