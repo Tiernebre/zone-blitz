@@ -1007,6 +1007,114 @@ that affects how versatile your receivers need to be. A fixed-label offense can
 carry a one-sided receiver; a strength-flipping offense needs receivers who can
 execute the same route tree from either side.
 
+### Defensive Personnel Packages
+
+Defenses substitute package-by-package in response to offensive personnel, and
+the naming convention counts defensive backs. The "base" defense (4 DBs) used to
+be the default; in the modern game, most defenses live in 5+ DB packages and
+treat base as a situational response to heavy offensive personnel. A DC's
+distribution across these packages is a hidden tendency just like offensive
+personnel lean.
+
+**Base (4 DB, 7 in box — 4-3 or 3-4):** Three linebackers and four defensive
+backs. Historically the default; now primarily used against heavy offensive
+personnel (12, 21, 22) and in short-yardage situations. A defense whose base
+package has to stay on the field against 11 personnel is either committed to a
+run-first identity or out of answers — and the offense will spread them out
+until they prove otherwise.
+
+**Nickel (5 DB):** The modern actual base defense. A fifth defensive back (the
+nickel/slot corner) replaces a linebacker — typically the strong-side or
+weak-side LB depending on scheme, leaving the MLB on the field. Most defenses
+run nickel on 55-70% of snaps. **The nickel corner is a starter**, not a
+sub-package luxury. A weak nickel is exploitable on the majority of defensive
+snaps, which is why slot corner is one of the most undervalued position
+investments in the game.
+
+**Big nickel (5 DB with 3 safeties):** A variant of nickel that swaps in a third
+safety instead of a third corner. The third safety is typically a box-capable
+hybrid — enough coverage ability to play the slot or cover a tight end, enough
+physicality to fit runs. Big nickel is the answer to 12 personnel for DCs who
+refuse to stay in base: more speed against the pass than base, more size and run
+support than traditional nickel. Requires a roster investment in a specific kind
+of safety — a pure free safety or pure box safety won't fill the role.
+
+**Dime (6 DB):** A sixth defensive back replaces another linebacker, leaving one
+or two LBs on the field. Used on obvious passing downs (3rd-and-long,
+two-minute, known drop-back situations). A dime defense has limited answers to
+the run by design — offenses that can run from spread formations punish DCs who
+dial up dime on non-obvious downs.
+
+**Quarter / prevent (7 DB):** End-of-half / end-of-game package. Three safety-
+like defenders deep, rush three, drop eight, concede underneath completions to
+eat clock. Almost never used outside two-minute situations.
+
+**Star / dime-LB hybrids:** DC-specific wrinkles where one defender — often
+labeled "Star" or "Money" — plays a hybrid role somewhere between nickel corner,
+box safety, and weakside LB. The Star is the defensive mirror of the offensive
+F/H-back: a positionless chess piece whose alignment on a given snap doesn't
+tell the offense what the defense is doing. Requires a very specific skill set
+(coverage, tackling, blitz ability, football IQ) and a DC willing to build a
+package around one player.
+
+#### Personnel lean as a DC fingerprint
+
+```
+DC A — Nickel-first
+  Base: 18%    Nickel: 62%    Big nickel: 8%    Dime: 12%
+
+DC B — Sub-package heavy
+  Base:  6%    Nickel: 48%    Big nickel: 22%   Dime: 24%
+
+DC C — Base-committed (rare, old-school)
+  Base: 42%    Nickel: 48%    Big nickel: 2%    Dime: 8%
+```
+
+DC A wants a traditional nickel corner and LBs who can stay on the field most of
+the week. DC B needs depth at DB — a third safety, a dime corner, and a
+Star-type hybrid. DC C needs three coverage-capable LBs he trusts against the
+pass, which is a specific and expensive roster build.
+
+#### Matching (or not matching) offensive personnel
+
+A DC's personnel matching rate is itself a tendency. Disciplined, adaptable DCs
+match personnel on nearly every substitution: offense goes 12, defense goes
+base; offense goes 11, defense goes nickel. Stubborn or scheme-rigid DCs refuse
+to match — they stay in their preferred package regardless of what the offense
+shows, which creates exploitable structural matchups:
+
+- A DC who stays in nickel against 22 personnel gives up physicality in the run
+  game — a DB is doing a linebacker's job against a lead block.
+- A DC who stays in base against 10/empty gives up coverage — a linebacker is
+  matched up on a slot receiver in space.
+- A DC who refuses to sub after first down gets caught when the offense goes
+  no-huddle out of a run into a spread passing down.
+
+The user never sees a "matching rate" number. What they see: the same defensive
+coordinator gives up 180 rushing yards to a 22-personnel team one week and 350
+passing yards to a spread team the next. Diagnosing it — is the DC predictable,
+is his personnel too light, is he missing the Star piece his scheme needs — is
+the GM's job.
+
+#### Box count as a shorthand
+
+Announcers and scouts talk about "eight men in the box," "loaded box," "light
+box." This is shorthand for how many defenders are inside the tackle box
+pre-snap, which is a function of personnel plus alignment:
+
+- **Loaded box (8+):** Usually base personnel with both safeties rotated down,
+  or nickel with a safety in the box — commits to stopping the run, vulnerable
+  over the top.
+- **Neutral box (7):** Standard look — base with one deep safety, or nickel with
+  a two-high shell.
+- **Light box (6 or fewer):** Two-high shell with the nickel at depth, or dime —
+  commits to stopping the pass, vulnerable to the run.
+
+Box count is downstream of personnel and coverage call together, and a DC's
+willingness to load or lighten the box on specific downs is another fingerprint.
+An aggressive DC loads the box on early downs and dares the offense to throw; a
+conservative DC plays two-high and makes the offense earn yards on the ground.
+
 ---
 
 ## Scheme Fit
