@@ -34,6 +34,9 @@ function createMockCoachesService(
 ): CoachesService {
   return {
     generate: () => Promise.resolve({ coachCount: 0 }),
+    getStaffTree: () => Promise.resolve([]),
+    getCoachDetail: () =>
+      Promise.reject(new Error("getCoachDetail not stubbed")),
     ...overrides,
   };
 }

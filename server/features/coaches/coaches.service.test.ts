@@ -1,6 +1,14 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertRejects } from "@std/assert";
+import { DomainError } from "@zone-blitz/shared";
+import type {
+  CoachDetail,
+  CoachNode,
+  CoachRole,
+  CoachSpecialty,
+} from "@zone-blitz/shared";
 import { createCoachesService } from "./coaches.service.ts";
 import type { CoachesGenerator } from "./coaches.generator.interface.ts";
+import type { CoachesRepository } from "./coaches.repository.interface.ts";
 
 function createTestLogger() {
   return {
@@ -17,6 +25,16 @@ function createMockGenerator(
 ): CoachesGenerator {
   return {
     generate: () => [],
+    ...overrides,
+  };
+}
+
+function createMockRepo(
+  overrides: Partial<CoachesRepository> = {},
+): CoachesRepository {
+  return {
+    getStaffTreeByTeam: () => Promise.resolve([]),
+    getCoachDetailById: () => Promise.resolve(undefined),
     ...overrides,
   };
 }
@@ -42,6 +60,52 @@ function createMockDb(): {
     },
   } as unknown as import("../../db/connection.ts").Database;
   return { db, calls };
+}
+
+function createNode(overrides: Partial<CoachNode> = {}): CoachNode {
+  return {
+    id: "c1",
+    firstName: "Alex",
+    lastName: "Stone",
+    role: "HC" as CoachRole,
+    reportsToId: null,
+    playCaller: "offense",
+    specialty: "ceo" as CoachSpecialty,
+    age: 52,
+    yearsWithTeam: 3,
+    contractYearsRemaining: 4,
+    isVacancy: false,
+    ...overrides,
+  };
+}
+
+function createDetail(overrides: Partial<CoachDetail> = {}): CoachDetail {
+  return {
+    id: "c1",
+    leagueId: "l1",
+    teamId: "t1",
+    firstName: "Alex",
+    lastName: "Stone",
+    role: "HC",
+    specialty: "ceo",
+    playCaller: "offense",
+    age: 52,
+    yearsWithTeam: 3,
+    contractYearsRemaining: 4,
+    contractSalary: 10_000_000,
+    contractBuyout: 20_000_000,
+    isVacancy: false,
+    college: null,
+    mentor: null,
+    reputationLabels: [],
+    careerStops: [],
+    tenureUnitPerformance: [],
+    tenurePlayerDev: [],
+    accolades: [],
+    depthChartNotes: [],
+    connections: [],
+    ...overrides,
+  };
 }
 
 Deno.test("coaches.service", async (t) => {
@@ -74,6 +138,7 @@ Deno.test("coaches.service", async (t) => {
 
       const service = createCoachesService({
         generator,
+        repo: createMockRepo(),
         db,
         log: createTestLogger(),
       });
@@ -96,6 +161,7 @@ Deno.test("coaches.service", async (t) => {
 
       const service = createCoachesService({
         generator,
+        repo: createMockRepo(),
         db,
         log: createTestLogger(),
       });
@@ -107,6 +173,60 @@ Deno.test("coaches.service", async (t) => {
 
       assertEquals(result.coachCount, 0);
       assertEquals(calls.length, 0);
+    },
+  );
+
+  await t.step("getStaffTree delegates to repository", async () => {
+    const { db } = createMockDb();
+    const nodes = [createNode()];
+    const service = createCoachesService({
+      generator: createMockGenerator(),
+      repo: createMockRepo({
+        getStaffTreeByTeam: (teamId) => {
+          assertEquals(teamId, "t1");
+          return Promise.resolve(nodes);
+        },
+      }),
+      db,
+      log: createTestLogger(),
+    });
+
+    const result = await service.getStaffTree("t1");
+    assertEquals(result, nodes);
+  });
+
+  await t.step("getCoachDetail returns the detail when found", async () => {
+    const { db } = createMockDb();
+    const detail = createDetail();
+    const service = createCoachesService({
+      generator: createMockGenerator(),
+      repo: createMockRepo({
+        getCoachDetailById: () => Promise.resolve(detail),
+      }),
+      db,
+      log: createTestLogger(),
+    });
+
+    const result = await service.getCoachDetail("c1");
+    assertEquals(result, detail);
+  });
+
+  await t.step(
+    "getCoachDetail throws NOT_FOUND when repository returns undefined",
+    async () => {
+      const { db } = createMockDb();
+      const service = createCoachesService({
+        generator: createMockGenerator(),
+        repo: createMockRepo(),
+        db,
+        log: createTestLogger(),
+      });
+
+      await assertRejects(
+        () => service.getCoachDetail("missing"),
+        DomainError,
+        "Coach missing not found",
+      );
     },
   );
 });
