@@ -27,6 +27,16 @@ export type {
   CoachTenureUnitSeason,
 } from "./types/coach.ts";
 export type {
+  CoachTendencies,
+  CoachTendenciesUpsertInput,
+  DefensiveTendencies,
+  OffensiveTendencies,
+} from "./types/coach-tendencies.ts";
+export {
+  DEFENSIVE_TENDENCY_KEYS,
+  OFFENSIVE_TENDENCY_KEYS,
+} from "./types/coach-tendencies.ts";
+export type {
   Scout,
   ScoutCareerStop,
   ScoutConnection,

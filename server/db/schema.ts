@@ -20,6 +20,7 @@ export {
   coachRoleEnum,
   coachSpecialtyEnum,
 } from "../features/coaches/coach.schema.ts";
+export { coachTendencies } from "../features/coaches/coach-tendencies.schema.ts";
 export {
   accoladeTypeEnum,
   coachAccolades,
