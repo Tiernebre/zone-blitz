@@ -7,6 +7,7 @@ import { createTestRouter } from "../../../router.tsx";
 const mockLeaguesGet = vi.fn();
 const mockTeamsGet = vi.fn();
 const mockStaffGet = vi.fn();
+const mockFingerprintGet = vi.fn();
 
 vi.mock("../../../api.ts", () => ({
   api: {
@@ -25,6 +26,9 @@ vi.mock("../../../api.ts", () => ({
               [":teamId"]: {
                 staff: {
                   $get: (...args: unknown[]) => mockStaffGet(...args),
+                },
+                fingerprint: {
+                  $get: (...args: unknown[]) => mockFingerprintGet(...args),
                 },
               },
             },
@@ -91,6 +95,10 @@ describe("Coaches page", () => {
     mockTeamsGet.mockResolvedValue({
       json: () => Promise.resolve([baseTeam]),
     });
+    mockFingerprintGet.mockResolvedValue({
+      json: () =>
+        Promise.resolve({ offense: null, defense: null, overrides: {} }),
+    });
     mockStaffGet.mockResolvedValue({
       json: () =>
         Promise.resolve([
@@ -134,6 +142,10 @@ describe("Coaches page", () => {
     mockTeamsGet.mockResolvedValue({
       json: () => Promise.resolve([baseTeam]),
     });
+    mockFingerprintGet.mockResolvedValue({
+      json: () =>
+        Promise.resolve({ offense: null, defense: null, overrides: {} }),
+    });
     mockStaffGet.mockResolvedValue({
       json: () => Promise.resolve([]),
     });
@@ -151,6 +163,10 @@ describe("Coaches page", () => {
     });
     mockTeamsGet.mockResolvedValue({
       json: () => Promise.resolve([baseTeam]),
+    });
+    mockFingerprintGet.mockResolvedValue({
+      json: () =>
+        Promise.resolve({ offense: null, defense: null, overrides: {} }),
     });
     mockStaffGet.mockRejectedValue(new Error("boom"));
 

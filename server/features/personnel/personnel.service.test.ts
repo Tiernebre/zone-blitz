@@ -40,6 +40,8 @@ function createMockCoachesService(
     getStaffTree: () => Promise.resolve([]),
     getCoachDetail: () =>
       Promise.reject(new Error("getCoachDetail not stubbed")),
+    getFingerprint: () =>
+      Promise.resolve({ offense: null, defense: null, overrides: {} }),
     ...overrides,
   };
 }

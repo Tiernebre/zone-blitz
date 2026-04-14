@@ -10,6 +10,15 @@ export function createCoachesRouter(coachesService: CoachesService) {
       const staff = await coachesService.getStaffTree(leagueId, teamId);
       return c.json(staff);
     })
+    .get("/leagues/:leagueId/teams/:teamId/fingerprint", async (c) => {
+      const leagueId = c.req.param("leagueId");
+      const teamId = c.req.param("teamId");
+      const fingerprint = await coachesService.getFingerprint(
+        leagueId,
+        teamId,
+      );
+      return c.json(fingerprint);
+    })
     .get("/:coachId", async (c) => {
       const coachId = c.req.param("coachId");
       const detail = await coachesService.getCoachDetail(coachId);
