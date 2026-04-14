@@ -55,12 +55,12 @@ const navGroups: NavGroup[] = [
       { label: "Home", path: "", Icon: HomeIcon },
       { label: "Roster", path: "roster", Icon: UsersIcon },
       { label: "Coaches", path: "coaches", Icon: ClipboardListIcon },
+      { label: "Scouts", path: "scouts", Icon: SearchIcon },
     ],
   },
   {
     label: "Team Building",
     items: [
-      { label: "Scouts", path: "scouts", Icon: SearchIcon },
       { label: "Draft", path: "draft", Icon: ListOrderedIcon },
       { label: "Trades", path: "trades", Icon: ArrowLeftRightIcon },
       { label: "Free Agency", path: "free-agency", Icon: UserPlusIcon },
