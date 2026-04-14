@@ -56,6 +56,9 @@ export type {
 } from "./types/roster.ts";
 export type {
   Contract,
+  ContractHistoryEntry,
+  ContractTerminationReason,
+  CurrentContractSummary,
   DraftProspect,
   Player,
   PlayerDetail,
@@ -65,6 +68,7 @@ export type {
   PlayerStatus,
 } from "./types/player.ts";
 export {
+  CONTRACT_TERMINATION_REASONS,
   PLAYER_INJURY_STATUSES,
   PLAYER_POSITION_GROUPS,
   PLAYER_POSITIONS,

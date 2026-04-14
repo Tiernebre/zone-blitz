@@ -5,6 +5,8 @@ import postgres from "postgres";
 import pino from "pino";
 import * as schema from "../../db/schema.ts";
 import { players } from "./player.schema.ts";
+import { contracts } from "./contract.schema.ts";
+import { contractHistory } from "./contract-history.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
 import { cities } from "../cities/city.schema.ts";
@@ -213,6 +215,109 @@ Deno.test({
       assertEquals(detail?.origin.draftingTeam, null);
       assertEquals(detail?.origin.college, null);
       assertEquals(detail?.origin.hometown, null);
+    } finally {
+      await cleanup(db, {
+        players: playersCreated,
+        teams: teamsCreated,
+        cities: citiesCreated,
+        states: statesCreated,
+        leagues: leaguesCreated,
+      });
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "playersRepository.getDetailById: surfaces current contract + contract history",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const repo = createPlayersRepository({
+      db,
+      log: createTestLogger(),
+      now: () => new Date("2026-06-15T00:00:00Z"),
+    });
+    const playersCreated: string[] = [];
+    const leaguesCreated: string[] = [];
+    const citiesCreated: string[] = [];
+    const statesCreated: string[] = [];
+    const teamsCreated: string[] = [];
+
+    try {
+      const { league, team, city, state } = await setupFixtures(db);
+      leaguesCreated.push(league.id);
+      citiesCreated.push(city.id);
+      statesCreated.push(state.id);
+      teamsCreated.push(team.id);
+
+      const playerId = crypto.randomUUID();
+      await db.insert(players).values({
+        id: playerId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Sam",
+        lastName: "Stone",
+        position: "QB",
+        injuryStatus: "healthy",
+        heightInches: 74,
+        weightPounds: 225,
+        college: "State University",
+        hometown: "Dallas, TX",
+        birthDate: "2000-03-10",
+        draftYear: 2022,
+        draftRound: 1,
+        draftPick: 3,
+        draftingTeamId: team.id,
+      });
+      playersCreated.push(playerId);
+
+      await db.insert(contracts).values({
+        playerId,
+        teamId: team.id,
+        totalYears: 4,
+        currentYear: 2,
+        totalSalary: 80_000_000,
+        annualSalary: 20_000_000,
+        guaranteedMoney: 40_000_000,
+        signingBonus: 10_000_000,
+      });
+
+      await db.insert(contractHistory).values([
+        {
+          playerId,
+          teamId: team.id,
+          signedInYear: 2022,
+          totalYears: 4,
+          totalSalary: 16_000_000,
+          guaranteedMoney: 8_000_000,
+          terminationReason: "expired",
+          endedInYear: 2025,
+        },
+        {
+          playerId,
+          teamId: team.id,
+          signedInYear: 2025,
+          totalYears: 4,
+          totalSalary: 80_000_000,
+          guaranteedMoney: 40_000_000,
+          terminationReason: "active",
+          endedInYear: null,
+        },
+      ]);
+
+      const detail = await repo.getDetailById(playerId);
+      assertEquals(detail?.currentContract?.totalYears, 4);
+      assertEquals(detail?.currentContract?.currentYear, 2);
+      assertEquals(detail?.currentContract?.yearsRemaining, 3);
+      assertEquals(detail?.currentContract?.annualSalary, 20_000_000);
+      assertEquals(detail?.contractHistory.length, 2);
+      assertEquals(detail?.contractHistory[0].signedInYear, 2022);
+      assertEquals(detail?.contractHistory[0].terminationReason, "expired");
+      assertEquals(detail?.contractHistory[1].terminationReason, "active");
+      assertEquals(detail?.contractHistory[1].team.name, "Bengals");
     } finally {
       await cleanup(db, {
         players: playersCreated,

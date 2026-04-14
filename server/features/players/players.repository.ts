@@ -1,8 +1,14 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import type pino from "pino";
-import type { PlayerDetail } from "@zone-blitz/shared";
+import type {
+  ContractHistoryEntry,
+  CurrentContractSummary,
+  PlayerDetail,
+} from "@zone-blitz/shared";
 import type { Database } from "../../db/connection.ts";
 import { players } from "./player.schema.ts";
+import { contracts } from "./contract.schema.ts";
+import { contractHistory } from "./contract-history.schema.ts";
 import { teams } from "../team/team.schema.ts";
 import { cities } from "../cities/city.schema.ts";
 import { alias } from "drizzle-orm/pg-core";
@@ -75,6 +81,75 @@ export function createPlayersRepository(deps: {
         ? Math.max(0, now().getUTCFullYear() - row.draftYear)
         : 0;
 
+      const [currentContractRow] = await deps.db
+        .select({
+          teamId: contracts.teamId,
+          totalYears: contracts.totalYears,
+          currentYear: contracts.currentYear,
+          annualSalary: contracts.annualSalary,
+          totalSalary: contracts.totalSalary,
+          guaranteedMoney: contracts.guaranteedMoney,
+          signingBonus: contracts.signingBonus,
+        })
+        .from(contracts)
+        .where(eq(contracts.playerId, playerId))
+        .limit(1);
+
+      const currentContract: CurrentContractSummary | null = currentContractRow
+        ? {
+          teamId: currentContractRow.teamId,
+          totalYears: currentContractRow.totalYears,
+          currentYear: currentContractRow.currentYear,
+          yearsRemaining: Math.max(
+            0,
+            currentContractRow.totalYears - currentContractRow.currentYear +
+              1,
+          ),
+          annualSalary: currentContractRow.annualSalary,
+          totalSalary: currentContractRow.totalSalary,
+          guaranteedMoney: currentContractRow.guaranteedMoney,
+          signingBonus: currentContractRow.signingBonus,
+        }
+        : null;
+
+      const historyRows = await deps.db
+        .select({
+          id: contractHistory.id,
+          teamId: teams.id,
+          teamName: teams.name,
+          teamCity: cities.name,
+          teamAbbreviation: teams.abbreviation,
+          signedInYear: contractHistory.signedInYear,
+          totalYears: contractHistory.totalYears,
+          totalSalary: contractHistory.totalSalary,
+          guaranteedMoney: contractHistory.guaranteedMoney,
+          terminationReason: contractHistory.terminationReason,
+          endedInYear: contractHistory.endedInYear,
+        })
+        .from(contractHistory)
+        .innerJoin(teams, eq(teams.id, contractHistory.teamId))
+        .innerJoin(cities, eq(cities.id, teams.cityId))
+        .where(eq(contractHistory.playerId, playerId))
+        .orderBy(asc(contractHistory.signedInYear));
+
+      const contractHistoryEntries: ContractHistoryEntry[] = historyRows.map(
+        (row) => ({
+          id: row.id,
+          team: {
+            id: row.teamId,
+            name: row.teamName,
+            city: row.teamCity,
+            abbreviation: row.teamAbbreviation,
+          },
+          signedInYear: row.signedInYear,
+          totalYears: row.totalYears,
+          totalSalary: row.totalSalary,
+          guaranteedMoney: row.guaranteedMoney,
+          terminationReason: row.terminationReason,
+          endedInYear: row.endedInYear,
+        }),
+      );
+
       const detail: PlayerDetail = {
         id: row.id,
         firstName: row.firstName,
@@ -108,6 +183,8 @@ export function createPlayersRepository(deps: {
           college: row.college,
           hometown: row.hometown,
         },
+        currentContract,
+        contractHistory: contractHistoryEntries,
       };
       return detail;
     },

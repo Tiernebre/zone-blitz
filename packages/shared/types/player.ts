@@ -93,6 +93,8 @@ export interface PlayerDetail {
     abbreviation: string;
   } | null;
   origin: PlayerOrigin;
+  currentContract: CurrentContractSummary | null;
+  contractHistory: ContractHistoryEntry[];
 }
 
 export interface Contract {
@@ -107,6 +109,45 @@ export interface Contract {
   signingBonus: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export const CONTRACT_TERMINATION_REASONS = [
+  "active",
+  "expired",
+  "released",
+  "traded",
+  "extended",
+  "restructured",
+] as const;
+
+export type ContractTerminationReason =
+  (typeof CONTRACT_TERMINATION_REASONS)[number];
+
+export interface ContractHistoryEntry {
+  id: string;
+  team: {
+    id: string;
+    name: string;
+    city: string;
+    abbreviation: string;
+  };
+  signedInYear: number;
+  totalYears: number;
+  totalSalary: number;
+  guaranteedMoney: number;
+  terminationReason: ContractTerminationReason;
+  endedInYear: number | null;
+}
+
+export interface CurrentContractSummary {
+  teamId: string;
+  totalYears: number;
+  currentYear: number;
+  yearsRemaining: number;
+  annualSalary: number;
+  totalSalary: number;
+  guaranteedMoney: number;
+  signingBonus: number;
 }
 
 export interface DraftProspect {
