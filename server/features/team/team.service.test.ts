@@ -18,7 +18,9 @@ function createMockTeam(overrides: Partial<Team> = {}): Team {
   return {
     id: "1",
     name: "Test Team",
+    cityId: "city-1",
     city: "Test City",
+    state: "NY",
     abbreviation: "TST",
     primaryColor: "#000000",
     secondaryColor: "#FFFFFF",

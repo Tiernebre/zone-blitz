@@ -1,9 +1,12 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { cities } from "../cities/city.schema.ts";
 
 export const teams = pgTable("teams", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
-  city: text("city").notNull(),
+  cityId: uuid("city_id")
+    .notNull()
+    .references(() => cities.id, { onDelete: "restrict" }),
   abbreviation: text("abbreviation").notNull().unique(),
   primaryColor: text("primary_color").notNull(),
   secondaryColor: text("secondary_color").notNull(),
