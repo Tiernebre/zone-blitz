@@ -241,12 +241,9 @@ describe("Roster — active roster tab (default)", () => {
     expect(screen.getByText(/failed to load roster/i)).toBeDefined();
   });
 
-  it("renders the cap summary", () => {
+  it("does not render a cap summary (moved to Salary Cap page)", () => {
     renderRoster();
-    const summary = screen.getByTestId("roster-cap-summary");
-    expect(within(summary).getByText("$68,000,000")).toBeDefined();
-    expect(within(summary).getByText("$255,000,000")).toBeDefined();
-    expect(within(summary).getByText("$187,000,000")).toBeDefined();
+    expect(screen.queryByTestId("roster-cap-summary")).toBeNull();
   });
 
   it("renders every player in a single combined table", () => {
@@ -261,16 +258,20 @@ describe("Roster — active roster tab (default)", () => {
     ]);
   });
 
-  it("renders a player row with name, position, group, age, cap hit, contract years, and injury status", () => {
+  it("renders a player row with name, position, group, age, and injury status", () => {
     renderRoster();
     const row = screen.getByTestId("roster-row-p1");
     expect(within(row).getByText("Patrick Quarterback")).toBeDefined();
     expect(within(row).getByText("QB")).toBeDefined();
     expect(within(row).getByText("Offense")).toBeDefined();
     expect(within(row).getByText("28")).toBeDefined();
-    expect(within(row).getByText("$45,000,000")).toBeDefined();
-    expect(within(row).getByText("3 yrs")).toBeDefined();
     expect(within(row).getByText(/healthy/i)).toBeDefined();
+  });
+
+  it("does not render cap hit or contract columns (moved to Salary Cap page)", () => {
+    renderRoster();
+    expect(screen.queryByRole("button", { name: /cap hit/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^contract/i })).toBeNull();
   });
 
   it("filters rows by the position group filter", () => {
@@ -289,21 +290,21 @@ describe("Roster — active roster tab (default)", () => {
     expect(rosterRowIds()).toEqual(["roster-row-p4"]);
   });
 
-  it("sorts rows when the Cap Hit header is clicked", () => {
+  it("sorts rows when the Age header is clicked", () => {
     renderRoster();
-    fireEvent.click(screen.getByRole("button", { name: /cap hit/i }));
+    fireEvent.click(screen.getByRole("button", { name: /age/i }));
     expect(rosterRowIds()).toEqual([
-      "roster-row-p4",
       "roster-row-p3",
       "roster-row-p2",
       "roster-row-p1",
+      "roster-row-p4",
     ]);
-    fireEvent.click(screen.getByRole("button", { name: /cap hit/i }));
+    fireEvent.click(screen.getByRole("button", { name: /age/i }));
     expect(rosterRowIds()).toEqual([
+      "roster-row-p4",
       "roster-row-p1",
       "roster-row-p2",
       "roster-row-p3",
-      "roster-row-p4",
     ]);
   });
 });
