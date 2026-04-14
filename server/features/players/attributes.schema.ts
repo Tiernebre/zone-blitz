@@ -3,11 +3,11 @@ import { sql } from "drizzle-orm";
 import { PLAYER_ATTRIBUTE_KEYS } from "@zone-blitz/shared";
 import { draftProspects, players } from "./player.schema.ts";
 
-function camelToSnake(key: string): string {
+export function camelToSnake(key: string): string {
   return key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
 }
 
-function attributeColumns() {
+export function attributeColumns() {
   const columns: Record<string, ReturnType<typeof smallint>> = {};
   for (const key of PLAYER_ATTRIBUTE_KEYS) {
     const snake = camelToSnake(key);
@@ -17,7 +17,7 @@ function attributeColumns() {
   return columns;
 }
 
-function attributeRangeChecks(tableAlias: string) {
+export function attributeRangeChecks(tableAlias: string) {
   const checks: Record<string, ReturnType<typeof check>> = {};
   for (const key of PLAYER_ATTRIBUTE_KEYS) {
     const snake = camelToSnake(key);

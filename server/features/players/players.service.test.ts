@@ -94,6 +94,7 @@ Deno.test("players.service", async (t) => {
               player: {
                 leagueId: "l1",
                 teamId: "t1",
+                status: "active",
                 firstName: "A",
                 lastName: "B",
                 position: "QB",
@@ -109,6 +110,7 @@ Deno.test("players.service", async (t) => {
               player: {
                 leagueId: "l1",
                 teamId: "t1",
+                status: "active",
                 firstName: "C",
                 lastName: "D",
                 position: "QB",
@@ -224,6 +226,7 @@ Deno.test("players.service", async (t) => {
               player: {
                 leagueId: "l1",
                 teamId: "t1",
+                status: "active",
                 firstName: "A",
                 lastName: "B",
                 position: "QB",
@@ -279,6 +282,7 @@ Deno.test("players.service", async (t) => {
               player: {
                 leagueId: "l1",
                 teamId: "t1",
+                status: "active",
                 firstName: "A",
                 lastName: "B",
                 position: "QB",

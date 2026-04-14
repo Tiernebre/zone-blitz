@@ -1,5 +1,6 @@
 import {
   date,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -7,7 +8,12 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { PLAYER_INJURY_STATUSES, PLAYER_POSITIONS } from "@zone-blitz/shared";
+import { sql } from "drizzle-orm";
+import {
+  PLAYER_INJURY_STATUSES,
+  PLAYER_POSITIONS,
+  PLAYER_STATUSES,
+} from "@zone-blitz/shared";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
 import { seasons } from "../season/season.schema.ts";
@@ -17,6 +23,7 @@ export const playerInjuryStatusEnum = pgEnum(
   "player_injury_status",
   PLAYER_INJURY_STATUSES,
 );
+export const playerStatusEnum = pgEnum("player_status", PLAYER_STATUSES);
 
 export const players = pgTable("players", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -24,6 +31,7 @@ export const players = pgTable("players", {
     .notNull()
     .references(() => leagues.id, { onDelete: "cascade" }),
   teamId: uuid("team_id").references(() => teams.id, { onDelete: "set null" }),
+  status: playerStatusEnum("status").notNull().default("active"),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   position: playerPositionEnum("position").notNull(),
@@ -36,7 +44,11 @@ export const players = pgTable("players", {
   birthDate: date("birth_date").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => [
+  index("players_prospect_idx")
+    .on(table.status)
+    .where(sql`${table.status} = 'prospect'`),
+]);
 
 export const draftProspects = pgTable("draft_prospects", {
   id: uuid("id").defaultRandom().primaryKey(),
