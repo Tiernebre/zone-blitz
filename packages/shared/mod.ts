@@ -119,6 +119,11 @@ export type {
 } from "./archetypes/neutral-bucket.ts";
 export { NEUTRAL_BUCKETS, neutralBucket } from "./archetypes/neutral-bucket.ts";
 export type { Game } from "./types/game.ts";
+export type {
+  DepthChartSlotDefinition,
+  DepthChartSlotGroup,
+} from "./depth-chart/vocabulary.ts";
+export { depthChartVocabulary } from "./depth-chart/vocabulary.ts";
 
 // Interfaces — simulation
 export type {

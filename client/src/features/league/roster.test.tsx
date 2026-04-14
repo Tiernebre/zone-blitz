@@ -107,6 +107,11 @@ const baseRoster = {
 const baseDepthChart = {
   leagueId: "L1",
   teamId: "T1",
+  vocabulary: [
+    { code: "QB", label: "Quarterback", group: "offense" },
+    { code: "RB", label: "Running Back", group: "offense" },
+    { code: "EDGE", label: "Edge Rusher", group: "defense" },
+  ],
   slots: [
     {
       playerId: "p1",
@@ -394,6 +399,7 @@ describe("Roster — depth chart tab", () => {
       data: {
         leagueId: "L1",
         teamId: "T1",
+        vocabulary: [],
         slots: [],
         inactives: [],
         lastUpdatedAt: null,

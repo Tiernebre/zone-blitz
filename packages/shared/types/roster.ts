@@ -1,7 +1,8 @@
 import type { NeutralBucket } from "../archetypes/neutral-bucket.ts";
 import type { CoachSummary } from "./coach.ts";
-import type { DepthChartSlotCode, PlayerInjuryStatus } from "./player.ts";
+import type { PlayerInjuryStatus } from "./player.ts";
 import type { SchemeFitLabel } from "./scheme-fit.ts";
+import type { DepthChartSlotDefinition } from "../depth-chart/vocabulary.ts";
 
 export type NeutralBucketGroup = "offense" | "defense" | "special_teams";
 
@@ -59,7 +60,7 @@ export interface DepthChartSlot {
   playerId: string;
   firstName: string;
   lastName: string;
-  slotCode: DepthChartSlotCode;
+  slotCode: string;
   slotOrdinal: number;
   injuryStatus: PlayerInjuryStatus;
 }
@@ -68,13 +69,14 @@ export interface DepthChartInactive {
   playerId: string;
   firstName: string;
   lastName: string;
-  slotCode: DepthChartSlotCode;
+  slotCode: string;
   injuryStatus: PlayerInjuryStatus;
 }
 
 export interface DepthChart {
   leagueId: string;
   teamId: string;
+  vocabulary: DepthChartSlotDefinition[];
   slots: DepthChartSlot[];
   inactives: DepthChartInactive[];
   lastUpdatedAt: string | null;

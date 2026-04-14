@@ -49,7 +49,6 @@ export {
   scoutRoundTierEnum,
 } from "../features/scouts/scout-history.schema.ts";
 export {
-  depthChartSlotEnum,
   playerInjuryStatusEnum,
   players,
   playerStatusEnum,
