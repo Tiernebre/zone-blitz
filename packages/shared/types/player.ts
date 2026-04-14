@@ -182,16 +182,3 @@ export interface CurrentContractSummary {
   signingBonus: number;
 }
 
-export interface DraftProspect {
-  id: string;
-  seasonId: string;
-  firstName: string;
-  lastName: string;
-  position: PlayerPosition;
-  heightInches: number;
-  weightPounds: number;
-  college: string | null;
-  birthDate: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
