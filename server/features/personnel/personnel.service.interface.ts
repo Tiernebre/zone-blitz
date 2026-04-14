@@ -16,7 +16,7 @@ export interface PersonnelGenerateResult {
 }
 
 export interface PersonnelService {
-  generateAndPersist(
+  generate(
     input: PersonnelGenerateInput,
   ): Promise<PersonnelGenerateResult>;
 }

@@ -46,7 +46,7 @@ function createMockDb(): {
 
 Deno.test("front-office.service", async (t) => {
   await t.step(
-    "generateAndPersist inserts generated staff and returns count",
+    "generate inserts generated staff and returns count",
     async () => {
       const { db, calls } = createMockDb();
       const generator = createMockGenerator({
@@ -62,7 +62,7 @@ Deno.test("front-office.service", async (t) => {
         log: createTestLogger(),
       });
 
-      const result = await service.generateAndPersist({
+      const result = await service.generate({
         leagueId: "l1",
         teamIds: ["t1"],
       });
@@ -73,7 +73,7 @@ Deno.test("front-office.service", async (t) => {
   );
 
   await t.step(
-    "generateAndPersist skips insert when generator returns empty",
+    "generate skips insert when generator returns empty",
     async () => {
       const { db, calls } = createMockDb();
       const generator = createMockGenerator();
@@ -84,7 +84,7 @@ Deno.test("front-office.service", async (t) => {
         log: createTestLogger(),
       });
 
-      const result = await service.generateAndPersist({
+      const result = await service.generate({
         leagueId: "l1",
         teamIds: [],
       });

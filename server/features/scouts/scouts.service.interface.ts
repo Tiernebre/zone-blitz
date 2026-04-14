@@ -8,5 +8,5 @@ export interface ScoutsGenerateResult {
 }
 
 export interface ScoutsService {
-  generateAndPersist(input: ScoutsGenerateInput): Promise<ScoutsGenerateResult>;
+  generate(input: ScoutsGenerateInput): Promise<ScoutsGenerateResult>;
 }

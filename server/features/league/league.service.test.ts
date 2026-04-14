@@ -90,7 +90,7 @@ function createMockPersonnelService(
   overrides: Partial<PersonnelService> = {},
 ): PersonnelService {
   return {
-    generateAndPersist: () =>
+    generate: () =>
       Promise.resolve({
         playerCount: 0,
         coachCount: 0,
@@ -107,7 +107,7 @@ function createMockScheduleService(
   overrides: Partial<ScheduleService> = {},
 ): ScheduleService {
   return {
-    generateAndPersist: () => Promise.resolve({ gameCount: 0 }),
+    generate: () => Promise.resolve({ gameCount: 0 }),
     ...overrides,
   };
 }
@@ -234,7 +234,7 @@ Deno.test("league.service", async (t) => {
         },
       },
       personnelService: {
-        generateAndPersist: (input) => {
+        generate: (input) => {
           personnelCalled = true;
           assertEquals(input.leagueId, "new-id");
           assertEquals(input.seasonId, "season-1");
@@ -251,7 +251,7 @@ Deno.test("league.service", async (t) => {
         },
       },
       scheduleService: {
-        generateAndPersist: (input) => {
+        generate: (input) => {
           scheduleCalled = true;
           assertEquals(input.seasonId, "season-1");
           assertEquals(input.seasonLength, 17);

@@ -19,6 +19,8 @@ as superseded.
 
 - [0001 — Roster page: active roster + depth chart view](./0001-roster-page.md)
   — single page, two views, no depth-chart editing
+- [0002 — Coaches page: org chart tree + coach detail view](./0002-coaches-page.md)
+  — staff tree landing, one detail page per coach, no ratings surfaced
 - [0003 — Remove the standalone Schemes page; surface scheme as emergent](./0003-schemes-page-removal.md)
   — kill `/schemes`, add a Scheme Fingerprint panel to Coaches and a Scheme Fit
   indicator to Roster
