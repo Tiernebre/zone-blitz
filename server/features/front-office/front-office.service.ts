@@ -1,5 +1,6 @@
 import type pino from "pino";
 import type { Database } from "../../db/connection.ts";
+import { chunkedInsert } from "../../db/chunked-insert.ts";
 import { frontOfficeStaff } from "./front-office.schema.ts";
 import type { FrontOfficeGenerator } from "./front-office.generator.interface.ts";
 import type { FrontOfficeService } from "./front-office.service.interface.ts";
@@ -21,7 +22,7 @@ export function createFrontOfficeService(deps: {
       });
 
       if (generated.length > 0) {
-        await (tx ?? deps.db).insert(frontOfficeStaff).values(generated);
+        await chunkedInsert(tx ?? deps.db, frontOfficeStaff, generated);
       }
 
       log.info(

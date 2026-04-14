@@ -1,6 +1,7 @@
 import { DomainError } from "@zone-blitz/shared";
 import type pino from "pino";
 import type { Database } from "../../db/connection.ts";
+import { chunkedInsert } from "../../db/chunked-insert.ts";
 import { coaches } from "./coach.schema.ts";
 import type { CoachesGenerator } from "./coaches.generator.interface.ts";
 import type { CoachesRepository } from "./coaches.repository.interface.ts";
@@ -24,7 +25,7 @@ export function createCoachesService(deps: {
       });
 
       if (generated.length > 0) {
-        await (tx ?? deps.db).insert(coaches).values(generated);
+        await chunkedInsert(tx ?? deps.db, coaches, generated);
       }
 
       log.info(
