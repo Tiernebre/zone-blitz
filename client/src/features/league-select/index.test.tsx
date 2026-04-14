@@ -242,6 +242,8 @@ describe("LeagueSelect", () => {
     );
     mockPost.mockReturnValue(
       Promise.resolve({
+        ok: true,
+        status: 201,
         json: () => Promise.resolve({ id: 3, name: "New League" }),
       }),
     );

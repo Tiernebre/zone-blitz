@@ -16,6 +16,9 @@ export function useCreateLeague() {
   return useMutation({
     mutationFn: async (input: { name: string }) => {
       const res = await api.api.leagues.$post({ json: input });
+      if (!res.ok) {
+        throw new Error(`Failed to create league (${res.status})`);
+      }
       return res.json();
     },
     onSuccess: () => {
