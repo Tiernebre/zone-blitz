@@ -19,10 +19,7 @@ import {
   createTeamService,
 } from "./team/mod.ts";
 import { createSeasonRepository, createSeasonService } from "./season/mod.ts";
-import {
-  createPersonnelService,
-  createStubPersonnelGenerator,
-} from "./personnel/mod.ts";
+import { createPersonnelService } from "./personnel/mod.ts";
 import {
   createPlayersService,
   createStubPlayersGenerator,
@@ -35,6 +32,10 @@ import {
   createScoutsService,
   createStubScoutsGenerator,
 } from "./scouts/mod.ts";
+import {
+  createFrontOfficeService,
+  createStubFrontOfficeGenerator,
+} from "./front-office/mod.ts";
 import {
   createScheduleService,
   createStubScheduleGenerator,
@@ -94,12 +95,16 @@ export function createFeatureRouters(
     db,
     log,
   });
+  const frontOfficeService = createFrontOfficeService({
+    generator: createStubFrontOfficeGenerator(),
+    db,
+    log,
+  });
   const personnelService = createPersonnelService({
-    generator: createStubPersonnelGenerator(),
     playersService,
     coachesService,
     scoutsService,
-    db,
+    frontOfficeService,
     log,
   });
   const scheduleService = createScheduleService({
