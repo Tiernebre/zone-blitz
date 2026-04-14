@@ -1,7 +1,10 @@
+import { StubPage } from "./stub-page.tsx";
+
 export function LeagueHome() {
   return (
-    <div>
-      <h1>League Home</h1>
-    </div>
+    <StubPage
+      title="League Home"
+      description="Your league at a glance — standings, news, and what needs your attention."
+    />
   );
 }

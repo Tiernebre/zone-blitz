@@ -35,10 +35,13 @@ export function LeagueSettings() {
   };
 
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold">Settings</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold">Settings</h1>
+      <p className="mt-2 mb-6 max-w-2xl text-muted-foreground">
+        Manage your league's configuration and lifecycle.
+      </p>
 
-      <Card className="border-destructive/50">
+      <Card className="max-w-2xl border-destructive/50">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
           <CardDescription>
