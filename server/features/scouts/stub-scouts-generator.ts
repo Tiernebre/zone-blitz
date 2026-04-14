@@ -1,35 +1,13 @@
 import type { ScoutRole } from "@zone-blitz/shared";
+import {
+  createNameGenerator,
+  type NameGenerator,
+} from "../../shared/name-generator.ts";
 import type {
   GeneratedScout,
   ScoutsGenerator,
   ScoutsGeneratorInput,
 } from "./scouts.generator.interface.ts";
-
-const FIRST_NAMES = [
-  "James",
-  "John",
-  "Robert",
-  "Michael",
-  "William",
-  "David",
-  "Richard",
-  "Joseph",
-  "Thomas",
-  "Charles",
-];
-
-const LAST_NAMES = [
-  "Smith",
-  "Johnson",
-  "Williams",
-  "Brown",
-  "Jones",
-  "Garcia",
-  "Miller",
-  "Davis",
-  "Rodriguez",
-  "Martinez",
-];
 
 type BlueprintKey =
   | "DIRECTOR"
@@ -134,19 +112,18 @@ const STAFF_BLUEPRINT: RoleSpec[] = [
 
 export const SCOUTS_PER_TEAM = STAFF_BLUEPRINT.length;
 
-function randomName(index: number) {
-  const firstName = FIRST_NAMES[index % FIRST_NAMES.length];
-  const lastName =
-    LAST_NAMES[Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length];
-  return { firstName, lastName };
+export interface StubScoutsGeneratorOptions {
+  nameGenerator?: NameGenerator;
 }
 
-export function createStubScoutsGenerator(): ScoutsGenerator {
+export function createStubScoutsGenerator(
+  options: StubScoutsGeneratorOptions = {},
+): ScoutsGenerator {
+  const nameGenerator = options.nameGenerator ?? createNameGenerator();
   return {
     generate(input: ScoutsGeneratorInput): GeneratedScout[] {
       const scouts: GeneratedScout[] = [];
       const now = new Date();
-      let nameIndex = 0;
 
       for (const teamId of input.teamIds) {
         const idsByKey = new Map<BlueprintKey, string>();
@@ -155,7 +132,7 @@ export function createStubScoutsGenerator(): ScoutsGenerator {
         }
 
         for (const spec of STAFF_BLUEPRINT) {
-          const { firstName, lastName } = randomName(nameIndex++);
+          const { firstName, lastName } = nameGenerator.next();
           const id = idsByKey.get(spec.key)!;
           const reportsToId = spec.reportsTo === null
             ? null
