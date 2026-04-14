@@ -1,5 +1,5 @@
 import { useParams } from "@tanstack/react-router";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Row } from "@tanstack/react-table";
 import {
   Card,
   CardContent,
@@ -8,12 +8,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, SortableHeader } from "@/components/ui/data-table";
 import type {
   PlayerPositionGroup,
   RosterPlayer,
-  RosterPositionGroupSummary,
 } from "@zone-blitz/shared/types/roster.ts";
 import { useLeague } from "../../hooks/use-league.ts";
 import { useActiveRoster } from "../../hooks/use-active-roster.ts";
@@ -24,7 +25,8 @@ const groupLabels: Record<PlayerPositionGroup, string> = {
   special_teams: "Special Teams",
 };
 
-const groupOrder: PlayerPositionGroup[] = [
+const groupFilterOptions: (PlayerPositionGroup | "all")[] = [
+  "all",
   "offense",
   "defense",
   "special_teams",
@@ -55,7 +57,10 @@ function formatInjury(status: RosterPlayer["injuryStatus"]) {
 const rosterColumns: ColumnDef<RosterPlayer>[] = [
   {
     id: "player",
-    header: "Player",
+    accessorFn: (p) => `${p.firstName} ${p.lastName}`,
+    header: ({ column }) => (
+      <SortableHeader column={column}>Player</SortableHeader>
+    ),
     cell: ({ row }) => (
       <span className="font-medium">
         {row.original.firstName} {row.original.lastName}
@@ -64,25 +69,48 @@ const rosterColumns: ColumnDef<RosterPlayer>[] = [
   },
   {
     accessorKey: "position",
-    header: "Pos",
+    header: ({ column }) => (
+      <SortableHeader column={column}>
+        Pos
+      </SortableHeader>
+    ),
+  },
+  {
+    accessorKey: "positionGroup",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Group</SortableHeader>
+    ),
+    cell: ({ row }) => groupLabels[row.original.positionGroup],
+    filterFn: (row: Row<RosterPlayer>, _id, value) =>
+      value === "all" || row.original.positionGroup === value,
   },
   {
     accessorKey: "age",
-    header: "Age",
+    header: ({ column }) => (
+      <SortableHeader column={column}>
+        Age
+      </SortableHeader>
+    ),
   },
   {
-    id: "capHit",
-    header: "Cap Hit",
+    accessorKey: "capHit",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Cap Hit</SortableHeader>
+    ),
     cell: ({ row }) => formatCurrency(row.original.capHit),
   },
   {
-    id: "contract",
-    header: "Contract",
+    accessorKey: "contractYearsRemaining",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Contract</SortableHeader>
+    ),
     cell: ({ row }) => `${row.original.contractYearsRemaining} yrs`,
   },
   {
-    id: "status",
-    header: "Status",
+    accessorKey: "injuryStatus",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Status</SortableHeader>
+    ),
     cell: ({ row }) => (
       <Badge variant={injuryBadgeVariant(row.original.injuryStatus)}>
         {formatInjury(row.original.injuryStatus)}
@@ -144,21 +172,11 @@ function RosterContent({
 }: {
   roster: {
     players: RosterPlayer[];
-    positionGroups: RosterPositionGroupSummary[];
     totalCap: number;
     salaryCap: number;
     capSpace: number;
   };
 }) {
-  const playersByGroup: Record<PlayerPositionGroup, RosterPlayer[]> = {
-    offense: [],
-    defense: [],
-    special_teams: [],
-  };
-  for (const player of roster.players) {
-    playersByGroup[player.positionGroup].push(player);
-  }
-
   return (
     <>
       <Card data-testid="roster-cap-summary">
@@ -186,35 +204,57 @@ function RosterContent({
         </CardContent>
       </Card>
 
-      {groupOrder.map((group) => {
-        const summary = roster.positionGroups.find((g) => g.group === group);
-        const players = playersByGroup[group];
-        if (!summary || summary.headcount === 0) return null;
-        return (
-          <Card key={group} data-testid={`position-group-${group}`}>
-            <CardHeader
-              className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between"
-              data-testid={`position-group-header-${group}`}
+      <DataTable
+        columns={rosterColumns}
+        data={roster.players}
+        getRowTestId={(player) => `roster-row-${player.id}`}
+        toolbar={(table) => {
+          const groupFilter =
+            (table.getColumn("positionGroup")?.getFilterValue() as
+              | PlayerPositionGroup
+              | "all"
+              | undefined) ?? "all";
+          return (
+            <div
+              className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+              data-testid="roster-toolbar"
             >
-              <CardTitle>{groupLabels[group]}</CardTitle>
-              <div className="flex gap-4 text-sm text-muted-foreground">
-                <span>
-                  {summary.headcount}{" "}
-                  {summary.headcount === 1 ? "player" : "players"}
-                </span>
-                <span>{formatCurrency(summary.totalCap)}</span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                columns={rosterColumns}
-                data={players}
-                getRowTestId={(player) => `roster-row-${player.id}`}
+              <Input
+                aria-label="Search roster"
+                placeholder="Search players…"
+                className="sm:max-w-xs"
+                value={(table.getState().globalFilter as string) ?? ""}
+                onChange={(event) => table.setGlobalFilter(event.target.value)}
               />
-            </CardContent>
-          </Card>
-        );
-      })}
+              <div
+                className="flex flex-wrap gap-1"
+                role="group"
+                aria-label="Filter by position group"
+              >
+                {groupFilterOptions.map((option) => {
+                  const active = groupFilter === option;
+                  return (
+                    <Button
+                      key={option}
+                      type="button"
+                      size="sm"
+                      variant={active ? "secondary" : "ghost"}
+                      data-testid={`roster-group-filter-${option}`}
+                      aria-pressed={active}
+                      onClick={() =>
+                        table
+                          .getColumn("positionGroup")
+                          ?.setFilterValue(option)}
+                    >
+                      {option === "all" ? "All" : groupLabels[option]}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        }}
+      />
     </>
   );
 }

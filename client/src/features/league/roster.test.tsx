@@ -1,4 +1,10 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Roster } from "./roster.tsx";
@@ -67,15 +73,26 @@ const baseRoster = {
       contractYearsRemaining: 4,
       injuryStatus: "out",
     },
+    {
+      id: "p4",
+      firstName: "Kyle",
+      lastName: "Kicker",
+      position: "K",
+      positionGroup: "special_teams",
+      age: 30,
+      capHit: 3_000_000,
+      contractYearsRemaining: 1,
+      injuryStatus: "healthy",
+    },
   ],
   positionGroups: [
     { group: "offense", headcount: 2, totalCap: 57_000_000 },
     { group: "defense", headcount: 1, totalCap: 8_000_000 },
-    { group: "special_teams", headcount: 0, totalCap: 0 },
+    { group: "special_teams", headcount: 1, totalCap: 3_000_000 },
   ],
-  totalCap: 65_000_000,
+  totalCap: 68_000_000,
   salaryCap: 255_000_000,
-  capSpace: 190_000_000,
+  capSpace: 187_000_000,
 };
 
 afterEach(() => {
@@ -94,6 +111,12 @@ beforeEach(() => {
     isError: false,
   });
 });
+
+function rosterRowIds() {
+  return Array.from(document.querySelectorAll("tbody tr"))
+    .map((row) => row.getAttribute("data-testid"))
+    .filter((id): id is string => Boolean(id));
+}
 
 describe("Roster", () => {
   it("renders the Roster heading", () => {
@@ -137,42 +160,66 @@ describe("Roster", () => {
   it("renders the cap summary with total cap, salary cap, and cap space", () => {
     renderRoster();
     const summary = screen.getByTestId("roster-cap-summary");
-    expect(within(summary).getByText("$65,000,000")).toBeDefined();
+    expect(within(summary).getByText("$68,000,000")).toBeDefined();
     expect(within(summary).getByText("$255,000,000")).toBeDefined();
-    expect(within(summary).getByText("$190,000,000")).toBeDefined();
+    expect(within(summary).getByText("$187,000,000")).toBeDefined();
   });
 
-  it("renders a section per position group with headcount and group cap", () => {
+  it("renders every player in a single combined table", () => {
     renderRoster();
-    const offense = screen.getByTestId("position-group-header-offense");
-    expect(within(offense).getByText(/offense/i)).toBeDefined();
-    expect(within(offense).getByText("2 players")).toBeDefined();
-    expect(within(offense).getByText("$57,000,000")).toBeDefined();
-
-    const defense = screen.getByTestId("position-group-header-defense");
-    expect(within(defense).getByText("1 player")).toBeDefined();
-    expect(within(defense).getByText("$8,000,000")).toBeDefined();
+    expect(screen.queryByTestId("position-group-offense")).toBeNull();
+    expect(screen.queryByTestId("position-group-defense")).toBeNull();
+    expect(rosterRowIds()).toEqual([
+      "roster-row-p1",
+      "roster-row-p2",
+      "roster-row-p3",
+      "roster-row-p4",
+    ]);
   });
 
-  it("renders a player row with name, position, age, cap hit, contract years, and injury status", () => {
+  it("renders a player row with name, position, group, age, cap hit, contract years, and injury status", () => {
     renderRoster();
     const row = screen.getByTestId("roster-row-p1");
     expect(within(row).getByText("Patrick Quarterback")).toBeDefined();
     expect(within(row).getByText("QB")).toBeDefined();
+    expect(within(row).getByText("Offense")).toBeDefined();
     expect(within(row).getByText("28")).toBeDefined();
     expect(within(row).getByText("$45,000,000")).toBeDefined();
     expect(within(row).getByText("3 yrs")).toBeDefined();
     expect(within(row).getByText(/healthy/i)).toBeDefined();
   });
 
-  it("does not render overall rating, grade, or attribute columns", () => {
+  it("filters rows by the position group filter", () => {
     renderRoster();
-    expect(screen.queryByText(/overall/i)).toBeNull();
-    expect(screen.queryByText(/^grade$/i)).toBeNull();
+    fireEvent.click(screen.getByTestId("roster-group-filter-defense"));
+    expect(rosterRowIds()).toEqual(["roster-row-p3"]);
+    fireEvent.click(screen.getByTestId("roster-group-filter-all"));
+    expect(rosterRowIds()).toHaveLength(4);
   });
 
-  it("omits empty position groups", () => {
+  it("filters rows by the global search input", () => {
     renderRoster();
-    expect(screen.queryByTestId("position-group-special_teams")).toBeNull();
+    fireEvent.change(screen.getByLabelText("Search roster"), {
+      target: { value: "Kicker" },
+    });
+    expect(rosterRowIds()).toEqual(["roster-row-p4"]);
+  });
+
+  it("sorts rows when the Cap Hit header is clicked", () => {
+    renderRoster();
+    fireEvent.click(screen.getByRole("button", { name: /cap hit/i }));
+    expect(rosterRowIds()).toEqual([
+      "roster-row-p4",
+      "roster-row-p3",
+      "roster-row-p2",
+      "roster-row-p1",
+    ]);
+    fireEvent.click(screen.getByRole("button", { name: /cap hit/i }));
+    expect(rosterRowIds()).toEqual([
+      "roster-row-p1",
+      "roster-row-p2",
+      "roster-row-p3",
+      "roster-row-p4",
+    ]);
   });
 });
