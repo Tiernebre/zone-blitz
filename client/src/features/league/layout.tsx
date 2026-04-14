@@ -60,7 +60,7 @@ const navGroups: NavGroup[] = [
   {
     label: "Team Building",
     items: [
-      { label: "Scouting", path: "scouting", Icon: SearchIcon },
+      { label: "Scouts", path: "scouts", Icon: SearchIcon },
       { label: "Draft", path: "draft", Icon: ListOrderedIcon },
       { label: "Trades", path: "trades", Icon: ArrowLeftRightIcon },
       { label: "Free Agency", path: "free-agency", Icon: UserPlusIcon },

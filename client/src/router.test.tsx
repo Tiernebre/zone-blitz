@@ -175,7 +175,7 @@ describe("Router", () => {
   const stubRoutes: Array<[string, string]> = [
     ["roster", "Roster"],
     ["coaches", "Coaches"],
-    ["scouting", "Scouting"],
+    ["scouts", "Scouts"],
     ["draft", "Draft"],
     ["trades", "Trades"],
     ["free-agency", "Free Agency"],

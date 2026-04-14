@@ -205,7 +205,7 @@ describe("LeagueLayout", () => {
   it.each([
     ["Roster", "/leagues/1/roster"],
     ["Coaches", "/leagues/1/coaches"],
-    ["Scouting", "/leagues/1/scouting"],
+    ["Scouts", "/leagues/1/scouts"],
     ["Draft", "/leagues/1/draft"],
     ["Trades", "/leagues/1/trades"],
     ["Free Agency", "/leagues/1/free-agency"],
