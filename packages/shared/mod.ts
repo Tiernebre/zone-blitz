@@ -28,6 +28,17 @@ export type {
 } from "./types/coach.ts";
 export type { Scout } from "./types/scout.ts";
 export type {
+  ActiveRoster,
+  DepthChart,
+  DepthChartInactive,
+  DepthChartSlot,
+  PlayerPositionGroup,
+  RosterPlayer,
+  RosterPositionGroupSummary,
+  RosterStatistics,
+  RosterStatisticsRow,
+} from "./types/roster.ts";
+export type {
   Contract,
   DraftProspect,
   Player,
