@@ -9,6 +9,16 @@ entry when it's resolved or superseded.
 
 ## Open
 
+- **2026-04-14 — Stack overflow in full-roster bulk insert during league
+  creation.** Ran the full `leagueService.create` flow end-to-end against real
+  Postgres (32 teams × 53 roster) and drizzle's `mergeQueries` stack-overflows
+  while building the bulk `playerAttributes` insert (~1696 rows × ~50 attribute
+  columns). Observed while writing the league-creation transactional rollback
+  integration test — the integration test sidesteps this by stubbing
+  `personnelService` with a single-row probe insert. Fix options: chunk the
+  attribute insert, narrow the attribute row shape, or build the SQL
+  iteratively. Split attribute rows into columns-per-table is overkill; chunked
+  inserts are the cheapest fix.
 - **2026-04-13 — Finer-grained league phase sub-states.** The `season.phase`
   enum only tracks `preseason | regular_season | playoffs | offseason`. Product
   docs (`docs/product/league-management.md`) describe sub-steps during the

@@ -117,6 +117,7 @@ export function createFeatureRouters(
     log,
   });
   const leagueService = createLeagueService({
+    db,
     leagueRepo,
     seasonService,
     teamService,

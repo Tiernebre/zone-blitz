@@ -3,11 +3,20 @@ import { createLeagueService } from "./league.service.ts";
 import { DomainError } from "@zone-blitz/shared";
 import pino from "pino";
 import type { League } from "@zone-blitz/shared";
+import type { Database } from "../../db/connection.ts";
 import type { LeagueRepository } from "./league.repository.interface.ts";
 import type { SeasonService } from "../season/season.service.interface.ts";
 import type { TeamService } from "../team/team.service.interface.ts";
 import type { PersonnelService } from "../personnel/personnel.service.interface.ts";
 import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
+
+const TX_MARKER = { __tx: true };
+
+function createMockDb(): Database {
+  return {
+    transaction: <T>(cb: (tx: unknown) => Promise<T>) => cb(TX_MARKER),
+  } as unknown as Database;
+}
 
 function createTestLogger() {
   return pino({ level: "silent" });
@@ -115,6 +124,7 @@ function createMockScheduleService(
 }
 
 function createService(overrides: {
+  db?: Database;
   leagueRepo?: Partial<LeagueRepository>;
   seasonService?: Partial<SeasonService>;
   teamService?: Partial<TeamService>;
@@ -122,6 +132,7 @@ function createService(overrides: {
   scheduleService?: Partial<ScheduleService>;
 } = {}) {
   return createLeagueService({
+    db: overrides.db ?? createMockDb(),
     leagueRepo: createMockRepo(overrides.leagueRepo),
     seasonService: createMockSeasonService(overrides.seasonService),
     teamService: createMockTeamService(overrides.teamService),
@@ -281,6 +292,93 @@ Deno.test("league.service", async (t) => {
         DomainError,
         "no teams",
       );
+    },
+  );
+
+  await t.step(
+    "create threads the transaction tx into every write service",
+    async () => {
+      const received: Record<string, unknown> = {};
+      const service = createService({
+        leagueRepo: {
+          create: (_input, tx) => {
+            received.league = tx;
+            return Promise.resolve(createMockLeague({ id: "new-id" }));
+          },
+        },
+        seasonService: {
+          create: (_input, tx) => {
+            received.season = tx;
+            return Promise.resolve({
+              id: "season-1",
+              leagueId: "new-id",
+              year: 1,
+              phase: "preseason" as const,
+              week: 1,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          },
+        },
+        personnelService: {
+          generate: (_input, tx) => {
+            received.personnel = tx;
+            return Promise.resolve({
+              playerCount: 0,
+              coachCount: 0,
+              scoutCount: 0,
+              frontOfficeCount: 0,
+              draftProspectCount: 0,
+              contractCount: 0,
+            });
+          },
+        },
+        scheduleService: {
+          generate: (_input, tx) => {
+            received.schedule = tx;
+            return Promise.resolve({ gameCount: 0 });
+          },
+        },
+      });
+
+      await service.create({ name: "New League" });
+
+      assertEquals(received.league, TX_MARKER);
+      assertEquals(received.season, TX_MARKER);
+      assertEquals(received.personnel, TX_MARKER);
+      assertEquals(received.schedule, TX_MARKER);
+    },
+  );
+
+  await t.step(
+    "create rejects and rolls back when a downstream service fails",
+    async () => {
+      let personnelCalled = false;
+      const service = createService({
+        personnelService: {
+          generate: () => {
+            personnelCalled = true;
+            return Promise.resolve({
+              playerCount: 1,
+              coachCount: 0,
+              scoutCount: 0,
+              frontOfficeCount: 0,
+              draftProspectCount: 0,
+              contractCount: 0,
+            });
+          },
+        },
+        scheduleService: {
+          generate: () => Promise.reject(new Error("schedule boom")),
+        },
+      });
+
+      await assertRejects(
+        () => service.create({ name: "New League" }),
+        Error,
+        "schedule boom",
+      );
+      assertEquals(personnelCalled, true);
     },
   );
 
