@@ -141,6 +141,13 @@
       "when": 1776186815746,
       "tag": "0019_add_player_origin_and_hometown",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1776187400767,
+      "tag": "0020_common_sharon_ventura",
+      "breakpoints": true
     }
   ]
 }

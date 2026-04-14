@@ -108,17 +108,3 @@ export interface Contract {
   createdAt: Date;
   updatedAt: Date;
 }
-
-export interface DraftProspect {
-  id: string;
-  seasonId: string;
-  firstName: string;
-  lastName: string;
-  position: PlayerPosition;
-  heightInches: number;
-  weightPounds: number;
-  college: string | null;
-  birthDate: string;
-  createdAt: Date;
-  updatedAt: Date;
-}

@@ -16,7 +16,6 @@ import {
 } from "@zone-blitz/shared";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
-import { seasons } from "../season/season.schema.ts";
 
 export const playerPositionEnum = pgEnum("player_position", PLAYER_POSITIONS);
 export const playerInjuryStatusEnum = pgEnum(
@@ -56,19 +55,3 @@ export const players = pgTable("players", {
     .on(table.status)
     .where(sql`${table.status} = 'prospect'`),
 ]);
-
-export const draftProspects = pgTable("draft_prospects", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  seasonId: uuid("season_id")
-    .notNull()
-    .references(() => seasons.id, { onDelete: "cascade" }),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  position: playerPositionEnum("position").notNull(),
-  heightInches: integer("height_inches").notNull(),
-  weightPounds: integer("weight_pounds").notNull(),
-  college: text("college"),
-  birthDate: date("birth_date").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});

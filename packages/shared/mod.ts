@@ -56,7 +56,6 @@ export type {
 } from "./types/roster.ts";
 export type {
   Contract,
-  DraftProspect,
   Player,
   PlayerDetail,
   PlayerInjuryStatus,

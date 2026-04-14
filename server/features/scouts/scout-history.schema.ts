@@ -8,7 +8,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { scouts } from "./scout.schema.ts";
-import { draftProspects } from "../players/player.schema.ts";
+import { players } from "../players/player.schema.ts";
 
 export const scoutEvaluationLevelEnum = pgEnum("scout_evaluation_level", [
   "quick",
@@ -76,7 +76,7 @@ export const scoutEvaluations = pgTable("scout_evaluations", {
   scoutId: uuid("scout_id")
     .notNull()
     .references(() => scouts.id, { onDelete: "cascade" }),
-  prospectId: uuid("prospect_id").references(() => draftProspects.id, {
+  prospectId: uuid("prospect_id").references(() => players.id, {
     onDelete: "set null",
   }),
   prospectName: text("prospect_name").notNull(),
