@@ -1,5 +1,5 @@
 export const CREATION_STAGES = [
-  "Founding the league…",
+  "Building the foundation…",
   "Hiring coaches & front office…",
   "Scouting the talent pool…",
   "Drafting rosters…",
