@@ -9,6 +9,19 @@ entry when it's resolved or superseded.
 
 ## Open
 
+- **2026-04-14 — Roster page release/trade/restructure flows.** The Active
+  Roster view (decision 0001) lists release, trade, and restructure as
+  per-player actions. Initial roster page PR ships these as disabled "coming
+  soon" buttons. Build out each flow as its own feature once product priorities
+  surface them.
+- **2026-04-14 — Coach sim depth-chart publisher.** Decision 0001 requires the
+  coach sim to publish a stable depth-chart artifact the roster page reads.
+  Initial roster page stubs the source (empty depth chart until the sim writes
+  rows). Wire the real producer when coach-side sim work begins.
+- **2026-04-14 — Player detail view with per-game splits.** Roster Statistics
+  view is specified to link each row to a detail view with game-by-game splits
+  (decision 0001). Initial PR ships without that detail route; add the page when
+  per-game sim output lands.
 - **2026-04-14 — Stack overflow in full-roster bulk insert during league
   creation.** Ran the full `leagueService.create` flow end-to-end against real
   Postgres (32 teams × 53 roster) and drizzle's `mergeQueries` stack-overflows

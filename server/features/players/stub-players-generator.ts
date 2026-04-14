@@ -1,6 +1,7 @@
 import {
   PLAYER_ATTRIBUTE_KEYS,
   type PlayerAttributes,
+  type PlayerPosition,
 } from "@zone-blitz/shared";
 import type {
   ContractGeneratorInput,
@@ -16,6 +17,33 @@ const STUB_HEIGHT_INCHES = 72;
 const STUB_WEIGHT_POUNDS = 220;
 const STUB_COLLEGE = "State University";
 const STUB_BIRTH_DATE = "2000-01-01";
+
+export const ROSTER_POSITION_COMPOSITION: readonly {
+  position: PlayerPosition;
+  count: number;
+}[] = [
+  { position: "QB", count: 2 },
+  { position: "RB", count: 3 },
+  { position: "FB", count: 1 },
+  { position: "WR", count: 6 },
+  { position: "TE", count: 3 },
+  { position: "OL", count: 9 },
+  { position: "DL", count: 8 },
+  { position: "LB", count: 7 },
+  { position: "CB", count: 6 },
+  { position: "S", count: 5 },
+  { position: "K", count: 1 },
+  { position: "P", count: 1 },
+  { position: "LS", count: 1 },
+];
+
+const ROSTER_POSITION_SLOTS: readonly PlayerPosition[] =
+  ROSTER_POSITION_COMPOSITION.flatMap(({ position, count }) =>
+    Array.from({ length: count }, () => position)
+  );
+
+const FREE_AGENT_POSITION_CYCLE: readonly PlayerPosition[] =
+  ROSTER_POSITION_COMPOSITION.map(({ position }) => position);
 
 function stubAttributes(): PlayerAttributes {
   const attrs: Record<string, number> = {};
@@ -169,12 +197,17 @@ export function createStubPlayersGenerator(): PlayersGenerator {
       for (const teamId of input.teamIds) {
         for (let i = 0; i < input.rosterSize; i++) {
           const { firstName, lastName } = randomName(nameIndex++);
+          const position = ROSTER_POSITION_SLOTS[
+            i % ROSTER_POSITION_SLOTS.length
+          ];
           players.push({
             player: {
               leagueId: input.leagueId,
               teamId,
               firstName,
               lastName,
+              position,
+              injuryStatus: "healthy" as const,
               heightInches: STUB_HEIGHT_INCHES,
               weightPounds: STUB_WEIGHT_POUNDS,
               college: STUB_COLLEGE,
@@ -187,12 +220,17 @@ export function createStubPlayersGenerator(): PlayersGenerator {
 
       for (let i = 0; i < FREE_AGENT_COUNT; i++) {
         const { firstName, lastName } = randomName(nameIndex++);
+        const position = FREE_AGENT_POSITION_CYCLE[
+          i % FREE_AGENT_POSITION_CYCLE.length
+        ];
         players.push({
           player: {
             leagueId: input.leagueId,
             teamId: null,
             firstName,
             lastName,
+            position,
+            injuryStatus: "healthy" as const,
             heightInches: STUB_HEIGHT_INCHES,
             weightPounds: STUB_WEIGHT_POUNDS,
             college: STUB_COLLEGE,
@@ -205,11 +243,15 @@ export function createStubPlayersGenerator(): PlayersGenerator {
       const draftProspects = [];
       for (let i = 0; i < DRAFT_PROSPECT_COUNT; i++) {
         const { firstName, lastName } = randomName(nameIndex++);
+        const position = FREE_AGENT_POSITION_CYCLE[
+          i % FREE_AGENT_POSITION_CYCLE.length
+        ];
         draftProspects.push({
           prospect: {
             seasonId: input.seasonId,
             firstName,
             lastName,
+            position,
             heightInches: STUB_HEIGHT_INCHES,
             weightPounds: STUB_WEIGHT_POUNDS,
             college: STUB_COLLEGE,

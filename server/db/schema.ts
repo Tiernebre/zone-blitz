@@ -34,7 +34,13 @@ export {
   tenureUnitSideEnum,
 } from "../features/coaches/coach-history.schema.ts";
 export { scouts } from "../features/scouts/scout.schema.ts";
-export { draftProspects, players } from "../features/players/player.schema.ts";
+export {
+  draftProspects,
+  playerInjuryStatusEnum,
+  playerPositionEnum,
+  players,
+} from "../features/players/player.schema.ts";
+export { depthChartEntries } from "../features/players/depth-chart.schema.ts";
 export {
   draftProspectAttributes,
   playerAttributes,

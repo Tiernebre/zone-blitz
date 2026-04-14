@@ -96,15 +96,15 @@
     {
       "idx": 13,
       "version": "7",
-      "when": 1776174884115,
-      "tag": "0013_drop_league_season_length_teams",
+      "when": 1776175006288,
+      "tag": "0013_lazy_namora",
       "breakpoints": true
     },
     {
       "idx": 14,
       "version": "7",
-      "when": 1776174904125,
-      "tag": "0014_add_league_user_team",
+      "when": 1776175100000,
+      "tag": "0014_league_slim_fields",
       "breakpoints": true
     }
   ]

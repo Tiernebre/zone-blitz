@@ -38,3 +38,23 @@ if (code !== 0) {
   console.error("Migration failed");
   Deno.exit(code);
 }
+
+const seed = new Deno.Command("deno", {
+  args: [
+    "run",
+    "--allow-net",
+    "--allow-env",
+    "--allow-read",
+    "--allow-sys",
+    "db/seed.ts",
+  ],
+  cwd: "server",
+  env: { DATABASE_URL: migrateUrl },
+  stdout: "inherit",
+  stderr: "inherit",
+});
+const { code: seedCode } = await seed.output();
+if (seedCode !== 0) {
+  console.error("Seed failed");
+  Deno.exit(seedCode);
+}

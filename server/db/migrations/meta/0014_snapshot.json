@@ -1,6 +1,6 @@
 {
-  "id": "b1faa20e-f049-4697-aaef-fb462e32c058",
-  "prevId": "785ece3e-a982-4bc6-92ac-bd0f93c579c7",
+  "id": "afa99eee-357e-494b-9507-9695e94c6553",
+  "prevId": "ece4e274-ea97-4ebf-8aec-0989ebc38015",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1134,6 +1134,143 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.depth_chart_entries": {
+      "name": "depth_chart_entries",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "player_id": {
+          "name": "player_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "player_position",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "slot_ordinal": {
+          "name": "slot_ordinal",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_inactive": {
+          "name": "is_inactive",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "published_by_coach_id": {
+          "name": "published_by_coach_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "published_at": {
+          "name": "published_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "depth_chart_entries_team_id_teams_id_fk": {
+          "name": "depth_chart_entries_team_id_teams_id_fk",
+          "tableFrom": "depth_chart_entries",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "depth_chart_entries_player_id_players_id_fk": {
+          "name": "depth_chart_entries_player_id_players_id_fk",
+          "tableFrom": "depth_chart_entries",
+          "tableTo": "players",
+          "columnsFrom": [
+            "player_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "depth_chart_entries_published_by_coach_id_coaches_id_fk": {
+          "name": "depth_chart_entries_published_by_coach_id_coaches_id_fk",
+          "tableFrom": "depth_chart_entries",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "published_by_coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "depth_chart_entries_team_position_slot_unique": {
+          "name": "depth_chart_entries_team_position_slot_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "team_id",
+            "position",
+            "slot_ordinal"
+          ]
+        },
+        "depth_chart_entries_team_player_unique": {
+          "name": "depth_chart_entries_team_player_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "team_id",
+            "player_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.draft_prospect_attributes": {
       "name": "draft_prospect_attributes",
       "schema": "",
@@ -2171,6 +2308,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "position": {
+          "name": "position",
+          "type": "player_position",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
         "height_inches": {
           "name": "height_inches",
           "type": "integer",
@@ -2464,12 +2608,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "user_team_id": {
-          "name": "user_team_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "salary_cap": {
           "name": "salary_cap",
           "type": "integer",
@@ -2511,6 +2649,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "user_team_id": {
+          "name": "user_team_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -3578,6 +3722,21 @@
           "primaryKey": false,
           "notNull": true
         },
+        "position": {
+          "name": "position",
+          "type": "player_position",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "injury_status": {
+          "name": "injury_status",
+          "type": "player_injury_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'healthy'"
+        },
         "height_inches": {
           "name": "height_inches",
           "type": "integer",
@@ -4260,6 +4419,37 @@
         "improved",
         "stagnated",
         "regressed"
+      ]
+    },
+    "public.player_injury_status": {
+      "name": "player_injury_status",
+      "schema": "public",
+      "values": [
+        "healthy",
+        "questionable",
+        "doubtful",
+        "out",
+        "ir",
+        "pup"
+      ]
+    },
+    "public.player_position": {
+      "name": "player_position",
+      "schema": "public",
+      "values": [
+        "QB",
+        "RB",
+        "FB",
+        "WR",
+        "TE",
+        "OL",
+        "DL",
+        "LB",
+        "CB",
+        "S",
+        "K",
+        "P",
+        "LS"
       ]
     },
     "public.season_phase": {

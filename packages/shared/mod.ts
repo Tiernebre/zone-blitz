@@ -27,7 +27,18 @@ export type {
   CoachTenureUnitSeason,
 } from "./types/coach.ts";
 export type { Scout } from "./types/scout.ts";
-export type { Contract, DraftProspect, Player } from "./types/player.ts";
+export type {
+  Contract,
+  DraftProspect,
+  Player,
+  PlayerInjuryStatus,
+  PlayerPosition,
+} from "./types/player.ts";
+export {
+  PLAYER_INJURY_STATUSES,
+  PLAYER_POSITION_GROUPS,
+  PLAYER_POSITIONS,
+} from "./types/player.ts";
 export type {
   MentalAttributeKey,
   PersonalityAttributeKey,
