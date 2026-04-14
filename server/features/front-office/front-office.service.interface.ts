@@ -8,7 +8,7 @@ export interface FrontOfficeGenerateResult {
 }
 
 export interface FrontOfficeService {
-  generateAndPersist(
+  generate(
     input: FrontOfficeGenerateInput,
   ): Promise<FrontOfficeGenerateResult>;
 }

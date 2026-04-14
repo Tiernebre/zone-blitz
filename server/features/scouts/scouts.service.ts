@@ -12,7 +12,7 @@ export function createScoutsService(deps: {
   const log = deps.log.child({ module: "scouts.service" });
 
   return {
-    async generateAndPersist(input) {
+    async generate(input) {
       log.info({ leagueId: input.leagueId }, "generating scouts");
 
       const generated = deps.generator.generate({

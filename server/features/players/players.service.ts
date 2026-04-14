@@ -13,7 +13,7 @@ export function createPlayersService(deps: {
   const log = deps.log.child({ module: "players.service" });
 
   return {
-    async generateAndPersist(input) {
+    async generate(input) {
       log.info(
         { leagueId: input.leagueId, seasonId: input.seasonId },
         "generating players",

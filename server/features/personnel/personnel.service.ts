@@ -15,13 +15,13 @@ export function createPersonnelService(deps: {
   const log = deps.log.child({ module: "personnel.service" });
 
   return {
-    async generateAndPersist(input) {
+    async generate(input) {
       log.info(
         { leagueId: input.leagueId, seasonId: input.seasonId },
         "generating personnel",
       );
 
-      const playersResult = await deps.playersService.generateAndPersist({
+      const playersResult = await deps.playersService.generate({
         leagueId: input.leagueId,
         seasonId: input.seasonId,
         teamIds: input.teamIds,
@@ -29,18 +29,18 @@ export function createPersonnelService(deps: {
         salaryCap: input.salaryCap,
       });
 
-      const coachesResult = await deps.coachesService.generateAndPersist({
+      const coachesResult = await deps.coachesService.generate({
         leagueId: input.leagueId,
         teamIds: input.teamIds,
       });
 
-      const scoutsResult = await deps.scoutsService.generateAndPersist({
+      const scoutsResult = await deps.scoutsService.generate({
         leagueId: input.leagueId,
         teamIds: input.teamIds,
       });
 
       const frontOfficeResult = await deps.frontOfficeService
-        .generateAndPersist({
+        .generate({
           leagueId: input.leagueId,
           teamIds: input.teamIds,
         });

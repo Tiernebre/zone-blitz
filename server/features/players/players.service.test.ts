@@ -69,7 +69,7 @@ function createMockDb(rosteredPlayerIds: string[] = []): {
 
 Deno.test("players.service", async (t) => {
   await t.step(
-    "generateAndPersist inserts players, draft prospects, contracts and returns counts",
+    "generate inserts players, draft prospects, contracts and returns counts",
     async () => {
       const { db, calls } = createMockDb(["p1", "p2"]);
       const generator = createMockGenerator({
@@ -102,7 +102,7 @@ Deno.test("players.service", async (t) => {
         log: createTestLogger(),
       });
 
-      const result = await service.generateAndPersist({
+      const result = await service.generate({
         leagueId: "l1",
         seasonId: "s1",
         teamIds: ["t1"],
@@ -120,7 +120,7 @@ Deno.test("players.service", async (t) => {
   );
 
   await t.step(
-    "generateAndPersist skips inserts for empty generator output",
+    "generate skips inserts for empty generator output",
     async () => {
       const { db, calls } = createMockDb();
       const generator = createMockGenerator();
@@ -131,7 +131,7 @@ Deno.test("players.service", async (t) => {
         log: createTestLogger(),
       });
 
-      const result = await service.generateAndPersist({
+      const result = await service.generate({
         leagueId: "l1",
         seasonId: "s1",
         teamIds: [],
@@ -147,7 +147,7 @@ Deno.test("players.service", async (t) => {
   );
 
   await t.step(
-    "generateAndPersist passes inserted players to contract generator",
+    "generate passes inserted players to contract generator",
     async () => {
       const { db } = createMockDb(["player-1"]);
       let contractsGeneratorReceivedPlayers:
@@ -173,7 +173,7 @@ Deno.test("players.service", async (t) => {
         log: createTestLogger(),
       });
 
-      await service.generateAndPersist({
+      await service.generate({
         leagueId: "l1",
         seasonId: "s1",
         teamIds: ["t1"],
