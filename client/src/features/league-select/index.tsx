@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { Trash2Icon } from "lucide-react";
 import type { SeasonPhase } from "@zone-blitz/shared";
-import { useCreateLeague, useLeagues } from "../../hooks/use-leagues.ts";
+import {
+  useCreateLeague,
+  useDeleteLeague,
+  useLeagues,
+} from "../../hooks/use-leagues.ts";
 import { UserMenu } from "../../components/user-menu.tsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +20,17 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const PHASE_LABELS: Record<SeasonPhase, string> = {
   preseason: "Preseason",
@@ -44,6 +60,7 @@ function formatDate(value: string | Date): string {
 export function LeagueSelect() {
   const { data: leagues, isLoading, error } = useLeagues();
   const createLeague = useCreateLeague();
+  const deleteLeague = useDeleteLeague();
   const navigate = useNavigate();
   const [newName, setNewName] = useState("");
 
@@ -138,6 +155,9 @@ export function LeagueSelect() {
                   <TableHead className="text-right">Season Length</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Created</TableHead>
+                  <TableHead className="w-10">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -182,6 +202,50 @@ export function LeagueSelect() {
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground">
                         {formatDate(league.createdAt)}
+                      </TableCell>
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <AlertDialog>
+                          <AlertDialogTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`Delete ${league.name}`}
+                                className="text-muted-foreground hover:text-destructive"
+                              />
+                            }
+                          >
+                            <Trash2Icon className="size-4" />
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Delete {league.name}?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. All league data
+                                including teams, players, and seasons will be
+                                permanently deleted.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                variant="destructive"
+                                onClick={() =>
+                                  deleteLeague.mutate(String(league.id))}
+                                disabled={deleteLeague.isPending}
+                              >
+                                {deleteLeague.isPending
+                                  ? "Deleting..."
+                                  : "Confirm Delete"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   );
