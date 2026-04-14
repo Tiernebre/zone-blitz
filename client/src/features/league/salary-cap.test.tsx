@@ -39,7 +39,7 @@ const baseRoster = {
       capHit: 45_000_000,
       contractYearsRemaining: 3,
       injuryStatus: "healthy",
-      schemeFit: null,
+      schemeFit: "ideal",
     },
     {
       id: "p2",
@@ -51,7 +51,7 @@ const baseRoster = {
       capHit: 12_000_000,
       contractYearsRemaining: 2,
       injuryStatus: "questionable",
-      schemeFit: null,
+      schemeFit: "poor",
     },
     {
       id: "p3",
@@ -75,7 +75,7 @@ const baseRoster = {
       capHit: 3_000_000,
       contractYearsRemaining: 1,
       injuryStatus: "healthy",
-      schemeFit: null,
+      schemeFit: "fits",
     },
   ],
   positionGroups: [
@@ -206,6 +206,22 @@ describe("SalaryCap — page", () => {
     expect(within(row).getByText("QB")).toBeDefined();
     expect(within(row).getByText("$45,000,000")).toBeDefined();
     expect(within(row).getByText("3 yrs")).toBeDefined();
+  });
+
+  it("renders a scheme fit badge when the player has a fit value", () => {
+    renderSalaryCap();
+    const row = screen.getByTestId("salary-cap-row-p1");
+    expect(
+      within(row).getByTestId("salary-cap-scheme-fit-p1").textContent,
+    ).toBe("Ideal fit");
+  });
+
+  it("renders a dash for scheme fit when the value is null", () => {
+    renderSalaryCap();
+    const row = screen.getByTestId("salary-cap-row-p3");
+    expect(
+      within(row).getByTestId("salary-cap-scheme-fit-p3").textContent,
+    ).toBe("—");
   });
 
   it("filters rows by the global search input", () => {

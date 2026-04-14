@@ -67,7 +67,7 @@ const roster = {
       capHit: 45_000_000,
       contractYearsRemaining: 3,
       injuryStatus: "healthy",
-      schemeFit: null,
+      schemeFit: "fits",
     },
     {
       id: "p2",
@@ -91,7 +91,7 @@ const roster = {
       capHit: 12_000_000,
       contractYearsRemaining: 2,
       injuryStatus: "questionable",
-      schemeFit: null,
+      schemeFit: "miscast",
     },
   ],
   positionGroups: [
@@ -194,6 +194,22 @@ describe("OpponentRoster — page", () => {
     renderDetail();
     fireEvent.click(screen.getByRole("tab", { name: /statistics/i }));
     expect(screen.getByTestId("opponent-statistics-placeholder")).toBeDefined();
+  });
+
+  it("renders a scheme fit badge when the player has a fit value", () => {
+    renderDetail();
+    const row = screen.getByTestId("opponent-row-p1");
+    expect(
+      within(row).getByTestId("opponent-scheme-fit-p1").textContent,
+    ).toBe("Fits");
+  });
+
+  it("renders a dash for scheme fit when the value is null", () => {
+    renderDetail();
+    const row = screen.getByTestId("opponent-row-p2");
+    expect(
+      within(row).getByTestId("opponent-scheme-fit-p2").textContent,
+    ).toBe("—");
   });
 
   it("shows an error state when the roster fails to load", () => {

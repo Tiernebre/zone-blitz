@@ -28,10 +28,6 @@ entry when it's resolved or superseded.
   archetype | null` mapping — richer
   than the qualitative Scheme Fit label shipped in #148 — plus consumer wiring
   in the scouts, FA, and draft features.
-- **2026-04-14 — Extend Scheme Fit badge to salary-cap and opponent-roster
-  tables.** `RosterPlayer.schemeFit` is on the wire everywhere but only the
-  Roster page renders the badge. Salary cap and opponents detail already have
-  the field in their fixtures — just add the column.
 - **2026-04-14 — Archetype-aware player generation.** Decision 0006
   (positionless players) depends on the player generator producing
   archetype-shaped attribute profiles — "gun-slinger QB," "zone-blocking guard,"

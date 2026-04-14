@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable, SortableHeader } from "@/components/ui/data-table";
+import { SchemeFitBadge } from "@/components/ui/scheme-fit-badge";
 import type {
   ActiveRoster,
   NeutralBucketGroup,
@@ -97,6 +98,18 @@ function createRosterColumns(leagueId: string): ColumnDef<RosterPlayer>[] {
       accessorKey: "age",
       header: ({ column }) => (
         <SortableHeader column={column}>Age</SortableHeader>
+      ),
+    },
+    {
+      accessorKey: "schemeFit",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Scheme Fit</SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <SchemeFitBadge
+          fit={row.original.schemeFit}
+          testId={`opponent-scheme-fit-${row.original.id}`}
+        />
       ),
     },
     {
