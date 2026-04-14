@@ -20,9 +20,12 @@
 
 ## Documentation
 
-- **Product/domain docs:** [`docs/product/`](./docs/product/) — ubiquitous
-  language, entities, and rules. Read the relevant doc before working on a
-  feature.
+- **Product/domain docs:** [`docs/product/`](./docs/product/) — split into
+  [`north-star/`](./docs/product/north-star/) (evergreen vision per feature
+  area; ubiquitous language, entities, and rules) and
+  [`decisions/`](./docs/product/decisions/) (dated, ADR-style records of
+  specific product decisions). Read the relevant north-star doc before working
+  on a feature; check decisions for the _why_ behind specific rules.
 - **Architecture:**
   [`docs/technical/architecture.md`](./docs/technical/architecture.md) — stack
   overview, monorepo structure, dependency rules, deployment model.
