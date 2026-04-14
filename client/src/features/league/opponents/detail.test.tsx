@@ -67,6 +67,7 @@ const roster = {
       capHit: 45_000_000,
       contractYearsRemaining: 3,
       injuryStatus: "healthy",
+      schemeFit: null,
     },
     {
       id: "p2",
@@ -78,6 +79,7 @@ const roster = {
       capHit: 8_000_000,
       contractYearsRemaining: 4,
       injuryStatus: "out",
+      schemeFit: null,
     },
     {
       id: "p3",
@@ -89,6 +91,7 @@ const roster = {
       capHit: 12_000_000,
       contractYearsRemaining: 2,
       injuryStatus: "questionable",
+      schemeFit: null,
     },
   ],
   positionGroups: [

@@ -55,6 +55,7 @@ const baseRoster = {
       capHit: 45_000_000,
       contractYearsRemaining: 3,
       injuryStatus: "healthy",
+      schemeFit: "ideal",
     },
     {
       id: "p2",
@@ -66,6 +67,7 @@ const baseRoster = {
       capHit: 12_000_000,
       contractYearsRemaining: 2,
       injuryStatus: "questionable",
+      schemeFit: "miscast",
     },
     {
       id: "p3",
@@ -77,6 +79,7 @@ const baseRoster = {
       capHit: 8_000_000,
       contractYearsRemaining: 4,
       injuryStatus: "out",
+      schemeFit: "fits",
     },
     {
       id: "p4",
@@ -88,6 +91,7 @@ const baseRoster = {
       capHit: 3_000_000,
       contractYearsRemaining: 1,
       injuryStatus: "healthy",
+      schemeFit: null,
     },
   ],
   positionGroups: [
@@ -266,6 +270,20 @@ describe("Roster — active roster tab (default)", () => {
     expect(within(row).getByText("Offense")).toBeDefined();
     expect(within(row).getByText("28")).toBeDefined();
     expect(within(row).getByText(/healthy/i)).toBeDefined();
+  });
+
+  it("renders scheme fit as a qualitative badge (ADR 0005)", () => {
+    renderRoster();
+    expect(screen.getByTestId("roster-scheme-fit-p1").textContent).toMatch(
+      /ideal fit/i,
+    );
+    expect(screen.getByTestId("roster-scheme-fit-p2").textContent).toMatch(
+      /miscast/i,
+    );
+    expect(screen.getByTestId("roster-scheme-fit-p3").textContent).toMatch(
+      /^fits$/i,
+    );
+    expect(screen.getByTestId("roster-scheme-fit-p4").textContent).toBe("—");
   });
 
   it("does not render cap hit or contract columns (moved to Salary Cap page)", () => {

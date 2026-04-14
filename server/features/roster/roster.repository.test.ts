@@ -18,6 +18,7 @@ import {
   stubAttributesFor,
 } from "../players/stub-players-generator.ts";
 import { coaches } from "../coaches/coach.schema.ts";
+import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
 import { cities } from "../cities/city.schema.ts";
@@ -221,6 +222,10 @@ Deno.test({
       assertEquals(idl?.neutralBucketGroup, "defense");
       assertEquals(idl?.injuryStatus, "questionable");
 
+      // No coaches hired → no scheme to fit against → null per ADR 0005.
+      assertEquals(qb?.schemeFit, null);
+      assertEquals(idl?.schemeFit, null);
+
       const offense = roster.positionGroups.find((g) => g.group === "offense");
       assertEquals(offense?.headcount, 1);
       assertEquals(offense?.totalCap, 10_000_000);
@@ -230,6 +235,106 @@ Deno.test({
       const st = roster.positionGroups.find((g) => g.group === "special_teams");
       assertEquals(st?.headcount, 0);
     } finally {
+      await cleanup(db, {
+        players: playersCreated,
+        teams: teamsCreated,
+        cities: citiesCreated,
+        states: statesCreated,
+        leagues: leaguesCreated,
+      });
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "rosterRepository.getActiveRoster: surfaces a qualitative schemeFit once a DC is hired with tendencies",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const repo = createRosterRepository({
+      db,
+      log: createTestLogger(),
+      now: () => new Date("2030-06-15T00:00:00Z"),
+    });
+    const playersCreated: string[] = [];
+    const teamsCreated: string[] = [];
+    const leaguesCreated: string[] = [];
+    const citiesCreated: string[] = [];
+    const statesCreated: string[] = [];
+    const coachesCreated: string[] = [];
+
+    try {
+      const { league, team, state, city } = await setupFixtures(db);
+      leaguesCreated.push(league.id);
+      teamsCreated.push(team.id);
+      citiesCreated.push(city.id);
+      statesCreated.push(state.id);
+
+      const cbId = crypto.randomUUID();
+      await db.insert(players).values({
+        id: cbId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Corey",
+        lastName: "Corner",
+        injuryStatus: "healthy",
+        ...sizeFor("CB"),
+        birthDate: "2000-01-01",
+      });
+      playersCreated.push(cbId);
+      await db.insert(playerAttributes).values({
+        playerId: cbId,
+        ...stubAttributeColumns("CB"),
+      });
+
+      const dcId = crypto.randomUUID();
+      await db.insert(coaches).values({
+        id: dcId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Deanna",
+        lastName: "Coordinator",
+        role: "DC",
+        age: 48,
+        hiredAt: new Date("2028-01-01T00:00:00Z"),
+        contractYears: 3,
+        contractSalary: 1,
+        contractBuyout: 1,
+      });
+      coachesCreated.push(dcId);
+
+      // Full press-man / man-coverage tilt so CB archetype weights have
+      // polarized axes to score against.
+      await db.insert(coachTendencies).values({
+        coachId: dcId,
+        frontOddEven: 50,
+        gapResponsibility: 50,
+        subPackageLean: 50,
+        coverageManZone: 10,
+        coverageShell: 50,
+        cornerPressOff: 10,
+        pressureRate: 50,
+        disguiseRate: 50,
+      });
+
+      const roster = await repo.getActiveRoster(league.id, team.id);
+      const cb = roster.players.find((p) => p.id === cbId);
+      assertEquals(cb?.neutralBucket, "CB");
+      // Hired DC + polarized axes → fit must be a qualitative label, not null.
+      if (cb?.schemeFit === null || cb?.schemeFit === undefined) {
+        throw new Error("expected non-null schemeFit once a DC is hired");
+      }
+      assertEquals(
+        ["ideal", "fits", "neutral", "poor", "miscast"].includes(cb.schemeFit),
+        true,
+      );
+    } finally {
+      if (coachesCreated.length) {
+        await db.delete(coaches).where(inArray(coaches.id, coachesCreated));
+      }
       await cleanup(db, {
         players: playersCreated,
         teams: teamsCreated,
