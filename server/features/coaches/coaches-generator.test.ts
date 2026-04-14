@@ -1,6 +1,9 @@
 import { assertEquals, assertNotEquals } from "@std/assert";
 import type { CoachRole } from "@zone-blitz/shared";
-import { createStubCoachesGenerator } from "./stub-coaches-generator.ts";
+import {
+  createCoachesGenerator,
+  type NameGenerator,
+} from "./coaches-generator.ts";
 
 const TEAM_IDS = ["team-1", "team-2", "team-3"];
 const INPUT = {
@@ -26,9 +29,37 @@ const EXPECTED_ROLES: CoachRole[] = [
   "ST_ASSISTANT",
 ];
 
+// mulberry32 — small, deterministic RNG for reproducible distribution tests.
+function seededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6D2B79F5) >>> 0;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function fixedNameGenerator(): NameGenerator {
+  let i = 0;
+  return {
+    next() {
+      i++;
+      return { firstName: `First${i}`, lastName: `Last${i}` };
+    },
+  };
+}
+
+function makeGenerator(seed = 12345) {
+  return createCoachesGenerator({
+    random: seededRandom(seed),
+    nameGenerator: fixedNameGenerator(),
+  });
+}
+
 Deno.test("generates a full staff per team", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
 
   assertEquals(result.length, TEAM_IDS.length * COACHES_PER_TEAM);
   for (const teamId of TEAM_IDS) {
@@ -42,8 +73,7 @@ Deno.test("generates a full staff per team", () => {
 });
 
 Deno.test("each team has exactly one head coach", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   for (const teamId of TEAM_IDS) {
     const hcs = result.filter((c) => c.teamId === teamId && c.role === "HC");
     assertEquals(hcs.length, 1);
@@ -51,8 +81,7 @@ Deno.test("each team has exactly one head coach", () => {
 });
 
 Deno.test("head coach has no reportsTo and non-null play caller", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   const hcs = result.filter((c) => c.role === "HC");
   for (const hc of hcs) {
     assertEquals(hc.reportsToId, null);
@@ -61,8 +90,7 @@ Deno.test("head coach has no reportsTo and non-null play caller", () => {
 });
 
 Deno.test("coordinators report to their head coach", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   for (const teamId of TEAM_IDS) {
     const teamCoaches = result.filter((c) => c.teamId === teamId);
     const hc = teamCoaches.find((c) => c.role === "HC");
@@ -78,8 +106,7 @@ Deno.test("coordinators report to their head coach", () => {
 });
 
 Deno.test("offensive position coaches report to OC", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   const offensiveRoles: CoachRole[] = ["QB", "RB", "WR", "TE", "OL"];
   for (const teamId of TEAM_IDS) {
     const teamCoaches = result.filter((c) => c.teamId === teamId);
@@ -92,8 +119,7 @@ Deno.test("offensive position coaches report to OC", () => {
 });
 
 Deno.test("defensive position coaches report to DC", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   const defensiveRoles: CoachRole[] = ["DL", "LB", "DB"];
   for (const teamId of TEAM_IDS) {
     const teamCoaches = result.filter((c) => c.teamId === teamId);
@@ -106,8 +132,7 @@ Deno.test("defensive position coaches report to DC", () => {
 });
 
 Deno.test("special teams assistant reports to STC", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   for (const teamId of TEAM_IDS) {
     const teamCoaches = result.filter((c) => c.teamId === teamId);
     const stc = teamCoaches.find((c) => c.role === "STC");
@@ -117,8 +142,7 @@ Deno.test("special teams assistant reports to STC", () => {
 });
 
 Deno.test("all coaches have the correct leagueId, non-empty names, plausible age", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   for (const coach of result) {
     assertEquals(coach.leagueId, INPUT.leagueId);
     assertEquals(coach.firstName.length > 0, true);
@@ -130,38 +154,33 @@ Deno.test("all coaches have the correct leagueId, non-empty names, plausible age
 });
 
 Deno.test("coaches have unique ids", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   const ids = new Set(result.map((c) => c.id));
   assertEquals(ids.size, result.length);
 });
 
 Deno.test("coaches get a college when a pool is provided", () => {
-  const generator = createStubCoachesGenerator();
   const collegeIds = ["college-a", "college-b"];
-  const result = generator.generate({ ...INPUT, collegeIds });
+  const result = makeGenerator().generate({ ...INPUT, collegeIds });
   for (const coach of result) {
     assertEquals(collegeIds.includes(coach.collegeId ?? ""), true);
   }
 });
 
 Deno.test("coaches have null college when no pool is provided", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   for (const coach of result) {
     assertEquals(coach.collegeId, null);
   }
 });
 
 Deno.test("generates no coaches when no teams provided", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate({ leagueId: "l1", teamIds: [] });
+  const result = makeGenerator().generate({ leagueId: "l1", teamIds: [] });
   assertEquals(result.length, 0);
 });
 
 Deno.test("every OC carries a populated offensive tendency vector only", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   const ocs = result.filter((c) => c.role === "OC");
   assertEquals(ocs.length, TEAM_IDS.length);
   for (const oc of ocs) {
@@ -178,8 +197,7 @@ Deno.test("every OC carries a populated offensive tendency vector only", () => {
 });
 
 Deno.test("every DC carries a populated defensive tendency vector only", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   const dcs = result.filter((c) => c.role === "DC");
   assertEquals(dcs.length, TEAM_IDS.length);
   for (const dc of dcs) {
@@ -196,8 +214,7 @@ Deno.test("every DC carries a populated defensive tendency vector only", () => {
 });
 
 Deno.test("non-coordinator coaches have no tendencies (v1 scope: OC + DC only)", () => {
-  const generator = createStubCoachesGenerator();
-  const result = generator.generate(INPUT);
+  const result = makeGenerator().generate(INPUT);
   const nonCoordinators = result.filter(
     (c) => c.role !== "OC" && c.role !== "DC",
   );
@@ -207,30 +224,116 @@ Deno.test("non-coordinator coaches have no tendencies (v1 scope: OC + DC only)",
   }
 });
 
-Deno.test("tendency vectors are deterministic for the same coach id", () => {
-  const generator = createStubCoachesGenerator();
-  // Forcing the same teamIds means the same nth coach gets the same
-  // generated UUID? No — crypto.randomUUID is random. But the jitter
-  // function depends only on the id, so the vector for a given coach
-  // with a given id is reproducible. We assert that by hashing its id
-  // twice via the same archetype lookup and confirming both match.
-  const result = generator.generate(INPUT);
-  const sample = result.find((c) => c.role === "OC");
-  assertNotEquals(sample, undefined);
-  // Running the generator a second time won't produce the same id,
-  // so the strict determinism test lives in the archetype module's
-  // own tests. Here we just sanity-check values are bounded integers
-  // (covered above) and that clustering occurs:
-  const ocVectors = result
-    .filter((c) => c.role === "OC")
-    .map((c) => JSON.stringify(c.tendencies?.offense));
-  // At least two OCs across the league should share the same
-  // archetype center (modulo jitter) when there are more teams than
-  // archetypes — here 3 teams vs 5 archetypes, so no duplicate is
-  // required. Instead, verify vectors differ between roles at the
-  // same index (OC and DC draw from different pools).
-  const dcVectors = result
-    .filter((c) => c.role === "DC")
-    .map((c) => JSON.stringify(c.tendencies?.defense));
-  assertEquals(ocVectors.length, dcVectors.length);
+// ---- Graduated-behaviour assertions ----
+
+Deno.test("head coach ages span the HC tier band (~48-60)", () => {
+  const result = makeGenerator().generate(INPUT);
+  const hcs = result.filter((c) => c.role === "HC");
+  for (const hc of hcs) {
+    assertEquals(hc.age >= 48 && hc.age <= 60, true);
+  }
+});
+
+Deno.test("coordinator ages span the coordinator tier band (~40-55)", () => {
+  const result = makeGenerator().generate(INPUT);
+  const coords = result.filter(
+    (c) => c.role === "OC" || c.role === "DC" || c.role === "STC",
+  );
+  for (const coord of coords) {
+    assertEquals(coord.age >= 40 && coord.age <= 55, true);
+  }
+});
+
+Deno.test("position coach ages span the position tier band (~32-50)", () => {
+  const result = makeGenerator().generate(INPUT);
+  const positionRoles = new Set<CoachRole>([
+    "QB",
+    "RB",
+    "WR",
+    "TE",
+    "OL",
+    "DL",
+    "LB",
+    "DB",
+    "ST_ASSISTANT",
+  ]);
+  const positions = result.filter((c) => positionRoles.has(c.role));
+  for (const coach of positions) {
+    assertEquals(coach.age >= 32 && coach.age <= 50, true);
+  }
+});
+
+Deno.test("ages vary within a role across the league (not a single constant)", () => {
+  const result = makeGenerator().generate(INPUT);
+  const hcAges = new Set(
+    result.filter((c) => c.role === "HC").map((c) => c.age),
+  );
+  const qbAges = new Set(
+    result.filter((c) => c.role === "QB").map((c) => c.age),
+  );
+  // With 3 HCs and 3 position QB coaches seeded, expect >1 distinct age in
+  // at least one of them — the flat constant is gone.
+  assertEquals(hcAges.size + qbAges.size > 2, true);
+});
+
+Deno.test("contract salaries vary within a role tier across the league", () => {
+  const result = makeGenerator().generate(INPUT);
+  const hcSalaries = new Set(
+    result.filter((c) => c.role === "HC").map((c) => c.contractSalary),
+  );
+  // 3 HCs, all flat in the stub; the graduated generator must vary at least
+  // one of the HCs from its peers.
+  assertEquals(hcSalaries.size > 1, true);
+});
+
+Deno.test("contract years vary within a role tier across the league", () => {
+  const result = makeGenerator().generate(INPUT);
+  const ocYears = new Set(
+    result.filter((c) => c.role === "OC").map((c) => c.contractYears),
+  );
+  const positionYears = new Set(
+    result.filter((c) => c.role === "QB" || c.role === "RB").map((c) =>
+      c.contractYears
+    ),
+  );
+  // Across the league (3 teams) at least one tier shows variance; a flat
+  // blueprint would produce a single value everywhere.
+  assertEquals(ocYears.size + positionYears.size > 2, true);
+});
+
+Deno.test("hiredAt dates spread across multiple years, not all 'last year'", () => {
+  const result = makeGenerator().generate(INPUT);
+  const years = new Set(result.map((c) => c.hiredAt.getUTCFullYear()));
+  // Graduated generator picks tenure per coach; at least two distinct hire
+  // years should appear across 39 coaches.
+  assertEquals(years.size > 1, true);
+});
+
+Deno.test("contract salaries fall within sane bounds per tier", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const coach of result) {
+    assertEquals(coach.contractSalary > 0, true);
+    // HC salary ceiling is generous; position coaches floor is 250k.
+    assertEquals(coach.contractSalary >= 250_000, true);
+    assertEquals(coach.contractSalary <= 20_000_000, true);
+    assertEquals(coach.contractBuyout >= 0, true);
+  }
+});
+
+Deno.test("seeded generator is deterministic", () => {
+  const a = createCoachesGenerator({
+    random: seededRandom(42),
+    nameGenerator: fixedNameGenerator(),
+  }).generate(INPUT);
+  const b = createCoachesGenerator({
+    random: seededRandom(42),
+    nameGenerator: fixedNameGenerator(),
+  }).generate(INPUT);
+  assertEquals(a.length, b.length);
+  for (let i = 0; i < a.length; i++) {
+    assertEquals(a[i].age, b[i].age);
+    assertEquals(a[i].contractYears, b[i].contractYears);
+    assertEquals(a[i].contractSalary, b[i].contractSalary);
+    assertEquals(a[i].hiredAt.getTime(), b[i].hiredAt.getTime());
+  }
 });
