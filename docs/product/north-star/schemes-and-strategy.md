@@ -286,10 +286,55 @@ for a specific receiver. Press technique at the line disrupts timing but risks
 getting beaten by speed or release moves. Demands elite individual talent in the
 secondary — you can't scheme around a corner who loses his matchup.
 
-**Zone blitz:** The Dick LeBeau innovation. Drop defensive linemen into
-coverage, blitz linebackers and defensive backs from unexpected positions.
-Creates confusion in blocking assignments and quarterback reads. Demands
-versatile, high-IQ defenders who can handle unusual responsibilities.
+**Zone blitz / fire zone:** The Dick LeBeau innovation. A five-man pressure
+where a defensive lineman drops into an underneath zone while a linebacker or
+defensive back blitzes from an unexpected position. The classic "fire zone"
+rushes five and drops six into a three-deep, three-under coverage shell. Creates
+confusion in blocking assignments and quarterback reads. Demands versatile,
+high-IQ defenders who can handle unusual responsibilities.
+
+**Cover 0:** All-out pressure, no deep safety. Every non-rusher is in man
+coverage with no help. The ultimate "you get your guy or the QB scores" call.
+Used to force the ball out on known passing downs and to win short- yardage
+situations. A Cover 0 call against a QB who can beat man coverage with one read
+is a disaster; against a rookie or a slow-processing QB, it's a game-wrecker.
+
+**Cover 1 (man-free):** Four-man rush, man coverage across the board, one deep
+safety as the free player. The workhorse pressure coverage for man- heavy
+defenses — you get the tightness of man coverage with an insurance policy over
+the top. Often includes a "robber" or "hole" player who reads the QB's eyes from
+the middle of the field. Requires a safety with elite range and ball skills, and
+corners who can win their 1-on-1s consistently.
+
+**Cover 6 (quarter-quarter-half):** Split-field coverage — one side plays
+quarters, the other side plays Cover 2. Used to match specific personnel
+matchups (put the quarters side toward the offense's best receiver, put the
+Cover 2 side toward a TE-heavy strength) or to disguise rotation at the snap. A
+cover that rewards DCs who can game-plan week-to-week and players who can
+execute different rules on each side of the field.
+
+**Match coverage (pattern match, palms, rip/liz):** Zone coverages with
+route-distribution rules that convert to man. The defenders play zone until
+receivers enter their area, then match those receivers based on the route
+combination. Gets the best of both — the eye discipline of zone against route
+concepts, the tightness of man after the distribution is declared. The tradeoff
+is complexity: match coverage is the most IQ-intensive call in the playbook, and
+a defender who busts a match rule leaves a receiver uncovered.
+
+**Simulated pressure:** Show a pressure look pre-snap — five or six defenders at
+the line, one safety deep — and then drop out at the snap, rushing only four
+from unusual angles. The offense sets its protection for the pressure that never
+comes, and a blocker ends up blocking air while a rusher comes free. A specialty
+of modern DCs (Vic Fangio tree, Brandon Staley) who want to generate pressure
+without committing extra defenders to the rush.
+
+**Stunts and line games (TEX, twist, long stick):** Two-man line coordination
+where rushers swap assigned gaps — a tackle loops around an end, an end crashes
+inside while a tackle loops out. Creates confusion in the offensive line's
+protection calls and can spring a free rusher against a defense that thinks it's
+blocking a straight four-man rush. Invisible to most fans — it's DL-coordinator
+chess — but the difference between a good and great defensive line is often
+stunt execution.
 
 ---
 
@@ -1114,6 +1159,225 @@ Box count is downstream of personnel and coverage call together, and a DC's
 willingness to load or lighten the box on specific downs is another fingerprint.
 An aggressive DC loads the box on early downs and dares the offense to throw; a
 conservative DC plays two-high and makes the offense earn yards on the ground.
+
+### Pressure Packages
+
+How the defense gets to the quarterback is as much a fingerprint as what
+coverage it plays behind the rush. Pressure packages are not just "blitz or
+don't blitz" — they're a full spectrum of how many rushers, from where, and with
+what disguise. A DC's pressure profile shapes the kind of front-seven defenders
+you need on your roster.
+
+**Four-man rush:** The baseline. Four down linemen (or three linemen and an OLB
+in a 3-4) generate pressure, seven defenders drop into coverage. A defense that
+can generate pressure with four is the platonic ideal of modern defense — it
+lets the DC play two-high coverage shells without sacrificing pass rush.
+Requires at least one elite edge rusher and ideally an interior disruptor. A DC
+who trusts his front four calls more two-high zone; a DC whose front can't
+pressure with four has to blitz to survive.
+
+**Five-man pressure:** Add one rusher — a linebacker, a nickel corner, or a
+safety. The most common "blitz" in the modern game. Creates a numbers advantage
+in the rush without completely abandoning coverage (still six in coverage is
+workable). Often paired with Cover 1 (man-free) or zone-blitz rules.
+
+**Six-man pressure:** Six rushers against five blockers plus the RB. Someone is
+coming free unless the offense has help from a TE or a hot- route answer. Common
+variants: **double A-gap** pressure with two LBs mugged up between the guards,
+or **overload** pressure from one side. Usually played behind Cover 0 or a
+zone-blitz shell. High-risk, high- reward — a hot route beats it, but a blitz
+that gets home ends the drive.
+
+**Green dog / dog blitz:** A conditional pressure where a linebacker is assigned
+to an RB in man coverage — if the back stays in to block, the LB rushes instead.
+Essentially a free rusher whenever the offense keeps max protection. A subtle
+scheme touch that punishes offenses for trying to protect against pressure with
+extra blockers.
+
+**DB pressure (corner fire, nickel blitz):** A defensive back rushes, most
+commonly the slot corner off the edge of the formation or a safety from depth.
+DB pressure is disguise-friendly (nothing about the pre-snap alignment suggests
+a blitz) and creates angle problems for pass protection. Requires a slot corner
+or safety with the physicality and aggression to actually rush — not every
+coverage DB can be a pressure player.
+
+**Simulated pressure (covered in foundations):** The inverse of a real blitz.
+Show the pressure, drop out, rush four from unusual angles. Doesn't count as a
+blitz statistically, but often generates pressure as if it were one. Tied to
+high-disguise DCs who want to confuse protection without sacrificing coverage
+bodies.
+
+#### Pressure profile as a DC fingerprint
+
+```
+DC A — Four-man traditionalist
+  Blitz rate: 22%   Simulated pressure rate: 8%   Cover 0 rate: 2%
+  Needs: dominant pass-rushing edge, an interior disruptor, rangy safeties
+
+DC B — Blitz-heavy aggressor
+  Blitz rate: 42%   Simulated pressure rate: 14%  Cover 0 rate: 11%
+  Needs: elite man-coverage corners, physical slot DB, LBs who can rush
+
+DC C — Modern disguiser (Fangio-tree)
+  Blitz rate: 18%   Simulated pressure rate: 28%  Cover 0 rate: 4%
+  Needs: versatile front seven, high-IQ defenders who can drop/rush, a
+  coverage-first secondary
+```
+
+Same league, three completely different rosters. A blitz-heavy DC whose GM keeps
+giving him press-man corners is a match. The same DC with zone-rules corners
+will get torched every week.
+
+#### Situational pressure tendencies
+
+Pressure profile isn't uniform across the game. A DC's down-and-distance
+tendencies are a hidden layer on top of the base profile:
+
+- **Third down blitz rate** — almost every DC dials up pressure on 3rd-and-
+  long; the question is how much, and whether he does it on 3rd-and-short too.
+- **Red zone pressure** — some DCs play Cover 0 inside the 10 (no deep ball to
+  defend); others play soft zone and make the offense earn every yard.
+- **Two-minute pressure** — trailing offenses need chunk plays; an aggressive DC
+  blitzes to force mistakes, a conservative DC plays prevent.
+- **Opening-script pressure** — some DCs come out blitzing to set a tone; others
+  sit in base coverage and diagnose the offense's game plan before dialing up
+  pressure in the second quarter.
+
+A stubborn DC whose blitz tendencies never shift by situation gets studied and
+exploited. An adaptive DC whose pressure profile changes week to week based on
+the opposing QB is running a different pressure plan every Sunday — which is the
+point.
+
+### Situational Tendencies
+
+Coaches don't run the same scheme on every snap. A coach's identity is the
+aggregate of how he calls the game across many different situations — red zone,
+short yardage, two-minute, third down, score-dependent — and these situational
+tendencies are a hidden layer of the scheme fingerprint that sophisticated
+opponents study on film.
+
+**Red zone:**
+
+- Offense: personnel shifts toward heavy (12, 13, 22) because the field is
+  compressed — speed matters less, size matters more. Route concepts simplify
+  into fades, slants, and pick plays because there's no room for deep crossers.
+  A coach's red-zone run rate, fade rate, and QB-designed- run rate are all
+  tendencies.
+- Defense: some DCs tighten into Cover 0 inside the 10 (no deep ball to defend,
+  so why have a safety); others play zone and make the offense execute. A DC who
+  never changes his base coverage in the red zone is predictable; a DC who has a
+  distinct red-zone package is harder to scheme against.
+
+**Short yardage & goal line:**
+
+- Offense: 22 or 13 personnel, QB sneak rate, play-action off the run look. A
+  coach with a trusted short-yardage package has real answers on 3rd-and-1; a
+  coach whose answer is "run our base play and hope" leaves points on the field
+  over a season.
+- Defense: goal-line personnel (extra LB or DL in for a DB), gap-exchange
+  fronts, press-man coverage on fades. Willingness to bring a safety into the
+  box vs. stay in the coverage shell is a tendency.
+
+**Two-minute drill:**
+
+- Offense: tempo up, empty or 10 personnel, hash-management, spike tendencies. A
+  coach's two-minute efficiency is a real attribute — some OCs live for the
+  two-minute and have specific packages; others run the same stuff faster and
+  hope it works.
+- Defense: prevent vs. continue-to-press philosophy. Prevent coverage limits big
+  plays but concedes chunks; continuing to play normal defense risks the big
+  play but forces the offense to execute. A conservative DC defaults to prevent;
+  an aggressive DC plays to win it.
+
+**Third-down tendencies by distance:**
+
+- 3rd-and-short: offenses lean heavy and run; defenses either commit to the run
+  (load the box) or assume play-action and play pass. The mismatch between what
+  the offense actually does and what the defense expected is the tendency game.
+- 3rd-and-medium (4-6 yards): the most coach-specific situation in football. Run
+  rate, screen rate, quick-game rate, blitz rate all vary dramatically by coach.
+  If a defense knows an OC never runs on 3rd-and-5, they commit five DBs. If the
+  OC occasionally runs for the first down, the defense has to honor it.
+- 3rd-and-long (7+): pass-heavy offensively, pressure-heavy defensively. But
+  within that — does the OC throw past the sticks or take the checkdown and punt
+  from better field position? Does the DC blitz or rush four and play a deep
+  zone?
+
+**Score and game-state adjustments:**
+
+- Leading by multiple scores: conservative offense (run the ball, bleed clock),
+  conservative defense (two-high, no blitz, concede yards not big plays). A
+  coach's willingness to "go for the throat" vs. "play it safe" with a lead is a
+  core personality tendency.
+- Trailing: aggressive offense (tempo, deep shots, 4th-down aggression),
+  aggressive defense (blitz, press, force turnovers). How early a coach shifts
+  into trailing mode is a tendency — some panic and abandon the run in the 2nd
+  quarter down 10, others stick to the plan until the 4th.
+- One-score games in the 4th quarter: where reputations are made. Aggressive
+  coaches who trust their offense go for it on 4th-and-2 from their own 40.
+  Conservative coaches punt and trust their defense. Over hundreds of games, a
+  coach's 4th-down decision chart is one of the most revealing pieces of film on
+  him.
+
+A coach whose situational tendencies are **coherent** — his red zone, short
+yardage, and two-minute packages all reflect the same identity and work together
+— has a real scheme. A coach whose base offense looks nothing like his red zone,
+whose two-minute is a different playbook from his first-half base, has
+situational incoherence, and opposing coordinators will find the seams.
+
+### Scheme vs. Game Plan
+
+A coach's scheme is his season-long fingerprint — the aggregate of his
+tendencies across every situation. His **game plan** is the weekly customization
+of that scheme against a specific opponent. Understanding this distinction
+matters because the two are different coaching skills and map to different
+hidden attributes.
+
+**Scheme is identity.** It's what the coach runs on Week 1 and Week 17 with
+broadly the same calling profile. It's what the film library shows over hundreds
+of snaps. Scheme is driven by the coach's _scheme mastery_ and _innovation_
+attributes (see [Coaches](./coaches.md)) — how deeply he understands his system
+and how well he evolves it over time as the league shifts.
+
+**Game plan is customization.** It's what the coach does differently in Week 6
+against a team that plays Cover 2 versus Week 7 against a team that plays
+Cover 3. Which concepts he leans into, which ones he shelves, which personnel
+packages he features, and which pressures he dials up. Game plan is driven by
+the coach's _adaptability_ and _player evaluation_ attributes — how well he
+diagnoses opponent tendencies and matches his personnel to their weaknesses.
+
+The two can diverge:
+
+- **Strong scheme, weak game plan:** A coach with a well-built system he runs
+  the same way every week. Good against average opponents (his scheme is above
+  the curve); exploitable against strong opponents who study tape and know
+  exactly what's coming. The "good coach on paper" who never wins the big
+  playoff game.
+- **Weak scheme, strong game plan:** A coach whose base identity isn't elite,
+  but who reinvents his approach weekly based on matchups. Hard to prep for in a
+  one-off game but inconsistent across a season. The coach whose team is always
+  "tough to game-plan for."
+- **Strong scheme, strong game plan:** The ideal. A coherent identity the coach
+  customizes weekly without losing its core. These are the coaches who go deep
+  in the playoffs repeatedly.
+- **Weak scheme, weak game plan:** The coach who gets fired. His team is both
+  below average in base execution and fails to adapt to specific opponents.
+
+The user never sees these as separate ratings. What they see:
+
+- Does your team's performance fluctuate wildly from week to week based on
+  opponent? That suggests a game-plan-dependent coach — strong in some matchups,
+  weak in others.
+- Does your team play the same way and grade out consistently regardless of
+  opponent? That suggests a scheme-dependent coach — identity over
+  customization.
+- Does your team lose to teams that have had extra prep time (bye weeks, playoff
+  seeding)? That suggests a coach whose scheme is _figured out_ when opponents
+  study him — low innovation, low adaptability, or both.
+
+This is why the distinction between "the game passed him by" (scheme stagnation)
+and "we got out-coached in the playoffs" (game-plan failure) matters. Both look
+like losing. They have different causes and require different fixes.
 
 ---
 
