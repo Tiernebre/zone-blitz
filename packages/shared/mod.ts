@@ -40,6 +40,8 @@ export type {
   SchemeFingerprint,
   SchemeFingerprintOverrides,
 } from "./types/scheme-fingerprint.ts";
+export type { SchemeFitLabel } from "./types/scheme-fit.ts";
+export { SCHEME_FIT_LABELS } from "./types/scheme-fit.ts";
 export type {
   Scout,
   ScoutCareerStop,
