@@ -24,3 +24,5 @@ as superseded.
 - [0003 — Scouts page: org chart tree + scout detail view](./0003-scouts-page.md)
   — rename "Scouting" nav to "Scouts"; staff inspection surface, no accuracy
   numbers
+- [0004 — NPC portraits: generic silhouette placeholder](./0004-npc-portraits.md)
+  — one shared head-and-shoulders SVG for every NPC; defer real portrait system
