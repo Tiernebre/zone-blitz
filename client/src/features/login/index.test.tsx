@@ -32,6 +32,13 @@ describe("LoginPage", () => {
     ).toBeDefined();
   });
 
+  it("renders the official Google G logo inside the sign-in button", () => {
+    render(<LoginPage />);
+    const button = screen.getByRole("button", { name: /sign in with google/i });
+    const logo = button.querySelector('svg[aria-label="Google logo"]');
+    expect(logo).not.toBeNull();
+  });
+
   it("calls signIn.social with google provider when button is clicked", () => {
     render(<LoginPage />);
     fireEvent.click(
