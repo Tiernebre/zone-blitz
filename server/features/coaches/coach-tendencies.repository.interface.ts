@@ -2,6 +2,7 @@ import type {
   CoachTendencies,
   CoachTendenciesUpsertInput,
 } from "@zone-blitz/shared";
+import type { Executor } from "../../db/connection.ts";
 
 export interface CoachTendenciesRepository {
   /**
@@ -17,7 +18,12 @@ export interface CoachTendenciesRepository {
    * Inserts or updates the tendency row for a coach. Columns not
    * provided in `input` are left null on insert and untouched on update,
    * so the caller can populate offensive and defensive sides
-   * independently without overwriting the other.
+   * independently without overwriting the other. Pass an optional
+   * `exec` to route the write through an in-progress transaction so the
+   * referenced coach row is visible for the FK check.
    */
-  upsert(input: CoachTendenciesUpsertInput): Promise<CoachTendencies>;
+  upsert(
+    input: CoachTendenciesUpsertInput,
+    exec?: Executor,
+  ): Promise<CoachTendencies>;
 }

@@ -39,7 +39,7 @@ export function createCoachesService(deps: {
           coachId: coach.id,
           ...coach.tendencies.offense,
           ...coach.tendencies.defense,
-        });
+        }, tx);
       }
 
       log.info(

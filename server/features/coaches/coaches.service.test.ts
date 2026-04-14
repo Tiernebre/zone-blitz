@@ -278,6 +278,77 @@ Deno.test("coaches.service", async (t) => {
   );
 
   await t.step(
+    "generate routes tendency upserts through tx so FK sees the coach row",
+    async () => {
+      const { db } = createMockDb();
+      const { db: tx } = createMockDb();
+      const base = {
+        leagueId: "l1",
+        teamId: "t1",
+        role: "OC" as const,
+        specialty: "offense" as const,
+        reportsToId: null,
+        playCaller: null,
+        age: 45,
+        hiredAt: new Date(),
+        contractYears: 3,
+        contractSalary: 1_000_000,
+        contractBuyout: 1_000_000,
+        collegeId: null,
+        isVacancy: false,
+        mentorCoachId: null,
+      };
+      const generator = createMockGenerator({
+        generate: () => [
+          {
+            ...base,
+            id: "oc",
+            firstName: "Off",
+            lastName: "Coord",
+            tendencies: {
+              offense: {
+                runPassLean: 40,
+                tempo: 50,
+                personnelWeight: 55,
+                formationUnderCenterShotgun: 30,
+                preSnapMotionRate: 80,
+                passingStyle: 30,
+                passingDepth: 45,
+                runGameBlocking: 20,
+                rpoIntegration: 30,
+              },
+            },
+          },
+        ],
+      });
+      const seenExecutors: unknown[] = [];
+      const service = createCoachesService({
+        generator,
+        repo: createMockRepo(),
+        tendenciesRepo: createMockTendenciesRepo({
+          upsert: (input, exec) => {
+            seenExecutors.push(exec);
+            return Promise.resolve({
+              coachId: input.coachId,
+              offense: null,
+              defense: null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          },
+        }),
+        db,
+        log: createTestLogger(),
+      });
+
+      await service.generate({ leagueId: "l1", teamIds: ["t1"] }, tx);
+
+      assertEquals(seenExecutors.length, 1);
+      assertEquals(seenExecutors[0], tx);
+    },
+  );
+
+  await t.step(
     "generate upserts a tendency row per coordinator who carries one",
     async () => {
       const { db } = createMockDb();
