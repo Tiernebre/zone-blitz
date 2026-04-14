@@ -15,7 +15,6 @@ import { LeagueSettings } from "./features/league/settings.tsx";
 import { Roster } from "./features/league/roster.tsx";
 import { Coaches } from "./features/league/coaches/index.tsx";
 import { CoachDetail } from "./features/league/coaches/detail.tsx";
-import { Schemes } from "./features/league/schemes.tsx";
 import { Scouting } from "./features/league/scouting.tsx";
 import { Draft } from "./features/league/draft.tsx";
 import { Trades } from "./features/league/trades.tsx";
@@ -107,12 +106,6 @@ const coachDetailRoute = createRoute({
   component: CoachDetail,
 });
 
-const schemesRoute = createRoute({
-  getParentRoute: () => leagueLayoutRoute,
-  path: "schemes",
-  component: Schemes,
-});
-
 const scoutingRoute = createRoute({
   getParentRoute: () => leagueLayoutRoute,
   path: "scouting",
@@ -178,7 +171,6 @@ const routeTree = rootRoute.addChildren([
       rosterRoute,
       coachesRoute,
       coachDetailRoute,
-      schemesRoute,
       scoutingRoute,
       draftRoute,
       tradesRoute,

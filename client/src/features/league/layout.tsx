@@ -2,7 +2,6 @@ import { Link, Outlet, useParams } from "@tanstack/react-router";
 import {
   ArrowLeftIcon,
   ArrowLeftRightIcon,
-  BookOpenIcon,
   CalendarIcon,
   ClipboardListIcon,
   CrownIcon,
@@ -54,7 +53,6 @@ const navGroups: NavGroup[] = [
       { label: "Home", path: "", Icon: HomeIcon },
       { label: "Roster", path: "roster", Icon: UsersIcon },
       { label: "Coaches", path: "coaches", Icon: ClipboardListIcon },
-      { label: "Schemes", path: "schemes", Icon: BookOpenIcon },
     ],
   },
   {
