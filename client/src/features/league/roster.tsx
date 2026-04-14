@@ -45,20 +45,10 @@ const groupFilterOptions: (PlayerPositionGroup | "all")[] = [
   "special_teams",
 ];
 
-const currency = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
-
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
   timeStyle: "short",
 });
-
-function formatCurrency(value: number) {
-  return currency.format(value);
-}
 
 function injuryBadgeVariant(
   status: PlayerInjuryStatus,
@@ -131,20 +121,6 @@ const rosterColumns: ColumnDef<RosterPlayer>[] = [
         Age
       </SortableHeader>
     ),
-  },
-  {
-    accessorKey: "capHit",
-    header: ({ column }) => (
-      <SortableHeader column={column}>Cap Hit</SortableHeader>
-    ),
-    cell: ({ row }) => formatCurrency(row.original.capHit),
-  },
-  {
-    accessorKey: "contractYearsRemaining",
-    header: ({ column }) => (
-      <SortableHeader column={column}>Contract</SortableHeader>
-    ),
-    cell: ({ row }) => `${row.original.contractYearsRemaining} yrs`,
   },
   {
     accessorKey: "injuryStatus",
@@ -227,31 +203,6 @@ function ActiveRosterView(
 function ActiveRosterContent({ roster }: { roster: ActiveRoster }) {
   return (
     <>
-      <Card data-testid="roster-cap-summary">
-        <CardHeader>
-          <CardTitle>Cap Summary</CardTitle>
-          <CardDescription>
-            Roster spend against the league salary cap.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <CapStat
-              label="Total Cap"
-              value={formatCurrency(roster.totalCap)}
-            />
-            <CapStat
-              label="Salary Cap"
-              value={formatCurrency(roster.salaryCap)}
-            />
-            <CapStat
-              label="Cap Space"
-              value={formatCurrency(roster.capSpace)}
-            />
-          </dl>
-        </CardContent>
-      </Card>
-
       <DataTable
         columns={rosterColumns}
         data={roster.players}
@@ -462,14 +413,5 @@ function DepthChartMeta(
     >
       {[timestamp, author].filter(Boolean).join(" ")}
     </p>
-  );
-}
-
-function CapStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="text-2xl font-semibold">{value}</dd>
-    </div>
   );
 }
