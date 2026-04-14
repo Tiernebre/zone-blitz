@@ -154,6 +154,61 @@ Deno.test("personnel.service", async (t) => {
   );
 
   await t.step(
+    "generate forwards tx to every downstream service",
+    async () => {
+      const marker = { __tx: true };
+      const received: Record<string, unknown> = {};
+      const service = createPersonnelService({
+        playersService: createMockPlayersService({
+          generate: (_input, tx) => {
+            received.players = tx;
+            return Promise.resolve({
+              playerCount: 0,
+              draftProspectCount: 0,
+              contractCount: 0,
+            });
+          },
+        }),
+        coachesService: createMockCoachesService({
+          generate: (_input, tx) => {
+            received.coaches = tx;
+            return Promise.resolve({ coachCount: 0 });
+          },
+        }),
+        scoutsService: createMockScoutsService({
+          generate: (_input, tx) => {
+            received.scouts = tx;
+            return Promise.resolve({ scoutCount: 0 });
+          },
+        }),
+        frontOfficeService: createMockFrontOfficeService({
+          generate: (_input, tx) => {
+            received.frontOffice = tx;
+            return Promise.resolve({ frontOfficeCount: 0 });
+          },
+        }),
+        log: createTestLogger(),
+      });
+
+      await service.generate(
+        {
+          leagueId: "l1",
+          seasonId: "s1",
+          teamIds: ["t1"],
+          rosterSize: 1,
+          salaryCap: 1,
+        },
+        marker as unknown as import("../../db/connection.ts").Executor,
+      );
+
+      assertEquals(received.players, marker);
+      assertEquals(received.coaches, marker);
+      assertEquals(received.scouts, marker);
+      assertEquals(received.frontOffice, marker);
+    },
+  );
+
+  await t.step(
     "generate returns zero counts when all services return zero",
     async () => {
       const service = createPersonnelService({

@@ -15,7 +15,7 @@ export function createPersonnelService(deps: {
   const log = deps.log.child({ module: "personnel.service" });
 
   return {
-    async generate(input) {
+    async generate(input, tx) {
       log.info(
         { leagueId: input.leagueId, seasonId: input.seasonId },
         "generating personnel",
@@ -27,23 +27,23 @@ export function createPersonnelService(deps: {
         teamIds: input.teamIds,
         rosterSize: input.rosterSize,
         salaryCap: input.salaryCap,
-      });
+      }, tx);
 
       const coachesResult = await deps.coachesService.generate({
         leagueId: input.leagueId,
         teamIds: input.teamIds,
-      });
+      }, tx);
 
       const scoutsResult = await deps.scoutsService.generate({
         leagueId: input.leagueId,
         teamIds: input.teamIds,
-      });
+      }, tx);
 
       const frontOfficeResult = await deps.frontOfficeService
         .generate({
           leagueId: input.leagueId,
           teamIds: input.teamIds,
-        });
+        }, tx);
 
       return {
         playerCount: playersResult.playerCount,
