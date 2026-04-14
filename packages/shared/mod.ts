@@ -58,7 +58,9 @@ export type {
   Contract,
   DraftProspect,
   Player,
+  PlayerDetail,
   PlayerInjuryStatus,
+  PlayerOrigin,
   PlayerPosition,
 } from "./types/player.ts";
 export {

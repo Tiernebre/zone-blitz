@@ -1,3 +1,4 @@
+import type { PlayerDetail } from "@zone-blitz/shared";
 import type { Executor } from "../../db/connection.ts";
 
 export interface PlayersGenerateInput {
@@ -19,4 +20,6 @@ export interface PlayersService {
     input: PlayersGenerateInput,
     tx?: Executor,
   ): Promise<PlayersGenerateResult>;
+
+  getDetail(playerId: string): Promise<PlayerDetail>;
 }

@@ -185,6 +185,39 @@ Deno.test("every draft prospect receives a valid position", () => {
   }
 });
 
+Deno.test("every generated player gets a hometown and either draft info or undrafted", () => {
+  const generator = createStubPlayersGenerator();
+  const result = generator.generate(INPUT);
+
+  for (const entry of result.players) {
+    assertEquals(typeof entry.player.hometown, "string");
+    const { draftYear, draftRound, draftPick, draftingTeamId } = entry.player;
+    const allNull = draftYear === null && draftRound === null &&
+      draftPick === null && draftingTeamId === null;
+    const allPresent = typeof draftYear === "number" &&
+      typeof draftRound === "number" && typeof draftPick === "number";
+    assertEquals(allNull || allPresent, true);
+  }
+});
+
+Deno.test("at least one rostered player is undrafted", () => {
+  const generator = createStubPlayersGenerator();
+  const result = generator.generate(INPUT);
+  const rostered = result.players.filter((p) => p.player.teamId !== null);
+  const undrafted = rostered.filter((p) => p.player.draftYear === null);
+  assertEquals(undrafted.length > 0, true);
+});
+
+Deno.test("drafted rostered players carry their drafting team", () => {
+  const generator = createStubPlayersGenerator();
+  const result = generator.generate(INPUT);
+  const rostered = result.players.filter((p) => p.player.teamId !== null);
+  const drafted = rostered.filter((p) => p.player.draftYear !== null);
+  for (const entry of drafted) {
+    assertEquals(typeof entry.player.draftingTeamId, "string");
+  }
+});
+
 Deno.test("all generated players and prospects have non-empty names", () => {
   const generator = createStubPlayersGenerator();
   const result = generator.generate(INPUT);
