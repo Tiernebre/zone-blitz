@@ -26,7 +26,23 @@ export type {
   CoachTenurePlayerDev,
   CoachTenureUnitSeason,
 } from "./types/coach.ts";
-export type { Scout } from "./types/scout.ts";
+export type {
+  Scout,
+  ScoutCareerStop,
+  ScoutConnection,
+  ScoutConnectionRelation,
+  ScoutCrossCheck,
+  ScoutCrossCheckWinner,
+  ScoutDetail,
+  ScoutEvaluation,
+  ScoutEvaluationLevel,
+  ScoutEvaluationOutcome,
+  ScoutExternalTrackRecord,
+  ScoutNode,
+  ScoutRole,
+  ScoutRoundTier,
+  ScoutSummary,
+} from "./types/scout.ts";
 export type {
   ActiveRoster,
   DepthChart,

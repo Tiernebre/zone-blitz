@@ -33,7 +33,20 @@ export {
   playerDevDeltaEnum,
   tenureUnitSideEnum,
 } from "../features/coaches/coach-history.schema.ts";
-export { scouts } from "../features/scouts/scout.schema.ts";
+export { scoutRoleEnum, scouts } from "../features/scouts/scout.schema.ts";
+export {
+  scoutCareerStops,
+  scoutConnectionRelationEnum,
+  scoutConnections,
+  scoutCrossChecks,
+  scoutCrossCheckWinnerEnum,
+  scoutEvaluationLevelEnum,
+  scoutEvaluationOutcomeEnum,
+  scoutEvaluations,
+  scoutExternalTrackRecord,
+  scoutReputationLabels,
+  scoutRoundTierEnum,
+} from "../features/scouts/scout-history.schema.ts";
 export {
   draftProspects,
   playerInjuryStatusEnum,
