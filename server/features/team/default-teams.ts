@@ -5,6 +5,7 @@
 export interface DefaultTeam {
   name: string;
   city: string;
+  state: string;
   abbreviation: string;
   primaryColor: string;
   secondaryColor: string;
@@ -20,6 +21,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Minutemen",
     city: "Boston",
+    state: "MA",
     abbreviation: "BOS",
     primaryColor: "#0B2240",
     secondaryColor: "#C41230",
@@ -30,6 +32,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Sharks",
     city: "Miami",
+    state: "FL",
     abbreviation: "MIA",
     primaryColor: "#006B70",
     secondaryColor: "#FF6B35",
@@ -40,6 +43,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Aviators",
     city: "New York",
+    state: "NY",
     abbreviation: "NYA",
     primaryColor: "#1A472A",
     secondaryColor: "#FFFFFF",
@@ -50,6 +54,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Thunderbolts",
     city: "Buffalo",
+    state: "NY",
     abbreviation: "BUF",
     primaryColor: "#00338D",
     secondaryColor: "#C8102E",
@@ -62,6 +67,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Ironworkers",
     city: "Pittsburgh",
+    state: "PA",
     abbreviation: "PIT",
     primaryColor: "#2E2E2E",
     secondaryColor: "#FFB612",
@@ -72,6 +78,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Monarchs",
     city: "Baltimore",
+    state: "MD",
     abbreviation: "BAL",
     primaryColor: "#2B1A6E",
     secondaryColor: "#C8AA6E",
@@ -82,6 +89,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Bulldogs",
     city: "Cleveland",
+    state: "OH",
     abbreviation: "CLE",
     primaryColor: "#6B3410",
     secondaryColor: "#FF6B00",
@@ -92,6 +100,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Sabercats",
     city: "Cincinnati",
+    state: "OH",
     abbreviation: "CIN",
     primaryColor: "#FB4F14",
     secondaryColor: "#000000",
@@ -104,6 +113,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Roughnecks",
     city: "Houston",
+    state: "TX",
     abbreviation: "HOU",
     primaryColor: "#03202F",
     secondaryColor: "#C41230",
@@ -114,6 +124,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Racers",
     city: "Indianapolis",
+    state: "IN",
     abbreviation: "IND",
     primaryColor: "#003A70",
     secondaryColor: "#FFFFFF",
@@ -124,6 +135,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Gators",
     city: "Jacksonville",
+    state: "FL",
     abbreviation: "JAX",
     primaryColor: "#006778",
     secondaryColor: "#D7A33D",
@@ -134,6 +146,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Volunteers",
     city: "Nashville",
+    state: "TN",
     abbreviation: "NSH",
     primaryColor: "#4B92DB",
     secondaryColor: "#C41230",
@@ -146,6 +159,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Wranglers",
     city: "Denver",
+    state: "CO",
     abbreviation: "DEN",
     primaryColor: "#FC4C02",
     secondaryColor: "#002244",
@@ -156,6 +170,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Outlaws",
     city: "Las Vegas",
+    state: "NV",
     abbreviation: "LVG",
     primaryColor: "#A5ACAF",
     secondaryColor: "#000000",
@@ -166,6 +181,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Captains",
     city: "Los Angeles",
+    state: "CA",
     abbreviation: "LAC",
     primaryColor: "#0080C6",
     secondaryColor: "#FFC20E",
@@ -176,6 +192,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Trailblazers",
     city: "Kansas City",
+    state: "MO",
     abbreviation: "KCT",
     primaryColor: "#E31837",
     secondaryColor: "#FFB81C",
@@ -190,6 +207,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Sentinels",
     city: "Washington",
+    state: "DC",
     abbreviation: "WAS",
     primaryColor: "#5A1414",
     secondaryColor: "#FFB612",
@@ -200,6 +218,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Titans",
     city: "New York",
+    state: "NY",
     abbreviation: "NYT",
     primaryColor: "#0B2265",
     secondaryColor: "#C41230",
@@ -210,6 +229,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Liberty Bells",
     city: "Philadelphia",
+    state: "PA",
     abbreviation: "PHI",
     primaryColor: "#004C54",
     secondaryColor: "#A5ACAF",
@@ -220,6 +240,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Lone Stars",
     city: "Dallas",
+    state: "TX",
     abbreviation: "DAL",
     primaryColor: "#003A70",
     secondaryColor: "#A5ACAF",
@@ -232,6 +253,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Lumberjacks",
     city: "Green Bay",
+    state: "WI",
     abbreviation: "GBL",
     primaryColor: "#204E32",
     secondaryColor: "#FFB612",
@@ -242,6 +264,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Grizzlies",
     city: "Chicago",
+    state: "IL",
     abbreviation: "CHI",
     primaryColor: "#0B162A",
     secondaryColor: "#C83803",
@@ -251,7 +274,8 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   },
   {
     name: "Voyageurs",
-    city: "Minnesota",
+    city: "Minneapolis",
+    state: "MN",
     abbreviation: "MIN",
     primaryColor: "#4F2683",
     secondaryColor: "#FFC62F",
@@ -262,6 +286,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Motors",
     city: "Detroit",
+    state: "MI",
     abbreviation: "DET",
     primaryColor: "#0076B6",
     secondaryColor: "#A5ACAF",
@@ -274,6 +299,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Krewe",
     city: "New Orleans",
+    state: "LA",
     abbreviation: "NOR",
     primaryColor: "#D3BC8D",
     secondaryColor: "#101820",
@@ -284,6 +310,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Firebirds",
     city: "Atlanta",
+    state: "GA",
     abbreviation: "ATL",
     primaryColor: "#A71930",
     secondaryColor: "#000000",
@@ -293,7 +320,8 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   },
   {
     name: "Hurricanes",
-    city: "Tampa Bay",
+    city: "Tampa",
+    state: "FL",
     abbreviation: "TBH",
     primaryColor: "#BD1C36",
     secondaryColor: "#3E3A35",
@@ -304,6 +332,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Prowlers",
     city: "Charlotte",
+    state: "NC",
     abbreviation: "CLT",
     primaryColor: "#0085CA",
     secondaryColor: "#000000",
@@ -316,6 +345,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Prospectors",
     city: "San Francisco",
+    state: "CA",
     abbreviation: "SFP",
     primaryColor: "#AA0000",
     secondaryColor: "#B3995D",
@@ -326,6 +356,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Condors",
     city: "Los Angeles",
+    state: "CA",
     abbreviation: "LAR",
     primaryColor: "#003594",
     secondaryColor: "#FFD100",
@@ -336,6 +367,7 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   {
     name: "Cascaders",
     city: "Seattle",
+    state: "WA",
     abbreviation: "SEA",
     primaryColor: "#002244",
     secondaryColor: "#69BE28",
@@ -345,7 +377,8 @@ export const DEFAULT_TEAMS: DefaultTeam[] = [
   },
   {
     name: "Sidewinders",
-    city: "Arizona",
+    city: "Glendale",
+    state: "AZ",
     abbreviation: "ARI",
     primaryColor: "#97233F",
     secondaryColor: "#000000",

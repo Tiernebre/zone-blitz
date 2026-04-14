@@ -70,7 +70,9 @@ function createMockTeamService(
         {
           id: "team-1",
           name: "Team A",
+          cityId: "city-1",
           city: "City A",
+          state: "NY",
           abbreviation: "TA",
           primaryColor: "#000",
           secondaryColor: "#FFF",

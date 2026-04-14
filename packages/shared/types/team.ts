@@ -1,7 +1,9 @@
 export interface Team {
   id: string;
   name: string;
+  cityId: string;
   city: string;
+  state: string;
   abbreviation: string;
   primaryColor: string;
   secondaryColor: string;
