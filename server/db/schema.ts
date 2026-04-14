@@ -12,12 +12,11 @@ export { teams } from "../features/team/team.schema.ts";
 export { seasonPhaseEnum, seasons } from "../features/season/season.schema.ts";
 export {
   coaches,
-  draftProspects,
   frontOfficeStaff,
-  players,
   scouts,
 } from "../features/personnel/personnel.schema.ts";
-export { contracts } from "../features/personnel/contract.schema.ts";
+export { draftProspects, players } from "../features/players/player.schema.ts";
+export { contracts } from "../features/players/contract.schema.ts";
 export { games } from "../features/schedule/game.schema.ts";
 export {
   accounts,

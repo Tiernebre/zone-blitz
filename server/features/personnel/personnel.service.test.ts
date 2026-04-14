@@ -4,6 +4,7 @@ import type {
   GeneratedPersonnel,
   PersonnelGenerator,
 } from "./personnel.generator.interface.ts";
+import type { PlayersService } from "../players/players.service.interface.ts";
 
 function createTestLogger() {
   return {
@@ -17,11 +18,9 @@ function createTestLogger() {
 
 function createEmptyPersonnel(): GeneratedPersonnel {
   return {
-    players: [],
     coaches: [],
     scouts: [],
     frontOfficeStaff: [],
-    draftProspects: [],
   };
 }
 
@@ -30,7 +29,20 @@ function createMockGenerator(
 ): PersonnelGenerator {
   return {
     generate: () => createEmptyPersonnel(),
-    generateContracts: () => [],
+    ...overrides,
+  };
+}
+
+function createMockPlayersService(
+  overrides: Partial<PlayersService> = {},
+): PlayersService {
+  return {
+    generateAndPersist: () =>
+      Promise.resolve({
+        playerCount: 0,
+        draftProspectCount: 0,
+        contractCount: 0,
+      }),
     ...overrides,
   };
 }
@@ -40,7 +52,7 @@ interface InsertCall {
   values: unknown[];
 }
 
-function createMockDb(rosteredPlayerIds: string[] = []): {
+function createMockDb(): {
   db: import("../../db/connection.ts").Database;
   calls: InsertCall[];
 } {
@@ -50,19 +62,7 @@ function createMockDb(rosteredPlayerIds: string[] = []): {
       return {
         values(values: unknown[]) {
           calls.push({ table, values });
-          return {
-            returning(_columns?: unknown) {
-              if (Array.isArray(values)) {
-                return Promise.resolve(
-                  values.map((v, i) => ({
-                    id: rosteredPlayerIds[i] ?? `generated-${i}`,
-                    teamId: (v as { teamId?: string | null }).teamId ?? null,
-                  })),
-                );
-              }
-              return Promise.resolve([]);
-            },
-          };
+          return Promise.resolve([]);
         },
       };
     },
@@ -72,69 +72,46 @@ function createMockDb(rosteredPlayerIds: string[] = []): {
 
 Deno.test("personnel.service", async (t) => {
   await t.step(
-    "generateAndPersist inserts generated personnel and returns counts",
+    "generateAndPersist delegates to players service and inserts coaches/scouts/front office",
     async () => {
-      const { db, calls } = createMockDb(["p1", "p2"]);
+      const { db, calls } = createMockDb();
       const generator = createMockGenerator({
         generate: () => ({
-          players: [
-            {
-              leagueId: "l1",
-              teamId: "t1",
-              firstName: "A",
-              lastName: "B",
-            },
-            {
-              leagueId: "l1",
-              teamId: "t1",
-              firstName: "C",
-              lastName: "D",
-            },
-          ],
           coaches: [
-            {
-              leagueId: "l1",
-              teamId: "t1",
-              firstName: "E",
-              lastName: "F",
-            },
+            { leagueId: "l1", teamId: "t1", firstName: "E", lastName: "F" },
           ],
           scouts: [
-            {
-              leagueId: "l1",
-              teamId: "t1",
-              firstName: "G",
-              lastName: "H",
-            },
+            { leagueId: "l1", teamId: "t1", firstName: "G", lastName: "H" },
           ],
           frontOfficeStaff: [
-            {
-              leagueId: "l1",
-              teamId: "t1",
-              firstName: "I",
-              lastName: "J",
-            },
-          ],
-          draftProspects: [
-            { seasonId: "s1", firstName: "K", lastName: "L" },
+            { leagueId: "l1", teamId: "t1", firstName: "I", lastName: "J" },
           ],
         }),
-        generateContracts: (input) => {
-          return input.players.map((p) => ({
-            playerId: p.id,
-            teamId: p.teamId!,
-            totalYears: 3,
-            currentYear: 1,
-            totalSalary: 300_000,
-            annualSalary: 100_000,
-            guaranteedMoney: 100_000,
-            signingBonus: 0,
-          }));
+      });
+
+      let playersServiceInput:
+        | {
+          leagueId: string;
+          seasonId: string;
+          teamIds: string[];
+          rosterSize: number;
+          salaryCap: number;
+        }
+        | undefined;
+      const playersService = createMockPlayersService({
+        generateAndPersist: (input) => {
+          playersServiceInput = input;
+          return Promise.resolve({
+            playerCount: 2,
+            draftProspectCount: 1,
+            contractCount: 2,
+          });
         },
       });
 
       const service = createPersonnelService({
         generator,
+        playersService,
         db,
         log: createTestLogger(),
       });
@@ -154,8 +131,14 @@ Deno.test("personnel.service", async (t) => {
       assertEquals(result.draftProspectCount, 1);
       assertEquals(result.contractCount, 2);
 
-      // 6 insert calls: players, coaches, scouts, frontOffice, draftProspects, contracts
-      assertEquals(calls.length, 6);
+      assertEquals(playersServiceInput?.leagueId, "l1");
+      assertEquals(playersServiceInput?.seasonId, "s1");
+      assertEquals(playersServiceInput?.teamIds, ["t1"]);
+      assertEquals(playersServiceInput?.rosterSize, 2);
+      assertEquals(playersServiceInput?.salaryCap, 255_000_000);
+
+      // 3 insert calls: coaches, scouts, frontOffice
+      assertEquals(calls.length, 3);
     },
   );
 
@@ -164,9 +147,11 @@ Deno.test("personnel.service", async (t) => {
     async () => {
       const { db, calls } = createMockDb();
       const generator = createMockGenerator();
+      const playersService = createMockPlayersService();
 
       const service = createPersonnelService({
         generator,
+        playersService,
         db,
         log: createTestLogger(),
       });
@@ -186,55 +171,6 @@ Deno.test("personnel.service", async (t) => {
       assertEquals(result.draftProspectCount, 0);
       assertEquals(result.contractCount, 0);
       assertEquals(calls.length, 0);
-    },
-  );
-
-  await t.step(
-    "generateAndPersist passes inserted players to contract generator",
-    async () => {
-      const { db } = createMockDb(["player-1"]);
-      let contractsGeneratorReceivedPlayers:
-        | { id: string; teamId: string | null }[]
-        | undefined;
-
-      const generator = createMockGenerator({
-        generate: () => ({
-          players: [
-            {
-              leagueId: "l1",
-              teamId: "t1",
-              firstName: "A",
-              lastName: "B",
-            },
-          ],
-          coaches: [],
-          scouts: [],
-          frontOfficeStaff: [],
-          draftProspects: [],
-        }),
-        generateContracts: (input) => {
-          contractsGeneratorReceivedPlayers = input.players;
-          return [];
-        },
-      });
-
-      const service = createPersonnelService({
-        generator,
-        db,
-        log: createTestLogger(),
-      });
-
-      await service.generateAndPersist({
-        leagueId: "l1",
-        seasonId: "s1",
-        teamIds: ["t1"],
-        rosterSize: 1,
-        salaryCap: 100_000,
-      });
-
-      assertEquals(contractsGeneratorReceivedPlayers?.length, 1);
-      assertEquals(contractsGeneratorReceivedPlayers?.[0].id, "player-1");
-      assertEquals(contractsGeneratorReceivedPlayers?.[0].teamId, "t1");
     },
   );
 });
