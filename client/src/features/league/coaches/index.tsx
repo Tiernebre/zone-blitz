@@ -4,8 +4,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useStaffTree } from "../../../hooks/use-staff-tree.ts";
 import { useTeams } from "../../../hooks/use-teams.ts";
+import { useSchemeFingerprint } from "../../../hooks/use-scheme-fingerprint.ts";
 import { buildStaffTree } from "./build-tree.ts";
 import { StaffTreeNode } from "./staff-tree-node.tsx";
+import { FingerprintPanel } from "./fingerprint-panel.tsx";
 
 export function Coaches() {
   const { leagueId: rawLeagueId } = useParams({ strict: false });
@@ -16,6 +18,10 @@ export function Coaches() {
   const { data: teams, isLoading: teamsLoading } = useTeams();
   const teamId = (teams?.[0]?.id as string | undefined) ?? "";
   const { data, isLoading, error } = useStaffTree(leagueId, teamId);
+  const {
+    data: fingerprint,
+    isLoading: fingerprintLoading,
+  } = useSchemeFingerprint(leagueId, teamId);
 
   const loading = teamsLoading || isLoading;
 
@@ -44,10 +50,16 @@ export function Coaches() {
       )}
 
       {!loading && !error && data && (
-        <StaffTree
-          nodes={data as CoachNode[]}
-          leagueId={leagueId}
-        />
+        <div className="flex flex-col gap-6">
+          <FingerprintPanel
+            fingerprint={fingerprint ?? undefined}
+            isLoading={fingerprintLoading}
+          />
+          <StaffTree
+            nodes={data as CoachNode[]}
+            leagueId={leagueId}
+          />
+        </div>
       )}
     </div>
   );

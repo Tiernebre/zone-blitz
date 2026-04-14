@@ -12,6 +12,8 @@ function createMockService(
     getStaffTree: () => Promise.resolve([]),
     getCoachDetail: () =>
       Promise.reject(new DomainError("NOT_FOUND", "Coach missing not found")),
+    getFingerprint: () =>
+      Promise.resolve({ offense: null, defense: null, overrides: {} }),
     ...overrides,
   };
 }
@@ -92,6 +94,47 @@ Deno.test("coaches.router", async (t) => {
       const body = await res.json();
       assertEquals(body.length, 2);
       assertEquals(body[0].id, "hc");
+    },
+  );
+
+  await t.step(
+    "GET /leagues/:leagueId/teams/:teamId/fingerprint returns the computed fingerprint",
+    async () => {
+      let receivedLeague: string | undefined;
+      let receivedTeam: string | undefined;
+      const router = createCoachesRouter(
+        createMockService({
+          getFingerprint: (leagueId, teamId) => {
+            receivedLeague = leagueId;
+            receivedTeam = teamId;
+            return Promise.resolve({
+              offense: {
+                runPassLean: 40,
+                tempo: 60,
+                personnelWeight: 50,
+                formationUnderCenterShotgun: 30,
+                preSnapMotionRate: 80,
+                passingStyle: 30,
+                passingDepth: 45,
+                runGameBlocking: 25,
+                rpoIntegration: 30,
+              },
+              defense: null,
+              overrides: {},
+            });
+          },
+        }),
+      );
+
+      const res = await router.request(
+        "/leagues/league-9/teams/team-17/fingerprint",
+      );
+      assertEquals(res.status, 200);
+      assertEquals(receivedLeague, "league-9");
+      assertEquals(receivedTeam, "team-17");
+      const body = await res.json();
+      assertEquals(body.offense.tempo, 60);
+      assertEquals(body.defense, null);
     },
   );
 

@@ -7,6 +7,7 @@ import type { CoachesGenerator } from "./coaches.generator.interface.ts";
 import type { CoachesRepository } from "./coaches.repository.interface.ts";
 import type { CoachTendenciesRepository } from "./coach-tendencies.repository.interface.ts";
 import type { CoachesService } from "./coaches.service.interface.ts";
+import { computeFingerprint } from "../schemes/fingerprint.ts";
 
 export function createCoachesService(deps: {
   generator: CoachesGenerator;
@@ -62,6 +63,25 @@ export function createCoachesService(deps: {
         throw new DomainError("NOT_FOUND", `Coach ${id} not found`);
       }
       return detail;
+    },
+
+    async getFingerprint(leagueId, teamId) {
+      log.debug({ leagueId, teamId }, "computing scheme fingerprint");
+      const staff = await deps.repo.getStaffTreeByTeam(leagueId, teamId);
+      const oc = staff.find((c) => c.role === "OC" && !c.isVacancy);
+      const dc = staff.find((c) => c.role === "DC" && !c.isVacancy);
+      const [ocTendencies, dcTendencies] = await Promise.all([
+        oc
+          ? deps.tendenciesRepo.getByCoachId(oc.id)
+          : Promise.resolve(undefined),
+        dc
+          ? deps.tendenciesRepo.getByCoachId(dc.id)
+          : Promise.resolve(undefined),
+      ]);
+      return computeFingerprint({
+        oc: ocTendencies ?? null,
+        dc: dcTendencies ?? null,
+      });
     },
   };
 }

@@ -1,4 +1,8 @@
-import type { CoachDetail, CoachNode } from "@zone-blitz/shared";
+import type {
+  CoachDetail,
+  CoachNode,
+  SchemeFingerprint,
+} from "@zone-blitz/shared";
 import type { Executor } from "../../db/connection.ts";
 
 export interface CoachesGenerateInput {
@@ -29,4 +33,16 @@ export interface CoachesService {
    * with code `NOT_FOUND` when no coach has the given id.
    */
   getCoachDetail(id: string): Promise<CoachDetail>;
+
+  /**
+   * Composed scheme fingerprint for the team, per ADR 0007. Never
+   * persisted — built on read from the current OC's offensive tendency
+   * vector and DC's defensive tendency vector. Either side resolves to
+   * `null` when the slot is vacant or the coordinator has no tendency
+   * row yet (e.g. HC-only rosters during generation transitions).
+   */
+  getFingerprint(
+    leagueId: string,
+    teamId: string,
+  ): Promise<SchemeFingerprint>;
 }
