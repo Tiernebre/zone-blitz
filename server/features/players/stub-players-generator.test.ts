@@ -21,7 +21,9 @@ Deno.test("generates correct number of rostered players per team", () => {
   const generator = createStubPlayersGenerator();
   const result = generator.generate(INPUT);
 
-  const rostered = result.players.filter((p) => p.player.teamId !== null);
+  const rostered = result.players.filter(
+    (p) => p.player.teamId !== null && p.player.status === "active",
+  );
   assertEquals(rostered.length, TEAM_IDS.length * INPUT.rosterSize);
 
   for (const teamId of TEAM_IDS) {
@@ -30,11 +32,13 @@ Deno.test("generates correct number of rostered players per team", () => {
   }
 });
 
-Deno.test("generates free agents with null teamId", () => {
+Deno.test("generates active free agents with null teamId", () => {
   const generator = createStubPlayersGenerator();
   const result = generator.generate(INPUT);
 
-  const freeAgents = result.players.filter((p) => p.player.teamId === null);
+  const freeAgents = result.players.filter(
+    (p) => p.player.teamId === null && p.player.status === "active",
+  );
   assertEquals(freeAgents.length, 50);
 });
 
@@ -47,22 +51,25 @@ Deno.test("all players have the correct leagueId", () => {
   }
 });
 
-Deno.test("generates draft prospects linked to seasonId", () => {
+Deno.test("prospects are emitted as players with status 'prospect' and no team", () => {
   const generator = createStubPlayersGenerator();
   const result = generator.generate(INPUT);
 
-  assertEquals(result.draftProspects.length, 250);
-  for (const entry of result.draftProspects) {
-    assertEquals(entry.prospect.seasonId, INPUT.seasonId);
+  const prospects = result.players.filter(
+    (p) => p.player.status === "prospect",
+  );
+  assertEquals(prospects.length, 250);
+  for (const entry of prospects) {
+    assertEquals(entry.player.teamId, null);
   }
 });
 
-Deno.test("every player and prospect has a full attribute set", () => {
+Deno.test("every generated player has a full attribute set", () => {
   const generator = createStubPlayersGenerator();
   const result = generator.generate(INPUT);
 
   const expectedKeyCount = PLAYER_ATTRIBUTE_KEYS.length * 2;
-  for (const entry of [...result.players, ...result.draftProspects]) {
+  for (const entry of result.players) {
     assertEquals(Object.keys(entry.attributes).length, expectedKeyCount);
     for (const key of PLAYER_ATTRIBUTE_KEYS) {
       const current = (entry.attributes as Record<string, number>)[key];
@@ -76,7 +83,7 @@ Deno.test("every player and prospect has a full attribute set", () => {
   }
 });
 
-Deno.test("every player and prospect has identity fields populated", () => {
+Deno.test("every player has identity fields populated", () => {
   const generator = createStubPlayersGenerator();
   const result = generator.generate(INPUT);
 
@@ -84,11 +91,6 @@ Deno.test("every player and prospect has identity fields populated", () => {
     assertEquals(typeof entry.player.heightInches, "number");
     assertEquals(typeof entry.player.weightPounds, "number");
     assertEquals(typeof entry.player.birthDate, "string");
-  }
-  for (const entry of result.draftProspects) {
-    assertEquals(typeof entry.prospect.heightInches, "number");
-    assertEquals(typeof entry.prospect.weightPounds, "number");
-    assertEquals(typeof entry.prospect.birthDate, "string");
   }
 });
 
@@ -134,7 +136,7 @@ Deno.test("roster composition sums to 53 players", () => {
 });
 
 Deno.test(
-  "every rostered player receives a position from the known set",
+  "every generated player receives a position from the known set",
   () => {
     const generator = createStubPlayersGenerator();
     const result = generator.generate(INPUT);
@@ -152,7 +154,7 @@ Deno.test(
     const result = generator.generate(INPUT);
     for (const teamId of TEAM_IDS) {
       const teamPlayers = result.players.filter(
-        (p) => p.player.teamId === teamId,
+        (p) => p.player.teamId === teamId && p.player.status === "active",
       );
       const byPosition = new Map<PlayerPosition, number>();
       for (const entry of teamPlayers) {
@@ -168,20 +170,11 @@ Deno.test(
   },
 );
 
-Deno.test("every rostered player starts with healthy injury status", () => {
+Deno.test("every generated player starts with healthy injury status", () => {
   const generator = createStubPlayersGenerator();
   const result = generator.generate(INPUT);
   for (const entry of result.players) {
     assertEquals(entry.player.injuryStatus, "healthy");
-  }
-});
-
-Deno.test("every draft prospect receives a valid position", () => {
-  const generator = createStubPlayersGenerator();
-  const result = generator.generate(INPUT);
-  const validPositions = new Set<PlayerPosition>(PLAYER_POSITIONS);
-  for (const entry of result.draftProspects) {
-    assertEquals(validPositions.has(entry.prospect.position), true);
   }
 });
 
@@ -200,10 +193,12 @@ Deno.test("every generated player gets a hometown and either draft info or undra
   }
 });
 
-Deno.test("at least one rostered player is undrafted", () => {
+Deno.test("at least one rostered active player is undrafted", () => {
   const generator = createStubPlayersGenerator();
   const result = generator.generate(INPUT);
-  const rostered = result.players.filter((p) => p.player.teamId !== null);
+  const rostered = result.players.filter(
+    (p) => p.player.teamId !== null && p.player.status === "active",
+  );
   const undrafted = rostered.filter((p) => p.player.draftYear === null);
   assertEquals(undrafted.length > 0, true);
 });
@@ -211,23 +206,21 @@ Deno.test("at least one rostered player is undrafted", () => {
 Deno.test("drafted rostered players carry their drafting team", () => {
   const generator = createStubPlayersGenerator();
   const result = generator.generate(INPUT);
-  const rostered = result.players.filter((p) => p.player.teamId !== null);
+  const rostered = result.players.filter(
+    (p) => p.player.teamId !== null && p.player.status === "active",
+  );
   const drafted = rostered.filter((p) => p.player.draftYear !== null);
   for (const entry of drafted) {
     assertEquals(typeof entry.player.draftingTeamId, "string");
   }
 });
 
-Deno.test("all generated players and prospects have non-empty names", () => {
+Deno.test("all generated players have non-empty names", () => {
   const generator = createStubPlayersGenerator();
   const result = generator.generate(INPUT);
 
   for (const entry of result.players) {
     assertEquals(entry.player.firstName.length > 0, true);
     assertEquals(entry.player.lastName.length > 0, true);
-  }
-  for (const entry of result.draftProspects) {
-    assertEquals(entry.prospect.firstName.length > 0, true);
-    assertEquals(entry.prospect.lastName.length > 0, true);
   }
 });

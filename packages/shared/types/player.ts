@@ -146,6 +146,12 @@ export interface PlayerTransactionEntry {
   detail: string | null;
 }
 
+export interface PreDraftEvaluation {
+  draftClassYear: number;
+  projectedRound: number | null;
+  scoutingNotes: string | null;
+}
+
 export interface PlayerDetail {
   id: string;
   firstName: string;
@@ -168,6 +174,21 @@ export interface PlayerDetail {
   transactions: PlayerTransactionEntry[];
   seasonStats: PlayerSeasonStatRow[];
   accolades: PlayerAccoladeEntry[];
+  preDraftEvaluation: PreDraftEvaluation | null;
+}
+
+export interface DraftEligiblePlayer {
+  id: string;
+  firstName: string;
+  lastName: string;
+  position: PlayerPosition;
+  college: string | null;
+  hometown: string | null;
+  heightInches: number;
+  weightPounds: number;
+  birthDate: string;
+  draftClassYear: number;
+  projectedRound: number | null;
 }
 
 export interface Contract {
@@ -221,18 +242,4 @@ export interface CurrentContractSummary {
   totalSalary: number;
   guaranteedMoney: number;
   signingBonus: number;
-}
-
-export interface DraftProspect {
-  id: string;
-  seasonId: string;
-  firstName: string;
-  lastName: string;
-  position: PlayerPosition;
-  heightInches: number;
-  weightPounds: number;
-  college: string | null;
-  birthDate: string;
-  createdAt: Date;
-  updatedAt: Date;
 }

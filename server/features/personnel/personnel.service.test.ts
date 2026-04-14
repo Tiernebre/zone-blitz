@@ -26,6 +26,8 @@ function createMockPlayersService(
         contractCount: 0,
       }),
     getDetail: () => Promise.reject(new Error("not implemented in mock")),
+    findDraftEligiblePlayers: () => Promise.resolve([]),
+    draftPlayer: () => Promise.reject(new Error("draftPlayer not stubbed")),
     ...overrides,
   };
 }

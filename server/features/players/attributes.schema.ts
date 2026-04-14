@@ -1,7 +1,7 @@
 import { check, pgTable, smallint, timestamp, uuid } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { PLAYER_ATTRIBUTE_KEYS } from "@zone-blitz/shared";
-import { draftProspects, players } from "./player.schema.ts";
+import { players } from "./player.schema.ts";
 
 export function camelToSnake(key: string): string {
   return key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
@@ -44,17 +44,4 @@ export const playerAttributes = pgTable(
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   () => attributeRangeChecks("player_attributes"),
-);
-
-export const draftProspectAttributes = pgTable(
-  "draft_prospect_attributes",
-  {
-    draftProspectId: uuid("draft_prospect_id")
-      .primaryKey()
-      .references(() => draftProspects.id, { onDelete: "cascade" }),
-    ...attributeColumns(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  },
-  () => attributeRangeChecks("draft_prospect_attributes"),
 );

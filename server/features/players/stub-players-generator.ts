@@ -279,28 +279,35 @@ export function createStubPlayersGenerator(): PlayersGenerator {
         });
       }
 
-      const draftProspects = [];
       for (let i = 0; i < DRAFT_PROSPECT_COUNT; i++) {
         const { firstName, lastName } = randomName(nameIndex++);
         const position = FREE_AGENT_POSITION_CYCLE[
           i % FREE_AGENT_POSITION_CYCLE.length
         ];
-        draftProspects.push({
-          prospect: {
-            seasonId: input.seasonId,
+        players.push({
+          player: {
+            leagueId: input.leagueId,
+            teamId: null,
+            status: "prospect" as const,
             firstName,
             lastName,
             position,
+            injuryStatus: "healthy" as const,
             heightInches: STUB_HEIGHT_INCHES,
             weightPounds: STUB_WEIGHT_POUNDS,
             college: STUB_COLLEGE,
+            hometown: STUB_HOMETOWNS[i % STUB_HOMETOWNS.length],
             birthDate: STUB_BIRTH_DATE,
+            draftYear: null,
+            draftRound: null,
+            draftPick: null,
+            draftingTeamId: null,
           },
           attributes: stubAttributes(),
         });
       }
 
-      return { players, draftProspects };
+      return { players };
     },
 
     generateContracts(input: ContractGeneratorInput): GeneratedContract[] {

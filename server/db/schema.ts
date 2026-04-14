@@ -48,17 +48,13 @@ export {
   scoutRoundTierEnum,
 } from "../features/scouts/scout-history.schema.ts";
 export {
-  draftProspects,
   playerInjuryStatusEnum,
   playerPositionEnum,
   players,
   playerStatusEnum,
 } from "../features/players/player.schema.ts";
 export { depthChartEntries } from "../features/players/depth-chart.schema.ts";
-export {
-  draftProspectAttributes,
-  playerAttributes,
-} from "../features/players/attributes.schema.ts";
+export { playerAttributes } from "../features/players/attributes.schema.ts";
 export { playerDraftProfile } from "../features/players/player-draft-profile.schema.ts";
 export { playerSeasonRatings } from "../features/players/player-season-ratings.schema.ts";
 export { contracts } from "../features/players/contract.schema.ts";

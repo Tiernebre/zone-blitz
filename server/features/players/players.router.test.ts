@@ -15,6 +15,8 @@ function createMockService(
       }),
     getDetail: () =>
       Promise.reject(new DomainError("NOT_FOUND", "player not found")),
+    findDraftEligiblePlayers: () => Promise.resolve([]),
+    draftPlayer: () => Promise.reject(new Error("draftPlayer not stubbed")),
     ...overrides,
   };
 }
@@ -56,6 +58,7 @@ Deno.test("players.router", async (t) => {
       transactions: [],
       seasonStats: [],
       accolades: [],
+      preDraftEvaluation: null,
     };
 
     const router = createPlayersRouter(
