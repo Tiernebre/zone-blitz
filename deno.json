@@ -30,7 +30,7 @@
     "test": "deno task test:server && deno task test:packages && deno task test:client",
     "test:server": "deno test server/ --env=.env --allow-env --allow-net --allow-read --allow-sys --coverage",
     "test:packages": "deno test packages/shared/ packages/simulation/ packages/ai/ --coverage",
-    "test:client": "cd client && deno run -A npm:vitest run --coverage",
+    "test:client": "cd client && npm exec -- vitest run --coverage",
     "test:coverage": "./bin/check-coverage",
     "test:e2e": "./bin/test-e2e",
     "build": "cd client && deno task build",
