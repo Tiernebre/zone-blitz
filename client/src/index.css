@@ -2,6 +2,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource/rye/400.css";
+@import "@fontsource/unifrakturcook/700.css";
+@import "@fontsource/bungee/400.css";
+@import "@fontsource/bebas-neue/400.css";
+@import "@fontsource/staatliches/400.css";
 
 @custom-variant dark (&:is(.dark *));
 

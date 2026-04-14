@@ -3,6 +3,7 @@ import type { Team } from "@zone-blitz/shared";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TeamLogo } from "../../../components/team-logo.tsx";
 import { useLeague } from "../../../hooks/use-league.ts";
 import { useTeams } from "../../../hooks/use-teams.ts";
 
@@ -107,10 +108,15 @@ function TeamPicker(
                             <Link
                               to="/leagues/$leagueId/opponents/$teamId"
                               params={{ leagueId, teamId: team.id }}
-                              className="text-sm font-medium underline-offset-2 hover:underline"
+                              className="flex items-center gap-2 text-sm font-medium underline-offset-2 hover:underline"
                               data-testid={`opponents-team-${team.id}`}
                             >
-                              {team.city} {team.name}
+                              <TeamLogo
+                                team={team}
+                                className="size-7 text-[0.65rem]"
+                                decorative
+                              />
+                              <span>{team.city} {team.name}</span>
                             </Link>
                           </li>
                         ))}
