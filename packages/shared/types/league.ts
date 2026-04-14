@@ -10,6 +10,7 @@ export interface League {
   rosterSize: number;
   createdAt: Date;
   updatedAt: Date;
+  lastPlayedAt: Date | null;
 }
 
 export interface LeagueSeasonSummary {

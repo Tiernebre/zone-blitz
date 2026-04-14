@@ -48,6 +48,24 @@ export function useAssignUserTeam() {
   });
 }
 
+export function useTouchLeague() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.api.leagues[":id"].touch.$post({
+        param: { id },
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to touch league (${res.status})`);
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leagues"] });
+    },
+  });
+}
+
 export function useDeleteLeague() {
   const queryClient = useQueryClient();
   return useMutation({

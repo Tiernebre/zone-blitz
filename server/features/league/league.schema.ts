@@ -13,4 +13,5 @@ export const leagues = pgTable("leagues", {
   rosterSize: integer("roster_size").notNull().default(53),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  lastPlayedAt: timestamp("last_played_at"),
 });

@@ -34,6 +34,7 @@ function createMockLeague(overrides: Partial<League> = {}): League {
     rosterSize: 53,
     createdAt: new Date(),
     updatedAt: new Date(),
+    lastPlayedAt: null,
     ...overrides,
   };
 }
@@ -46,6 +47,7 @@ function createMockRepo(
     getById: () => Promise.resolve(undefined),
     create: () => Promise.resolve(createMockLeague({ id: "new-id" })),
     updateUserTeam: () => Promise.resolve(createMockLeague({ id: "new-id" })),
+    touchLastPlayed: () => Promise.resolve(createMockLeague({ id: "new-id" })),
     deleteById: () => Promise.resolve(),
     ...overrides,
   };
@@ -525,6 +527,43 @@ Deno.test("league.service", async (t) => {
         () => service.assignUserTeam("lg-1", "missing-team"),
         DomainError,
         "Team not found",
+      );
+    },
+  );
+
+  await t.step(
+    "touchLastPlayed delegates to repository and returns updated league",
+    async () => {
+      let touchedId: string | undefined;
+      const touchedAt = new Date("2026-04-14T00:00:00Z");
+      const service = createService({
+        leagueRepo: {
+          touchLastPlayed: (id) => {
+            touchedId = id;
+            return Promise.resolve(
+              createMockLeague({ id, lastPlayedAt: touchedAt }),
+            );
+          },
+        },
+      });
+
+      const result = await service.touchLastPlayed("lg-1");
+      assertEquals(touchedId, "lg-1");
+      assertEquals(result.lastPlayedAt, touchedAt);
+    },
+  );
+
+  await t.step(
+    "touchLastPlayed throws NOT_FOUND when league does not exist",
+    async () => {
+      const service = createService({
+        leagueRepo: { touchLastPlayed: () => Promise.resolve(undefined) },
+      });
+
+      await assertRejects(
+        () => service.touchLastPlayed("missing"),
+        DomainError,
+        "not found",
       );
     },
   );

@@ -51,6 +51,11 @@ function formatDate(value: string | Date): string {
   return dateFormatter.format(date);
 }
 
+function formatLastPlayed(value: string | Date | null): string {
+  if (!value) return "Never";
+  return formatDate(value);
+}
+
 export function LeagueSelect() {
   const { data: leagues, isLoading, error } = useLeagues();
   const deleteLeague = useDeleteLeague();
@@ -123,6 +128,7 @@ export function LeagueSelect() {
                   <TableHead>Name</TableHead>
                   <TableHead>Team</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Last Played</TableHead>
                   <TableHead className="text-right">Created</TableHead>
                   <TableHead className="w-10">
                     <span className="sr-only">Actions</span>
@@ -193,6 +199,9 @@ export function LeagueSelect() {
                             </span>
                           )
                           : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {formatLastPlayed(league.lastPlayedAt)}
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground">
                         {formatDate(league.createdAt)}

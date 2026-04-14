@@ -1,11 +1,16 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
-import { useAssignUserTeam, useCreateLeague } from "./use-leagues.ts";
+import {
+  useAssignUserTeam,
+  useCreateLeague,
+  useTouchLeague,
+} from "./use-leagues.ts";
 import { createElement } from "react";
 
 const mockPost = vi.fn();
 const mockAssign = vi.fn();
+const mockTouch = vi.fn();
 
 vi.mock("../api.ts", () => ({
   api: {
@@ -15,6 +20,9 @@ vi.mock("../api.ts", () => ({
         ":id": {
           "user-team": {
             $patch: (...args: unknown[]) => mockAssign(...args),
+          },
+          touch: {
+            $post: (...args: unknown[]) => mockTouch(...args),
           },
         },
       },
@@ -110,6 +118,46 @@ describe("useAssignUserTeam", () => {
     });
 
     result.current.mutate({ leagueId: "abc", userTeamId: "t1" });
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
+
+    expect(result.current.error).toBeInstanceOf(Error);
+  });
+});
+
+describe("useTouchLeague", () => {
+  it("posts to the touch endpoint and returns the league", async () => {
+    const league = { id: "abc", lastPlayedAt: "2026-04-14T00:00:00Z" };
+    mockTouch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve(league),
+    });
+
+    const { result } = renderHook(() => useTouchLeague(), {
+      wrapper: createWrapper(),
+    });
+
+    result.current.mutate("abc");
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(mockTouch).toHaveBeenCalledWith({ param: { id: "abc" } });
+    expect(result.current.data).toEqual(league);
+  });
+
+  it("rejects when the server responds with a non-ok status", async () => {
+    mockTouch.mockResolvedValue({ ok: false, status: 500 });
+
+    const { result } = renderHook(() => useTouchLeague(), {
+      wrapper: createWrapper(),
+    });
+
+    result.current.mutate("abc");
 
     await waitFor(() => {
       expect(result.current.isError).toBe(true);

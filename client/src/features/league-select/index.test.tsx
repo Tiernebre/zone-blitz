@@ -148,6 +148,8 @@ describe("LeagueSelect", () => {
     expect(screen.getByRole("columnheader", { name: "Team" }))
       .toBeDefined();
     expect(screen.getByRole("columnheader", { name: "Status" })).toBeDefined();
+    expect(screen.getByRole("columnheader", { name: "Last Played" }))
+      .toBeDefined();
     expect(screen.getByRole("columnheader", { name: "Created" })).toBeDefined();
     expect(screen.queryByRole("columnheader", { name: "Teams" })).toBeNull();
     expect(screen.queryByRole("columnheader", { name: "Season Length" }))
