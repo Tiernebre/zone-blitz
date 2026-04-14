@@ -1,4 +1,4 @@
-# 0003 — Remove the standalone Schemes page; surface scheme as emergent
+# 0005 — Remove the standalone Schemes page; surface scheme as emergent
 
 - **Date:** 2026-04-13
 - **Status:** Accepted
