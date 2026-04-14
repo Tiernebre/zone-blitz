@@ -7,7 +7,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { PLAYER_TRANSACTION_TYPES } from "@zone-blitz/shared";
-import { players } from "./player.schema.ts";
+import { players } from "../players/player.schema.ts";
 import { teams } from "../team/team.schema.ts";
 
 export const playerTransactionTypeEnum = pgEnum(

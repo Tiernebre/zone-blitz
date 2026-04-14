@@ -11,9 +11,9 @@ import type {
 } from "@zone-blitz/shared";
 import type { Database, Executor } from "../../db/connection.ts";
 import { players } from "./player.schema.ts";
-import { contracts } from "./contract.schema.ts";
-import { contractHistory } from "./contract-history.schema.ts";
-import { playerTransactions } from "./player-transaction.schema.ts";
+import { contracts } from "../contracts/contract.schema.ts";
+import { contractHistory } from "../contracts/contract-history.schema.ts";
+import { playerTransactions } from "../contracts/player-transaction.schema.ts";
 import { playerDraftProfile } from "./player-draft-profile.schema.ts";
 import { playerSeasonStats } from "./player-career-log.schema.ts";
 import { playerAccolades } from "./player-accolades.schema.ts";

@@ -13,7 +13,7 @@ import {
 } from "@zone-blitz/shared";
 import type { Database } from "../../db/connection.ts";
 import { players } from "../players/player.schema.ts";
-import { contracts } from "../players/contract.schema.ts";
+import { contracts } from "../contracts/contract.schema.ts";
 import { depthChartEntries } from "../players/depth-chart.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { coaches } from "../coaches/coach.schema.ts";
