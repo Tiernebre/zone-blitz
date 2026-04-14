@@ -118,6 +118,11 @@ export type {
   NeutralBucketInput,
 } from "./archetypes/neutral-bucket.ts";
 export { NEUTRAL_BUCKETS, neutralBucket } from "./archetypes/neutral-bucket.ts";
+export type { PlayerArchetype } from "./archetypes/player-archetypes.ts";
+export {
+  archetypesForBucket,
+  PLAYER_ARCHETYPES,
+} from "./archetypes/player-archetypes.ts";
 export type { Game } from "./types/game.ts";
 
 // Interfaces — simulation

@@ -1,3 +1,4 @@
+export { createArchetypePlayerGenerator } from "./archetype-player-generator.ts";
 export { createStubPlayersGenerator } from "./stub-players-generator.ts";
 export { createPlayersService } from "./players.service.ts";
 export { createPlayersRepository } from "./players.repository.ts";

@@ -32,15 +32,6 @@ entry when it's resolved or superseded.
   tables.** `RosterPlayer.schemeFit` is on the wire everywhere but only the
   Roster page renders the badge. Salary cap and opponents detail already have
   the field in their fixtures — just add the column.
-- **2026-04-14 — Archetype-aware player generation.** Decision 0006
-  (positionless players) depends on the player generator producing
-  archetype-shaped attribute profiles — "gun-slinger QB," "zone-blocking guard,"
-  etc. — rather than uniform rolls. Also needs a rare cross-archetype case
-  (Travis Hunter-style CB/WR) with a tunable rate. No player should be elite at
-  every attribute; budgets/tradeoffs should enforce shapes. Scope this generator
-  design before a large player-creation pass ships. See
-  `docs/product/decisions/0006-positionless-players.md` "Note for the future —
-  player generation toward archetypes."
 - **2026-04-14 — Roster page release/trade/restructure flows.** The Active
   Roster view (decision 0001) lists release, trade, and restructure as
   per-player actions. Initial roster page PR ships these as disabled "coming
