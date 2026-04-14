@@ -9,7 +9,12 @@ export type {
 export type { Team } from "./types/team.ts";
 export type { NewSeason, Season, SeasonPhase } from "./types/season.ts";
 export type { FrontOfficeStaff } from "./types/front-office.ts";
-export type { Coach } from "./types/coach.ts";
+export type {
+  Coach,
+  CoachPlayCaller,
+  CoachRole,
+  CoachSpecialty,
+} from "./types/coach.ts";
 export type { Scout } from "./types/scout.ts";
 export type { Contract, DraftProspect, Player } from "./types/player.ts";
 export type { Game } from "./types/game.ts";

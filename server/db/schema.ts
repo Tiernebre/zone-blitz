@@ -12,7 +12,25 @@ export { teams } from "../features/team/team.schema.ts";
 export { colleges } from "../features/colleges/college.schema.ts";
 export { seasonPhaseEnum, seasons } from "../features/season/season.schema.ts";
 export { frontOfficeStaff } from "../features/front-office/front-office.schema.ts";
-export { coaches } from "../features/coaches/coach.schema.ts";
+export {
+  coaches,
+  coachPlayCallerEnum,
+  coachRoleEnum,
+  coachSpecialtyEnum,
+} from "../features/coaches/coach.schema.ts";
+export {
+  accoladeTypeEnum,
+  coachAccolades,
+  coachCareerStops,
+  coachConnections,
+  coachDepthChartNotes,
+  coachReputationLabels,
+  coachTenurePlayerDev,
+  coachTenureUnitPerformance,
+  connectionRelationEnum,
+  playerDevDeltaEnum,
+  tenureUnitSideEnum,
+} from "../features/coaches/coach-history.schema.ts";
 export { scouts } from "../features/scouts/scout.schema.ts";
 export { draftProspects, players } from "../features/players/player.schema.ts";
 export { contracts } from "../features/players/contract.schema.ts";
