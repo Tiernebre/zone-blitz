@@ -1248,6 +1248,137 @@ exploited. An adaptive DC whose pressure profile changes week to week based on
 the opposing QB is running a different pressure plan every Sunday — which is the
 point.
 
+### Situational Tendencies
+
+Coaches don't run the same scheme on every snap. A coach's identity is the
+aggregate of how he calls the game across many different situations — red zone,
+short yardage, two-minute, third down, score-dependent — and these situational
+tendencies are a hidden layer of the scheme fingerprint that sophisticated
+opponents study on film.
+
+**Red zone:**
+
+- Offense: personnel shifts toward heavy (12, 13, 22) because the field is
+  compressed — speed matters less, size matters more. Route concepts simplify
+  into fades, slants, and pick plays because there's no room for deep crossers.
+  A coach's red-zone run rate, fade rate, and QB-designed- run rate are all
+  tendencies.
+- Defense: some DCs tighten into Cover 0 inside the 10 (no deep ball to defend,
+  so why have a safety); others play zone and make the offense execute. A DC who
+  never changes his base coverage in the red zone is predictable; a DC who has a
+  distinct red-zone package is harder to scheme against.
+
+**Short yardage & goal line:**
+
+- Offense: 22 or 13 personnel, QB sneak rate, play-action off the run look. A
+  coach with a trusted short-yardage package has real answers on 3rd-and-1; a
+  coach whose answer is "run our base play and hope" leaves points on the field
+  over a season.
+- Defense: goal-line personnel (extra LB or DL in for a DB), gap-exchange
+  fronts, press-man coverage on fades. Willingness to bring a safety into the
+  box vs. stay in the coverage shell is a tendency.
+
+**Two-minute drill:**
+
+- Offense: tempo up, empty or 10 personnel, hash-management, spike tendencies. A
+  coach's two-minute efficiency is a real attribute — some OCs live for the
+  two-minute and have specific packages; others run the same stuff faster and
+  hope it works.
+- Defense: prevent vs. continue-to-press philosophy. Prevent coverage limits big
+  plays but concedes chunks; continuing to play normal defense risks the big
+  play but forces the offense to execute. A conservative DC defaults to prevent;
+  an aggressive DC plays to win it.
+
+**Third-down tendencies by distance:**
+
+- 3rd-and-short: offenses lean heavy and run; defenses either commit to the run
+  (load the box) or assume play-action and play pass. The mismatch between what
+  the offense actually does and what the defense expected is the tendency game.
+- 3rd-and-medium (4-6 yards): the most coach-specific situation in football. Run
+  rate, screen rate, quick-game rate, blitz rate all vary dramatically by coach.
+  If a defense knows an OC never runs on 3rd-and-5, they commit five DBs. If the
+  OC occasionally runs for the first down, the defense has to honor it.
+- 3rd-and-long (7+): pass-heavy offensively, pressure-heavy defensively. But
+  within that — does the OC throw past the sticks or take the checkdown and punt
+  from better field position? Does the DC blitz or rush four and play a deep
+  zone?
+
+**Score and game-state adjustments:**
+
+- Leading by multiple scores: conservative offense (run the ball, bleed clock),
+  conservative defense (two-high, no blitz, concede yards not big plays). A
+  coach's willingness to "go for the throat" vs. "play it safe" with a lead is a
+  core personality tendency.
+- Trailing: aggressive offense (tempo, deep shots, 4th-down aggression),
+  aggressive defense (blitz, press, force turnovers). How early a coach shifts
+  into trailing mode is a tendency — some panic and abandon the run in the 2nd
+  quarter down 10, others stick to the plan until the 4th.
+- One-score games in the 4th quarter: where reputations are made. Aggressive
+  coaches who trust their offense go for it on 4th-and-2 from their own 40.
+  Conservative coaches punt and trust their defense. Over hundreds of games, a
+  coach's 4th-down decision chart is one of the most revealing pieces of film on
+  him.
+
+A coach whose situational tendencies are **coherent** — his red zone, short
+yardage, and two-minute packages all reflect the same identity and work together
+— has a real scheme. A coach whose base offense looks nothing like his red zone,
+whose two-minute is a different playbook from his first-half base, has
+situational incoherence, and opposing coordinators will find the seams.
+
+### Scheme vs. Game Plan
+
+A coach's scheme is his season-long fingerprint — the aggregate of his
+tendencies across every situation. His **game plan** is the weekly customization
+of that scheme against a specific opponent. Understanding this distinction
+matters because the two are different coaching skills and map to different
+hidden attributes.
+
+**Scheme is identity.** It's what the coach runs on Week 1 and Week 17 with
+broadly the same calling profile. It's what the film library shows over hundreds
+of snaps. Scheme is driven by the coach's _scheme mastery_ and _innovation_
+attributes (see [Coaches](./coaches.md)) — how deeply he understands his system
+and how well he evolves it over time as the league shifts.
+
+**Game plan is customization.** It's what the coach does differently in Week 6
+against a team that plays Cover 2 versus Week 7 against a team that plays
+Cover 3. Which concepts he leans into, which ones he shelves, which personnel
+packages he features, and which pressures he dials up. Game plan is driven by
+the coach's _adaptability_ and _player evaluation_ attributes — how well he
+diagnoses opponent tendencies and matches his personnel to their weaknesses.
+
+The two can diverge:
+
+- **Strong scheme, weak game plan:** A coach with a well-built system he runs
+  the same way every week. Good against average opponents (his scheme is above
+  the curve); exploitable against strong opponents who study tape and know
+  exactly what's coming. The "good coach on paper" who never wins the big
+  playoff game.
+- **Weak scheme, strong game plan:** A coach whose base identity isn't elite,
+  but who reinvents his approach weekly based on matchups. Hard to prep for in a
+  one-off game but inconsistent across a season. The coach whose team is always
+  "tough to game-plan for."
+- **Strong scheme, strong game plan:** The ideal. A coherent identity the coach
+  customizes weekly without losing its core. These are the coaches who go deep
+  in the playoffs repeatedly.
+- **Weak scheme, weak game plan:** The coach who gets fired. His team is both
+  below average in base execution and fails to adapt to specific opponents.
+
+The user never sees these as separate ratings. What they see:
+
+- Does your team's performance fluctuate wildly from week to week based on
+  opponent? That suggests a game-plan-dependent coach — strong in some matchups,
+  weak in others.
+- Does your team play the same way and grade out consistently regardless of
+  opponent? That suggests a scheme-dependent coach — identity over
+  customization.
+- Does your team lose to teams that have had extra prep time (bye weeks, playoff
+  seeding)? That suggests a coach whose scheme is _figured out_ when opponents
+  study him — low innovation, low adaptability, or both.
+
+This is why the distinction between "the game passed him by" (scheme stagnation)
+and "we got out-coached in the playoffs" (game-plan failure) matters. Both look
+like losing. They have different causes and require different fixes.
+
 ---
 
 ## Scheme Fit
