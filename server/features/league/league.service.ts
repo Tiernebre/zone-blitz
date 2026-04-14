@@ -95,6 +95,7 @@ export function createLeagueService(deps: {
 
         await deps.scheduleService.generate({
           seasonId: season.id,
+          seasonLength: league.seasonLength,
           teams: teams.map((t) => ({
             teamId: t.id,
             conference: t.conference,
@@ -114,6 +115,15 @@ export function createLeagueService(deps: {
       }
       await deps.teamService.getById(userTeamId);
       const updated = await deps.leagueRepo.updateUserTeam(id, userTeamId);
+      if (!updated) {
+        throw new DomainError("NOT_FOUND", `League ${id} not found`);
+      }
+      return updated;
+    },
+
+    async touchLastPlayed(id) {
+      log.debug({ id }, "touching league last played");
+      const updated = await deps.leagueRepo.touchLastPlayed(id);
       if (!updated) {
         throw new DomainError("NOT_FOUND", `League ${id} not found`);
       }

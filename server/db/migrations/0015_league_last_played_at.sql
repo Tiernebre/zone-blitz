@@ -1,0 +1,1 @@
+ALTER TABLE "leagues" ADD COLUMN "last_played_at" timestamp;

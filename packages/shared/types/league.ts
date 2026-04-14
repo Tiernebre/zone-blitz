@@ -4,12 +4,15 @@ export interface League {
   id: string;
   name: string;
   userTeamId: string | null;
+  numberOfTeams: number;
+  seasonLength: number;
   salaryCap: number;
   capFloorPercent: number;
   capGrowthRate: number;
   rosterSize: number;
   createdAt: Date;
   updatedAt: Date;
+  lastPlayedAt: Date | null;
 }
 
 export interface LeagueSeasonSummary {

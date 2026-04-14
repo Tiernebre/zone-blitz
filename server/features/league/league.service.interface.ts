@@ -5,5 +5,6 @@ export interface LeagueService {
   getById(id: string): Promise<League>;
   create(input: NewLeague): Promise<League>;
   assignUserTeam(id: string, userTeamId: string): Promise<League>;
+  touchLastPlayed(id: string): Promise<League>;
   deleteById(id: string): Promise<void>;
 }

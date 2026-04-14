@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, Outlet, useParams } from "@tanstack/react-router";
 import {
   ArrowLeftIcon,
@@ -34,6 +35,7 @@ import {
 } from "@/components/ui/sidebar";
 import { UserMenu } from "../../components/user-menu.tsx";
 import { useLeague } from "../../hooks/use-league.ts";
+import { useTouchLeague } from "../../hooks/use-leagues.ts";
 
 type NavItem = {
   label: string;
@@ -79,6 +81,13 @@ const navGroups: NavGroup[] = [
 export function LeagueLayout() {
   const { leagueId } = useParams({ strict: false });
   const { data: league } = useLeague(leagueId ?? "");
+  const touchLeague = useTouchLeague();
+
+  useEffect(() => {
+    if (leagueId) {
+      touchLeague.mutate(leagueId);
+    }
+  }, [leagueId]);
 
   const basePath = `/leagues/${leagueId}`;
 

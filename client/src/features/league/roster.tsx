@@ -1,4 +1,5 @@
 import { useParams } from "@tanstack/react-router";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   Card,
   CardContent,
@@ -17,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DataTable } from "@/components/ui/data-table";
 import type {
   ActiveRoster,
   DepthChart,
@@ -88,6 +90,45 @@ function formatCoachRole(role: string) {
     .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
     .join(" ");
 }
+
+const rosterColumns: ColumnDef<RosterPlayer>[] = [
+  {
+    id: "player",
+    header: "Player",
+    cell: ({ row }) => (
+      <span className="font-medium">
+        {row.original.firstName} {row.original.lastName}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "position",
+    header: "Pos",
+  },
+  {
+    accessorKey: "age",
+    header: "Age",
+  },
+  {
+    id: "capHit",
+    header: "Cap Hit",
+    cell: ({ row }) => formatCurrency(row.original.capHit),
+  },
+  {
+    id: "contract",
+    header: "Contract",
+    cell: ({ row }) => `${row.original.contractYearsRemaining} yrs`,
+  },
+  {
+    id: "status",
+    header: "Status",
+    cell: ({ row }) => (
+      <Badge variant={injuryBadgeVariant(row.original.injuryStatus)}>
+        {formatInjury(row.original.injuryStatus)}
+      </Badge>
+    ),
+  },
+];
 
 export function Roster() {
   const { leagueId } = useParams({ strict: false }) as { leagueId: string };
@@ -211,43 +252,11 @@ function ActiveRosterContent({ roster }: { roster: ActiveRoster }) {
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Player</TableHead>
-                    <TableHead>Pos</TableHead>
-                    <TableHead>Age</TableHead>
-                    <TableHead>Cap Hit</TableHead>
-                    <TableHead>Contract</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {players.map((player) => (
-                    <TableRow
-                      key={player.id}
-                      data-testid={`roster-row-${player.id}`}
-                    >
-                      <TableCell className="font-medium">
-                        {player.firstName} {player.lastName}
-                      </TableCell>
-                      <TableCell>{player.position}</TableCell>
-                      <TableCell>{player.age}</TableCell>
-                      <TableCell>{formatCurrency(player.capHit)}</TableCell>
-                      <TableCell>
-                        {player.contractYearsRemaining} yrs
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={injuryBadgeVariant(player.injuryStatus)}
-                        >
-                          {formatInjury(player.injuryStatus)}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable
+                columns={rosterColumns}
+                data={players}
+                getRowTestId={(player) => `roster-row-${player.id}`}
+              />
             </CardContent>
           </Card>
         );

@@ -28,12 +28,15 @@ function createMockLeague(overrides: Partial<League> = {}): League {
     id: "1",
     name: "Test",
     userTeamId: null,
+    numberOfTeams: 32,
+    seasonLength: 17,
     salaryCap: 255_000_000,
     capFloorPercent: 89,
     capGrowthRate: 5,
     rosterSize: 53,
     createdAt: new Date(),
     updatedAt: new Date(),
+    lastPlayedAt: null,
     ...overrides,
   };
 }
@@ -46,6 +49,7 @@ function createMockRepo(
     getById: () => Promise.resolve(undefined),
     create: () => Promise.resolve(createMockLeague({ id: "new-id" })),
     updateUserTeam: () => Promise.resolve(createMockLeague({ id: "new-id" })),
+    touchLastPlayed: () => Promise.resolve(createMockLeague({ id: "new-id" })),
     deleteById: () => Promise.resolve(),
     ...overrides,
   };
@@ -327,6 +331,7 @@ Deno.test("league.service", async (t) => {
         generate: (input) => {
           scheduleCalled = true;
           assertEquals(input.seasonId, "season-1");
+          assertEquals(input.seasonLength, 17);
           return Promise.resolve({ gameCount: 0 });
         },
       },
@@ -338,6 +343,30 @@ Deno.test("league.service", async (t) => {
     assertEquals(personnelCalled, true);
     assertEquals(scheduleCalled, true);
   });
+
+  await t.step(
+    "create forwards the league's seasonLength into the schedule service",
+    async () => {
+      let receivedSeasonLength: number | undefined;
+      const service = createService({
+        leagueRepo: {
+          create: () =>
+            Promise.resolve(
+              createMockLeague({ id: "new-id", seasonLength: 14 }),
+            ),
+        },
+        scheduleService: {
+          generate: (input) => {
+            receivedSeasonLength = input.seasonLength;
+            return Promise.resolve({ gameCount: 0 });
+          },
+        },
+      });
+
+      await service.create({ name: "Short Season" });
+      assertEquals(receivedSeasonLength, 14);
+    },
+  );
 
   await t.step(
     "create throws PRECONDITION_FAILED when no teams are seeded",
@@ -525,6 +554,43 @@ Deno.test("league.service", async (t) => {
         () => service.assignUserTeam("lg-1", "missing-team"),
         DomainError,
         "Team not found",
+      );
+    },
+  );
+
+  await t.step(
+    "touchLastPlayed delegates to repository and returns updated league",
+    async () => {
+      let touchedId: string | undefined;
+      const touchedAt = new Date("2026-04-14T00:00:00Z");
+      const service = createService({
+        leagueRepo: {
+          touchLastPlayed: (id) => {
+            touchedId = id;
+            return Promise.resolve(
+              createMockLeague({ id, lastPlayedAt: touchedAt }),
+            );
+          },
+        },
+      });
+
+      const result = await service.touchLastPlayed("lg-1");
+      assertEquals(touchedId, "lg-1");
+      assertEquals(result.lastPlayedAt, touchedAt);
+    },
+  );
+
+  await t.step(
+    "touchLastPlayed throws NOT_FOUND when league does not exist",
+    async () => {
+      const service = createService({
+        leagueRepo: { touchLastPlayed: () => Promise.resolve(undefined) },
+      });
+
+      await assertRejects(
+        () => service.touchLastPlayed("missing"),
+        DomainError,
+        "not found",
       );
     },
   );
