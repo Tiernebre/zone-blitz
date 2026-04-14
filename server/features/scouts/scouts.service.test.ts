@@ -73,6 +73,30 @@ Deno.test("scouts.service", async (t) => {
   );
 
   await t.step(
+    "generate routes inserts through tx when provided",
+    async () => {
+      const { db, calls: dbCalls } = createMockDb();
+      const { db: tx, calls: txCalls } = createMockDb();
+      const generator = createMockGenerator({
+        generate: () => [
+          { leagueId: "l1", teamId: "t1", firstName: "A", lastName: "B" },
+        ],
+      });
+
+      const service = createScoutsService({
+        generator,
+        db,
+        log: createTestLogger(),
+      });
+
+      await service.generate({ leagueId: "l1", teamIds: ["t1"] }, tx);
+
+      assertEquals(dbCalls.length, 0);
+      assertEquals(txCalls.length, 1);
+    },
+  );
+
+  await t.step(
     "generate skips insert when generator returns empty",
     async () => {
       const { db, calls } = createMockDb();

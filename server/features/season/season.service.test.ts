@@ -115,4 +115,24 @@ Deno.test("season.service", async (t) => {
       "league-1",
     );
   });
+
+  await t.step("create forwards tx to repository when provided", async () => {
+    let receivedTx: unknown;
+    const marker = { __tx: true };
+    const service = createSeasonService({
+      seasonRepo: createMockSeasonRepo({
+        create: (_input, tx) => {
+          receivedTx = tx;
+          return Promise.resolve(createMockSeason());
+        },
+      }),
+      log: createTestLogger(),
+    });
+
+    await service.create(
+      { leagueId: "league-1" },
+      marker as unknown as import("../../db/connection.ts").Executor,
+    );
+    assertEquals(receivedTx, marker);
+  });
 });

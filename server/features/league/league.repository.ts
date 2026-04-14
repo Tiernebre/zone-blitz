@@ -26,9 +26,9 @@ export function createLeagueRepository(deps: {
       return league;
     },
 
-    async create(input) {
+    async create(input, tx) {
       log.debug({ name: input.name }, "creating league");
-      const [league] = await deps.db
+      const [league] = await (tx ?? deps.db)
         .insert(leagues)
         .values({ name: input.name })
         .returning();

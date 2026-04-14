@@ -208,6 +208,56 @@ Deno.test("players.service", async (t) => {
   );
 
   await t.step(
+    "generate routes inserts through tx when provided",
+    async () => {
+      const { db, calls: dbCalls } = createMockDb(["p1"]);
+      const { db: tx, calls: txCalls } = createMockDb(["p1"]);
+      const generator = createMockGenerator({
+        generate: () => ({
+          players: [
+            {
+              player: {
+                leagueId: "l1",
+                teamId: "t1",
+                firstName: "A",
+                lastName: "B",
+                heightInches: 72,
+                weightPounds: 220,
+                college: null,
+                birthDate: "2000-01-01",
+              },
+              attributes: stubAttrs(),
+            },
+          ],
+          draftProspects: [],
+        }),
+        generateContracts: () => [],
+      });
+
+      const service = createPlayersService({
+        generator,
+        db,
+        log: createTestLogger(),
+      });
+
+      await service.generate(
+        {
+          leagueId: "l1",
+          seasonId: "s1",
+          teamIds: ["t1"],
+          rosterSize: 1,
+          salaryCap: 100_000,
+        },
+        tx,
+      );
+
+      assertEquals(dbCalls.length, 0);
+      // players + player_attributes writes routed through tx
+      assertEquals(txCalls.length, 2);
+    },
+  );
+
+  await t.step(
     "generate passes inserted players to contract generator",
     async () => {
       const { db } = createMockDb(["player-1"]);

@@ -1,3 +1,5 @@
+import type { Executor } from "../../db/connection.ts";
+
 export interface ScoutsGenerateInput {
   leagueId: string;
   teamIds: string[];
@@ -8,5 +10,8 @@ export interface ScoutsGenerateResult {
 }
 
 export interface ScoutsService {
-  generate(input: ScoutsGenerateInput): Promise<ScoutsGenerateResult>;
+  generate(
+    input: ScoutsGenerateInput,
+    tx?: Executor,
+  ): Promise<ScoutsGenerateResult>;
 }

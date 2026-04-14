@@ -1,3 +1,5 @@
+import type { Executor } from "../../db/connection.ts";
+
 export interface PlayersGenerateInput {
   leagueId: string;
   seasonId: string;
@@ -15,5 +17,6 @@ export interface PlayersGenerateResult {
 export interface PlayersService {
   generate(
     input: PlayersGenerateInput,
+    tx?: Executor,
   ): Promise<PlayersGenerateResult>;
 }

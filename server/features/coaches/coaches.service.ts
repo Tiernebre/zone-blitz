@@ -15,7 +15,7 @@ export function createCoachesService(deps: {
   const log = deps.log.child({ module: "coaches.service" });
 
   return {
-    async generate(input) {
+    async generate(input, tx) {
       log.info({ leagueId: input.leagueId }, "generating coaches");
 
       const generated = deps.generator.generate({
@@ -24,7 +24,7 @@ export function createCoachesService(deps: {
       });
 
       if (generated.length > 0) {
-        await deps.db.insert(coaches).values(generated);
+        await (tx ?? deps.db).insert(coaches).values(generated);
       }
 
       log.info(

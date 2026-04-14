@@ -17,7 +17,8 @@ export function createPlayersService(deps: {
   const log = deps.log.child({ module: "players.service" });
 
   return {
-    async generate(input) {
+    async generate(input, tx) {
+      const exec = tx ?? deps.db;
       log.info(
         { leagueId: input.leagueId, seasonId: input.seasonId },
         "generating players",
@@ -33,7 +34,7 @@ export function createPlayersService(deps: {
       let insertedPlayers: { id: string; teamId: string | null }[] = [];
 
       if (generated.players.length > 0) {
-        insertedPlayers = await deps.db
+        insertedPlayers = await exec
           .insert(players)
           .values(generated.players.map((entry) => entry.player))
           .returning({ id: players.id, teamId: players.teamId });
@@ -42,11 +43,11 @@ export function createPlayersService(deps: {
           playerId: row.id,
           ...generated.players[index].attributes,
         }));
-        await deps.db.insert(playerAttributes).values(attributeRows);
+        await exec.insert(playerAttributes).values(attributeRows);
       }
 
       if (generated.draftProspects.length > 0) {
-        const insertedProspects = await deps.db
+        const insertedProspects = await exec
           .insert(draftProspects)
           .values(generated.draftProspects.map((entry) => entry.prospect))
           .returning({ id: draftProspects.id });
@@ -55,7 +56,7 @@ export function createPlayersService(deps: {
           draftProspectId: row.id,
           ...generated.draftProspects[index].attributes,
         }));
-        await deps.db
+        await exec
           .insert(draftProspectAttributes)
           .values(prospectAttributeRows);
       }
@@ -75,7 +76,7 @@ export function createPlayersService(deps: {
       });
 
       if (generatedContracts.length > 0) {
-        await deps.db.insert(contracts).values(generatedContracts);
+        await exec.insert(contracts).values(generatedContracts);
       }
 
       log.info(

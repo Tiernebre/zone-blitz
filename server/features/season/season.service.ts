@@ -19,9 +19,9 @@ export function createSeasonService(deps: {
       return await deps.seasonRepo.getById(id);
     },
 
-    async create(input) {
+    async create(input, tx) {
       log.debug({ leagueId: input.leagueId }, "creating season");
-      return await deps.seasonRepo.create(input);
+      return await deps.seasonRepo.create(input, tx);
     },
   };
 }
