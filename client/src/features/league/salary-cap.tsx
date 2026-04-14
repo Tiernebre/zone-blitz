@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable, SortableHeader } from "@/components/ui/data-table";
+import { SchemeFitBadge } from "@/components/ui/scheme-fit-badge";
 import type {
   ActiveRoster,
   NeutralBucketGroup,
@@ -63,6 +64,18 @@ const capColumns: ColumnDef<RosterPlayer>[] = [
       <SortableHeader column={column}>Group</SortableHeader>
     ),
     cell: ({ row }) => groupLabels[row.original.neutralBucketGroup],
+  },
+  {
+    accessorKey: "schemeFit",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Scheme Fit</SortableHeader>
+    ),
+    cell: ({ row }) => (
+      <SchemeFitBadge
+        fit={row.original.schemeFit}
+        testId={`salary-cap-scheme-fit-${row.original.id}`}
+      />
+    ),
   },
   {
     accessorKey: "capHit",

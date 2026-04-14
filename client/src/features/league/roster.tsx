@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SchemeFitBadge } from "@/components/ui/scheme-fit-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,7 +29,6 @@ import type {
   RosterPlayer,
 } from "@zone-blitz/shared/types/roster.ts";
 import type { PlayerInjuryStatus } from "@zone-blitz/shared/types/player.ts";
-import type { SchemeFitLabel } from "@zone-blitz/shared";
 import { useLeague } from "../../hooks/use-league.ts";
 import { useActiveRoster } from "../../hooks/use-active-roster.ts";
 import { useDepthChart } from "../../hooks/use-depth-chart.ts";
@@ -61,23 +61,6 @@ function injuryBadgeVariant(
 
 function formatInjury(status: PlayerInjuryStatus) {
   return status.replace(/_/g, " ");
-}
-
-const schemeFitLabels: Record<SchemeFitLabel, string> = {
-  ideal: "Ideal fit",
-  fits: "Fits",
-  neutral: "Neutral",
-  poor: "Poor fit",
-  miscast: "Miscast",
-};
-
-function schemeFitBadgeVariant(
-  label: SchemeFitLabel,
-): "secondary" | "destructive" | "outline" | "default" {
-  if (label === "ideal") return "default";
-  if (label === "fits") return "secondary";
-  if (label === "miscast" || label === "poor") return "destructive";
-  return "outline";
 }
 
 function ordinal(n: number): string {
@@ -145,27 +128,12 @@ const rosterColumns: ColumnDef<RosterPlayer>[] = [
     header: ({ column }) => (
       <SortableHeader column={column}>Scheme Fit</SortableHeader>
     ),
-    cell: ({ row }) => {
-      const fit = row.original.schemeFit;
-      if (fit === null) {
-        return (
-          <span
-            className="text-muted-foreground"
-            data-testid={`roster-scheme-fit-${row.original.id}`}
-          >
-            —
-          </span>
-        );
-      }
-      return (
-        <Badge
-          variant={schemeFitBadgeVariant(fit)}
-          data-testid={`roster-scheme-fit-${row.original.id}`}
-        >
-          {schemeFitLabels[fit]}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => (
+      <SchemeFitBadge
+        fit={row.original.schemeFit}
+        testId={`roster-scheme-fit-${row.original.id}`}
+      />
+    ),
   },
   {
     accessorKey: "injuryStatus",
