@@ -58,15 +58,15 @@ export { depthChartEntries } from "../features/players/depth-chart.schema.ts";
 export { playerAttributes } from "../features/players/attributes.schema.ts";
 export { playerDraftProfile } from "../features/players/player-draft-profile.schema.ts";
 export { playerSeasonRatings } from "../features/players/player-season-ratings.schema.ts";
-export { contracts } from "../features/players/contract.schema.ts";
+export { contracts } from "../features/contracts/contract.schema.ts";
 export {
   contractHistory,
   contractTerminationReasonEnum,
-} from "../features/players/contract-history.schema.ts";
+} from "../features/contracts/contract-history.schema.ts";
 export {
   playerTransactions,
   playerTransactionTypeEnum,
-} from "../features/players/player-transaction.schema.ts";
+} from "../features/contracts/player-transaction.schema.ts";
 export { playerSeasonStats } from "../features/players/player-career-log.schema.ts";
 export {
   playerAccolades,

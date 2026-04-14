@@ -7,7 +7,7 @@ import { DomainError, PLAYER_ATTRIBUTE_KEYS } from "@zone-blitz/shared";
 import * as schema from "../../db/schema.ts";
 import { players } from "../players/player.schema.ts";
 import { playerAttributes } from "../players/attributes.schema.ts";
-import { contracts } from "../players/contract.schema.ts";
+import { contracts } from "../contracts/contract.schema.ts";
 import { depthChartEntries } from "../players/depth-chart.schema.ts";
 import { coaches } from "../coaches/coach.schema.ts";
 import { leagues } from "../league/league.schema.ts";

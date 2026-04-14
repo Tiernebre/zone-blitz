@@ -9,9 +9,9 @@ import {
 import { players } from "./player.schema.ts";
 import { playerAttributes } from "./attributes.schema.ts";
 import { playerDraftProfile } from "./player-draft-profile.schema.ts";
-import { contracts } from "./contract.schema.ts";
-import { contractHistory } from "./contract-history.schema.ts";
-import { playerTransactions } from "./player-transaction.schema.ts";
+import { contracts } from "../contracts/contract.schema.ts";
+import { contractHistory } from "../contracts/contract-history.schema.ts";
+import { playerTransactions } from "../contracts/player-transaction.schema.ts";
 import { seasons } from "../season/season.schema.ts";
 import type { PlayersGenerator } from "./players.generator.interface.ts";
 import type { PlayersRepository } from "./players.repository.interface.ts";
