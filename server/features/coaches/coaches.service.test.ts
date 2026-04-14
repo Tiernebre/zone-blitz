@@ -9,6 +9,7 @@ import type {
 import { createCoachesService } from "./coaches.service.ts";
 import type { CoachesGenerator } from "./coaches.generator.interface.ts";
 import type { CoachesRepository } from "./coaches.repository.interface.ts";
+import type { CoachTendenciesRepository } from "./coach-tendencies.repository.interface.ts";
 
 function createTestLogger() {
   return {
@@ -35,6 +36,23 @@ function createMockRepo(
   return {
     getStaffTreeByTeam: () => Promise.resolve([]),
     getCoachDetailById: () => Promise.resolve(undefined),
+    ...overrides,
+  };
+}
+
+function createMockTendenciesRepo(
+  overrides: Partial<CoachTendenciesRepository> = {},
+): CoachTendenciesRepository {
+  return {
+    getByCoachId: () => Promise.resolve(undefined),
+    upsert: (input) =>
+      Promise.resolve({
+        coachId: input.coachId,
+        offense: null,
+        defense: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
     ...overrides,
   };
 }
@@ -140,6 +158,7 @@ Deno.test("coaches.service", async (t) => {
         generator,
         repo: createMockRepo(),
         db,
+        tendenciesRepo: createMockTendenciesRepo(),
         log: createTestLogger(),
       });
 
@@ -163,6 +182,7 @@ Deno.test("coaches.service", async (t) => {
         generator,
         repo: createMockRepo(),
         db,
+        tendenciesRepo: createMockTendenciesRepo(),
         log: createTestLogger(),
       });
 
@@ -191,6 +211,7 @@ Deno.test("coaches.service", async (t) => {
           },
         }),
         db,
+        tendenciesRepo: createMockTendenciesRepo(),
         log: createTestLogger(),
       });
 
@@ -208,6 +229,7 @@ Deno.test("coaches.service", async (t) => {
         getCoachDetailById: () => Promise.resolve(detail),
       }),
       db,
+      tendenciesRepo: createMockTendenciesRepo(),
       log: createTestLogger(),
     });
 
@@ -244,6 +266,7 @@ Deno.test("coaches.service", async (t) => {
         generator,
         repo: createMockRepo(),
         db,
+        tendenciesRepo: createMockTendenciesRepo(),
         log: createTestLogger(),
       });
 
@@ -255,6 +278,84 @@ Deno.test("coaches.service", async (t) => {
   );
 
   await t.step(
+    "generate upserts a tendency row per coordinator who carries one",
+    async () => {
+      const { db } = createMockDb();
+      const base = {
+        leagueId: "l1",
+        teamId: "t1",
+        reportsToId: null,
+        playCaller: null,
+        age: 45,
+        hiredAt: new Date(),
+        contractYears: 3,
+        contractSalary: 1_000_000,
+        contractBuyout: 1_000_000,
+        collegeId: null,
+        isVacancy: false,
+        mentorCoachId: null,
+      };
+      const generator = createMockGenerator({
+        generate: () => [
+          {
+            ...base,
+            id: "oc",
+            role: "OC",
+            specialty: "offense",
+            firstName: "Off",
+            lastName: "Coord",
+            tendencies: {
+              offense: {
+                runPassLean: 40,
+                tempo: 50,
+                personnelWeight: 55,
+                formationUnderCenterShotgun: 30,
+                preSnapMotionRate: 80,
+                passingStyle: 30,
+                passingDepth: 45,
+                runGameBlocking: 20,
+                rpoIntegration: 30,
+              },
+            },
+          },
+          {
+            ...base,
+            id: "rb",
+            role: "RB",
+            specialty: "running_backs",
+            firstName: "RB",
+            lastName: "Coach",
+          },
+        ],
+      });
+      const upserts: { coachId: string }[] = [];
+      const service = createCoachesService({
+        generator,
+        repo: createMockRepo(),
+        tendenciesRepo: createMockTendenciesRepo({
+          upsert: (input) => {
+            upserts.push({ coachId: input.coachId });
+            return Promise.resolve({
+              coachId: input.coachId,
+              offense: null,
+              defense: null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          },
+        }),
+        db,
+        log: createTestLogger(),
+      });
+
+      await service.generate({ leagueId: "l1", teamIds: ["t1"] });
+
+      assertEquals(upserts.length, 1);
+      assertEquals(upserts[0].coachId, "oc");
+    },
+  );
+
+  await t.step(
     "getCoachDetail throws NOT_FOUND when repository returns undefined",
     async () => {
       const { db } = createMockDb();
@@ -262,6 +363,7 @@ Deno.test("coaches.service", async (t) => {
         generator: createMockGenerator(),
         repo: createMockRepo(),
         db,
+        tendenciesRepo: createMockTendenciesRepo(),
         log: createTestLogger(),
       });
 

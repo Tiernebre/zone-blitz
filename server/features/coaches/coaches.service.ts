@@ -5,11 +5,13 @@ import { chunkedInsert } from "../../db/chunked-insert.ts";
 import { coaches } from "./coach.schema.ts";
 import type { CoachesGenerator } from "./coaches.generator.interface.ts";
 import type { CoachesRepository } from "./coaches.repository.interface.ts";
+import type { CoachTendenciesRepository } from "./coach-tendencies.repository.interface.ts";
 import type { CoachesService } from "./coaches.service.interface.ts";
 
 export function createCoachesService(deps: {
   generator: CoachesGenerator;
   repo: CoachesRepository;
+  tendenciesRepo: CoachTendenciesRepository;
   db: Database;
   log: pino.Logger;
 }): CoachesService {
@@ -24,8 +26,20 @@ export function createCoachesService(deps: {
         teamIds: input.teamIds,
       });
 
-      if (generated.length > 0) {
-        await chunkedInsert(tx ?? deps.db, coaches, generated);
+      if (generated.length === 0) {
+        return { coachCount: 0 };
+      }
+
+      const coachRows = generated.map(({ tendencies: _t, ...row }) => row);
+      await chunkedInsert(tx ?? deps.db, coaches, coachRows);
+
+      for (const coach of generated) {
+        if (!coach.tendencies) continue;
+        await deps.tendenciesRepo.upsert({
+          coachId: coach.id,
+          ...coach.tendencies.offense,
+          ...coach.tendencies.defense,
+        });
       }
 
       log.info(

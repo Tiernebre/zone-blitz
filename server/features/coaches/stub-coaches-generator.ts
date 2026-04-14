@@ -3,7 +3,14 @@ import type {
   CoachesGenerator,
   CoachesGeneratorInput,
   GeneratedCoach,
+  GeneratedCoachTendencies,
 } from "./coaches.generator.interface.ts";
+import {
+  defensiveVectorFromArchetype,
+  offensiveVectorFromArchetype,
+  pickDefensiveArchetype,
+  pickOffensiveArchetype,
+} from "./coach-tendency-archetypes.ts";
 
 const FIRST_NAMES = [
   "James",
@@ -161,6 +168,29 @@ const STAFF_BLUEPRINT: RoleSpec[] = [
   },
 ];
 
+function buildTendencies(
+  role: CoachRole,
+  seed: string,
+): GeneratedCoachTendencies | null {
+  if (role === "OC") {
+    return {
+      offense: offensiveVectorFromArchetype(
+        pickOffensiveArchetype(seed),
+        seed,
+      ),
+    };
+  }
+  if (role === "DC") {
+    return {
+      defense: defensiveVectorFromArchetype(
+        pickDefensiveArchetype(seed),
+        seed,
+      ),
+    };
+  }
+  return null;
+}
+
 function randomName(index: number) {
   const firstName = FIRST_NAMES[index % FIRST_NAMES.length];
   const lastName =
@@ -195,6 +225,8 @@ export function createStubCoachesGenerator(): CoachesGenerator {
             ? pool[collegeIndex++ % pool.length]
             : null;
 
+          const tendencies = buildTendencies(spec.role, id);
+
           coaches.push({
             id,
             leagueId: input.leagueId,
@@ -213,6 +245,7 @@ export function createStubCoachesGenerator(): CoachesGenerator {
             specialty: spec.specialty,
             isVacancy: false,
             mentorCoachId: null,
+            ...(tendencies ? { tendencies } : {}),
           });
         }
       }
