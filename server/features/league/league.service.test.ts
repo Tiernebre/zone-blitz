@@ -269,6 +269,21 @@ Deno.test("league.service", async (t) => {
     assertEquals(scheduleCalled, true);
   });
 
+  await t.step(
+    "create throws PRECONDITION_FAILED when no teams are seeded",
+    async () => {
+      const service = createService({
+        teamService: { getAll: () => Promise.resolve([]) },
+      });
+
+      await assertRejects(
+        () => service.create({ name: "New League" }),
+        DomainError,
+        "no teams",
+      );
+    },
+  );
+
   await t.step("create returns the league", async () => {
     const service = createService();
     const result = await service.create({ name: "New League" });
