@@ -14,6 +14,7 @@ function createMockLeague(overrides: Partial<League> = {}): League {
     rosterSize: 53,
     createdAt: new Date(),
     updatedAt: new Date(),
+    lastPlayedAt: null,
     ...overrides,
   };
 }
@@ -26,6 +27,7 @@ function createMockLeagueService(
     getById: () => Promise.resolve(createMockLeague()),
     create: () => Promise.resolve(createMockLeague({ id: "new-id" })),
     assignUserTeam: () => Promise.resolve(createMockLeague()),
+    touchLastPlayed: () => Promise.resolve(createMockLeague()),
     deleteById: () => Promise.resolve(),
     ...overrides,
   };
@@ -180,6 +182,31 @@ Deno.test("league.router", async (t) => {
         body: JSON.stringify({ userTeamId: "not-a-uuid" }),
       });
       assertEquals(res.status, 400);
+    },
+  );
+
+  await t.step(
+    "POST /:id/touch updates last played and returns the league",
+    async () => {
+      let touchedId: string | undefined;
+      const touchedAt = new Date("2026-04-14T00:00:00Z");
+      const router = createLeagueRouter(
+        createMockLeagueService({
+          touchLastPlayed: (id) => {
+            touchedId = id;
+            return Promise.resolve(
+              createMockLeague({ id, lastPlayedAt: touchedAt }),
+            );
+          },
+        }),
+      );
+
+      const res = await router.request("/lg-1/touch", { method: "POST" });
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.id, "lg-1");
+      assertEquals(touchedId, "lg-1");
+      assertEquals(body.lastPlayedAt, touchedAt.toISOString());
     },
   );
 

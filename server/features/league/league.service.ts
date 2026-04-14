@@ -120,6 +120,15 @@ export function createLeagueService(deps: {
       return updated;
     },
 
+    async touchLastPlayed(id) {
+      log.debug({ id }, "touching league last played");
+      const updated = await deps.leagueRepo.touchLastPlayed(id);
+      if (!updated) {
+        throw new DomainError("NOT_FOUND", `League ${id} not found`);
+      }
+      return updated;
+    },
+
     async deleteById(id) {
       log.info({ id }, "deleting league");
       const league = await deps.leagueRepo.getById(id);

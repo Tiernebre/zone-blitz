@@ -45,6 +45,12 @@ vi.mock("../../lib/auth-client.ts", () => ({
   },
 }));
 
+const mockTouch = vi.fn().mockResolvedValue({
+  ok: true,
+  status: 200,
+  json: () => Promise.resolve({ id: 1 }),
+});
+
 vi.mock("../../api.ts", () => ({
   api: {
     api: {
@@ -58,6 +64,9 @@ vi.mock("../../api.ts", () => ({
           $get: vi.fn().mockResolvedValue({
             json: () => Promise.resolve({ id: 1, name: "My League" }),
           }),
+          touch: {
+            $post: (...args: unknown[]) => mockTouch(...args),
+          },
         },
       },
     },
@@ -80,6 +89,14 @@ afterEach(() => {
 });
 
 describe("LeagueLayout", () => {
+  it("touches the league to record last-played on mount", async () => {
+    mockTouch.mockClear();
+    renderWithProviders();
+    await waitFor(() => {
+      expect(mockTouch).toHaveBeenCalledWith({ param: { id: "1" } });
+    });
+  });
+
   it("renders a sidebar with a Home nav link", () => {
     renderWithProviders();
     const homeLink = screen.getByRole("link", { name: /home/i });

@@ -31,6 +31,10 @@ export function createLeagueRouter(leagueService: LeagueService) {
         return c.json(league);
       },
     )
+    .post("/:id/touch", async (c) => {
+      const league = await leagueService.touchLastPlayed(c.req.param("id"));
+      return c.json(league);
+    })
     .delete("/:id", async (c) => {
       await leagueService.deleteById(c.req.param("id"));
       return c.body(null, 204);
