@@ -32,3 +32,6 @@ as superseded.
 - [0007 — Coaching scheme implementation: tendency vectors on coordinators](./0007-coaching-scheme-implementation.md)
   — per-coordinator tendency spectrums in `coach_tendencies`; fingerprint and
   fit computed on read; OC + DC first
+- [0008 — Generate tendency vectors for every coach, not just active coordinators](./0008-coach-tendency-generation-scope.md)
+  — HCs and STCs get full generated vectors too; v1 application scope is
+  unchanged from 0007
