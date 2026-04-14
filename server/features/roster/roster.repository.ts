@@ -31,7 +31,11 @@ import { depthChartEntries } from "../players/depth-chart.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { coaches } from "../coaches/coach.schema.ts";
 import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";
-import { computeFingerprint, computeSchemeFit } from "../schemes/mod.ts";
+import {
+  computeFingerprint,
+  computeSchemeFit,
+  schemeLens,
+} from "../schemes/mod.ts";
 import type { RosterRepository } from "./roster.repository.interface.ts";
 
 type TendencyRow = typeof coachTendencies.$inferSelect;
@@ -185,6 +189,9 @@ export function createRosterRepository(deps: {
             fingerprint,
           )
           : null;
+        const schemeArchetype = hasStaff
+          ? schemeLens({ neutralBucket: bucket, attributes }, fingerprint)
+          : null;
         return {
           id: row.id,
           firstName: row.firstName,
@@ -199,6 +206,7 @@ export function createRosterRepository(deps: {
             : 0,
           injuryStatus: row.injuryStatus,
           schemeFit,
+          schemeArchetype,
         };
       });
 

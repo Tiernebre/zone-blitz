@@ -56,6 +56,7 @@ const baseRoster = {
       contractYearsRemaining: 3,
       injuryStatus: "healthy",
       schemeFit: "ideal",
+      schemeArchetype: "pocket passer",
     },
     {
       id: "p2",
@@ -68,6 +69,7 @@ const baseRoster = {
       contractYearsRemaining: 2,
       injuryStatus: "questionable",
       schemeFit: "miscast",
+      schemeArchetype: "zone RB",
     },
     {
       id: "p3",
@@ -80,6 +82,7 @@ const baseRoster = {
       contractYearsRemaining: 4,
       injuryStatus: "out",
       schemeFit: "fits",
+      schemeArchetype: "speed DE",
     },
     {
       id: "p4",
@@ -92,6 +95,7 @@ const baseRoster = {
       contractYearsRemaining: 1,
       injuryStatus: "healthy",
       schemeFit: null,
+      schemeArchetype: null,
     },
   ],
   positionGroups: [

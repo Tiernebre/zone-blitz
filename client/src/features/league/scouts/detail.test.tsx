@@ -121,6 +121,7 @@ describe("ScoutDetail", () => {
               prospectName: "Rookie Back",
               draftYear: 2029,
               positionGroup: "RB",
+              schemeArchetype: null,
               roundTier: "4-5",
               grade: "late-round flyer",
               evaluationLevel: "standard",

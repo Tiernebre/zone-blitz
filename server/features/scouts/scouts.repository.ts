@@ -144,6 +144,7 @@ export function createScoutsRepository(deps: {
         prospectName: e.prospectName,
         draftYear: e.draftYear,
         positionGroup: e.positionGroup,
+        schemeArchetype: null,
         roundTier: e.roundTier,
         grade: e.grade,
         evaluationLevel: e.evaluationLevel,

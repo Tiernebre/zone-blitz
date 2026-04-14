@@ -64,6 +64,7 @@ Deno.test("roster.router", async (t) => {
                   contractYearsRemaining: 3,
                   injuryStatus: "healthy",
                   schemeFit: null,
+                  schemeArchetype: null,
                 },
               ],
               positionGroups: [

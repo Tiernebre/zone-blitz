@@ -1,4 +1,5 @@
 import type { NeutralBucket } from "../archetypes/neutral-bucket.ts";
+import type { SchemeArchetype } from "./scheme-lens.ts";
 
 /**
  * Legacy fixed slot codes retained for the DB enum fallback and seed
@@ -155,6 +156,7 @@ export interface PlayerDetail {
   firstName: string;
   lastName: string;
   neutralBucket: NeutralBucket;
+  schemeArchetype: SchemeArchetype | null;
   age: number;
   heightInches: number;
   weightPounds: number;
@@ -180,6 +182,7 @@ export interface DraftEligiblePlayer {
   firstName: string;
   lastName: string;
   neutralBucket: NeutralBucket;
+  schemeArchetype: SchemeArchetype | null;
   college: string | null;
   hometown: string | null;
   heightInches: number;

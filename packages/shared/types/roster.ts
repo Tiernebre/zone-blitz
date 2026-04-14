@@ -2,6 +2,7 @@ import type { NeutralBucket } from "../archetypes/neutral-bucket.ts";
 import type { CoachSummary } from "./coach.ts";
 import type { PlayerInjuryStatus } from "./player.ts";
 import type { SchemeFitLabel } from "./scheme-fit.ts";
+import type { SchemeArchetype } from "./scheme-lens.ts";
 import type { DepthChartSlotDefinition } from "../depth-chart/vocabulary.ts";
 
 export type NeutralBucketGroup = "offense" | "defense" | "special_teams";
@@ -34,10 +35,8 @@ export interface RosterPlayer {
   capHit: number;
   contractYearsRemaining: number;
   injuryStatus: PlayerInjuryStatus;
-  // Qualitative fit of this player against the team's current scheme
-  // fingerprint (ADR 0005). `null` when the team has no OC and no DC
-  // hired — nothing to fit against yet.
   schemeFit: SchemeFitLabel | null;
+  schemeArchetype: SchemeArchetype | null;
 }
 
 export interface RosterPositionGroupSummary {
