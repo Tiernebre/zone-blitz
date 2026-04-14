@@ -113,6 +113,19 @@ describe("Router", () => {
     });
   });
 
+  it("renders the create league page at /leagues/new when authenticated", async () => {
+    mockUseSession.mockReturnValue({
+      data: { user: { id: "1", name: "Test" }, session: { id: "s1" } },
+      isPending: false,
+    });
+    renderRouter("/leagues/new");
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: "Create a new league" }),
+      ).toBeDefined();
+    });
+  });
+
   it("renders the team select page at /leagues/:leagueId/team-select when authenticated", async () => {
     mockUseSession.mockReturnValue({
       data: { user: { id: "1", name: "Test" }, session: { id: "s1" } },

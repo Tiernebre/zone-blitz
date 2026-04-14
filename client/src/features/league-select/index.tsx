@@ -1,15 +1,9 @@
-import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Trash2Icon } from "lucide-react";
+import { PlusIcon, Trash2Icon } from "lucide-react";
 import type { SeasonPhase } from "@zone-blitz/shared";
-import {
-  useCreateLeague,
-  useDeleteLeague,
-  useLeagues,
-} from "../../hooks/use-leagues.ts";
+import { useDeleteLeague, useLeagues } from "../../hooks/use-leagues.ts";
 import { UserMenu } from "../../components/user-menu.tsx";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -59,10 +53,8 @@ function formatDate(value: string | Date): string {
 
 export function LeagueSelect() {
   const { data: leagues, isLoading, error } = useLeagues();
-  const createLeague = useCreateLeague();
   const deleteLeague = useDeleteLeague();
   const navigate = useNavigate();
-  const [newName, setNewName] = useState("");
 
   return (
     <div className="relative flex min-h-screen flex-col items-center bg-background px-4 pt-16 pb-24 text-foreground">
@@ -87,39 +79,13 @@ export function LeagueSelect() {
             </p>
           </div>
 
-          <form
-            className="flex gap-2 sm:w-auto"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!newName.trim()) return;
-              createLeague.mutate(
-                { name: newName.trim() },
-                {
-                  onSuccess: (league) => {
-                    navigate({
-                      to: "/leagues/$leagueId/team-select",
-                      params: { leagueId: String(league.id) },
-                    });
-                  },
-                },
-              );
-              setNewName("");
-            }}
+          <Button
+            onClick={() => navigate({ to: "/leagues/new" })}
+            className="sm:self-end"
           >
-            <Input
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="League name..."
-              className="sm:w-64"
-            />
-            <Button
-              type="submit"
-              disabled={createLeague.isPending || !newName.trim()}
-            >
-              {createLeague.isPending ? "Creating..." : "Create"}
-            </Button>
-          </form>
+            <PlusIcon className="size-4" />
+            Create League
+          </Button>
         </div>
 
         {isLoading && (
@@ -138,10 +104,14 @@ export function LeagueSelect() {
         )}
 
         {leagues && leagues.length === 0 && (
-          <div className="rounded-lg border border-dashed border-border p-10 text-center">
+          <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border p-10 text-center">
             <p className="text-sm text-muted-foreground">
               No leagues yet. Create one to get started.
             </p>
+            <Button onClick={() => navigate({ to: "/leagues/new" })}>
+              <PlusIcon className="size-4" />
+              Create League
+            </Button>
           </div>
         )}
 

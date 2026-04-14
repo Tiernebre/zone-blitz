@@ -9,6 +9,7 @@ import {
 import { authClient } from "./lib/auth-client.ts";
 import { LoginPage } from "./features/login/index.tsx";
 import { LeagueSelect } from "./features/league-select/index.tsx";
+import { CreateLeague } from "./features/create-league/index.tsx";
 import { LeagueLayout } from "./features/league/layout.tsx";
 import { LeagueHome } from "./features/league/index.tsx";
 import { LeagueSettings } from "./features/league/settings.tsx";
@@ -62,6 +63,12 @@ const leagueSelectRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "/",
   component: LeagueSelect,
+});
+
+const createLeagueRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "leagues/new",
+  component: CreateLeague,
 });
 
 const teamSelectRoute = createRoute({
@@ -164,6 +171,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   authenticatedRoute.addChildren([
     leagueSelectRoute,
+    createLeagueRoute,
     teamSelectRoute,
     leagueLayoutRoute.addChildren([
       leagueHomeRoute,

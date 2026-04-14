@@ -10,7 +10,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { LeagueSelect } from "./index.tsx";
 
 const mockGet = vi.fn();
-const mockPost = vi.fn();
 const mockDelete = vi.fn();
 const mockNavigate = vi.fn();
 
@@ -19,7 +18,6 @@ vi.mock("../../api.ts", () => ({
     api: {
       leagues: {
         $get: (...args: unknown[]) => mockGet(...args),
-        $post: (...args: unknown[]) => mockPost(...args),
         ":id": {
           $delete: (...args: unknown[]) => mockDelete(...args),
         },
@@ -236,74 +234,47 @@ describe("LeagueSelect", () => {
     });
   });
 
-  it("submits the create league form and navigates to team select", async () => {
+  it("navigates to /leagues/new when the header Create League button is clicked", async () => {
     mockGet.mockReturnValue(
-      Promise.resolve({ json: () => Promise.resolve([]) }),
-    );
-    mockPost.mockReturnValue(
       Promise.resolve({
-        ok: true,
-        status: 201,
-        json: () => Promise.resolve({ id: 3, name: "New League" }),
+        json: () =>
+          Promise.resolve([
+            {
+              id: 1,
+              name: "League",
+              numberOfTeams: 32,
+              seasonLength: 17,
+              createdAt: "2026-01-15T00:00:00Z",
+              currentSeason: { year: 1, phase: "preseason", week: 1 },
+            },
+          ]),
       }),
     );
     renderWithProviders();
-
     await waitFor(() => {
-      expect(
-        screen.getByText("No leagues yet. Create one to get started."),
-      ).toBeDefined();
+      expect(screen.getByText("League")).toBeDefined();
     });
 
-    const input = screen.getByPlaceholderText("League name...");
-    fireEvent.change(input, { target: { value: "New League" } });
-    fireEvent.submit(screen.getByRole("button", { name: "Create" }));
-
-    await waitFor(() => {
-      expect(mockPost).toHaveBeenCalledWith({ json: { name: "New League" } });
-    });
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith({
-        to: "/leagues/$leagueId/team-select",
-        params: { leagueId: "3" },
-      });
-    });
+    fireEvent.click(
+      screen.getAllByRole("button", { name: /create league/i })[0],
+    );
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/leagues/new" });
   });
 
-  it("does not submit when input is empty", async () => {
+  it("navigates to /leagues/new when the empty-state Create League button is clicked", async () => {
     mockGet.mockReturnValue(
       Promise.resolve({ json: () => Promise.resolve([]) }),
     );
     renderWithProviders();
-
     await waitFor(() => {
       expect(
         screen.getByText("No leagues yet. Create one to get started."),
       ).toBeDefined();
     });
 
-    fireEvent.submit(screen.getByRole("button", { name: "Create" }));
-    expect(mockPost).not.toHaveBeenCalled();
-  });
-
-  it("does not submit when input is only whitespace", async () => {
-    mockGet.mockReturnValue(
-      Promise.resolve({ json: () => Promise.resolve([]) }),
-    );
-    renderWithProviders();
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("No leagues yet. Create one to get started."),
-      ).toBeDefined();
-    });
-
-    const input = screen.getByPlaceholderText("League name...");
-    fireEvent.change(input, { target: { value: "   " } });
-    fireEvent.submit(screen.getByRole("button", { name: "Create" }));
-
-    expect(mockPost).not.toHaveBeenCalled();
+    const buttons = screen.getAllByRole("button", { name: /create league/i });
+    fireEvent.click(buttons[buttons.length - 1]);
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/leagues/new" });
   });
 
   it("renders a profile button in the top right", () => {
@@ -312,28 +283,6 @@ describe("LeagueSelect", () => {
     );
     renderWithProviders();
     expect(screen.getByRole("button", { name: /profile/i })).toBeDefined();
-  });
-
-  it("shows Creating... text while mutation is pending", async () => {
-    mockGet.mockReturnValue(
-      Promise.resolve({ json: () => Promise.resolve([]) }),
-    );
-    mockPost.mockReturnValue(new Promise(() => {}));
-    renderWithProviders();
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("No leagues yet. Create one to get started."),
-      ).toBeDefined();
-    });
-
-    const input = screen.getByPlaceholderText("League name...");
-    fireEvent.change(input, { target: { value: "Test" } });
-    fireEvent.submit(screen.getByRole("button", { name: "Create" }));
-
-    await waitFor(() => {
-      expect(screen.getByText("Creating...")).toBeDefined();
-    });
   });
 
   it(
