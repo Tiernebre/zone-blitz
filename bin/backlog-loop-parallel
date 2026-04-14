@@ -98,6 +98,6 @@ fi
 echo "Dispatching $count items across $CONCURRENCY workers…"
 
 BACKLOG_LOOP_WORKER=1 \
-  xargs -0 -n 1 -P "$CONCURRENCY" -I{} "$0" {} < "$items_file"
+  xargs -0 -n 1 -P "$CONCURRENCY" "$0" < "$items_file"
 
 echo "All workers finished."
