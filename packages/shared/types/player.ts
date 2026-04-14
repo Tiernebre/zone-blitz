@@ -1,9 +1,49 @@
+export const PLAYER_POSITIONS = [
+  "QB",
+  "RB",
+  "FB",
+  "WR",
+  "TE",
+  "OL",
+  "DL",
+  "LB",
+  "CB",
+  "S",
+  "K",
+  "P",
+  "LS",
+] as const;
+
+export type PlayerPosition = (typeof PLAYER_POSITIONS)[number];
+
+export const PLAYER_POSITION_GROUPS: Record<
+  "offense" | "defense" | "special_teams",
+  readonly PlayerPosition[]
+> = {
+  offense: ["QB", "RB", "FB", "WR", "TE", "OL"],
+  defense: ["DL", "LB", "CB", "S"],
+  special_teams: ["K", "P", "LS"],
+};
+
+export const PLAYER_INJURY_STATUSES = [
+  "healthy",
+  "questionable",
+  "doubtful",
+  "out",
+  "ir",
+  "pup",
+] as const;
+
+export type PlayerInjuryStatus = (typeof PLAYER_INJURY_STATUSES)[number];
+
 export interface Player {
   id: string;
   leagueId: string;
   teamId: string | null;
   firstName: string;
   lastName: string;
+  position: PlayerPosition;
+  injuryStatus: PlayerInjuryStatus;
   heightInches: number;
   weightPounds: number;
   college: string | null;
@@ -31,6 +71,7 @@ export interface DraftProspect {
   seasonId: string;
   firstName: string;
   lastName: string;
+  position: PlayerPosition;
   heightInches: number;
   weightPounds: number;
   college: string | null;
