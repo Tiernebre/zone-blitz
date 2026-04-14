@@ -6,6 +6,7 @@ import { createAppRouter, createTestRouter } from "./router.tsx";
 
 const mockGet = vi.fn();
 const mockTeamsGet = vi.fn();
+const mockStaffGet = vi.fn();
 const mockUseSession = vi.fn();
 
 vi.mock("./api.ts", () => ({
@@ -17,6 +18,15 @@ vi.mock("./api.ts", () => ({
       },
       teams: {
         $get: (...args: unknown[]) => mockTeamsGet(...args),
+      },
+      coaches: {
+        teams: {
+          [":teamId"]: {
+            staff: {
+              $get: (...args: unknown[]) => mockStaffGet(...args),
+            },
+          },
+        },
       },
     },
   },
