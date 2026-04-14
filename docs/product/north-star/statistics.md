@@ -67,7 +67,9 @@ players carry their stats.
 ## Sim requirements
 
 - The game simulation must emit per-play events rich enough to derive every
-  statistic above. No stat category added after the fact via sampling.
+  statistic above, regardless of sim mode. Both single-game (fast) and
+  play-by-play modes produce the same event shape — no stat category is added
+  after the fact via sampling, and no mode is allowed to skip categories.
 - Per-play events include: participants, outcome, yardage, situation
   (down/distance/field position), and any position-specific event (sack,
   pressure, target, coverage assignment, etc.).

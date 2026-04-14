@@ -7,40 +7,68 @@ into game outcomes.
 
 ## Design Philosophy
 
-The sim doesn't need to be a play-by-play action game. It needs to produce
-**believable, interesting results** that reward good team-building decisions. A
-well-constructed roster with good scheme fit and quality coaching should win
-more than it loses — but not always. Upsets happen. Injuries happen. Bad bounces
-happen. That variance is what makes each season unpredictable.
+The sim needs to produce **believable, interesting, NFL-accurate results** that
+reward good team-building decisions. A well-constructed roster with good scheme
+fit and quality coaching should win more than it loses — but not always. Upsets
+happen. Injuries happen. Bad bounces happen. That variance is what makes each
+season unpredictable.
 
-### Fidelity Spectrum
+### NFL as the benchmark
 
-The simulation can operate at different levels of fidelity:
+The NFL is the reference, not arcade football. Every countable thing the sim
+produces — plays per game, pass/run split, completion %, yards per carry,
+sacks, tackles, turnovers, penalty counts, injury frequency — must sit inside
+historical NFL bands. A 90-point shootout or a quarterback throwing for 700
+yards is a bug, not a highlight. Stat realism is covered in
+[Statistics](./statistics.md); this doc governs the event generation that
+produces those stats.
 
-**Box score level (MVP / starting point)**
+Concrete expectations the sim must hit league-wide:
 
-- Produces a final score and key stats (passing yards, rushing yards, turnovers,
-  etc.)
-- Scheme matchups, personnel quality, and coaching modifiers determine outcomes
-- Fast to compute, easy to validate
+- ~125–135 offensive plays per game (both teams combined), split roughly
+  55–60% pass / 40–45% rush in the modern era
+- Completion % in the 60–70% band for starters; yards per attempt ~6.5–8.0
+- Yards per carry ~4.0–4.7
+- ~2.0–2.5 sacks per team per game; turnovers ~1.0–1.6 per team per game
+- Tackle, target, and touch distributions that concentrate on starters the way
+  they do in the NFL (RB1 carrying the load, WR1/WR2/TE taking the majority of
+  targets, etc.)
 
-**Drive-level simulation**
+These are guideposts, not hard caps — individual games vary wildly. But
+league-season aggregates must land inside NFL historical ranges.
 
-- Each game is a series of drives with outcomes (touchdown, field goal, punt,
-  turnover)
-- More granular stats and a sense of game flow
-- Enables comeback narratives, clock management, momentum swings
+### Two supported simulation modes
 
-**Play-by-play simulation (aspirational)**
+The sim supports two first-class modes, both producing the same statistical
+output shape so downstream systems don't care which was used:
 
-- Individual play outcomes
-- Full box scores with realistic stat distributions
-- Game logs you can read through
-- Enables detailed coaching strategy (4th-down decisions, clock management,
-  play-calling tendencies)
+**Single-game simulation (fast mode)**
 
-Start at box score level. Layer in drive-level when the core game loop is
-proven. Play-by-play is an ambitious long-term goal.
+- Resolves a full game in one pass without iterating play-by-play
+- Derives plays, drives, and box-score stats from matchup models calibrated to
+  NFL distributions
+- Used for: non-user games in a week, deep sim (sim-to-end-of-season), league
+  history backfill, what-if exploration
+- Must still emit the per-play event stream (see
+  [Statistics — Sim requirements](./statistics.md#sim-requirements)) so the
+  same stat categories are populated; events can be generated in bulk rather
+  than sequentially
+
+**Play-by-play simulation**
+
+- Iterates one play at a time with full situational context (down, distance,
+  field position, score, clock, personnel, fatigue, momentum)
+- Used for: the user's games, nationally-televised marquee matchups, playoff
+  games, or any game the user opts into watching
+- Supports live coaching decisions (4th-down calls, timeouts, challenges,
+  personnel packages), in-game injuries with follow-on play effects, and
+  readable game logs
+
+Both modes share the same underlying player performance model, scheme matchup
+logic, and coaching modifiers. A game simulated single-pass and the same game
+simulated play-by-play should, over many trials, produce statistically
+indistinguishable results. The difference is granularity and interactivity,
+not outcome distribution.
 
 ## What the Sim Must Get Right
 
@@ -113,11 +141,51 @@ given play depends on which attributes are relevant.
 
 ### Injuries
 
-- Injuries occur during games based on durability, position risk, and randomness
-- Severity ranges from missing a play to season-ending
-- Injury-prone players get hurt more often
-- Playing a not-fully-recovered player risks re-injury
-- Injuries create roster crises that test depth and cap management
+Injuries happen inside the simulation, not as a separate offseason bookkeeping
+step. They are driven by per-play risk, modulated by player durability,
+position, scheme, and game context. Both sim modes produce injuries: in
+play-by-play they resolve on the specific play that caused them; in
+single-game mode they are distributed across the game's event stream so box
+scores, snap counts, and drive logs reflect when the player went down.
+
+**NFL-realistic rates**
+
+Injury frequency is calibrated to real NFL data, not gameplay feel. Target
+bands the league-wide sim output must stay inside:
+
+- ~1.5–2.5 new injuries per team per game across all severities, concentrated
+  on high-contact positions (RB, WR, LB, DB, OL)
+- Season-ending injury rate roughly 8–12% of active roster per team per season
+- Soft-tissue injuries (hamstring, groin, calf) are the most common category;
+  concussions, high-ankle sprains, and ACL/MCL tears follow in the
+  distributions seen in league injury reports
+- Position-specific risk profiles: RBs and slot WRs absorb the most contact,
+  OL and DL accumulate chronic wear, QBs are protected by rules but
+  devastating when hit, kickers/punters rarely get hurt
+- Re-injury rates elevated for players returning early or with flagged
+  durability
+
+**Severity and in-game handling**
+
+- Severity tiers: shake-it-off (back next play), miss drive, miss quarter,
+  miss rest of game, miss weeks, miss season, career-ending
+- Play-by-play mode: the injured player exits, depth chart promotes the next
+  man up, and subsequent plays reflect the replacement's attributes — a
+  backup LT facing an elite edge rusher is a real problem for the rest of the
+  game
+- Single-game mode: injury timing still matters for snap counts and stat
+  accrual — an RB1 who tears his ACL on the first drive should not finish
+  with a full workload
+- Post-game: injury report feeds into the weekly availability system,
+  practice participation, and long-term roster planning
+
+**Why this matters for gameplay**
+
+Injuries are not a punishment mechanic, they are a realism constraint that
+forces the roster-building loop to value depth, durability, and medical staff
+investment. A team that only drafts for starters and ignores the back half of
+the roster should get punished by the same attrition rates that punish real
+NFL GMs.
 
 ## Season-Level Simulation
 
