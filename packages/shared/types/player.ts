@@ -129,6 +129,20 @@ export interface PlayerDetail {
   transactions: PlayerTransactionEntry[];
 }
 
+export interface DraftEligiblePlayer {
+  id: string;
+  firstName: string;
+  lastName: string;
+  position: PlayerPosition;
+  college: string | null;
+  hometown: string | null;
+  heightInches: number;
+  weightPounds: number;
+  birthDate: string;
+  draftClassYear: number;
+  projectedRound: number | null;
+}
+
 export interface Contract {
   id: string;
   playerId: string;

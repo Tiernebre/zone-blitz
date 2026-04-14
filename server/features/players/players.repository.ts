@@ -1,16 +1,18 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type pino from "pino";
 import type {
   ContractHistoryEntry,
   CurrentContractSummary,
+  DraftEligiblePlayer,
   PlayerDetail,
   PlayerTransactionEntry,
 } from "@zone-blitz/shared";
-import type { Database } from "../../db/connection.ts";
+import type { Database, Executor } from "../../db/connection.ts";
 import { players } from "./player.schema.ts";
 import { contracts } from "./contract.schema.ts";
 import { contractHistory } from "./contract-history.schema.ts";
 import { playerTransactions } from "./player-transaction.schema.ts";
+import { playerDraftProfile } from "./player-draft-profile.schema.ts";
 import { teams } from "../team/team.schema.ts";
 import { cities } from "../cities/city.schema.ts";
 import { alias } from "drizzle-orm/pg-core";
@@ -249,6 +251,80 @@ export function createPlayersRepository(deps: {
         transactions: await loadTransactions(playerId),
       };
       return detail;
+    },
+
+    async findDraftEligiblePlayers(leagueId) {
+      log.debug({ leagueId }, "loading draft-eligible players");
+
+      const rows = await deps.db
+        .select({
+          id: players.id,
+          firstName: players.firstName,
+          lastName: players.lastName,
+          position: players.position,
+          college: players.college,
+          hometown: players.hometown,
+          heightInches: players.heightInches,
+          weightPounds: players.weightPounds,
+          birthDate: players.birthDate,
+          draftClassYear: playerDraftProfile.draftClassYear,
+          projectedRound: playerDraftProfile.projectedRound,
+        })
+        .from(players)
+        .innerJoin(
+          playerDraftProfile,
+          eq(playerDraftProfile.playerId, players.id),
+        )
+        .where(
+          and(
+            eq(players.leagueId, leagueId),
+            eq(players.status, "prospect"),
+          ),
+        )
+        .orderBy(
+          sql`${playerDraftProfile.projectedRound} ASC NULLS LAST`,
+          asc(players.lastName),
+        );
+
+      return rows.map((row): DraftEligiblePlayer => ({
+        id: row.id,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        position: row.position,
+        college: row.college,
+        hometown: row.hometown,
+        heightInches: row.heightInches,
+        weightPounds: row.weightPounds,
+        birthDate: row.birthDate,
+        draftClassYear: row.draftClassYear,
+        projectedRound: row.projectedRound,
+      }));
+    },
+
+    async transitionProspectToActive(input, tx) {
+      log.info(
+        { playerId: input.playerId, teamId: input.teamId },
+        "transitioning prospect to active",
+      );
+      const exec: Executor = tx ?? deps.db;
+
+      const updated = await exec
+        .update(players)
+        .set({
+          status: "active",
+          teamId: input.teamId,
+          draftingTeamId: input.teamId,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(players.id, input.playerId),
+            eq(players.status, "prospect"),
+          ),
+        )
+        .returning({ id: players.id });
+
+      return updated.length === 1 ? "ok" : "not_found";
     },
   };
 }

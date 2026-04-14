@@ -59,6 +59,7 @@ export type {
   ContractHistoryEntry,
   ContractTerminationReason,
   CurrentContractSummary,
+  DraftEligiblePlayer,
   Player,
   PlayerDetail,
   PlayerInjuryStatus,
