@@ -131,8 +131,15 @@
     {
       "idx": 18,
       "version": "7",
-      "when": 1776185879543,
-      "tag": "0018_volatile_forgotten_one",
+      "when": 1776186247818,
+      "tag": "0018_fine_the_enforcers",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1776186815746,
+      "tag": "0019_add_player_origin_and_hometown",
       "breakpoints": true
     }
   ]

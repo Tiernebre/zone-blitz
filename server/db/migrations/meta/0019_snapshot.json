@@ -1,6 +1,6 @@
 {
-  "id": "273cd927-cab0-45d2-90a3-03efff0a304c",
-  "prevId": "3acdfb38-236c-45b0-8b0c-67b1b0acc058",
+  "id": "60aa8dc6-3990-4daa-ae58-86b391913eff",
+  "prevId": "273cd927-cab0-45d2-90a3-03efff0a304c",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -5849,11 +5849,41 @@
           "primaryKey": false,
           "notNull": false
         },
+        "hometown": {
+          "name": "hometown",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "birth_date": {
           "name": "birth_date",
           "type": "date",
           "primaryKey": false,
           "notNull": true
+        },
+        "draft_year": {
+          "name": "draft_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "draft_round": {
+          "name": "draft_round",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "draft_pick": {
+          "name": "draft_pick",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drafting_team_id": {
+          "name": "drafting_team_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -5908,6 +5938,19 @@
           "tableTo": "teams",
           "columnsFrom": [
             "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "players_drafting_team_id_teams_id_fk": {
+          "name": "players_drafting_team_id_teams_id_fk",
+          "tableFrom": "players",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "drafting_team_id"
           ],
           "columnsTo": [
             "id"

@@ -25,6 +25,10 @@ export const PLAYER_POSITION_GROUPS: Record<
   special_teams: ["K", "P", "LS"],
 };
 
+export const PLAYER_STATUSES = ["prospect", "active", "retired"] as const;
+
+export type PlayerStatus = (typeof PLAYER_STATUSES)[number];
+
 export const PLAYER_INJURY_STATUSES = [
   "healthy",
   "questionable",
@@ -40,6 +44,7 @@ export interface Player {
   id: string;
   leagueId: string;
   teamId: string | null;
+  status: PlayerStatus;
   firstName: string;
   lastName: string;
   position: PlayerPosition;

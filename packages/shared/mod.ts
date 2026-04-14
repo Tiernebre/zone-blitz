@@ -62,11 +62,13 @@ export type {
   PlayerInjuryStatus,
   PlayerOrigin,
   PlayerPosition,
+  PlayerStatus,
 } from "./types/player.ts";
 export {
   PLAYER_INJURY_STATUSES,
   PLAYER_POSITION_GROUPS,
   PLAYER_POSITIONS,
+  PLAYER_STATUSES,
 } from "./types/player.ts";
 export type {
   MentalAttributeKey,
