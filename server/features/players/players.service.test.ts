@@ -1,4 +1,8 @@
 import { assertEquals } from "@std/assert";
+import {
+  PLAYER_ATTRIBUTE_KEYS,
+  type PlayerAttributes,
+} from "@zone-blitz/shared";
 import { createPlayersService } from "./players.service.ts";
 import type {
   GeneratedPlayers,
@@ -32,6 +36,15 @@ function createMockGenerator(
   };
 }
 
+function stubAttrs(): PlayerAttributes {
+  const attrs: Record<string, number> = {};
+  for (const key of PLAYER_ATTRIBUTE_KEYS) {
+    attrs[key] = 40;
+    attrs[`${key}Potential`] = 60;
+  }
+  return attrs as PlayerAttributes;
+}
+
 interface InsertCall {
   table: unknown;
   values: unknown[];
@@ -47,12 +60,13 @@ function createMockDb(rosteredPlayerIds: string[] = []): {
       return {
         values(values: unknown[]) {
           calls.push({ table, values });
-          return {
+          const chain = {
             returning(_columns?: unknown) {
               if (Array.isArray(values)) {
                 return Promise.resolve(
                   values.map((v, i) => ({
-                    id: rosteredPlayerIds[i] ?? `generated-${i}`,
+                    id: rosteredPlayerIds[i] ??
+                      `generated-${calls.length}-${i}`,
                     teamId: (v as { teamId?: string | null }).teamId ?? null,
                   })),
                 );
@@ -60,6 +74,7 @@ function createMockDb(rosteredPlayerIds: string[] = []): {
               return Promise.resolve([]);
             },
           };
+          return Object.assign(Promise.resolve(), chain);
         },
       };
     },
@@ -69,17 +84,52 @@ function createMockDb(rosteredPlayerIds: string[] = []): {
 
 Deno.test("players.service", async (t) => {
   await t.step(
-    "generate inserts players, draft prospects, contracts and returns counts",
+    "generate inserts players, attributes, draft prospects, and contracts",
     async () => {
       const { db, calls } = createMockDb(["p1", "p2"]);
       const generator = createMockGenerator({
         generate: () => ({
           players: [
-            { leagueId: "l1", teamId: "t1", firstName: "A", lastName: "B" },
-            { leagueId: "l1", teamId: "t1", firstName: "C", lastName: "D" },
+            {
+              player: {
+                leagueId: "l1",
+                teamId: "t1",
+                firstName: "A",
+                lastName: "B",
+                heightInches: 72,
+                weightPounds: 220,
+                college: null,
+                birthDate: "2000-01-01",
+              },
+              attributes: stubAttrs(),
+            },
+            {
+              player: {
+                leagueId: "l1",
+                teamId: "t1",
+                firstName: "C",
+                lastName: "D",
+                heightInches: 72,
+                weightPounds: 220,
+                college: null,
+                birthDate: "2000-01-01",
+              },
+              attributes: stubAttrs(),
+            },
           ],
           draftProspects: [
-            { seasonId: "s1", firstName: "K", lastName: "L" },
+            {
+              prospect: {
+                seasonId: "s1",
+                firstName: "K",
+                lastName: "L",
+                heightInches: 72,
+                weightPounds: 220,
+                college: null,
+                birthDate: "2003-01-01",
+              },
+              attributes: stubAttrs(),
+            },
           ],
         }),
         generateContracts: (input) => {
@@ -114,8 +164,19 @@ Deno.test("players.service", async (t) => {
       assertEquals(result.draftProspectCount, 1);
       assertEquals(result.contractCount, 2);
 
-      // 3 insert calls: players, draftProspects, contracts
-      assertEquals(calls.length, 3);
+      // 5 insert calls: players, player_attributes, draft_prospects,
+      // draft_prospect_attributes, contracts
+      assertEquals(calls.length, 5);
+
+      const attributeCall = calls[1];
+      const attributeRows = attributeCall.values as Array<
+        Record<string, unknown>
+      >;
+      assertEquals(attributeRows.length, 2);
+      assertEquals(attributeRows[0].playerId, "p1");
+      assertEquals(attributeRows[1].playerId, "p2");
+      assertEquals(attributeRows[0].speed, 40);
+      assertEquals(attributeRows[0].speedPotential, 60);
     },
   );
 
@@ -157,7 +218,19 @@ Deno.test("players.service", async (t) => {
       const generator = createMockGenerator({
         generate: () => ({
           players: [
-            { leagueId: "l1", teamId: "t1", firstName: "A", lastName: "B" },
+            {
+              player: {
+                leagueId: "l1",
+                teamId: "t1",
+                firstName: "A",
+                lastName: "B",
+                heightInches: 72,
+                weightPounds: 220,
+                college: null,
+                birthDate: "2000-01-01",
+              },
+              attributes: stubAttrs(),
+            },
           ],
           draftProspects: [],
         }),

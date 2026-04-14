@@ -3955,6 +3955,7 @@
       },
       "packages/shared": {
         "dependencies": [
+          "jsr:@std/assert@1",
           "npm:zod@3"
         ]
       },

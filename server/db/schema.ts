@@ -33,6 +33,10 @@ export {
 } from "../features/coaches/coach-history.schema.ts";
 export { scouts } from "../features/scouts/scout.schema.ts";
 export { draftProspects, players } from "../features/players/player.schema.ts";
+export {
+  draftProspectAttributes,
+  playerAttributes,
+} from "../features/players/attributes.schema.ts";
 export { contracts } from "../features/players/contract.schema.ts";
 export { games } from "../features/schedule/game.schema.ts";
 export {

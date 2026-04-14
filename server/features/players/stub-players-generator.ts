@@ -1,3 +1,7 @@
+import {
+  PLAYER_ATTRIBUTE_KEYS,
+  type PlayerAttributes,
+} from "@zone-blitz/shared";
 import type {
   ContractGeneratorInput,
   GeneratedContract,
@@ -5,6 +9,22 @@ import type {
   PlayersGenerator,
   PlayersGeneratorInput,
 } from "./players.generator.interface.ts";
+
+const STUB_CURRENT = 40;
+const STUB_POTENTIAL = 60;
+const STUB_HEIGHT_INCHES = 72;
+const STUB_WEIGHT_POUNDS = 220;
+const STUB_COLLEGE = "State University";
+const STUB_BIRTH_DATE = "2000-01-01";
+
+function stubAttributes(): PlayerAttributes {
+  const attrs: Record<string, number> = {};
+  for (const key of PLAYER_ATTRIBUTE_KEYS) {
+    attrs[key] = STUB_CURRENT;
+    attrs[`${key}Potential`] = STUB_POTENTIAL;
+  }
+  return attrs as PlayerAttributes;
+}
 
 const FIRST_NAMES = [
   "James",
@@ -150,10 +170,17 @@ export function createStubPlayersGenerator(): PlayersGenerator {
         for (let i = 0; i < input.rosterSize; i++) {
           const { firstName, lastName } = randomName(nameIndex++);
           players.push({
-            leagueId: input.leagueId,
-            teamId,
-            firstName,
-            lastName,
+            player: {
+              leagueId: input.leagueId,
+              teamId,
+              firstName,
+              lastName,
+              heightInches: STUB_HEIGHT_INCHES,
+              weightPounds: STUB_WEIGHT_POUNDS,
+              college: STUB_COLLEGE,
+              birthDate: STUB_BIRTH_DATE,
+            },
+            attributes: stubAttributes(),
           });
         }
       }
@@ -161,10 +188,17 @@ export function createStubPlayersGenerator(): PlayersGenerator {
       for (let i = 0; i < FREE_AGENT_COUNT; i++) {
         const { firstName, lastName } = randomName(nameIndex++);
         players.push({
-          leagueId: input.leagueId,
-          teamId: null,
-          firstName,
-          lastName,
+          player: {
+            leagueId: input.leagueId,
+            teamId: null,
+            firstName,
+            lastName,
+            heightInches: STUB_HEIGHT_INCHES,
+            weightPounds: STUB_WEIGHT_POUNDS,
+            college: STUB_COLLEGE,
+            birthDate: STUB_BIRTH_DATE,
+          },
+          attributes: stubAttributes(),
         });
       }
 
@@ -172,9 +206,16 @@ export function createStubPlayersGenerator(): PlayersGenerator {
       for (let i = 0; i < DRAFT_PROSPECT_COUNT; i++) {
         const { firstName, lastName } = randomName(nameIndex++);
         draftProspects.push({
-          seasonId: input.seasonId,
-          firstName,
-          lastName,
+          prospect: {
+            seasonId: input.seasonId,
+            firstName,
+            lastName,
+            heightInches: STUB_HEIGHT_INCHES,
+            weightPounds: STUB_WEIGHT_POUNDS,
+            college: STUB_COLLEGE,
+            birthDate: STUB_BIRTH_DATE,
+          },
+          attributes: stubAttributes(),
         });
       }
 
