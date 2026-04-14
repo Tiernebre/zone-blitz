@@ -21,3 +21,6 @@ as superseded.
   — single page, two views, no depth-chart editing
 - [0002 — Coaches page: org chart tree + coach detail view](./0002-coaches-page.md)
   — staff tree landing, one detail page per coach, no ratings surfaced
+- [0003 — Scouts page: org chart tree + scout detail view](./0003-scouts-page.md)
+  — rename "Scouting" nav to "Scouts"; staff inspection surface, no accuracy
+  numbers
