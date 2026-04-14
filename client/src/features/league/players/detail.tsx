@@ -1,12 +1,43 @@
 import { Link, useParams } from "@tanstack/react-router";
 import type { PlayerDetail as PlayerDetailData } from "@zone-blitz/shared";
-import type { PlayerInjuryStatus } from "@zone-blitz/shared/types/player.ts";
+import type {
+  ContractHistoryEntry,
+  ContractTerminationReason,
+  PlayerInjuryStatus,
+} from "@zone-blitz/shared/types/player.ts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { usePlayerDetail } from "../../../hooks/use-player-detail.ts";
+
+const currency = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
+function formatCurrency(value: number) {
+  return currency.format(value);
+}
+
+const terminationLabels: Record<ContractTerminationReason, string> = {
+  active: "Active",
+  expired: "Expired",
+  released: "Released",
+  traded: "Traded",
+  extended: "Extended",
+  restructured: "Restructured",
+};
 
 function injuryBadgeVariant(
   status: PlayerInjuryStatus,
@@ -75,6 +106,7 @@ export function PlayerDetail() {
     <div className="flex flex-col gap-6 p-6">
       <Header detail={detail} leagueId={leagueId} />
       <Origin detail={detail} leagueId={leagueId} />
+      <ContractSection detail={detail} leagueId={leagueId} />
       <PlaceholderSections />
     </div>
   );
@@ -191,6 +223,116 @@ function Fact(
   );
 }
 
+function ContractSection(
+  { detail, leagueId }: { detail: PlayerDetailData; leagueId: string },
+) {
+  const { currentContract, contractHistory } = detail;
+  return (
+    <Section title="Contract">
+      {currentContract
+        ? (
+          <Card data-testid="player-current-contract">
+            <CardContent className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-4">
+              <Fact label="Years">
+                {currentContract.yearsRemaining}/{currentContract.totalYears}
+              </Fact>
+              <Fact label="Cap hit">
+                {formatCurrency(currentContract.annualSalary)}
+              </Fact>
+              <Fact label="Total value">
+                {formatCurrency(currentContract.totalSalary)}
+              </Fact>
+              <Fact label="Guaranteed">
+                {formatCurrency(currentContract.guaranteedMoney)}
+              </Fact>
+            </CardContent>
+          </Card>
+        )
+        : (
+          <p
+            className="text-sm text-muted-foreground"
+            data-testid="player-no-current-contract"
+          >
+            Not under contract.
+          </p>
+        )}
+
+      <ContractHistoryTable entries={contractHistory} leagueId={leagueId} />
+    </Section>
+  );
+}
+
+function ContractHistoryTable(
+  { entries, leagueId }: {
+    entries: ContractHistoryEntry[];
+    leagueId: string;
+  },
+) {
+  if (entries.length === 0) {
+    return (
+      <p
+        className="text-sm text-muted-foreground"
+        data-testid="player-contract-history-empty"
+      >
+        No contract history on file.
+      </p>
+    );
+  }
+  return (
+    <Card data-testid="player-contract-history">
+      <CardHeader>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          Deal history
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Signed</TableHead>
+              <TableHead>Team</TableHead>
+              <TableHead>Years</TableHead>
+              <TableHead>Total</TableHead>
+              <TableHead>Guaranteed</TableHead>
+              <TableHead>Outcome</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {entries.map((entry) => (
+              <TableRow
+                key={entry.id}
+                data-testid={`player-contract-history-row-${entry.id}`}
+              >
+                <TableCell>{entry.signedInYear}</TableCell>
+                <TableCell>
+                  <Link
+                    to="/leagues/$leagueId/opponents/$teamId"
+                    params={{ leagueId, teamId: entry.team.id }}
+                    className="underline-offset-2 hover:underline"
+                  >
+                    {entry.team.abbreviation}
+                  </Link>
+                </TableCell>
+                <TableCell>{entry.totalYears}</TableCell>
+                <TableCell>{formatCurrency(entry.totalSalary)}</TableCell>
+                <TableCell>{formatCurrency(entry.guaranteedMoney)}</TableCell>
+                <TableCell>
+                  {terminationLabels[entry.terminationReason]}
+                  {entry.endedInYear !== null && (
+                    <span className="text-muted-foreground">
+                      · {entry.endedInYear}
+                    </span>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
 function PlaceholderSections() {
   return (
     <Card data-testid="player-detail-placeholder">
@@ -199,8 +341,8 @@ function PlaceholderSections() {
       </CardHeader>
       <CardContent className="text-sm text-muted-foreground">
         <p>
-          Contract history, career log, transaction log, and accolades will
-          appear here once the sim persists them.
+          Career log, transaction log, and accolades will appear here once the
+          sim persists them.
         </p>
       </CardContent>
     </Card>

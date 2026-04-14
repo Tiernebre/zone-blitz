@@ -11,6 +11,7 @@ import {
   playerAttributes,
 } from "./attributes.schema.ts";
 import { contracts } from "./contract.schema.ts";
+import { contractHistory } from "./contract-history.schema.ts";
 import type { PlayersGenerator } from "./players.generator.interface.ts";
 import type { PlayersRepository } from "./players.repository.interface.ts";
 import type { PlayersService } from "./players.service.interface.ts";
@@ -101,6 +102,19 @@ export function createPlayersService(deps: {
 
       if (generatedContracts.length > 0) {
         await chunkedInsert(exec, contracts, generatedContracts);
+
+        const currentLeagueYear = new Date().getUTCFullYear();
+        const historyRows = generatedContracts.map((contract) => ({
+          playerId: contract.playerId,
+          teamId: contract.teamId,
+          signedInYear: currentLeagueYear - (contract.currentYear - 1),
+          totalYears: contract.totalYears,
+          totalSalary: contract.totalSalary,
+          guaranteedMoney: contract.guaranteedMoney,
+          terminationReason: "active" as const,
+          endedInYear: null,
+        }));
+        await chunkedInsert(exec, contractHistory, historyRows);
       }
 
       log.info(

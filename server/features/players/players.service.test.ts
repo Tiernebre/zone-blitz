@@ -127,6 +127,8 @@ Deno.test("players.service — getDetail", async (t) => {
           college: "State University",
           hometown: "Dallas, TX",
         },
+        currentContract: null,
+        contractHistory: [],
       };
       const { db } = createMockDb();
       const service = createPlayersService({
@@ -263,9 +265,9 @@ Deno.test("players.service", async (t) => {
       assertEquals(result.draftProspectCount, 1);
       assertEquals(result.contractCount, 2);
 
-      // 5 insert calls: players, player_attributes, draft_prospects,
-      // draft_prospect_attributes, contracts
-      assertEquals(calls.length, 5);
+      // 6 insert calls: players, player_attributes, draft_prospects,
+      // draft_prospect_attributes, contracts, contract_history
+      assertEquals(calls.length, 6);
 
       const attributeCall = calls[1];
       const attributeRows = attributeCall.values as Array<

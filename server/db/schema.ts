@@ -62,6 +62,10 @@ export {
 export { playerDraftProfile } from "../features/players/player-draft-profile.schema.ts";
 export { playerSeasonRatings } from "../features/players/player-season-ratings.schema.ts";
 export { contracts } from "../features/players/contract.schema.ts";
+export {
+  contractHistory,
+  contractTerminationReasonEnum,
+} from "../features/players/contract-history.schema.ts";
 export { games } from "../features/schedule/game.schema.ts";
 export {
   accounts,

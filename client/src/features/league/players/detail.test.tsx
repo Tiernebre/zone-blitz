@@ -71,6 +71,48 @@ const draftedPlayer = {
     college: "State University",
     hometown: "Dallas, TX",
   },
+  currentContract: {
+    teamId: "t2",
+    totalYears: 4,
+    currentYear: 2,
+    yearsRemaining: 3,
+    annualSalary: 20_000_000,
+    totalSalary: 80_000_000,
+    guaranteedMoney: 40_000_000,
+    signingBonus: 10_000_000,
+  },
+  contractHistory: [
+    {
+      id: "h1",
+      team: {
+        id: "t2",
+        name: "Bengals",
+        city: "Cincinnati",
+        abbreviation: "CIN",
+      },
+      signedInYear: 2020,
+      totalYears: 4,
+      totalSalary: 16_000_000,
+      guaranteedMoney: 8_000_000,
+      terminationReason: "expired",
+      endedInYear: 2024,
+    },
+    {
+      id: "h2",
+      team: {
+        id: "t2",
+        name: "Bengals",
+        city: "Cincinnati",
+        abbreviation: "CIN",
+      },
+      signedInYear: 2024,
+      totalYears: 4,
+      totalSalary: 80_000_000,
+      guaranteedMoney: 40_000_000,
+      terminationReason: "active",
+      endedInYear: null,
+    },
+  ],
 };
 
 afterEach(() => {
@@ -233,6 +275,40 @@ describe("PlayerDetail — header + origin", () => {
     expect(screen.getByTestId("player-origin-draft").textContent).toContain(
       "22nd",
     );
+  });
+
+  it("renders the current contract card with years, cap hit, total, and guaranteed", () => {
+    renderDetail();
+    const card = screen.getByTestId("player-current-contract");
+    expect(card.textContent).toContain("3/4");
+    expect(card.textContent).toContain("$20,000,000");
+    expect(card.textContent).toContain("$80,000,000");
+    expect(card.textContent).toContain("$40,000,000");
+  });
+
+  it("renders every contract history row with signed year and outcome", () => {
+    renderDetail();
+    expect(screen.getByTestId("player-contract-history-row-h1").textContent)
+      .toContain("Expired");
+    expect(screen.getByTestId("player-contract-history-row-h1").textContent)
+      .toContain("2024");
+    expect(screen.getByTestId("player-contract-history-row-h2").textContent)
+      .toContain("Active");
+  });
+
+  it("shows 'Not under contract' when the player has no current deal", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        currentContract: null,
+        contractHistory: [],
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    expect(screen.getByTestId("player-no-current-contract")).toBeDefined();
+    expect(screen.getByTestId("player-contract-history-empty")).toBeDefined();
   });
 
   it("does not leak attributes, overall, or scout grade", () => {
