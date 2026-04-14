@@ -16,6 +16,8 @@ import {
 import { colleges } from "../colleges/college.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
+import { cities } from "../cities/city.schema.ts";
+import { states } from "../states/state.schema.ts";
 import { createCoachesRepository } from "./coaches.repository.ts";
 
 function createTestDb() {
@@ -37,11 +39,26 @@ async function setupFixtures(db: ReturnType<typeof createTestDb>["db"]) {
     .insert(leagues)
     .values({ name: `League ${crypto.randomUUID()}` })
     .returning();
+  const [state] = await db
+    .insert(states)
+    .values({
+      code: `test-${crypto.randomUUID()}`,
+      name: `TestState-${crypto.randomUUID()}`,
+      region: "West",
+    })
+    .returning();
+  const [city] = await db
+    .insert(cities)
+    .values({
+      name: `TestCity-${crypto.randomUUID()}`,
+      stateId: state.id,
+    })
+    .returning();
   const [team] = await db
     .insert(teams)
     .values({
       name: "Test Team",
-      city: "Testville",
+      cityId: city.id,
       abbreviation: `T${crypto.randomUUID().slice(0, 2).toUpperCase()}`,
       primaryColor: "#000000",
       secondaryColor: "#FFFFFF",
@@ -50,7 +67,7 @@ async function setupFixtures(db: ReturnType<typeof createTestDb>["db"]) {
       division: "AFC East",
     })
     .returning();
-  return { league, team };
+  return { league, team, state, city };
 }
 
 Deno.test({
@@ -67,11 +84,15 @@ Deno.test({
     const created: string[] = [];
     const teamsCreated: string[] = [];
     const leaguesCreated: string[] = [];
+    const citiesCreated: string[] = [];
+    const statesCreated: string[] = [];
 
     try {
-      const { league, team } = await setupFixtures(db);
+      const { league, team, state, city } = await setupFixtures(db);
       leaguesCreated.push(league.id);
       teamsCreated.push(team.id);
+      citiesCreated.push(city.id);
+      statesCreated.push(state.id);
 
       const hcId = crypto.randomUUID();
       const ocId = crypto.randomUUID();
@@ -129,6 +150,12 @@ Deno.test({
       for (const id of teamsCreated) {
         await db.delete(teams).where(eq(teams.id, id));
       }
+      for (const id of citiesCreated) {
+        await db.delete(cities).where(eq(cities.id, id));
+      }
+      for (const id of statesCreated) {
+        await db.delete(states).where(eq(states.id, id));
+      }
       for (const id of leaguesCreated) {
         await db.delete(leagues).where(eq(leagues.id, id));
       }
@@ -152,11 +179,15 @@ Deno.test({
     const coachesCreated: string[] = [];
     const teamsCreated: string[] = [];
     const leaguesCreated: string[] = [];
+    const citiesCreated: string[] = [];
+    const statesCreated: string[] = [];
 
     try {
-      const { league, team } = await setupFixtures(db);
+      const { league, team, state, city } = await setupFixtures(db);
       leaguesCreated.push(league.id);
       teamsCreated.push(team.id);
+      citiesCreated.push(city.id);
+      statesCreated.push(state.id);
 
       const [college] = await db
         .select()
@@ -272,6 +303,12 @@ Deno.test({
       }
       for (const id of teamsCreated) {
         await db.delete(teams).where(eq(teams.id, id));
+      }
+      for (const id of citiesCreated) {
+        await db.delete(cities).where(eq(cities.id, id));
+      }
+      for (const id of statesCreated) {
+        await db.delete(states).where(eq(states.id, id));
       }
       for (const id of leaguesCreated) {
         await db.delete(leagues).where(eq(leagues.id, id));
