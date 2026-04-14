@@ -9,6 +9,20 @@ entry when it's resolved or superseded.
 
 ## Open
 
+- **2026-04-14 — Implement positional market value table (ADR 0011).** Replace
+  ADR 0009's premium/mid/base tier buckets with a per-position market
+  multiplier + convex-at-top curve (QB 1.80 down to LS 0.20; RB depressed at
+  0.65). Single exported module consumed by the contract generator and the
+  future FA valuation code. Rookie-scale deals stay exempt. Tests pin the QB:RB
+  ~2.75× headline invariant and ordering, not exact numbers.
+- **2026-04-14 — Implement league-creation cap situations (ADR 0010).** Assign a
+  cap-situation archetype (Cap Hell / Tight / Balanced / Flush) per team at
+  league creation, bias contract generation so team totals land in the
+  archetype's band (replacing ADR 0009's uniform post-hoc scale), correlate
+  roster shape (age / star density) with archetype, and surface the badge +
+  committed/available numbers on the team-select screen. Allow Cap Hell to start
+  slightly over the cap; first-offseason compliance flow is a prerequisite
+  before advancing past that offseason.
 - **2026-04-14 — Scheme lens on scouting / FA / draft surfaces.** ADR 0006
   requires scout reports, free-agent shortlists, and draft boards to surface
   players as archetypes-in-role ("slot WR," "3-tech," "box safety") when

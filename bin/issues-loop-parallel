@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# issues-loop-parallel — fan out GitHub issues labeled `ready-for-agent`
+# across N concurrent `claude -p` sessions. Each session claims one specific
+# issue (passed in), opens a worktree, ships a PR that closes the issue, and
+# watches it to merge.
+#
+# Usage:  bin/issues-loop-parallel [concurrency]   # default 3
+#
+# Trade-off vs bin/backlog-loop-parallel: source of truth is GitHub Issues
+# with the `ready-for-agent` label (filed by /file-adr-tickets from an
+# Accepted ADR). Dependencies between issues (`Depends on #N`) are NOT
+# respected — the `blocked` label is used to keep dependent issues out of
+# the pool, but if you flip a blocked issue to `ready-for-agent` while its
+# blocker is still open, a worker will try to ship it and fail.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+CONCURRENCY="${1:-3}"
+LABEL="${ISSUES_LOOP_LABEL:-ready-for-agent}"
+
+cd "$REPO_ROOT"
+
+# --- worker mode: invoked by xargs for each issue --------------------------
+if [[ "${ISSUES_LOOP_WORKER:-}" == "1" ]]; then
+  issue_number="$1"
+  echo "=== worker start: #$issue_number ==="
+
+  issue_json="$(gh issue view "$issue_number" --json number,title,body,labels,url)"
+  issue_title="$(printf '%s' "$issue_json" | jq -r '.title')"
+  issue_body="$(printf '%s' "$issue_json" | jq -r '.body')"
+  issue_url="$(printf '%s' "$issue_json" | jq -r '.url')"
+
+  prompt=$(cat <<PROMPT
+You are one parallel worker in an autonomous issue fan-out. Other workers
+are shipping other issues concurrently. The issue assigned to YOU is:
+
+#$issue_number — $issue_title
+$issue_url
+
+--- issue body ---
+$issue_body
+--- end body ---
+
+Execute end-to-end without asking for confirmation:
+
+1. EnterWorktree off main so you do not clash with sibling workers.
+2. Read the ADR referenced in the issue body (under "ADR reference"), plus
+   any ADRs it links, before designing the change.
+3. Check "Dependencies". If it lists \`Depends on #N\` and #N is still
+   open, stop: comment on the issue "Blocked by #N — re-label to
+   \`blocked\` until resolved" and exit. Do NOT attempt the work.
+4. Implement following CLAUDE.md: strict TDD, one logical change, deno lint
+   clean, relevant test suites green. The issue's Acceptance Criteria are
+   the checklist — every box must be checkable when you're done.
+5. Commit with Conventional Commits, push the branch, open a PR against
+   main with \`gh pr create\`. The PR body MUST include \`Closes #$issue_number\`
+   so the issue auto-closes on merge. Summary section only, no test plan.
+6. \`gh pr merge --auto --squash\`, then \`gh pr checks --watch\`. If checks
+   fail, fix on the same branch and push again.
+7. When the PR is merged, exit the worktree and end the session. The issue
+   closes automatically via the \`Closes\` ref.
+
+If investigation shows the issue is obsolete, superseded, or infeasible,
+close the issue with a comment explaining why. Do NOT open an empty PR.
+
+Do NOT stop until your PR is merged (or the issue is closed as obsolete).
+PROMPT
+)
+
+  if ! claude -p "$prompt" --dangerously-skip-permissions </dev/null; then
+    echo "!!! worker failed: #$issue_number" >&2
+    exit 1
+  fi
+  exit 0
+fi
+
+# --- dispatcher ------------------------------------------------------------
+git checkout main --quiet
+git pull --ff-only origin main --quiet
+
+numbers_file="$(mktemp)"
+trap 'rm -f "$numbers_file"' EXIT
+
+gh issue list \
+  --label "$LABEL" \
+  --state open \
+  --limit 200 \
+  --json number \
+  --jq '.[].number' > "$numbers_file"
+
+count=$(wc -l < "$numbers_file" | tr -d ' ')
+if [[ "$count" == "0" ]]; then
+  echo "No open issues with label '$LABEL'. Done."
+  exit 0
+fi
+
+echo "Dispatching $count issues across $CONCURRENCY workers…"
+
+ISSUES_LOOP_WORKER=1 \
+  xargs -n 1 -P "$CONCURRENCY" "$0" < "$numbers_file"
+
+echo "All workers finished."
