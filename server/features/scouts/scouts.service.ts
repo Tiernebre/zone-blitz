@@ -1,5 +1,6 @@
 import type pino from "pino";
 import type { Database } from "../../db/connection.ts";
+import { chunkedInsert } from "../../db/chunked-insert.ts";
 import { scouts } from "./scout.schema.ts";
 import type { ScoutsGenerator } from "./scouts.generator.interface.ts";
 import type { ScoutsService } from "./scouts.service.interface.ts";
@@ -21,7 +22,7 @@ export function createScoutsService(deps: {
       });
 
       if (generated.length > 0) {
-        await (tx ?? deps.db).insert(scouts).values(generated);
+        await chunkedInsert(tx ?? deps.db, scouts, generated);
       }
 
       log.info(
