@@ -127,6 +127,13 @@
       "when": 1776183326360,
       "tag": "0017_scouts_staff_and_history",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1776186247818,
+      "tag": "0018_fine_the_enforcers",
+      "breakpoints": true
     }
   ]
 }

@@ -204,6 +204,7 @@ export function createStubPlayersGenerator(): PlayersGenerator {
             player: {
               leagueId: input.leagueId,
               teamId,
+              status: "active" as const,
               firstName,
               lastName,
               position,
@@ -227,6 +228,7 @@ export function createStubPlayersGenerator(): PlayersGenerator {
           player: {
             leagueId: input.leagueId,
             teamId: null,
+            status: "active" as const,
             firstName,
             lastName,
             position,
