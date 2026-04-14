@@ -148,6 +148,13 @@
       "when": 1776187189048,
       "tag": "0020_add_contract_history",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1776187715799,
+      "tag": "0021_add_player_transactions",
+      "breakpoints": true
     }
   ]
 }

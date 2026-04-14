@@ -4,11 +4,13 @@ import type {
   ContractHistoryEntry,
   CurrentContractSummary,
   PlayerDetail,
+  PlayerTransactionEntry,
 } from "@zone-blitz/shared";
 import type { Database } from "../../db/connection.ts";
 import { players } from "./player.schema.ts";
 import { contracts } from "./contract.schema.ts";
 import { contractHistory } from "./contract-history.schema.ts";
+import { playerTransactions } from "./player-transaction.schema.ts";
 import { teams } from "../team/team.schema.ts";
 import { cities } from "../cities/city.schema.ts";
 import { alias } from "drizzle-orm/pg-core";
@@ -38,6 +40,65 @@ export function createPlayersRepository(deps: {
   const draftingTeams = alias(teams, "drafting_team");
   const currentCities = alias(cities, "current_city");
   const draftingCities = alias(cities, "drafting_city");
+  const txTeams = alias(teams, "tx_team");
+  const txCities = alias(cities, "tx_city");
+  const txCounterTeams = alias(teams, "tx_counter_team");
+  const txCounterCities = alias(cities, "tx_counter_city");
+
+  async function loadTransactions(
+    playerId: string,
+  ): Promise<PlayerTransactionEntry[]> {
+    const rows = await deps.db
+      .select({
+        id: playerTransactions.id,
+        type: playerTransactions.type,
+        seasonYear: playerTransactions.seasonYear,
+        occurredAt: playerTransactions.occurredAt,
+        detail: playerTransactions.detail,
+        teamId: txTeams.id,
+        teamName: txTeams.name,
+        teamCity: txCities.name,
+        teamAbbreviation: txTeams.abbreviation,
+        counterpartyTeamId: txCounterTeams.id,
+        counterpartyTeamName: txCounterTeams.name,
+        counterpartyTeamCity: txCounterCities.name,
+        counterpartyTeamAbbreviation: txCounterTeams.abbreviation,
+      })
+      .from(playerTransactions)
+      .leftJoin(txTeams, eq(txTeams.id, playerTransactions.teamId))
+      .leftJoin(txCities, eq(txCities.id, txTeams.cityId))
+      .leftJoin(
+        txCounterTeams,
+        eq(txCounterTeams.id, playerTransactions.counterpartyTeamId),
+      )
+      .leftJoin(txCounterCities, eq(txCounterCities.id, txCounterTeams.cityId))
+      .where(eq(playerTransactions.playerId, playerId))
+      .orderBy(asc(playerTransactions.occurredAt));
+
+    return rows.map((row) => ({
+      id: row.id,
+      type: row.type,
+      seasonYear: row.seasonYear,
+      occurredAt: row.occurredAt.toISOString(),
+      detail: row.detail,
+      team: row.teamId
+        ? {
+          id: row.teamId,
+          name: row.teamName!,
+          city: row.teamCity!,
+          abbreviation: row.teamAbbreviation!,
+        }
+        : null,
+      counterpartyTeam: row.counterpartyTeamId
+        ? {
+          id: row.counterpartyTeamId,
+          name: row.counterpartyTeamName!,
+          city: row.counterpartyTeamCity!,
+          abbreviation: row.counterpartyTeamAbbreviation!,
+        }
+        : null,
+    }));
+  }
 
   return {
     async getDetailById(playerId) {
@@ -185,6 +246,7 @@ export function createPlayersRepository(deps: {
         },
         currentContract,
         contractHistory: contractHistoryEntries,
+        transactions: await loadTransactions(playerId),
       };
       return detail;
     },

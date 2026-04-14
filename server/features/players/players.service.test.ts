@@ -129,6 +129,7 @@ Deno.test("players.service — getDetail", async (t) => {
         },
         currentContract: null,
         contractHistory: [],
+        transactions: [],
       };
       const { db } = createMockDb();
       const service = createPlayersService({
@@ -265,9 +266,9 @@ Deno.test("players.service", async (t) => {
       assertEquals(result.draftProspectCount, 1);
       assertEquals(result.contractCount, 2);
 
-      // 6 insert calls: players, player_attributes, draft_prospects,
-      // draft_prospect_attributes, contracts, contract_history
-      assertEquals(calls.length, 6);
+      // 7 insert calls: players, player_attributes, player_transactions,
+      // draft_prospects, draft_prospect_attributes, contracts, contract_history
+      assertEquals(calls.length, 7);
 
       const attributeCall = calls[1];
       const attributeRows = attributeCall.values as Array<
@@ -363,8 +364,8 @@ Deno.test("players.service", async (t) => {
       );
 
       assertEquals(dbCalls.length, 0);
-      // players + player_attributes writes routed through tx
-      assertEquals(txCalls.length, 2);
+      // players + player_attributes + player_transactions writes routed through tx
+      assertEquals(txCalls.length, 3);
     },
   );
 
