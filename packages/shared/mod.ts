@@ -68,6 +68,7 @@ export type {
   PlayerStatus,
   PlayerTransactionEntry,
   PlayerTransactionType,
+  PreDraftEvaluation,
 } from "./types/player.ts";
 export {
   CONTRACT_TERMINATION_REASONS,

@@ -119,6 +119,7 @@ export function PlayerDetail() {
       <Origin detail={detail} leagueId={leagueId} />
       <ContractSection detail={detail} leagueId={leagueId} />
       <TransactionsSection detail={detail} leagueId={leagueId} />
+      <PreDraft detail={detail} />
       <PlaceholderSections />
     </div>
   );
@@ -270,6 +271,45 @@ function ContractSection(
         )}
 
       <ContractHistoryTable entries={contractHistory} leagueId={leagueId} />
+    </Section>
+  );
+}
+
+function PreDraft({ detail }: { detail: PlayerDetailData }) {
+  const evaluation = detail.preDraftEvaluation;
+  if (!evaluation) return null;
+  return (
+    <Section title="Pre-draft evaluation">
+      <Card data-testid="player-pre-draft">
+        <CardContent className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2">
+          <Fact label="Draft class">
+            <span data-testid="player-pre-draft-class">
+              {evaluation.draftClassYear}
+            </span>
+          </Fact>
+          <Fact label="Projected round">
+            {evaluation.projectedRound !== null
+              ? (
+                <span data-testid="player-pre-draft-projection">
+                  Round {evaluation.projectedRound}
+                </span>
+              )
+              : <span className="text-muted-foreground">Unprojected</span>}
+          </Fact>
+          {evaluation.scoutingNotes && (
+            <div className="sm:col-span-2">
+              <Fact label="Scouting notes">
+                <span
+                  className="whitespace-pre-line"
+                  data-testid="player-pre-draft-notes"
+                >
+                  {evaluation.scoutingNotes}
+                </span>
+              </Fact>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </Section>
   );
 }

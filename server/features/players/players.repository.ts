@@ -129,12 +129,19 @@ export function createPlayersRepository(deps: {
           draftingTeamName: draftingTeams.name,
           draftingTeamCity: draftingCities.name,
           draftingTeamAbbreviation: draftingTeams.abbreviation,
+          preDraftClassYear: playerDraftProfile.draftClassYear,
+          preDraftProjectedRound: playerDraftProfile.projectedRound,
+          preDraftScoutingNotes: playerDraftProfile.scoutingNotes,
         })
         .from(players)
         .leftJoin(currentTeams, eq(currentTeams.id, players.teamId))
         .leftJoin(currentCities, eq(currentCities.id, currentTeams.cityId))
         .leftJoin(draftingTeams, eq(draftingTeams.id, players.draftingTeamId))
         .leftJoin(draftingCities, eq(draftingCities.id, draftingTeams.cityId))
+        .leftJoin(
+          playerDraftProfile,
+          eq(playerDraftProfile.playerId, players.id),
+        )
         .where(eq(players.id, playerId))
         .limit(1);
 
@@ -249,6 +256,13 @@ export function createPlayersRepository(deps: {
         currentContract,
         contractHistory: contractHistoryEntries,
         transactions: await loadTransactions(playerId),
+        preDraftEvaluation: row.preDraftClassYear !== null
+          ? {
+            draftClassYear: row.preDraftClassYear,
+            projectedRound: row.preDraftProjectedRound,
+            scoutingNotes: row.preDraftScoutingNotes,
+          }
+          : null,
       };
       return detail;
     },

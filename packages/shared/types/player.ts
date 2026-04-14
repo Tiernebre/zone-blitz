@@ -107,6 +107,12 @@ export interface PlayerTransactionEntry {
   detail: string | null;
 }
 
+export interface PreDraftEvaluation {
+  draftClassYear: number;
+  projectedRound: number | null;
+  scoutingNotes: string | null;
+}
+
 export interface PlayerDetail {
   id: string;
   firstName: string;
@@ -127,6 +133,12 @@ export interface PlayerDetail {
   currentContract: CurrentContractSummary | null;
   contractHistory: ContractHistoryEntry[];
   transactions: PlayerTransactionEntry[];
+  /**
+   * Frozen pre-draft snapshot from `player_draft_profile`. Null only
+   * when the player was never drafted through the scouting pipeline
+   * (e.g. legacy rows generated before ADR 0006 landed).
+   */
+  preDraftEvaluation: PreDraftEvaluation | null;
 }
 
 export interface DraftEligiblePlayer {
