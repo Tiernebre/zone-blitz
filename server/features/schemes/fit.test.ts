@@ -41,7 +41,7 @@ Deno.test(
   "computeSchemeFit returns neutral when the player's position has no demands defined",
   () => {
     const player: PlayerForFit = {
-      position: "K",
+      neutralBucket: "K",
       attributes: attributes(),
     };
     const fp = fingerprint({
@@ -64,7 +64,7 @@ Deno.test(
   "computeSchemeFit returns neutral when the fingerprint side is null",
   () => {
     const player: PlayerForFit = {
-      position: "CB",
+      neutralBucket: "CB",
       attributes: attributes({ manCoverage: 90, speed: 90 }),
     };
     assertEquals(computeSchemeFit(player, fingerprint()), "neutral");
@@ -75,7 +75,7 @@ Deno.test(
   "computeSchemeFit returns neutral when every axis is centered (no polarization)",
   () => {
     const player: PlayerForFit = {
-      position: "CB",
+      neutralBucket: "CB",
       attributes: attributes({
         manCoverage: 90,
         zoneCoverage: 90,
@@ -102,7 +102,7 @@ Deno.test(
   "computeSchemeFit rewards a man-coverage CB in a press-man defense",
   () => {
     const player: PlayerForFit = {
-      position: "CB",
+      neutralBucket: "CB",
       attributes: attributes({
         manCoverage: 95,
         speed: 95,
@@ -132,7 +132,7 @@ Deno.test(
   "computeSchemeFit flags a zone-only CB dropped into a heavy man scheme as poor/miscast",
   () => {
     const player: PlayerForFit = {
-      position: "CB",
+      neutralBucket: "CB",
       attributes: attributes({
         manCoverage: 20,
         speed: 25,
@@ -168,7 +168,7 @@ Deno.test(
   "computeSchemeFit swings from poor to ideal for the same player when the scheme flips",
   () => {
     const zoneCB: PlayerForFit = {
-      position: "CB",
+      neutralBucket: "CB",
       attributes: attributes({
         zoneCoverage: 95,
         footballIq: 95,
@@ -215,7 +215,7 @@ Deno.test(
 Deno.test("computeSchemeFit ignores the wrong-side tendency vector", () => {
   // An offensive fingerprint should not impact a CB fit label.
   const player: PlayerForFit = {
-    position: "CB",
+    neutralBucket: "CB",
     attributes: attributes({ manCoverage: 99, speed: 99 }),
   };
   const fp = fingerprint({

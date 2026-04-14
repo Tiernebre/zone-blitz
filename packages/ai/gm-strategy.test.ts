@@ -27,11 +27,11 @@ Deno.test("gm strategy", async (t) => {
   await t.step("selectDraftPick picks highest-rated need position", () => {
     const selection = gm.selectDraftPick(
       [
-        { playerId: "a", position: "WR", rating: 90 },
-        { playerId: "b", position: "QB", rating: 95 },
-        { playerId: "c", position: "QB", rating: 85 },
+        { playerId: "a", neutralBucket: "WR", rating: 90 },
+        { playerId: "b", neutralBucket: "QB", rating: 95 },
+        { playerId: "c", neutralBucket: "QB", rating: 85 },
       ],
-      { positions: ["QB"], strategy: "win-now" },
+      { buckets: ["QB"], strategy: "win-now" },
     );
     assertEquals(selection.playerId, "b");
   });
@@ -41,10 +41,10 @@ Deno.test("gm strategy", async (t) => {
     () => {
       const selection = gm.selectDraftPick(
         [
-          { playerId: "a", position: "WR", rating: 90 },
-          { playerId: "b", position: "RB", rating: 95 },
+          { playerId: "a", neutralBucket: "WR", rating: 90 },
+          { playerId: "b", neutralBucket: "RB", rating: 95 },
         ],
-        { positions: ["QB"], strategy: "rebuild" },
+        { buckets: ["QB"], strategy: "rebuild" },
       );
       assertEquals(selection.playerId, "b");
     },

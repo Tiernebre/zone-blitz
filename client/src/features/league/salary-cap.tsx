@@ -13,14 +13,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable, SortableHeader } from "@/components/ui/data-table";
 import type {
   ActiveRoster,
-  PlayerPositionGroup,
+  NeutralBucketGroup,
   RosterPlayer,
   RosterPositionGroupSummary,
 } from "@zone-blitz/shared/types/roster.ts";
 import { useLeague } from "../../hooks/use-league.ts";
 import { useActiveRoster } from "../../hooks/use-active-roster.ts";
 
-const groupLabels: Record<PlayerPositionGroup, string> = {
+const groupLabels: Record<NeutralBucketGroup, string> = {
   offense: "Offense",
   defense: "Defense",
   special_teams: "Special Teams",
@@ -50,7 +50,7 @@ const capColumns: ColumnDef<RosterPlayer>[] = [
     ),
   },
   {
-    accessorKey: "position",
+    accessorKey: "neutralBucket",
     header: ({ column }) => (
       <SortableHeader column={column}>
         Pos
@@ -58,11 +58,11 @@ const capColumns: ColumnDef<RosterPlayer>[] = [
     ),
   },
   {
-    accessorKey: "positionGroup",
+    accessorKey: "neutralBucketGroup",
     header: ({ column }) => (
       <SortableHeader column={column}>Group</SortableHeader>
     ),
-    cell: ({ row }) => groupLabels[row.original.positionGroup],
+    cell: ({ row }) => groupLabels[row.original.neutralBucketGroup],
   },
   {
     accessorKey: "capHit",

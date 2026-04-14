@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable, SortableHeader } from "@/components/ui/data-table";
 import type {
   ActiveRoster,
-  PlayerPositionGroup,
+  NeutralBucketGroup,
   RosterPlayer,
   Team,
 } from "@zone-blitz/shared";
@@ -24,13 +24,13 @@ import { useActiveRoster } from "../../../hooks/use-active-roster.ts";
 import { useTeams } from "../../../hooks/use-teams.ts";
 import { TeamLogo } from "../../../components/team-logo.tsx";
 
-const groupLabels: Record<PlayerPositionGroup, string> = {
+const groupLabels: Record<NeutralBucketGroup, string> = {
   offense: "Offense",
   defense: "Defense",
   special_teams: "Special Teams",
 };
 
-const groupFilterOptions: (PlayerPositionGroup | "all")[] = [
+const groupFilterOptions: (NeutralBucketGroup | "all")[] = [
   "all",
   "offense",
   "defense",
@@ -79,19 +79,19 @@ function createRosterColumns(leagueId: string): ColumnDef<RosterPlayer>[] {
       ),
     },
     {
-      accessorKey: "position",
+      accessorKey: "neutralBucket",
       header: ({ column }) => (
         <SortableHeader column={column}>Pos</SortableHeader>
       ),
     },
     {
-      accessorKey: "positionGroup",
+      accessorKey: "neutralBucketGroup",
       header: ({ column }) => (
         <SortableHeader column={column}>Group</SortableHeader>
       ),
-      cell: ({ row }) => groupLabels[row.original.positionGroup],
+      cell: ({ row }) => groupLabels[row.original.neutralBucketGroup],
       filterFn: (row: Row<RosterPlayer>, _id, value) =>
-        value === "all" || row.original.positionGroup === value,
+        value === "all" || row.original.neutralBucketGroup === value,
     },
     {
       accessorKey: "age",
@@ -265,8 +265,8 @@ function OpponentRosterContent(
         getRowTestId={(player) => `opponent-row-${player.id}`}
         toolbar={(table) => {
           const groupFilter =
-            (table.getColumn("positionGroup")?.getFilterValue() as
-              | PlayerPositionGroup
+            (table.getColumn("neutralBucketGroup")?.getFilterValue() as
+              | NeutralBucketGroup
               | "all"
               | undefined) ?? "all";
           return (
@@ -298,7 +298,7 @@ function OpponentRosterContent(
                       aria-pressed={active}
                       onClick={() =>
                         table
-                          .getColumn("positionGroup")
+                          .getColumn("neutralBucketGroup")
                           ?.setFilterValue(option)}
                     >
                       {option === "all" ? "All" : groupLabels[option]}

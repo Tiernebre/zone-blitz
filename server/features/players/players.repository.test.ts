@@ -17,16 +17,30 @@ import { teams } from "../team/team.schema.ts";
 import { cities } from "../cities/city.schema.ts";
 import { states } from "../states/state.schema.ts";
 import { seasons } from "../season/season.schema.ts";
-import { PLAYER_ATTRIBUTE_KEYS } from "@zone-blitz/shared";
+import { type NeutralBucket, PLAYER_ATTRIBUTE_KEYS } from "@zone-blitz/shared";
 import { createPlayersRepository } from "./players.repository.ts";
+import {
+  BUCKET_PROFILES,
+  stubAttributesFor,
+} from "./stub-players-generator.ts";
 
-function zeroAttributes(): Record<string, number> {
-  const attrs: Record<string, number> = {};
+function attributesForBucket(
+  bucket: NeutralBucket = "QB",
+): Record<string, number> {
+  const attrs = stubAttributesFor(bucket);
+  const row: Record<string, number> = {};
   for (const key of PLAYER_ATTRIBUTE_KEYS) {
-    attrs[key] = 50;
-    attrs[`${key}Potential`] = 60;
+    row[key] = attrs[key];
+    row[`${key}Potential`] = attrs[`${key}Potential`];
   }
-  return attrs;
+  return row;
+}
+
+function sizeFor(bucket: NeutralBucket) {
+  return {
+    heightInches: BUCKET_PROFILES[bucket].heightInches,
+    weightPounds: BUCKET_PROFILES[bucket].weightPounds,
+  };
 }
 
 function createTestDb() {
@@ -138,10 +152,8 @@ Deno.test({
         teamId: team.id,
         firstName: "Sam",
         lastName: "Stone",
-        position: "QB",
         injuryStatus: "healthy",
-        heightInches: 74,
-        weightPounds: 225,
+        ...sizeFor("QB"),
         college: "State University",
         hometown: "Dallas, TX",
         birthDate: "2000-03-10",
@@ -151,11 +163,15 @@ Deno.test({
         draftingTeamId: team.id,
       });
       playersCreated.push(playerId);
+      await db.insert(playerAttributes).values({
+        playerId,
+        ...attributesForBucket("QB"),
+      });
 
       const detail = await repo.getDetailById(playerId);
       assertEquals(detail?.firstName, "Sam");
       assertEquals(detail?.lastName, "Stone");
-      assertEquals(detail?.position, "QB");
+      assertEquals(detail?.neutralBucket, "QB");
       assertEquals(detail?.age, 26);
       assertEquals(detail?.yearsOfExperience, 4);
       assertEquals(detail?.currentTeam?.name, "Bengals");
@@ -211,10 +227,8 @@ Deno.test({
         teamId: null,
         firstName: "Jake",
         lastName: "Journeyman",
-        position: "WR",
         injuryStatus: "healthy",
-        heightInches: 72,
-        weightPounds: 200,
+        ...sizeFor("WR"),
         college: null,
         hometown: null,
         birthDate: "1998-08-01",
@@ -224,6 +238,10 @@ Deno.test({
         draftingTeamId: null,
       });
       playersCreated.push(playerId);
+      await db.insert(playerAttributes).values({
+        playerId,
+        ...attributesForBucket("WR"),
+      });
 
       const detail = await repo.getDetailById(playerId);
       assertEquals(detail?.currentTeam, null);
@@ -277,10 +295,8 @@ Deno.test({
         teamId: team.id,
         firstName: "Sam",
         lastName: "Stone",
-        position: "QB",
         injuryStatus: "healthy",
-        heightInches: 74,
-        weightPounds: 225,
+        ...sizeFor("QB"),
         college: "State University",
         hometown: "Dallas, TX",
         birthDate: "2000-03-10",
@@ -290,6 +306,10 @@ Deno.test({
         draftingTeamId: team.id,
       });
       playersCreated.push(playerId);
+      await db.insert(playerAttributes).values({
+        playerId,
+        ...attributesForBucket("QB"),
+      });
 
       await db.insert(contracts).values({
         playerId,
@@ -380,10 +400,8 @@ Deno.test({
         teamId: team.id,
         firstName: "Sam",
         lastName: "Stone",
-        position: "QB",
         injuryStatus: "healthy",
-        heightInches: 74,
-        weightPounds: 225,
+        ...sizeFor("QB"),
         college: "State University",
         hometown: "Dallas, TX",
         birthDate: "2000-03-10",
@@ -393,6 +411,10 @@ Deno.test({
         draftingTeamId: team.id,
       });
       playersCreated.push(playerId);
+      await db.insert(playerAttributes).values({
+        playerId,
+        ...attributesForBucket("QB"),
+      });
 
       await db.insert(playerTransactions).values([
         {
@@ -465,10 +487,8 @@ Deno.test({
         teamId: team.id,
         firstName: "Sam",
         lastName: "Stone",
-        position: "QB",
         injuryStatus: "healthy",
-        heightInches: 74,
-        weightPounds: 225,
+        ...sizeFor("QB"),
         college: "State University",
         hometown: "Dallas, TX",
         birthDate: "2000-03-10",
@@ -478,6 +498,10 @@ Deno.test({
         draftingTeamId: team.id,
       });
       playersCreated.push(playerId);
+      await db.insert(playerAttributes).values({
+        playerId,
+        ...attributesForBucket("QB"),
+      });
 
       await db.insert(playerSeasonStats).values([
         {
@@ -595,9 +619,7 @@ Deno.test({
           status: "prospect",
           firstName: "Zeb",
           lastName: "Young",
-          position: "WR",
-          heightInches: 72,
-          weightPounds: 200,
+          ...sizeFor("WR"),
           birthDate: "2004-02-01",
         },
         {
@@ -606,9 +628,7 @@ Deno.test({
           status: "prospect",
           firstName: "Abe",
           lastName: "Adams",
-          position: "QB",
-          heightInches: 74,
-          weightPounds: 220,
+          ...sizeFor("QB"),
           birthDate: "2004-03-01",
           college: "State",
           hometown: "Austin, TX",
@@ -619,9 +639,7 @@ Deno.test({
           status: "prospect",
           firstName: "Cal",
           lastName: "Baker",
-          position: "RB",
-          heightInches: 70,
-          weightPounds: 205,
+          ...sizeFor("RB"),
           birthDate: "2004-04-01",
         },
         {
@@ -631,9 +649,7 @@ Deno.test({
           status: "active",
           firstName: "Sam",
           lastName: "Stone",
-          position: "QB",
-          heightInches: 74,
-          weightPounds: 225,
+          ...sizeFor("QB"),
           birthDate: "2000-01-01",
         },
       ]);
@@ -645,10 +661,10 @@ Deno.test({
       );
 
       await db.insert(playerAttributes).values([
-        { playerId: prospectEarly, ...zeroAttributes() },
-        { playerId: prospectLate, ...zeroAttributes() },
-        { playerId: prospectNoProjection, ...zeroAttributes() },
-        { playerId: activePlayer, ...zeroAttributes() },
+        { playerId: prospectEarly, ...attributesForBucket("QB") },
+        { playerId: prospectLate, ...attributesForBucket("WR") },
+        { playerId: prospectNoProjection, ...attributesForBucket("RB") },
+        { playerId: activePlayer, ...attributesForBucket("QB") },
       ]);
       await db.insert(playerDraftProfile).values([
         {
@@ -656,21 +672,21 @@ Deno.test({
           seasonId: season.id,
           draftClassYear: 2028,
           projectedRound: 1,
-          ...zeroAttributes(),
+          ...attributesForBucket("QB"),
         },
         {
           playerId: prospectLate,
           seasonId: season.id,
           draftClassYear: 2028,
           projectedRound: 5,
-          ...zeroAttributes(),
+          ...attributesForBucket("WR"),
         },
         {
           playerId: prospectNoProjection,
           seasonId: season.id,
           draftClassYear: 2028,
           projectedRound: null,
-          ...zeroAttributes(),
+          ...attributesForBucket("RB"),
         },
       ]);
 
@@ -726,12 +742,14 @@ Deno.test({
         status: "prospect",
         firstName: "Abe",
         lastName: "Adams",
-        position: "QB",
-        heightInches: 74,
-        weightPounds: 220,
+        ...sizeFor("QB"),
         birthDate: "2004-03-01",
       });
       playersCreated.push(prospectId);
+      await db.insert(playerAttributes).values({
+        playerId: prospectId,
+        ...attributesForBucket("QB"),
+      });
 
       const result = await repo.transitionProspectToActive({
         playerId: prospectId,
@@ -824,15 +842,13 @@ Deno.test({
         status: "active",
         firstName: "Abe",
         lastName: "Adams",
-        position: "QB",
-        heightInches: 74,
-        weightPounds: 220,
+        ...sizeFor("QB"),
         birthDate: "2004-03-01",
       });
       playersCreated.push(playerId);
       await db.insert(playerAttributes).values({
         playerId,
-        ...zeroAttributes(),
+        ...attributesForBucket("QB"),
       });
       await db.insert(playerDraftProfile).values({
         playerId,
@@ -840,7 +856,7 @@ Deno.test({
         draftClassYear: 2028,
         projectedRound: 2,
         scoutingNotes: "Riser during the combine.",
-        ...zeroAttributes(),
+        ...attributesForBucket("QB"),
       });
 
       const detail = await repo.getDetailById(playerId);

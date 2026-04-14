@@ -169,6 +169,13 @@
       "when": 1776202626528,
       "tag": "0023_coach_tendencies",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1776204033638,
+      "tag": "0024_drop_player_position",
+      "breakpoints": true
     }
   ]
 }

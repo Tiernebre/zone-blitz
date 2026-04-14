@@ -28,7 +28,7 @@ Deno.test("players.router", async (t) => {
       id: "p1",
       firstName: "Sam",
       lastName: "Stone",
-      position: "QB",
+      neutralBucket: "QB",
       age: 28,
       heightInches: 74,
       weightPounds: 225,

@@ -1,8 +1,8 @@
 import type {
   DefensiveTendencies,
+  NeutralBucket,
   OffensiveTendencies,
   PlayerAttributeKey,
-  PlayerPosition,
 } from "@zone-blitz/shared";
 
 /**
@@ -32,7 +32,7 @@ export interface ArchetypeDemand {
 }
 
 export const POSITION_ARCHETYPE_WEIGHTS: Readonly<
-  Partial<Record<PlayerPosition, readonly ArchetypeDemand[]>>
+  Partial<Record<NeutralBucket, readonly ArchetypeDemand[]>>
 > = {
   CB: [
     {
@@ -94,13 +94,21 @@ export const POSITION_ARCHETYPE_WEIGHTS: Readonly<
       attributes: ["strength", "runDefense"],
     },
   ],
-  DL: [
+  EDGE: [
     {
       side: "defense",
       axis: "frontOddEven",
       pole: "high",
       attributes: ["passRushing", "acceleration"],
     },
+    {
+      side: "defense",
+      axis: "pressureRate",
+      pole: "high",
+      attributes: ["passRushing", "agility"],
+    },
+  ],
+  IDL: [
     {
       side: "defense",
       axis: "frontOddEven",
@@ -174,7 +182,27 @@ export const POSITION_ARCHETYPE_WEIGHTS: Readonly<
       attributes: ["routeRunning", "speed", "catching"],
     },
   ],
-  OL: [
+  OT: [
+    {
+      side: "offense",
+      axis: "runGameBlocking",
+      pole: "low",
+      attributes: ["agility", "acceleration", "runBlocking"],
+    },
+    {
+      side: "offense",
+      axis: "runGameBlocking",
+      pole: "high",
+      attributes: ["strength", "runBlocking"],
+    },
+    {
+      side: "offense",
+      axis: "formationUnderCenterShotgun",
+      pole: "high",
+      attributes: ["passBlocking", "agility"],
+    },
+  ],
+  IOL: [
     {
       side: "offense",
       axis: "runGameBlocking",

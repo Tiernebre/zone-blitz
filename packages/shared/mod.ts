@@ -64,17 +64,19 @@ export type {
   DepthChart,
   DepthChartInactive,
   DepthChartSlot,
-  PlayerPositionGroup,
+  NeutralBucketGroup,
   RosterPlayer,
   RosterPositionGroupSummary,
   RosterStatistics,
   RosterStatisticsRow,
 } from "./types/roster.ts";
+export { NEUTRAL_BUCKET_GROUPS, neutralBucketGroupOf } from "./types/roster.ts";
 export type {
   Contract,
   ContractHistoryEntry,
   ContractTerminationReason,
   CurrentContractSummary,
+  DepthChartSlotCode,
   DraftEligiblePlayer,
   Player,
   PlayerAccoladeEntry,
@@ -82,7 +84,6 @@ export type {
   PlayerDetail,
   PlayerInjuryStatus,
   PlayerOrigin,
-  PlayerPosition,
   PlayerSeasonStatRow,
   PlayerStatus,
   PlayerTransactionEntry,
@@ -91,10 +92,9 @@ export type {
 } from "./types/player.ts";
 export {
   CONTRACT_TERMINATION_REASONS,
+  DEPTH_CHART_SLOT_CODES,
   PLAYER_ACCOLADE_TYPES,
   PLAYER_INJURY_STATUSES,
-  PLAYER_POSITION_GROUPS,
-  PLAYER_POSITIONS,
   PLAYER_STATUSES,
   PLAYER_TRANSACTION_TYPES,
 } from "./types/player.ts";
