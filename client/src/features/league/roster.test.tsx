@@ -1,4 +1,10 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Roster } from "./roster.tsx";
@@ -6,6 +12,7 @@ import { Roster } from "./roster.tsx";
 const mockUseParams = vi.fn();
 const mockUseLeague = vi.fn();
 const mockUseActiveRoster = vi.fn();
+const mockUseDepthChart = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   useParams: (...args: unknown[]) => mockUseParams(...args),
@@ -17,6 +24,10 @@ vi.mock("../../hooks/use-league.ts", () => ({
 
 vi.mock("../../hooks/use-active-roster.ts", () => ({
   useActiveRoster: (...args: unknown[]) => mockUseActiveRoster(...args),
+}));
+
+vi.mock("../../hooks/use-depth-chart.ts", () => ({
+  useDepthChart: (...args: unknown[]) => mockUseDepthChart(...args),
 }));
 
 function renderRoster() {
@@ -78,6 +89,77 @@ const baseRoster = {
   capSpace: 190_000_000,
 };
 
+const baseDepthChart = {
+  leagueId: "L1",
+  teamId: "T1",
+  slots: [
+    {
+      playerId: "p1",
+      firstName: "Patrick",
+      lastName: "Quarterback",
+      position: "QB",
+      slotOrdinal: 1,
+      injuryStatus: "healthy",
+    },
+    {
+      playerId: "p4",
+      firstName: "Backup",
+      lastName: "Qb",
+      position: "QB",
+      slotOrdinal: 2,
+      injuryStatus: "questionable",
+    },
+    {
+      playerId: "p2",
+      firstName: "Derrick",
+      lastName: "Runback",
+      position: "RB",
+      slotOrdinal: 1,
+      injuryStatus: "questionable",
+    },
+    {
+      playerId: "p5",
+      firstName: "Third",
+      lastName: "String",
+      position: "RB",
+      slotOrdinal: 3,
+      injuryStatus: "healthy",
+    },
+    {
+      playerId: "p6",
+      firstName: "Fourth",
+      lastName: "Back",
+      position: "RB",
+      slotOrdinal: 4,
+      injuryStatus: "healthy",
+    },
+    {
+      playerId: "p7",
+      firstName: "Deep",
+      lastName: "Reserve",
+      position: "RB",
+      slotOrdinal: 11,
+      injuryStatus: "healthy",
+    },
+  ],
+  inactives: [
+    {
+      playerId: "p3",
+      firstName: "Aaron",
+      lastName: "Rusher",
+      position: "EDGE",
+      injuryStatus: "out",
+    },
+  ],
+  lastUpdatedAt: "2026-04-10T12:00:00.000Z",
+  lastUpdatedBy: {
+    id: "c1",
+    firstName: "Andy",
+    lastName: "Coach",
+    role: "head_coach",
+  },
+};
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -93,14 +175,35 @@ beforeEach(() => {
     isLoading: false,
     isError: false,
   });
+  mockUseDepthChart.mockReturnValue({
+    data: baseDepthChart,
+    isLoading: false,
+    isError: false,
+  });
 });
 
-describe("Roster", () => {
+describe("Roster — page", () => {
   it("renders the Roster heading", () => {
     renderRoster();
     expect(screen.getByRole("heading", { name: "Roster" })).toBeDefined();
   });
 
+  it("shows tabs for Active Roster and Depth Chart", () => {
+    renderRoster();
+    expect(screen.getByRole("tab", { name: /active roster/i })).toBeDefined();
+    expect(screen.getByRole("tab", { name: /depth chart/i })).toBeDefined();
+  });
+
+  it("shows a message when the league has no selected team", () => {
+    mockUseLeague.mockReturnValue({
+      data: { id: "L1", userTeamId: null, name: "Test League" },
+    });
+    renderRoster();
+    expect(screen.getByText(/select a team/i)).toBeDefined();
+  });
+});
+
+describe("Roster — active roster tab (default)", () => {
   it("shows a loading skeleton while data is fetching", () => {
     mockUseActiveRoster.mockReturnValue({
       data: undefined,
@@ -108,7 +211,7 @@ describe("Roster", () => {
       isError: false,
     });
     renderRoster();
-    expect(screen.getByTestId("roster-loading")).toBeDefined();
+    expect(screen.getByTestId("active-roster-loading")).toBeDefined();
   });
 
   it("shows an error message when the roster fails to load", () => {
@@ -121,20 +224,7 @@ describe("Roster", () => {
     expect(screen.getByText(/failed to load roster/i)).toBeDefined();
   });
 
-  it("shows a message when the league has no selected team", () => {
-    mockUseLeague.mockReturnValue({
-      data: { id: "L1", userTeamId: null, name: "Test League" },
-    });
-    mockUseActiveRoster.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      isError: false,
-    });
-    renderRoster();
-    expect(screen.getByText(/select a team/i)).toBeDefined();
-  });
-
-  it("renders the cap summary with total cap, salary cap, and cap space", () => {
+  it("renders the cap summary", () => {
     renderRoster();
     const summary = screen.getByTestId("roster-cap-summary");
     expect(within(summary).getByText("$65,000,000")).toBeDefined();
@@ -142,7 +232,7 @@ describe("Roster", () => {
     expect(within(summary).getByText("$190,000,000")).toBeDefined();
   });
 
-  it("renders a section per position group with headcount and group cap", () => {
+  it("renders position group headers with headcount and cap", () => {
     renderRoster();
     const offense = screen.getByTestId("position-group-header-offense");
     expect(within(offense).getByText(/offense/i)).toBeDefined();
@@ -154,7 +244,7 @@ describe("Roster", () => {
     expect(within(defense).getByText("$8,000,000")).toBeDefined();
   });
 
-  it("renders a player row with name, position, age, cap hit, contract years, and injury status", () => {
+  it("renders a player row with all visible fields", () => {
     renderRoster();
     const row = screen.getByTestId("roster-row-p1");
     expect(within(row).getByText("Patrick Quarterback")).toBeDefined();
@@ -165,7 +255,7 @@ describe("Roster", () => {
     expect(within(row).getByText(/healthy/i)).toBeDefined();
   });
 
-  it("does not render overall rating, grade, or attribute columns", () => {
+  it("does not render overall rating or grade", () => {
     renderRoster();
     expect(screen.queryByText(/overall/i)).toBeNull();
     expect(screen.queryByText(/^grade$/i)).toBeNull();
@@ -174,5 +264,88 @@ describe("Roster", () => {
   it("omits empty position groups", () => {
     renderRoster();
     expect(screen.queryByTestId("position-group-special_teams")).toBeNull();
+  });
+});
+
+describe("Roster — depth chart tab", () => {
+  function activateDepthChartTab() {
+    fireEvent.click(screen.getByRole("tab", { name: /depth chart/i }));
+  }
+
+  it("shows a loading skeleton while the chart is fetching", () => {
+    mockUseDepthChart.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+    });
+    renderRoster();
+    activateDepthChartTab();
+    expect(screen.getByTestId("depth-chart-loading")).toBeDefined();
+  });
+
+  it("shows an error message when the chart fails to load", () => {
+    mockUseDepthChart.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+    });
+    renderRoster();
+    activateDepthChartTab();
+    expect(screen.getByText(/failed to load depth chart/i)).toBeDefined();
+  });
+
+  it("renders position cards with ordinal slots and no overall rating", () => {
+    renderRoster();
+    activateDepthChartTab();
+    const qb = screen.getByTestId("depth-chart-position-QB");
+    const qbSlots = within(qb).getAllByTestId(/depth-chart-slot-/);
+    expect(qbSlots.length).toBe(2);
+    expect(within(qbSlots[0]).getByText("1st")).toBeDefined();
+    expect(within(qbSlots[0]).getByText("Patrick Quarterback")).toBeDefined();
+    expect(within(qbSlots[1]).getByText("2nd")).toBeDefined();
+    expect(within(qbSlots[1]).getByText("Backup Qb")).toBeDefined();
+    expect(within(qbSlots[1]).getByText(/questionable/i)).toBeDefined();
+    expect(within(qb).queryByText(/overall/i)).toBeNull();
+
+    const rb = screen.getByTestId("depth-chart-position-RB");
+    expect(within(rb).getByText("3rd")).toBeDefined();
+    expect(within(rb).getByText("4th")).toBeDefined();
+    expect(within(rb).getByText("11th")).toBeDefined();
+  });
+
+  it("renders inactives in their own list", () => {
+    renderRoster();
+    activateDepthChartTab();
+    const inactives = screen.getByTestId("depth-chart-inactives");
+    expect(within(inactives).getByText("Aaron Rusher")).toBeDefined();
+    expect(within(inactives).getByText("EDGE")).toBeDefined();
+  });
+
+  it("shows the last-updated timestamp and owning coach", () => {
+    renderRoster();
+    activateDepthChartTab();
+    const meta = screen.getByTestId("depth-chart-meta");
+    expect(within(meta).getByText(/andy coach/i)).toBeDefined();
+    expect(within(meta).getByText(/2026/)).toBeDefined();
+  });
+
+  it("shows an empty state when the coach has not published a chart", () => {
+    mockUseDepthChart.mockReturnValue({
+      data: {
+        leagueId: "L1",
+        teamId: "T1",
+        slots: [],
+        inactives: [],
+        lastUpdatedAt: null,
+        lastUpdatedBy: null,
+      },
+      isLoading: false,
+      isError: false,
+    });
+    renderRoster();
+    activateDepthChartTab();
+    expect(
+      screen.getByText(/coaching staff hasn't published a depth chart/i),
+    ).toBeDefined();
   });
 });
