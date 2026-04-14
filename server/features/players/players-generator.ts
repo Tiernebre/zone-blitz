@@ -710,7 +710,7 @@ export function stubAttributesFor(bucket: NeutralBucket): PlayerAttributes {
   return attrs as PlayerAttributes;
 }
 
-export interface StubPlayersGeneratorOptions {
+export interface PlayersGeneratorOptions {
   /**
    * Injected name generator. Defaults to the shared server-wide
    * `createNameGenerator()` so league creation produces varied names without
@@ -723,8 +723,8 @@ export interface StubPlayersGeneratorOptions {
   currentYear?: number;
 }
 
-export function createStubPlayersGenerator(
-  options: StubPlayersGeneratorOptions = {},
+export function createPlayersGenerator(
+  options: PlayersGeneratorOptions = {},
 ): PlayersGenerator {
   const random = options.random ?? Math.random;
   const rng = createRng(random);

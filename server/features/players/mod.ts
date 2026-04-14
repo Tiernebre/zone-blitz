@@ -1,4 +1,4 @@
-export { createStubPlayersGenerator } from "./stub-players-generator.ts";
+export { createPlayersGenerator } from "./players-generator.ts";
 export { createPlayersService } from "./players.service.ts";
 export { createPlayersRepository } from "./players.repository.ts";
 export { createPlayersRouter } from "./players.router.ts";
