@@ -103,8 +103,14 @@ What users see instead:
   rookie. Is he right? Is he stubborn? Is he protecting his job by playing the
   safe option? You'll find out when the games are played.
 - **Scheme tendencies** — you can see what your coaches call. Run-pass ratios,
-  blitz frequency, formation tendencies. You can't see _why_ they make those
-  calls, but you can evaluate whether the results are working.
+  blitz frequency, formation tendencies, personnel lean (% 11 vs. 12 vs. 21 on
+  offense; % nickel vs. base vs. dime on defense), motion rate, disguise rate,
+  and situational splits (red zone, short yardage, third-down-by-distance,
+  two-minute). You can't see _why_ they make those calls, but you can evaluate
+  whether the results are working. See
+  [Schemes & Strategy](./schemes-and-strategy.md) for the full vocabulary of
+  personnel groupings, positional labels, pressure packages, and situational
+  tendencies these numbers describe.
 
 ---
 
@@ -226,6 +232,11 @@ effectiveness. All of these are hidden from the user.
   to game-plan against and age better as the meta shifts
 - **Adaptability** — how quickly a coach adjusts his scheme when it's not
   working, both within a game (halftime adjustments) and across a season
+- **Situational tendency coherence** — whether the coach's red zone, short
+  yardage, two-minute, and third-down packages reflect a unified identity or
+  feel like a different playbook in each situation; high coherence means
+  opposing coordinators see a consistent scheme; low coherence means the coach
+  has seams in specific situations that film study will find
 
 ### Player Development
 
@@ -302,6 +313,11 @@ hidden and discovered over time:
   declining player)
 - **Positional biases** — a coach with a DB background might over-invest in the
   secondary during the draft and undervalue the offensive line
+- **Personnel biases** — some OCs stay in 11 personnel on 75% of snaps even when
+  12 personnel would exploit a light-box defense; some DCs refuse to leave
+  nickel even against 22-personnel heavy looks. Personnel rigidity is a form of
+  bias — the coach's comfort with his preferred grouping outweighs the matchup
+  advantage a different grouping would create
 - **Risk tolerance** — some coaches are aggressive (4th down attempts, deep
   shots, blitzing); others are conservative (punt on 4th and 3, run the ball
   with a lead, play soft coverage); neither is inherently right, but mismatches
