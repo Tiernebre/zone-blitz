@@ -13,4 +13,9 @@ describe("LeagueHome", () => {
       screen.getByRole("heading", { name: "League Home" }),
     ).toBeDefined();
   });
+
+  it("renders a coming soon badge", () => {
+    render(<LeagueHome />);
+    expect(screen.getByText(/coming soon/i)).toBeDefined();
+  });
 });
