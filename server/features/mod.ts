@@ -20,6 +20,7 @@ import {
 } from "./team/mod.ts";
 import { createSeasonRepository, createSeasonService } from "./season/mod.ts";
 import { createPersonnelService } from "./personnel/mod.ts";
+import { createDepthChartPublisher } from "./depth-chart/mod.ts";
 import {
   createPlayersRepository,
   createPlayersRouter,
@@ -122,11 +123,13 @@ export function createFeatureRouters(
     db,
     log,
   });
+  const depthChartPublisher = createDepthChartPublisher({ db, log });
   const personnelService = createPersonnelService({
     playersService,
     coachesService,
     scoutsService,
     frontOfficeService,
+    depthChartPublisher,
     log,
   });
   const scheduleService = createScheduleService({

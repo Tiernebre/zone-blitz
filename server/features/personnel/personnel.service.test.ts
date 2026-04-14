@@ -4,6 +4,7 @@ import type { PlayersService } from "../players/players.service.interface.ts";
 import type { CoachesService } from "../coaches/coaches.service.interface.ts";
 import type { ScoutsService } from "../scouts/scouts.service.interface.ts";
 import type { FrontOfficeService } from "../front-office/front-office.service.interface.ts";
+import type { DepthChartPublisher } from "../depth-chart/depth-chart.publisher.interface.ts";
 
 function createTestLogger() {
   return {
@@ -67,6 +68,15 @@ function createMockFrontOfficeService(
   };
 }
 
+function createMockDepthChartPublisher(
+  overrides: Partial<DepthChartPublisher> = {},
+): DepthChartPublisher {
+  return {
+    publishForTeams: () => Promise.resolve({ entryCount: 0 }),
+    ...overrides,
+  };
+}
+
 Deno.test("personnel.service", async (t) => {
   await t.step(
     "generate delegates to all four services and aggregates counts",
@@ -126,6 +136,7 @@ Deno.test("personnel.service", async (t) => {
         coachesService,
         scoutsService,
         frontOfficeService,
+        depthChartPublisher: createMockDepthChartPublisher(),
         log: createTestLogger(),
       });
 
@@ -195,6 +206,12 @@ Deno.test("personnel.service", async (t) => {
             return Promise.resolve({ frontOfficeCount: 0 });
           },
         }),
+        depthChartPublisher: createMockDepthChartPublisher({
+          publishForTeams: (_input, tx) => {
+            received.depthChart = tx;
+            return Promise.resolve({ entryCount: 0 });
+          },
+        }),
         log: createTestLogger(),
       });
 
@@ -210,6 +227,7 @@ Deno.test("personnel.service", async (t) => {
       );
 
       assertEquals(received.players, marker);
+      assertEquals(received.depthChart, marker);
       assertEquals(received.coaches, marker);
       assertEquals(received.scouts, marker);
       assertEquals(received.frontOffice, marker);
@@ -224,6 +242,7 @@ Deno.test("personnel.service", async (t) => {
         coachesService: createMockCoachesService(),
         scoutsService: createMockScoutsService(),
         frontOfficeService: createMockFrontOfficeService(),
+        depthChartPublisher: createMockDepthChartPublisher(),
         log: createTestLogger(),
       });
 
