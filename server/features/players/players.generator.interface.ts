@@ -1,4 +1,9 @@
-import type { Contract, DraftProspect, Player } from "@zone-blitz/shared";
+import type {
+  Contract,
+  DraftProspect,
+  Player,
+  PlayerAttributes,
+} from "@zone-blitz/shared";
 
 export interface PlayersGeneratorInput {
   leagueId: string;
@@ -7,9 +12,19 @@ export interface PlayersGeneratorInput {
   rosterSize: number;
 }
 
+export interface GeneratedPlayer {
+  player: Omit<Player, "id" | "createdAt" | "updatedAt">;
+  attributes: PlayerAttributes;
+}
+
+export interface GeneratedDraftProspect {
+  prospect: Omit<DraftProspect, "id" | "createdAt" | "updatedAt">;
+  attributes: PlayerAttributes;
+}
+
 export interface GeneratedPlayers {
-  players: Omit<Player, "id" | "createdAt" | "updatedAt">[];
-  draftProspects: Omit<DraftProspect, "id" | "createdAt" | "updatedAt">[];
+  players: GeneratedPlayer[];
+  draftProspects: GeneratedDraftProspect[];
 }
 
 export interface ContractGeneratorInput {
