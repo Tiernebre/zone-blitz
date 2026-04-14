@@ -72,6 +72,7 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "Standings", path: "standings", Icon: TrophyIcon },
       { label: "Schedule", path: "schedule", Icon: CalendarIcon },
+      { label: "Opponents", path: "opponents", Icon: UsersIcon },
       { label: "Media", path: "media", Icon: NewspaperIcon },
       { label: "Owner", path: "owner", Icon: CrownIcon },
     ],

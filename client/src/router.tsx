@@ -18,6 +18,9 @@ import { Coaches } from "./features/league/coaches/index.tsx";
 import { CoachDetail } from "./features/league/coaches/detail.tsx";
 import { Scouts } from "./features/league/scouts/index.tsx";
 import { ScoutDetail } from "./features/league/scouts/detail.tsx";
+import { Opponents } from "./features/league/opponents/index.tsx";
+import { OpponentRoster } from "./features/league/opponents/detail.tsx";
+import { PlayerDetail } from "./features/league/players/detail.tsx";
 import { Draft } from "./features/league/draft.tsx";
 import { Trades } from "./features/league/trades.tsx";
 import { FreeAgency } from "./features/league/free-agency.tsx";
@@ -174,6 +177,24 @@ const ownerRoute = createRoute({
   component: Owner,
 });
 
+const opponentsRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "opponents",
+  component: Opponents,
+});
+
+const opponentDetailRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "opponents/$teamId",
+  component: OpponentRoster,
+});
+
+const playerDetailRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "players/$playerId",
+  component: PlayerDetail,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   authenticatedRoute.addChildren([
@@ -196,6 +217,9 @@ const routeTree = rootRoute.addChildren([
       scheduleRoute,
       mediaRoute,
       ownerRoute,
+      opponentsRoute,
+      opponentDetailRoute,
+      playerDetailRoute,
     ]),
   ]),
 ]);

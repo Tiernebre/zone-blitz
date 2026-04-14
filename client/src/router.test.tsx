@@ -184,6 +184,7 @@ describe("Router", () => {
     ["schedule", "Schedule"],
     ["media", "Media"],
     ["owner", "Owner"],
+    ["opponents", "Opponents"],
   ];
 
   for (const [path, heading] of stubRoutes) {
