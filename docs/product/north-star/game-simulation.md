@@ -244,6 +244,80 @@ Stats and team success drive award voting:
 - Pro Bowl selections
 - These affect player contract demands and conditional trade pick resolutions
 
+## Live Broadcast Experience
+
+When the user chooses to watch a game, play-by-play simulation feeds a **live
+interactive broadcast UI** — the "I'm watching this game" experience, not
+just a box score that ticks forward. Think ESPN/NFL Sunday Ticket's on-field
+overlays and Next Gen Stats, but with the full simulation state available
+because the game is happening inside our own engine. Nothing is inferred from
+TV cameras; every player's position, assignment, and attribute contribution
+is known exactly.
+
+### What the user sees
+
+- **The field** — a top-down (or adjustable angle) football field rendered in
+  the browser with both teams' 22 players in their pre-snap alignment.
+  Formation, motion, personnel package, and defensive front are all visible.
+  The ball, line of scrimmage, first-down marker, and hash are drawn.
+- **The play, as it happens** — once the ball is snapped, player icons move
+  according to the simulated play: routes run, blocks engaged, rush lanes,
+  coverage drops, tackles made. Speed, acceleration, and separation reflect
+  the underlying attribute values, so a 4.3 WR visibly pulls away from a 4.6
+  CB. The play can be paused, rewound, and replayed.
+- **Drive context panel** — current drive summary (plays, yards, time of
+  possession), down/distance, field position, score, quarter, clock,
+  timeouts, win probability. Updates in real time as plays resolve.
+- **Broadcast-style overlays** — pre-snap: defensive front recognition,
+  offensive personnel grouping, suggested matchups to watch, historical
+  tendencies for this down/distance. Post-snap: yards gained, ball carrier
+  top speed, separation at the catch point, pressure time, missed-tackle
+  count, pass velocity, air yards vs. YAC.
+- **Player spotlight** — click any player on the field to see their live
+  stat line for the game, key attributes relevant to the current play type,
+  scheme fit, fatigue, and any in-game injury flags. A WR spotlight shows
+  targets, catches, yards, drops, separation per target.
+- **Drive chart** — a running ledger of every play in the current drive with
+  expandable detail. Completed drives collapse into a per-drive summary
+  (start field position, plays, yards, result) and remain scrollable for the
+  whole game.
+- **Coaching seat** — the user, as GM, generally watches rather than
+  coaches; but when their team is on the field they can override key
+  decisions their HC would otherwise make (4th-down go-for-it, timeout,
+  challenge, two-point try, field-goal attempt). These decisions feed back
+  into the play-by-play engine before the next play resolves.
+
+### Why this depth is possible here and not on TV
+
+Real broadcasts guess at coverage, player intent, and matchup edges from
+camera angles and charting. We don't have to guess — the simulation is
+authoritative. Every live overlay (pressure time, separation, coverage
+assignment, tendency-break, scheme-fit advantage) is a direct readout of
+the same per-play event stream described in
+[Statistics — Sim requirements](./statistics.md#sim-requirements). That
+means the live UI and the post-game stat sheet are never inconsistent, and
+every advanced readout is traceable to a deterministic source, not a
+broadcaster's best guess.
+
+### Consistency with non-watched games
+
+The broadcast UI is a presentation layer on top of play-by-play mode.
+Whether a game is watched or single-game-simulated, it writes the same
+events to the same stat surface. A user who checks a box score later for a
+game they didn't watch sees results that match what *would have been*
+displayed live, pulled from the same event records. No divergence, no
+"broadcast mode" with different numbers.
+
+### Out of scope for the initial broadcast UI
+
+- Multiple camera angles, cinematic replays, or animated player models
+  (icons and motion paths are enough).
+- Commentary audio or generated play-by-play narration (text feed only at
+  first — see [Media](./media.md) for narrative layering later).
+- VR / 3D stadium rendering.
+- User-controllable camera during live plays beyond play-by-play pause and
+  replay.
+
 ## What the Sim Produces
 
 For each game, at minimum:
