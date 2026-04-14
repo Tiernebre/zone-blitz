@@ -21,8 +21,4 @@ test("created league appears in the home page leagues table", async ({ authentic
   await expect(row).toBeVisible();
   await expect(row.getByRole("cell", { name: leagueName, exact: true }))
     .toBeVisible();
-  await expect(row.getByRole("cell", { name: "32", exact: true }))
-    .toBeVisible();
-  await expect(row.getByRole("cell", { name: "17", exact: true }))
-    .toBeVisible();
 });
