@@ -1,4 +1,5 @@
 import type pino from "pino";
+import { DomainError } from "@zone-blitz/shared";
 import type { Database } from "../../db/connection.ts";
 import {
   chunkedInsert,
@@ -11,16 +12,27 @@ import {
 } from "./attributes.schema.ts";
 import { contracts } from "./contract.schema.ts";
 import type { PlayersGenerator } from "./players.generator.interface.ts";
+import type { PlayersRepository } from "./players.repository.interface.ts";
 import type { PlayersService } from "./players.service.interface.ts";
 
 export function createPlayersService(deps: {
   generator: PlayersGenerator;
+  repo: PlayersRepository;
   db: Database;
   log: pino.Logger;
 }): PlayersService {
   const log = deps.log.child({ module: "players.service" });
 
   return {
+    async getDetail(playerId) {
+      log.debug({ playerId }, "fetching player detail");
+      const detail = await deps.repo.getDetailById(playerId);
+      if (!detail) {
+        throw new DomainError("NOT_FOUND", `Player ${playerId} not found`);
+      }
+      return detail;
+    },
+
     async generate(input, tx) {
       const exec = tx ?? deps.db;
       log.info(

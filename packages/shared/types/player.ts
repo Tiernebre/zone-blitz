@@ -52,9 +52,47 @@ export interface Player {
   heightInches: number;
   weightPounds: number;
   college: string | null;
+  hometown: string | null;
   birthDate: string;
+  draftYear: number | null;
+  draftRound: number | null;
+  draftPick: number | null;
+  draftingTeamId: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface PlayerOrigin {
+  draftYear: number | null;
+  draftRound: number | null;
+  draftPick: number | null;
+  draftingTeam: {
+    id: string;
+    name: string;
+    city: string;
+    abbreviation: string;
+  } | null;
+  college: string | null;
+  hometown: string | null;
+}
+
+export interface PlayerDetail {
+  id: string;
+  firstName: string;
+  lastName: string;
+  position: PlayerPosition;
+  age: number;
+  heightInches: number;
+  weightPounds: number;
+  yearsOfExperience: number;
+  injuryStatus: PlayerInjuryStatus;
+  currentTeam: {
+    id: string;
+    name: string;
+    city: string;
+    abbreviation: string;
+  } | null;
+  origin: PlayerOrigin;
 }
 
 export interface Contract {

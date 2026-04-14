@@ -1,13 +1,25 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertRejects } from "@std/assert";
 import {
+  DomainError,
   PLAYER_ATTRIBUTE_KEYS,
   type PlayerAttributes,
+  type PlayerDetail,
 } from "@zone-blitz/shared";
 import { createPlayersService } from "./players.service.ts";
 import type {
   GeneratedPlayers,
   PlayersGenerator,
 } from "./players.generator.interface.ts";
+import type { PlayersRepository } from "./players.repository.interface.ts";
+
+function createMockRepo(
+  overrides: Partial<PlayersRepository> = {},
+): PlayersRepository {
+  return {
+    getDetailById: () => Promise.resolve(undefined),
+    ...overrides,
+  };
+}
 
 function createTestLogger() {
   return {
@@ -82,6 +94,75 @@ function createMockDb(rosteredPlayerIds: string[] = []): {
   return { db, calls };
 }
 
+Deno.test("players.service — getDetail", async (t) => {
+  await t.step(
+    "returns the detail when the repo finds the player",
+    async () => {
+      const detail: PlayerDetail = {
+        id: "p1",
+        firstName: "Sam",
+        lastName: "Stone",
+        position: "QB",
+        age: 28,
+        heightInches: 74,
+        weightPounds: 225,
+        yearsOfExperience: 5,
+        injuryStatus: "healthy",
+        currentTeam: {
+          id: "t1",
+          name: "Bengals",
+          city: "Cincinnati",
+          abbreviation: "CIN",
+        },
+        origin: {
+          draftYear: 2020,
+          draftRound: 1,
+          draftPick: 1,
+          draftingTeam: {
+            id: "t1",
+            name: "Bengals",
+            city: "Cincinnati",
+            abbreviation: "CIN",
+          },
+          college: "State University",
+          hometown: "Dallas, TX",
+        },
+      };
+      const { db } = createMockDb();
+      const service = createPlayersService({
+        generator: createMockGenerator(),
+        repo: createMockRepo({
+          getDetailById: (id) => {
+            assertEquals(id, "p1");
+            return Promise.resolve(detail);
+          },
+        }),
+        db,
+        log: createTestLogger(),
+      });
+
+      const result = await service.getDetail("p1");
+      assertEquals(result.id, "p1");
+      assertEquals(result.origin.draftYear, 2020);
+    },
+  );
+
+  await t.step("throws NOT_FOUND when the repo returns undefined", async () => {
+    const { db } = createMockDb();
+    const service = createPlayersService({
+      generator: createMockGenerator(),
+      repo: createMockRepo(),
+      db,
+      log: createTestLogger(),
+    });
+    await assertRejects(
+      () => service.getDetail("missing"),
+      DomainError,
+      "Player missing not found",
+    );
+  });
+});
+
 Deno.test("players.service", async (t) => {
   await t.step(
     "generate inserts players, attributes, draft prospects, and contracts",
@@ -102,7 +183,12 @@ Deno.test("players.service", async (t) => {
                 heightInches: 72,
                 weightPounds: 220,
                 college: null,
+                hometown: null,
                 birthDate: "2000-01-01",
+                draftYear: null,
+                draftRound: null,
+                draftPick: null,
+                draftingTeamId: null,
               },
               attributes: stubAttrs(),
             },
@@ -118,7 +204,12 @@ Deno.test("players.service", async (t) => {
                 heightInches: 72,
                 weightPounds: 220,
                 college: null,
+                hometown: null,
                 birthDate: "2000-01-01",
+                draftYear: null,
+                draftRound: null,
+                draftPick: null,
+                draftingTeamId: null,
               },
               attributes: stubAttrs(),
             },
@@ -155,6 +246,7 @@ Deno.test("players.service", async (t) => {
 
       const service = createPlayersService({
         generator,
+        repo: createMockRepo(),
         db,
         log: createTestLogger(),
       });
@@ -195,6 +287,7 @@ Deno.test("players.service", async (t) => {
 
       const service = createPlayersService({
         generator,
+        repo: createMockRepo(),
         db,
         log: createTestLogger(),
       });
@@ -234,7 +327,12 @@ Deno.test("players.service", async (t) => {
                 heightInches: 72,
                 weightPounds: 220,
                 college: null,
+                hometown: null,
                 birthDate: "2000-01-01",
+                draftYear: null,
+                draftRound: null,
+                draftPick: null,
+                draftingTeamId: null,
               },
               attributes: stubAttrs(),
             },
@@ -246,6 +344,7 @@ Deno.test("players.service", async (t) => {
 
       const service = createPlayersService({
         generator,
+        repo: createMockRepo(),
         db,
         log: createTestLogger(),
       });
@@ -290,7 +389,12 @@ Deno.test("players.service", async (t) => {
                 heightInches: 72,
                 weightPounds: 220,
                 college: null,
+                hometown: null,
                 birthDate: "2000-01-01",
+                draftYear: null,
+                draftRound: null,
+                draftPick: null,
+                draftingTeamId: null,
               },
               attributes: stubAttrs(),
             },
@@ -305,6 +409,7 @@ Deno.test("players.service", async (t) => {
 
       const service = createPlayersService({
         generator,
+        repo: createMockRepo(),
         db,
         log: createTestLogger(),
       });

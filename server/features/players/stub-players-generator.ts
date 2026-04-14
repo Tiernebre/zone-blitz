@@ -17,6 +17,16 @@ const STUB_HEIGHT_INCHES = 72;
 const STUB_WEIGHT_POUNDS = 220;
 const STUB_COLLEGE = "State University";
 const STUB_BIRTH_DATE = "2000-01-01";
+const STUB_HOMETOWNS = [
+  "Houston, TX",
+  "Miami, FL",
+  "Atlanta, GA",
+  "Chicago, IL",
+  "Los Angeles, CA",
+  "Philadelphia, PA",
+  "Dallas, TX",
+  "Detroit, MI",
+] as const;
 
 export const ROSTER_POSITION_COMPOSITION: readonly {
   position: PlayerPosition;
@@ -188,6 +198,29 @@ function randomName(index: number) {
   return { firstName, lastName };
 }
 
+function stubOrigin(index: number, draftingTeamId: string | null) {
+  const undrafted = index % 17 === 0;
+  if (undrafted) {
+    return {
+      hometown: STUB_HOMETOWNS[index % STUB_HOMETOWNS.length],
+      draftYear: null,
+      draftRound: null,
+      draftPick: null,
+      draftingTeamId: null,
+    };
+  }
+  const round = (index % 7) + 1;
+  const pickInRound = (index % 32) + 1;
+  const overallPick = (round - 1) * 32 + pickInRound;
+  return {
+    hometown: STUB_HOMETOWNS[index % STUB_HOMETOWNS.length],
+    draftYear: 2020 + (index % 6),
+    draftRound: round,
+    draftPick: overallPick,
+    draftingTeamId,
+  };
+}
+
 export function createStubPlayersGenerator(): PlayersGenerator {
   return {
     generate(input: PlayersGeneratorInput): GeneratedPlayers {
@@ -200,6 +233,7 @@ export function createStubPlayersGenerator(): PlayersGenerator {
           const position = ROSTER_POSITION_SLOTS[
             i % ROSTER_POSITION_SLOTS.length
           ];
+          const origin = stubOrigin(nameIndex, teamId);
           players.push({
             player: {
               leagueId: input.leagueId,
@@ -213,6 +247,7 @@ export function createStubPlayersGenerator(): PlayersGenerator {
               weightPounds: STUB_WEIGHT_POUNDS,
               college: STUB_COLLEGE,
               birthDate: STUB_BIRTH_DATE,
+              ...origin,
             },
             attributes: stubAttributes(),
           });
@@ -224,6 +259,7 @@ export function createStubPlayersGenerator(): PlayersGenerator {
         const position = FREE_AGENT_POSITION_CYCLE[
           i % FREE_AGENT_POSITION_CYCLE.length
         ];
+        const origin = stubOrigin(nameIndex, null);
         players.push({
           player: {
             leagueId: input.leagueId,
@@ -237,6 +273,7 @@ export function createStubPlayersGenerator(): PlayersGenerator {
             weightPounds: STUB_WEIGHT_POUNDS,
             college: STUB_COLLEGE,
             birthDate: STUB_BIRTH_DATE,
+            ...origin,
           },
           attributes: stubAttributes(),
         });

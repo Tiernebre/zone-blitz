@@ -41,7 +41,14 @@ export const players = pgTable("players", {
   heightInches: integer("height_inches").notNull(),
   weightPounds: integer("weight_pounds").notNull(),
   college: text("college"),
+  hometown: text("hometown"),
   birthDate: date("birth_date").notNull(),
+  draftYear: integer("draft_year"),
+  draftRound: integer("draft_round"),
+  draftPick: integer("draft_pick"),
+  draftingTeamId: uuid("drafting_team_id").references(() => teams.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [

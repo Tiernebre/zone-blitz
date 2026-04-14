@@ -25,6 +25,7 @@ function createMockPlayersService(
         draftProspectCount: 0,
         contractCount: 0,
       }),
+    getDetail: () => Promise.reject(new Error("not implemented in mock")),
     ...overrides,
   };
 }
