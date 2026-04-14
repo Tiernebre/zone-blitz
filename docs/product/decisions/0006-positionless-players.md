@@ -1,7 +1,7 @@
 # 0006 — Players are positionless; position is a lens, not a property
 
 - **Date:** 2026-04-14
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** player-attributes, schemes — see
   [`../north-star/player-attributes.md`](../north-star/player-attributes.md) and
   [`../north-star/schemes-and-strategy.md`](../north-star/schemes-and-strategy.md);
@@ -34,10 +34,10 @@ Players do not have a position attribute. A player is a bag of attributes
 always a **derived projection** that depends on the viewing lens:
 
 1. **Neutral lens (league-wide baseline)** — a generic modern-NFL archetype map
-   produces a coarse, stable bucket (QB / RB / WR / TE / OL / EDGE / IDL / LB /
-   CB / S / K / P / LS / returner) from attribute profile alone. This is the
-   lens used on other teams' rosters, the trade finder, league leaderboards, and
-   any pre-coach cold-start view.
+   produces a coarse, stable bucket (see the resolved set under Neutral
+   archetype map below) from attribute profile alone. This is the lens used on
+   other teams' rosters, the trade finder, league leaderboards, and any
+   pre-coach cold-start view.
 2. **Scheme lens (your team)** — when projected through your coach's personnel
    tendencies and scheme fingerprint (per 0005), the same player surfaces as an
    archetype-in-role: "slot WR," "move TE," "3-tech," "box safety," or sometimes
@@ -60,13 +60,92 @@ the player.
 
 ### Neutral archetype map
 
-- A single, versioned mapping function `neutralBucket(attributes) → bucket`,
-  where bucket is one of the coarse labels above.
+- A single, versioned mapping function `neutralBucket(attributes) → bucket`.
 - Deterministic and legible — the same attributes always produce the same
   bucket, and the rules are documented (not an opaque model).
 - Used wherever the viewer has no scheme lens: unsigned FAs from the perspective
   of a team without a hired OC/DC, other teams in trade UI, league-wide lists,
   draft class browsing before you've committed a board.
+
+#### Bucket set
+
+The neutral bucket is one of:
+
+**QB, RB, WR, TE, OT, IOL, EDGE, IDL, LB, CB, S, K, P, LS.**
+
+Notes on the set:
+
+- **OL is split into OT and IOL** (interior OL = G + C). A tackle's shape
+  (length, lateral agility) and a guard/center's shape (anchor, short-area
+  strength) diverge enough that a single `OL` bucket would reintroduce the same
+  lie as `position`. Center vs. guard is a depth-chart slot distinction, not a
+  neutral-lens one.
+- **EDGE / IDL / LB / CB / S** are kept as the coarse front-seven and secondary
+  buckets. Finer splits (3-tech vs. NT, nickel vs. boundary CB, free vs. strong
+  S) are scheme-dependent and belong to the scheme lens.
+- **Returner is dropped** from the proposed set. A returner is a depth-chart
+  role, not an archetype; a fast WR/RB/CB with ball-carrying surfaces as a
+  returner on the depth chart without needing a separate neutral label.
+- **LS is kept** despite being niche — it is the one bucket where a player's
+  snap accuracy is the only attribute that meaningfully qualifies him, and
+  collapsing it into OL/TE loses that signal.
+
+#### Classification rule
+
+Each bucket is defined by a **signature** — a small set of attributes that
+matter for that archetype — plus **size gates** where shape rules out
+misclassification. A player is assigned to the bucket whose signature his
+attribute profile scores highest on, subject to gates. The rule is a documented,
+deterministic decision procedure, not a trained model.
+
+Signatures (primary attributes listed; size gates in parentheses):
+
+- **QB** — Arm strength, Accuracy (short/medium/deep), Release, Decision-making.
+- **RB** — Ball carrying, Elusiveness, Acceleration, Speed (typical RB
+  height/weight band).
+- **WR** — Route running, Catching, Speed, Acceleration (typical WR band; a
+  larger-frame WR is still WR, not TE, absent blocking competence).
+- **TE** — Catching, Run blocking, Pass blocking (larger frame than WR;
+  distinguishes from WR by non-trivial blocking competence, from OT by receiving
+  competence).
+- **OT** — Pass blocking, Run blocking, Agility (tall/long frame; taller and
+  lighter than IOL on average).
+- **IOL** — Run blocking, Pass blocking, Strength (shorter, heavier anchor frame
+  than OT).
+- **EDGE** — Pass rushing, Acceleration, Block shedding, Speed (edge-rusher
+  frame — lighter than IDL, often taller).
+- **IDL** — Strength, Block shedding, Run defense, Pass rushing (interior
+  defensive frame — heavier than EDGE).
+- **LB** — Tackling, Run defense, Zone coverage, Football IQ, Pursuit speed
+  (mid-frame — lighter than IDL, heavier than S).
+- **CB** — Man coverage, Zone coverage, Speed, Agility (DB frame).
+- **S** — Zone coverage, Tackling, Football IQ, Anticipation (DB frame;
+  distinguishes from CB by tackling + anticipation weight over pure mirror
+  coverage).
+- **K** — Kicking power, Kicking accuracy (gate: must clear a minimum on both to
+  qualify).
+- **P** — Punting power, Punting accuracy (gate: must clear a minimum on both).
+- **LS** — Snap accuracy (gate: must clear a high snap-accuracy threshold; no
+  other bucket uses this attribute as its primary signature).
+
+Ties (a player who scores comparably on two signatures) are broken by a fixed
+priority order so the output is stable: **LS → K → P** (specialists first) **→
+QB → TE → EDGE → IDL → OT → IOL → RB → WR → LB → S → CB**. The specialists-first
+rule ensures that e.g. a 6'3" 240lb player with elite snap accuracy classifies
+as LS, not TE.
+
+Rare **cross-archetype players** (the Travis Hunter case in the generator note
+below) may tie between two non-specialist signatures. Priority order still picks
+one deterministic primary bucket; the scheme lens and depth chart are where the
+dual-role surfaces. The neutral lens is intentionally coarse — it produces one
+bucket per player — and cross-archetype flavor lives downstream.
+
+Exact numeric thresholds and signature weights are simulation-tuning concerns,
+not product concerns, and are specified in the implementation's test fixtures
+against the 0–100 scale and bell-curve distribution in
+`../north-star/player-attributes.md`. This ADR fixes the bucket set, the
+signature attributes per bucket, and the tie-break priority; the numeric
+calibration is free to evolve behind that contract.
 
 ### Scheme lens
 
@@ -77,6 +156,57 @@ the player.
   scout's reports, your FA shortlist, and Scheme Fit (0005).
 - When the scheme fingerprint changes (coaching hire/fire), the lens recomputes;
   players can visibly shift labels, which is a feature, not a bug.
+
+#### Fingerprint axes that feed the lens
+
+The scheme fingerprint (per 0005) carries axes that range from "structural"
+(they change which _shapes_ of player the scheme needs at all) to "tactical"
+(they change how the scheme operates snap-to-snap, but not who it wants on the
+roster). **Only structural axes feed the scheme lens.** Tactical axes affect
+play-calling and the sim, not archetype assignment. This keeps the lens stable
+across in-season strategy tweaks and makes it recompute only when coaching staff
+changes.
+
+Structural axes — **do** feed the scheme lens:
+
+- **Offensive personnel weight (light ↔ heavy)** — drives how many WR and TE
+  slots the depth chart exposes. A light-personnel (11/10) scheme surfaces WR3,
+  WR4, WR5 as first-class archetypes; a heavy-personnel (12/21/22) scheme
+  surfaces TE2 and FB archetypes instead.
+- **Short ↔ vertical passing lean** — distinguishes possession/slot WR
+  archetypes from vertical/burner X archetypes; biases the QB archetype
+  (pocket-manager vs. gun-slinger).
+- **Zone ↔ gap/power run game** — distinguishes zone-blocking OL archetypes
+  (mobility, reach-block technique) from gap/power OL archetypes (anchor,
+  down-block strength); distinguishes one-cut zone RB from power RB.
+- **Timing ↔ improvisation + RPO integration** — biases QB archetype toward
+  pocket-passer or mobile/dual-threat; biases WR archetype toward precise
+  timing-route vs. scramble-drill improviser.
+- **Defensive front (odd ↔ even)** — determines whether EDGE surfaces as
+  stand-up OLB (3-4) or hand-in-dirt DE (4-3), and whether IDL surfaces as NT or
+  3-tech/DE archetype.
+- **One-gap ↔ two-gap** — two-gap IDL archetype demands more size/anchor;
+  one-gap demands more penetration/quickness. Same player maps to different
+  archetypes under each.
+- **Base ↔ sub-package** — determines how many LB vs. DB slots the depth chart
+  exposes. A dime-heavy scheme surfaces slot CB / nickel S archetypes as
+  first-class; a base-heavy scheme surfaces SAM/MIKE/WILL LB archetypes.
+- **Coverage lean (man ↔ zone) + press ↔ off** — distinguishes press-man CB
+  (size, length, physicality) from off-zone CB (range, anticipation); biases S
+  archetypes similarly.
+- **Single-high ↔ two-high safety structure** — distinguishes box/strong S
+  archetype (run support, match coverage) from free/deep S archetype (range,
+  centerfield zone).
+
+Tactical axes — **do not** feed the scheme lens:
+
+- Tempo, formation diversity, pre-snap motion usage, four-man rush ↔
+  blitz-heavy, disguise usage, aggressiveness on fakes/returns, field-position
+  philosophy.
+
+These affect simulation and play-calling but do not change the shape of player
+the coach wants on the roster. They can tick week-to-week without causing the
+lens to flicker labels on the Roster page.
 
 ### Depth chart
 
@@ -124,15 +254,10 @@ the player.
 
 ## Open questions
 
-1. **Cold-start neutral lens** — the exact set of neutral buckets and the
-   attribute rules that populate them need to be specified. Proposed starting
-   set above, but this should be finalized before implementation so UI and data
-   work aren't blocked by bikeshedding mid-build.
-2. **Lens stability** — buckets and archetypes must not flicker when the user
-   tweaks a minor scheme slider. The scheme lens should derive from the coach's
-   **personnel tendencies** (11 vs. 12 personnel, nickel vs. dime base, etc.) —
-   i.e. axes that change on coaching hires, not week-to-week strategy. Finalize
-   which fingerprint axes feed the lens.
+_All open questions resolved in-line above (see "Bucket set" / "Classification
+rule" under Neutral archetype map and "Fingerprint axes that feed the lens"
+under Scheme lens). Kept as a section header for traceability with earlier
+drafts._
 
 ## Note for the future — player generation toward archetypes
 

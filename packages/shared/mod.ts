@@ -97,6 +97,11 @@ export {
   PLAYER_ATTRIBUTE_KEYS,
   TECHNICAL_ATTRIBUTE_KEYS,
 } from "./types/player-attributes.ts";
+export type {
+  NeutralBucket,
+  NeutralBucketInput,
+} from "./archetypes/neutral-bucket.ts";
+export { NEUTRAL_BUCKETS, neutralBucket } from "./archetypes/neutral-bucket.ts";
 export type { Game } from "./types/game.ts";
 
 // Interfaces — simulation
