@@ -37,6 +37,10 @@ export {
   OFFENSIVE_TENDENCY_KEYS,
 } from "./types/coach-tendencies.ts";
 export type {
+  SchemeFingerprint,
+  SchemeFingerprintOverrides,
+} from "./types/scheme-fingerprint.ts";
+export type {
   Scout,
   ScoutCareerStop,
   ScoutConnection,
