@@ -3,6 +3,7 @@ import {
   chunkedInsert,
   chunkedInsertReturning,
   DEFAULT_CHUNK_SIZE,
+  MAX_PARAMETERS_PER_BATCH,
 } from "./chunked-insert.ts";
 
 interface Call {
@@ -74,6 +75,31 @@ Deno.test("chunkedInsert", async (t) => {
 
     assertEquals(calls.length, 0);
   });
+
+  await t.step(
+    "reduces effective chunk size for wide rows to stay within parameter budget",
+    async () => {
+      const { exec, calls } = createMockExec();
+      const columnCount = 100;
+      const columns = Object.fromEntries(
+        Array.from({ length: columnCount }, (_, i) => [`col${i}`, i]),
+      );
+      const rowCount = 50;
+      const rows = Array.from({ length: rowCount }, () => ({ ...columns }));
+
+      // deno-lint-ignore no-explicit-any
+      await chunkedInsert(exec, {} as any, rows);
+
+      const maxRowsPerBatch = Math.floor(
+        MAX_PARAMETERS_PER_BATCH / columnCount,
+      );
+      const expectedBatches = Math.ceil(rowCount / maxRowsPerBatch);
+      assertEquals(calls.length, expectedBatches);
+      for (const call of calls) {
+        assertEquals(call.rows.length <= maxRowsPerBatch, true);
+      }
+    },
+  );
 });
 
 Deno.test("chunkedInsertReturning", async (t) => {
@@ -115,4 +141,37 @@ Deno.test("chunkedInsertReturning", async (t) => {
     assertEquals(result, []);
     assertEquals(calls.length, 0);
   });
+
+  await t.step(
+    "reduces effective chunk size for wide rows to stay within parameter budget",
+    async () => {
+      const columnCount = 100;
+      const columns = Object.fromEntries(
+        Array.from({ length: columnCount }, (_, i) => [`col${i}`, i]),
+      );
+      const rowCount = 50;
+      const rows = Array.from({ length: rowCount }, (_, i) => ({
+        id: i,
+        ...columns,
+      }));
+      const { exec, calls } = createMockExec((batch) =>
+        (batch as { id: number }[]).map((r) => ({ id: r.id }))
+      );
+
+      const result = await chunkedInsertReturning<{ id: number }>(
+        exec,
+        // deno-lint-ignore no-explicit-any
+        {} as any,
+        rows,
+        { id: "id" },
+      );
+
+      const maxRowsPerBatch = Math.floor(
+        MAX_PARAMETERS_PER_BATCH / (columnCount + 1),
+      );
+      const expectedBatches = Math.ceil(rowCount / maxRowsPerBatch);
+      assertEquals(calls.length, expectedBatches);
+      assertEquals(result.length, rowCount);
+    },
+  );
 });
