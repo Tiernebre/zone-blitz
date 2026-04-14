@@ -51,6 +51,14 @@ export function createLeagueService(deps: {
     async create(input) {
       log.info({ name: input.name }, "creating league");
 
+      const teams = await deps.teamService.getAll();
+      if (teams.length === 0) {
+        throw new DomainError(
+          "PRECONDITION_FAILED",
+          "Cannot create a league with no teams. Run `deno task db:seed` to seed default teams.",
+        );
+      }
+
       const league = await deps.leagueRepo.create(input);
 
       const season = await deps.seasonService.create({ leagueId: league.id });
@@ -58,8 +66,6 @@ export function createLeagueService(deps: {
         { leagueId: league.id, seasonId: season.id },
         "created season 1",
       );
-
-      const teams = await deps.teamService.getAll();
 
       await deps.personnelService.generate({
         leagueId: league.id,
