@@ -25,6 +25,8 @@ import {
   createStubPlayersGenerator,
 } from "./players/mod.ts";
 import {
+  createCoachesRepository,
+  createCoachesRouter,
   createCoachesService,
   createStubCoachesGenerator,
 } from "./coaches/mod.ts";
@@ -75,6 +77,7 @@ export function createFeatureRouters(
   const userRepo = createUserRepository({ db, log });
   const teamRepo = createTeamRepository({ db, log });
   const seasonRepo = createSeasonRepository({ db, log });
+  const coachesRepo = createCoachesRepository({ db, log });
 
   // Services
   const userService = createUserService({ userRepo, log });
@@ -87,6 +90,7 @@ export function createFeatureRouters(
   });
   const coachesService = createCoachesService({
     generator: createStubCoachesGenerator(),
+    repo: coachesRepo,
     db,
     log,
   });
@@ -125,6 +129,7 @@ export function createFeatureRouters(
   const leagueRouter = createLeagueRouter(leagueService);
   const userRouter = createUserRouter(userService);
   const teamRouter = createTeamRouter(teamService);
+  const coachesRouter = createCoachesRouter(coachesService);
 
   return {
     auth,
@@ -133,5 +138,6 @@ export function createFeatureRouters(
     leagueRouter,
     userRouter,
     teamRouter,
+    coachesRouter,
   };
 }
