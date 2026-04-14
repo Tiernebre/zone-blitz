@@ -1,4 +1,5 @@
 import type { CoachDetail, CoachNode } from "@zone-blitz/shared";
+import type { Executor } from "../../db/connection.ts";
 
 export interface CoachesGenerateInput {
   leagueId: string;
@@ -12,6 +13,7 @@ export interface CoachesGenerateResult {
 export interface CoachesService {
   generate(
     input: CoachesGenerateInput,
+    tx?: Executor,
   ): Promise<CoachesGenerateResult>;
 
   /**

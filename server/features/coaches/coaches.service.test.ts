@@ -212,6 +212,45 @@ Deno.test("coaches.service", async (t) => {
   });
 
   await t.step(
+    "generate routes inserts through tx when provided",
+    async () => {
+      const { db, calls: dbCalls } = createMockDb();
+      const { db: tx, calls: txCalls } = createMockDb();
+      const base = {
+        leagueId: "l1",
+        teamId: "t1",
+        role: "HC" as const,
+        reportsToId: null,
+        playCaller: "offense" as const,
+        age: 50,
+        hiredAt: new Date(),
+        contractYears: 3,
+        contractSalary: 1_000_000,
+        contractBuyout: 1_000_000,
+        collegeId: null,
+        specialty: "ceo" as const,
+        isVacancy: false,
+        mentorCoachId: null,
+      };
+      const generator = createMockGenerator({
+        generate: () => [{ ...base, id: "c1", firstName: "A", lastName: "B" }],
+      });
+
+      const service = createCoachesService({
+        generator,
+        repo: createMockRepo(),
+        db,
+        log: createTestLogger(),
+      });
+
+      await service.generate({ leagueId: "l1", teamIds: ["t1"] }, tx);
+
+      assertEquals(dbCalls.length, 0);
+      assertEquals(txCalls.length, 1);
+    },
+  );
+
+  await t.step(
     "getCoachDetail throws NOT_FOUND when repository returns undefined",
     async () => {
       const { db } = createMockDb();

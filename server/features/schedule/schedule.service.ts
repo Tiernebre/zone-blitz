@@ -12,7 +12,7 @@ export function createScheduleService(deps: {
   const log = deps.log.child({ module: "schedule.service" });
 
   return {
-    async generate(input) {
+    async generate(input, tx) {
       log.info({ seasonId: input.seasonId }, "generating schedule");
 
       const generatedGames = deps.generator.generate({
@@ -22,7 +22,7 @@ export function createScheduleService(deps: {
       });
 
       if (generatedGames.length > 0) {
-        await deps.db.insert(games).values(generatedGames);
+        await (tx ?? deps.db).insert(games).values(generatedGames);
       }
 
       log.info(

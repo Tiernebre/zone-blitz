@@ -108,6 +108,33 @@ Deno.test("schedule.service", async (t) => {
     },
   );
 
+  await t.step(
+    "generate routes inserts through tx when provided",
+    async () => {
+      const { db, calls: dbCalls } = createMockDb();
+      const { db: tx, calls: txCalls } = createMockDb();
+      const generator: ScheduleGenerator = {
+        generate: () => [
+          { seasonId: "s1", week: 1, homeTeamId: "t1", awayTeamId: "t2" },
+        ],
+      };
+
+      const service = createScheduleService({
+        generator,
+        db,
+        log: createTestLogger(),
+      });
+
+      await service.generate(
+        { seasonId: "s1", teams: TEAMS, seasonLength: 17 },
+        tx,
+      );
+
+      assertEquals(dbCalls.length, 0);
+      assertEquals(txCalls.length, 1);
+    },
+  );
+
   await t.step("generate forwards input to generator", async () => {
     const { db } = createMockDb();
     let receivedInput:

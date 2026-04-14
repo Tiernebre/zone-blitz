@@ -29,9 +29,9 @@ export function createSeasonRepository(deps: {
       return season;
     },
 
-    async create(input) {
+    async create(input, tx) {
       log.debug({ leagueId: input.leagueId }, "creating season");
-      const [season] = await deps.db
+      const [season] = await (tx ?? deps.db)
         .insert(seasons)
         .values({
           leagueId: input.leagueId,
