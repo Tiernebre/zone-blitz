@@ -17,5 +17,5 @@ as superseded.
 
 ## Log
 
-<!-- Add entries here in reverse-chronological order: -->
-<!-- - [0001 — Title](./0001-title.md) — one-line hook -->
+- [0001 — Roster page: active roster + depth chart view](./0001-roster-page.md)
+  — single page, two views, no depth-chart editing

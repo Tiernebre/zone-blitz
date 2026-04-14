@@ -88,6 +88,8 @@ Each of these has a dedicated vision document:
 - [Game Simulation](./north-star/game-simulation.md) — what happens on the field
 - [Player Attributes](./north-star/player-attributes.md) — the true 0-100 scale,
   hidden potential, and progression
+- [Statistics](./north-star/statistics.md) — sim-driven stats for players,
+  teams, and the league; the primary feedback loop for GM decisions
 - [Coaches](./north-star/coaches.md) — the coaching staff; hidden attributes,
   coaching trees, the GM-coach relationship, and the coaching market
 - [Media](./north-star/media.md) — analysts, headlines, grades, narratives, and
