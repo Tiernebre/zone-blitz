@@ -38,6 +38,11 @@
   React SPA structure, feature/flow/component organization, shadcn/ui usage.
 - **Incidents:** [`docs/incidents/`](./docs/incidents/) — postmortems with root
   cause analysis and action items.
+- **Backlog:** [`docs/backlog.md`](./docs/backlog.md) — lightweight list of
+  follow-ups and small ideas. Promote entries to issues or full docs once they
+  outgrow a one-liner. When you notice a follow-up during a session (deferred
+  cleanup, a rough edge spotted in passing, a decision we punted on), append a
+  dated bullet here rather than letting it drop.
 
 ## Testing
 
