@@ -22,10 +22,10 @@ import { createSeasonRepository, createSeasonService } from "./season/mod.ts";
 import { createPersonnelService } from "./personnel/mod.ts";
 import { createDepthChartPublisher } from "./depth-chart/mod.ts";
 import {
+  createPlayersGenerator,
   createPlayersRepository,
   createPlayersRouter,
   createPlayersService,
-  createStubPlayersGenerator,
 } from "./players/mod.ts";
 import {
   createCoachesRepository,
@@ -100,7 +100,7 @@ export function createFeatureRouters(
   const teamService = createTeamService({ teamRepo, log });
   const seasonService = createSeasonService({ seasonRepo, log });
   const playersService = createPlayersService({
-    generator: createStubPlayersGenerator(),
+    generator: createPlayersGenerator(),
     repo: playersRepo,
     db,
     log,

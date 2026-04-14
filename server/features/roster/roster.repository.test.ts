@@ -16,7 +16,7 @@ import { depthChartEntries } from "../players/depth-chart.schema.ts";
 import {
   BUCKET_PROFILES,
   stubAttributesFor,
-} from "../players/stub-players-generator.ts";
+} from "../players/players-generator.ts";
 import { coaches } from "../coaches/coach.schema.ts";
 import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";
 import { leagues } from "../league/league.schema.ts";

@@ -7,11 +7,11 @@ import {
 } from "@zone-blitz/shared";
 import {
   BUCKET_PROFILES,
-  createStubPlayersGenerator,
+  createPlayersGenerator,
   type NameGenerator,
   ROSTER_BUCKET_COMPOSITION,
   stubAttributesFor,
-} from "./stub-players-generator.ts";
+} from "./players-generator.ts";
 
 const TEAM_IDS = ["team-1", "team-2", "team-3"];
 const INPUT = {
@@ -44,7 +44,7 @@ function fixedNameGenerator(): NameGenerator {
 }
 
 function makeGenerator(seed = 12345) {
-  return createStubPlayersGenerator({
+  return createPlayersGenerator({
     random: seededRandom(seed),
     nameGenerator: fixedNameGenerator(),
     currentYear: 2026,
@@ -361,12 +361,12 @@ Deno.test("hometowns are varied and formatted as 'City, ST'", () => {
 });
 
 Deno.test("seeded generator is deterministic", () => {
-  const a = createStubPlayersGenerator({
+  const a = createPlayersGenerator({
     random: seededRandom(42),
     nameGenerator: fixedNameGenerator(),
     currentYear: 2026,
   }).generate(INPUT);
-  const b = createStubPlayersGenerator({
+  const b = createPlayersGenerator({
     random: seededRandom(42),
     nameGenerator: fixedNameGenerator(),
     currentYear: 2026,

@@ -19,10 +19,7 @@ import { states } from "../states/state.schema.ts";
 import { seasons } from "../season/season.schema.ts";
 import { type NeutralBucket, PLAYER_ATTRIBUTE_KEYS } from "@zone-blitz/shared";
 import { createPlayersRepository } from "./players.repository.ts";
-import {
-  BUCKET_PROFILES,
-  stubAttributesFor,
-} from "./stub-players-generator.ts";
+import { BUCKET_PROFILES, stubAttributesFor } from "./players-generator.ts";
 
 function attributesForBucket(
   bucket: NeutralBucket = "QB",
