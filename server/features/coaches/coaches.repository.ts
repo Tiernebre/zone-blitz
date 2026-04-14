@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type pino from "pino";
 import type {
   CoachAccolade,
@@ -44,12 +44,14 @@ export function createCoachesRepository(deps: {
   const now = deps.now ?? (() => new Date());
 
   return {
-    async getStaffTreeByTeam(teamId) {
-      log.debug({ teamId }, "fetching staff tree");
+    async getStaffTreeByTeam(leagueId, teamId) {
+      log.debug({ leagueId, teamId }, "fetching staff tree");
       const rows = await deps.db
         .select()
         .from(coaches)
-        .where(eq(coaches.teamId, teamId));
+        .where(
+          and(eq(coaches.leagueId, leagueId), eq(coaches.teamId, teamId)),
+        );
       const today = now();
       return rows.map((row): CoachNode => ({
         id: row.id,

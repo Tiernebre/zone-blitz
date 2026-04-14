@@ -19,10 +19,14 @@ vi.mock("../../../api.ts", () => ({
         $get: (...args: unknown[]) => mockTeamsGet(...args),
       },
       coaches: {
-        teams: {
-          [":teamId"]: {
-            staff: {
-              $get: (...args: unknown[]) => mockStaffGet(...args),
+        leagues: {
+          [":leagueId"]: {
+            teams: {
+              [":teamId"]: {
+                staff: {
+                  $get: (...args: unknown[]) => mockStaffGet(...args),
+                },
+              },
             },
           },
         },
@@ -119,7 +123,7 @@ describe("Coaches page", () => {
     });
 
     expect(mockStaffGet).toHaveBeenCalledWith({
-      param: { teamId: "team-1" },
+      param: { leagueId: "1", teamId: "team-1" },
     });
   });
 

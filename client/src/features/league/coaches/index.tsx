@@ -8,13 +8,14 @@ import { buildStaffTree } from "./build-tree.ts";
 import { StaffTreeNode } from "./staff-tree-node.tsx";
 
 export function Coaches() {
-  const { leagueId } = useParams({ strict: false });
+  const { leagueId: rawLeagueId } = useParams({ strict: false });
+  const leagueId = rawLeagueId ?? "";
   // TODO: wire a proper "current team" selection once persisted. For now
   // the staff tree renders the first team returned by the teams endpoint
   // so the page has data to render end-to-end.
   const { data: teams, isLoading: teamsLoading } = useTeams();
   const teamId = (teams?.[0]?.id as string | undefined) ?? "";
-  const { data, isLoading, error } = useStaffTree(teamId);
+  const { data, isLoading, error } = useStaffTree(leagueId, teamId);
 
   const loading = teamsLoading || isLoading;
 
@@ -45,7 +46,7 @@ export function Coaches() {
       {!loading && !error && data && (
         <StaffTree
           nodes={data as CoachNode[]}
-          leagueId={leagueId ?? ""}
+          leagueId={leagueId}
         />
       )}
     </div>

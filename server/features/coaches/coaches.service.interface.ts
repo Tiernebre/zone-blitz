@@ -17,10 +17,12 @@ export interface CoachesService {
   ): Promise<CoachesGenerateResult>;
 
   /**
-   * Staff tree for a team — flat list of nodes; the client builds the
-   * hierarchy from `reportsToId`.
+   * Staff tree for a team in a given league — flat list of nodes; the
+   * client builds the hierarchy from `reportsToId`. Scoping by league
+   * prevents staff from other universes leaking through when the same
+   * team id is reused across leagues.
    */
-  getStaffTree(teamId: string): Promise<CoachNode[]>;
+  getStaffTree(leagueId: string, teamId: string): Promise<CoachNode[]>;
 
   /**
    * Full public-record detail for a single coach. Throws `DomainError`

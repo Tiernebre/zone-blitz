@@ -131,7 +131,7 @@ Deno.test({
       ]);
       created.push(hcId, ocId);
 
-      const tree = await repo.getStaffTreeByTeam(team.id);
+      const tree = await repo.getStaffTreeByTeam(league.id, team.id);
       assertEquals(tree.length, 2);
 
       const hc = tree.find((c) => c.id === hcId);

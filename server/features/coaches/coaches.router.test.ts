@@ -64,25 +64,30 @@ function createDetail(overrides: Partial<CoachDetail> = {}): CoachDetail {
 
 Deno.test("coaches.router", async (t) => {
   await t.step(
-    "GET /teams/:teamId/staff returns the staff tree for the team",
+    "GET /leagues/:leagueId/teams/:teamId/staff returns the staff tree",
     async () => {
-      let received: string | undefined;
+      let receivedLeague: string | undefined;
+      let receivedTeam: string | undefined;
       const nodes = [
         createNode({ id: "hc", role: "HC" }),
         createNode({ id: "oc", role: "OC", reportsToId: "hc" }),
       ];
       const router = createCoachesRouter(
         createMockService({
-          getStaffTree: (teamId) => {
-            received = teamId;
+          getStaffTree: (leagueId, teamId) => {
+            receivedLeague = leagueId;
+            receivedTeam = teamId;
             return Promise.resolve(nodes);
           },
         }),
       );
 
-      const res = await router.request("/teams/team-123/staff");
+      const res = await router.request(
+        "/leagues/league-1/teams/team-123/staff",
+      );
       assertEquals(res.status, 200);
-      assertEquals(received, "team-123");
+      assertEquals(receivedLeague, "league-1");
+      assertEquals(receivedTeam, "team-123");
 
       const body = await res.json();
       assertEquals(body.length, 2);
