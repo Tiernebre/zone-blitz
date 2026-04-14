@@ -39,6 +39,26 @@ export function createPlayersService(deps: {
       return detail;
     },
 
+    findDraftEligiblePlayers(leagueId) {
+      return deps.repo.findDraftEligiblePlayers(leagueId);
+    },
+
+    async draftPlayer(input) {
+      log.info(
+        { playerId: input.playerId, teamId: input.teamId },
+        "drafting player",
+      );
+      const result = await deps.db.transaction((tx) =>
+        deps.repo.transitionProspectToActive(input, tx)
+      );
+      if (result === "not_found") {
+        throw new DomainError(
+          "NOT_FOUND",
+          `Player ${input.playerId} is not draft-eligible`,
+        );
+      }
+    },
+
     async generate(input, tx) {
       const exec = tx ?? deps.db;
       log.info(

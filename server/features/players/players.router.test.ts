@@ -15,6 +15,8 @@ function createMockService(
       }),
     getDetail: () =>
       Promise.reject(new DomainError("NOT_FOUND", "player not found")),
+    findDraftEligiblePlayers: () => Promise.resolve([]),
+    draftPlayer: () => Promise.reject(new Error("draftPlayer not stubbed")),
     ...overrides,
   };
 }
