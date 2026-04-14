@@ -59,10 +59,20 @@ jobs:
             set -euo pipefail
             cd /opt/zone-blitz
 
-            # Fail fast on disk pressure before docker pull
+            # If the disk is under pressure, try to self-heal by dropping
+            # all unused images before failing the deploy. The post-deploy
+            # `until=24h` prune only runs on success, so a streak of failed
+            # deploys (or fast-churning images) leaves the FS full with no
+            # way to recover without manual SSH. This gives us one chance
+            # to reclaim space; if still above threshold, abort.
             used=$(df --output=pcent / | tail -1 | tr -dc '0-9')
             if [ "$used" -ge 85 ]; then
-              echo "Aborting deploy: root FS is ${used}% full (threshold 85%)."
+              echo "Root FS at ${used}% — running aggressive prune to self-heal."
+              docker image prune -a -f || true
+              used=$(df --output=pcent / | tail -1 | tr -dc '0-9')
+            fi
+            if [ "$used" -ge 85 ]; then
+              echo "Aborting deploy: root FS is ${used}% full after prune (threshold 85%)."
               df -h /
               exit 1
             fi
