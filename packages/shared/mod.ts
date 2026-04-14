@@ -1,6 +1,11 @@
 // Types
 export type { HealthStatus } from "./types/health.ts";
-export type { League, NewLeague } from "./types/league.ts";
+export type {
+  League,
+  LeagueListItem,
+  LeagueSeasonSummary,
+  NewLeague,
+} from "./types/league.ts";
 export type { Team } from "./types/team.ts";
 export type { NewSeason, Season, SeasonPhase } from "./types/season.ts";
 export type { FrontOfficeStaff, Scout } from "./types/personnel.ts";
