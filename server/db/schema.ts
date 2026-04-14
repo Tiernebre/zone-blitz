@@ -9,6 +9,7 @@ export const healthChecks = pgTable("health_checks", {
 // Feature schemas
 export { leagues } from "../features/league/league.schema.ts";
 export { teams } from "../features/team/team.schema.ts";
+export { colleges } from "../features/colleges/college.schema.ts";
 export { seasonPhaseEnum, seasons } from "../features/season/season.schema.ts";
 export { frontOfficeStaff } from "../features/front-office/front-office.schema.ts";
 export { coaches } from "../features/coaches/coach.schema.ts";
