@@ -151,7 +151,11 @@ export function createFeatureRouters(
   const teamRouter = createTeamRouter(teamService);
   const coachesRouter = createCoachesRouter(coachesService);
   const scoutsRouter = createScoutsRouter(scoutsService);
-  const rosterService = createRosterService({ repo: rosterRepo, log });
+  const rosterService = createRosterService({
+    repo: rosterRepo,
+    coachesService,
+    log,
+  });
   const rosterRouter = createRosterRouter(rosterService);
   const playersRouter = createPlayersRouter(playersService);
 

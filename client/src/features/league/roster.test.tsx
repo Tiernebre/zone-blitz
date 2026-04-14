@@ -13,6 +13,7 @@ const mockUseParams = vi.fn();
 const mockUseLeague = vi.fn();
 const mockUseActiveRoster = vi.fn();
 const mockUseDepthChart = vi.fn();
+const mockUseRosterFit = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   useParams: (...args: unknown[]) => mockUseParams(...args),
@@ -28,6 +29,10 @@ vi.mock("../../hooks/use-active-roster.ts", () => ({
 
 vi.mock("../../hooks/use-depth-chart.ts", () => ({
   useDepthChart: (...args: unknown[]) => mockUseDepthChart(...args),
+}));
+
+vi.mock("../../hooks/use-roster-fit.ts", () => ({
+  useRosterFit: (...args: unknown[]) => mockUseRosterFit(...args),
 }));
 
 function renderRoster() {
@@ -188,6 +193,11 @@ beforeEach(() => {
   });
   mockUseDepthChart.mockReturnValue({
     data: baseDepthChart,
+    isLoading: false,
+    isError: false,
+  });
+  mockUseRosterFit.mockReturnValue({
+    data: {},
     isLoading: false,
     isError: false,
   });

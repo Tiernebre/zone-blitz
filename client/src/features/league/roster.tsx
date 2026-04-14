@@ -28,9 +28,11 @@ import type {
   RosterPlayer,
 } from "@zone-blitz/shared/types/roster.ts";
 import type { PlayerInjuryStatus } from "@zone-blitz/shared/types/player.ts";
+import type { SchemeFitLabel } from "@zone-blitz/shared";
 import { useLeague } from "../../hooks/use-league.ts";
 import { useActiveRoster } from "../../hooks/use-active-roster.ts";
 import { useDepthChart } from "../../hooks/use-depth-chart.ts";
+import { useRosterFit } from "../../hooks/use-roster-fit.ts";
 
 const groupLabels: Record<NeutralBucketGroup, string> = {
   offense: "Offense",
@@ -62,6 +64,22 @@ function formatInjury(status: PlayerInjuryStatus) {
   return status.replace(/_/g, " ");
 }
 
+const FIT_LABELS: Record<SchemeFitLabel, string> = {
+  ideal: "Ideal",
+  fits: "Fits",
+  neutral: "Neutral",
+  poor: "Poor",
+  miscast: "Miscast",
+};
+
+function fitBadgeVariant(
+  label: SchemeFitLabel,
+): "default" | "secondary" | "destructive" | "outline" {
+  if (label === "ideal" || label === "fits") return "default";
+  if (label === "poor" || label === "miscast") return "destructive";
+  return "outline";
+}
+
 function ordinal(n: number): string {
   const mod100 = n % 100;
   if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
@@ -84,7 +102,11 @@ function formatCoachRole(role: string) {
     .join(" ");
 }
 
-const rosterColumns: ColumnDef<RosterPlayer>[] = [
+interface RosterRow extends RosterPlayer {
+  fit: SchemeFitLabel | null;
+}
+
+const rosterColumns: ColumnDef<RosterRow>[] = [
   {
     id: "player",
     accessorFn: (p) => `${p.firstName} ${p.lastName}`,
@@ -111,7 +133,7 @@ const rosterColumns: ColumnDef<RosterPlayer>[] = [
       <SortableHeader column={column}>Group</SortableHeader>
     ),
     cell: ({ row }) => groupLabels[row.original.neutralBucketGroup],
-    filterFn: (row: Row<RosterPlayer>, _id, value) =>
+    filterFn: (row: Row<RosterRow>, _id, value) =>
       value === "all" || row.original.neutralBucketGroup === value,
   },
   {
@@ -132,6 +154,24 @@ const rosterColumns: ColumnDef<RosterPlayer>[] = [
         {formatInjury(row.original.injuryStatus)}
       </Badge>
     ),
+  },
+  {
+    id: "fit",
+    accessorFn: (p) => p.fit ?? "",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Scheme Fit</SortableHeader>
+    ),
+    cell: ({ row }) => {
+      const label = row.original.fit;
+      if (!label) {
+        return <span className="text-xs text-muted-foreground">—</span>;
+      }
+      return (
+        <Badge variant={fitBadgeVariant(label)} data-testid={`fit-${label}`}>
+          {FIT_LABELS[label]}
+        </Badge>
+      );
+    },
   },
 ];
 
@@ -181,6 +221,7 @@ function ActiveRosterView(
     leagueId,
     teamId,
   );
+  const { data: fits } = useRosterFit(leagueId, teamId);
 
   if (isLoading) {
     return (
@@ -197,15 +238,24 @@ function ActiveRosterView(
       </p>
     );
   }
-  return <ActiveRosterContent roster={roster} />;
+  return <ActiveRosterContent roster={roster} fits={fits ?? null} />;
 }
 
-function ActiveRosterContent({ roster }: { roster: ActiveRoster }) {
+function ActiveRosterContent(
+  { roster, fits }: {
+    roster: ActiveRoster;
+    fits: Record<string, SchemeFitLabel> | null;
+  },
+) {
+  const rows: RosterRow[] = roster.players.map((player) => ({
+    ...player,
+    fit: (fits?.[player.id] as SchemeFitLabel | undefined) ?? null,
+  }));
   return (
     <>
       <DataTable
         columns={rosterColumns}
-        data={roster.players}
+        data={rows}
         getRowTestId={(player) => `roster-row-${player.id}`}
         toolbar={(table) => {
           const groupFilter =

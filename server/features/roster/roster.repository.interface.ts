@@ -1,8 +1,16 @@
 import type {
   ActiveRoster,
   DepthChart,
+  NeutralBucket,
+  PlayerAttributes,
   RosterStatistics,
 } from "@zone-blitz/shared";
+
+export interface RosterPlayerForFit {
+  playerId: string;
+  neutralBucket: NeutralBucket;
+  attributes: PlayerAttributes;
+}
 
 export interface RosterRepository {
   /**
@@ -30,4 +38,16 @@ export interface RosterRepository {
     teamId: string,
     seasonId: string | null,
   ): Promise<RosterStatistics>;
+
+  /**
+   * Active-roster slice used to compute scheme fit per ADR 0007.
+   * Returns `{ playerId, neutralBucket, attributes }` for every player
+   * currently on the team. The service composes this with the team's
+   * SchemeFingerprint to label each player's alignment without ever
+   * exposing raw attributes to the caller.
+   */
+  getActivePlayersForFit(
+    leagueId: string,
+    teamId: string,
+  ): Promise<RosterPlayerForFit[]>;
 }

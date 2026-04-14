@@ -229,6 +229,39 @@ export function createRosterRepository(deps: {
       };
     },
 
+    async getActivePlayersForFit(leagueId, teamId) {
+      log.debug({ leagueId, teamId }, "fetching roster attributes for fit");
+      const rows = await deps.db
+        .select({
+          id: players.id,
+          heightInches: players.heightInches,
+          weightPounds: players.weightPounds,
+          ...attributeSelectColumns(),
+        })
+        .from(players)
+        .innerJoin(
+          playerAttributes,
+          eq(playerAttributes.playerId, players.id),
+        )
+        .where(
+          and(eq(players.leagueId, leagueId), eq(players.teamId, teamId)),
+        );
+      return rows.map((row) => {
+        const attributes: PlayerAttributes = pickAttributes(
+          row as unknown as Record<string, unknown>,
+        );
+        return {
+          playerId: row.id,
+          neutralBucket: neutralBucket({
+            attributes,
+            heightInches: row.heightInches,
+            weightPounds: row.weightPounds,
+          }),
+          attributes,
+        };
+      });
+    },
+
     getStatistics(leagueId, teamId, seasonId) {
       log.debug(
         { leagueId, teamId, seasonId },

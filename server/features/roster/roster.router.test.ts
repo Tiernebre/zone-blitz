@@ -26,6 +26,7 @@ function createMockService(
   return {
     getActiveRoster: () => Promise.resolve(emptyActive),
     getDepthChart: () => Promise.resolve(emptyChart),
+    getRosterFits: () => Promise.resolve({}),
     getStatistics: () =>
       Promise.resolve({
         leagueId: "l",
@@ -152,6 +153,30 @@ Deno.test("roster.router", async (t) => {
 
       await router.request("/leagues/lg-1/teams/tm-1/statistics");
       assertEquals(receivedSeason, null);
+    },
+  );
+
+  await t.step(
+    "GET /leagues/:leagueId/teams/:teamId/fit returns the fit map",
+    async () => {
+      let receivedLeague: string | undefined;
+      let receivedTeam: string | undefined;
+      const router = createRosterRouter(
+        createMockService({
+          getRosterFits: (leagueId, teamId) => {
+            receivedLeague = leagueId;
+            receivedTeam = teamId;
+            return Promise.resolve({ "p-1": "fits", "p-2": "neutral" });
+          },
+        }),
+      );
+      const res = await router.request("/leagues/lg-1/teams/tm-1/fit");
+      assertEquals(res.status, 200);
+      assertEquals(receivedLeague, "lg-1");
+      assertEquals(receivedTeam, "tm-1");
+      const body = await res.json();
+      assertEquals(body["p-1"], "fits");
+      assertEquals(body["p-2"], "neutral");
     },
   );
 });

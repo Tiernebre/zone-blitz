@@ -16,6 +16,12 @@ export function createRosterRouter(rosterService: RosterService) {
       const chart = await rosterService.getDepthChart(leagueId, teamId);
       return c.json(chart);
     })
+    .get("/leagues/:leagueId/teams/:teamId/fit", async (c) => {
+      const leagueId = c.req.param("leagueId");
+      const teamId = c.req.param("teamId");
+      const fits = await rosterService.getRosterFits(leagueId, teamId);
+      return c.json(fits);
+    })
     .get("/leagues/:leagueId/teams/:teamId/statistics", async (c) => {
       const leagueId = c.req.param("leagueId");
       const teamId = c.req.param("teamId");

@@ -2,10 +2,14 @@ import { assertEquals } from "@std/assert";
 import type {
   ActiveRoster,
   DepthChart,
+  PLAYER_ATTRIBUTE_KEYS as _PLAYER_ATTRIBUTE_KEYS,
+  PlayerAttributes,
   RosterStatistics,
 } from "@zone-blitz/shared";
+import { PLAYER_ATTRIBUTE_KEYS } from "@zone-blitz/shared";
 import { createRosterService } from "./roster.service.ts";
 import type { RosterRepository } from "./roster.repository.interface.ts";
+import type { CoachesService } from "../coaches/coaches.service.interface.ts";
 
 function createTestLogger() {
   return {
@@ -47,8 +51,34 @@ function createMockRepo(
     getActiveRoster: () => Promise.resolve(emptyActive),
     getDepthChart: () => Promise.resolve(emptyChart),
     getStatistics: () => Promise.resolve(emptyStats),
+    getActivePlayersForFit: () => Promise.resolve([]),
     ...overrides,
   };
+}
+
+function createMockCoachesService(
+  overrides: Partial<CoachesService> = {},
+): CoachesService {
+  return {
+    generate: () => Promise.resolve({ coachCount: 0 }),
+    getStaffTree: () => Promise.resolve([]),
+    getCoachDetail: () =>
+      Promise.reject(new Error("getCoachDetail not stubbed")),
+    getFingerprint: () =>
+      Promise.resolve({ offense: null, defense: null, overrides: {} }),
+    ...overrides,
+  };
+}
+
+function attributes(
+  overrides: Partial<PlayerAttributes> = {},
+): PlayerAttributes {
+  const base: Partial<PlayerAttributes> = {};
+  for (const key of PLAYER_ATTRIBUTE_KEYS) {
+    (base as Record<string, number>)[key] = 50;
+    (base as Record<string, number>)[`${key}Potential`] = 50;
+  }
+  return { ...base, ...overrides } as PlayerAttributes;
 }
 
 Deno.test("roster.service", async (t) => {
@@ -73,6 +103,7 @@ Deno.test("roster.service", async (t) => {
             });
           },
         }),
+        coachesService: createMockCoachesService(),
         log: createTestLogger(),
       });
 
@@ -99,6 +130,7 @@ Deno.test("roster.service", async (t) => {
           });
         },
       }),
+      coachesService: createMockCoachesService(),
       log: createTestLogger(),
     });
     const result = await service.getDepthChart("lg-1", "tm-1");
@@ -120,6 +152,7 @@ Deno.test("roster.service", async (t) => {
           });
         },
       }),
+      coachesService: createMockCoachesService(),
       log: createTestLogger(),
     });
     await service.getStatistics("lg-1", "tm-1", "season-42");
@@ -128,4 +161,61 @@ Deno.test("roster.service", async (t) => {
     await service.getStatistics("lg-1", "tm-1", null);
     assertEquals(receivedSeason, null);
   });
+
+  await t.step(
+    "getRosterFits returns a SchemeFitLabel for every active player",
+    async () => {
+      const service = createRosterService({
+        repo: createMockRepo({
+          getActivePlayersForFit: () =>
+            Promise.resolve([
+              {
+                playerId: "cb-man",
+                neutralBucket: "CB",
+                attributes: attributes({
+                  manCoverage: 95,
+                  speed: 95,
+                  agility: 90,
+                  strength: 80,
+                  jumping: 85,
+                }),
+              },
+              {
+                playerId: "k",
+                neutralBucket: "K",
+                attributes: attributes(),
+              },
+            ]),
+        }),
+        coachesService: createMockCoachesService({
+          getFingerprint: () =>
+            Promise.resolve({
+              offense: null,
+              defense: {
+                frontOddEven: 50,
+                gapResponsibility: 50,
+                subPackageLean: 50,
+                coverageManZone: 5,
+                coverageShell: 50,
+                cornerPressOff: 5,
+                pressureRate: 50,
+                disguiseRate: 50,
+              },
+              overrides: {},
+            }),
+        }),
+        log: createTestLogger(),
+      });
+
+      const fits = await service.getRosterFits("lg-1", "tm-1");
+      assertEquals(Object.keys(fits).length, 2);
+      // Man-coverage CB in a press-man scheme: ideal or fits.
+      assertEquals(
+        fits["cb-man"] === "ideal" || fits["cb-man"] === "fits",
+        true,
+      );
+      // Specialist with no demands maps to neutral.
+      assertEquals(fits["k"], "neutral");
+    },
+  );
 });
