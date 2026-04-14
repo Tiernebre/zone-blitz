@@ -32,20 +32,20 @@ $item
 
 Execute end-to-end without asking for confirmation:
 
-1. EnterWorktree off main so you don't clash with sibling workers.
+1. EnterWorktree off main so you do not clash with sibling workers.
 2. Read any docs the item references before designing the change.
 3. Implement following CLAUDE.md: strict TDD, one logical change, deno lint
    clean, relevant test suites green.
 4. In the SAME branch, edit docs/backlog.md and delete EXACTLY the bullet
    above — the \`- **...\` header plus every 2-space-indented continuation
-   line. Leave other bullets untouched. Don't leave a double blank line.
+   line. Leave other bullets untouched. Do not leave a double blank line.
 5. Commit with Conventional Commits, push the branch, open a PR against main
    with \`gh pr create\` (Summary section only, no test plan), then
    \`gh pr merge --auto --squash\`.
 6. Watch with \`gh pr checks --watch\`. If checks fail, fix and push again.
 7. If auto-merge stalls on a docs/backlog.md conflict (another worker landed
    first), rebase onto origin/main, re-delete your bullet, force-push, and
-   re-enable auto-merge. Do NOT touch bullets you weren't assigned.
+   re-enable auto-merge. Do NOT touch bullets you were not assigned.
 8. When the PR is merged, exit the worktree and end the session.
 
 If investigation shows the item is obsolete, superseded, or infeasible, ship
