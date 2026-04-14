@@ -1,5 +1,6 @@
 import { DomainError } from "@zone-blitz/shared";
 import type pino from "pino";
+import type { Database } from "../../db/connection.ts";
 import type { LeagueRepository } from "./league.repository.interface.ts";
 import type { LeagueService } from "./league.service.interface.ts";
 import type { SeasonService } from "../season/season.service.interface.ts";
@@ -8,6 +9,7 @@ import type { PersonnelService } from "../personnel/personnel.service.interface.
 import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
 
 export function createLeagueService(deps: {
+  db: Database;
   leagueRepo: LeagueRepository;
   seasonService: SeasonService;
   teamService: TeamService;
@@ -59,33 +61,38 @@ export function createLeagueService(deps: {
         );
       }
 
-      const league = await deps.leagueRepo.create(input);
+      return await deps.db.transaction(async (tx) => {
+        const league = await deps.leagueRepo.create(input, tx);
 
-      const season = await deps.seasonService.create({ leagueId: league.id });
-      log.info(
-        { leagueId: league.id, seasonId: season.id },
-        "created season 1",
-      );
+        const season = await deps.seasonService.create(
+          { leagueId: league.id },
+          tx,
+        );
+        log.info(
+          { leagueId: league.id, seasonId: season.id },
+          "created season 1",
+        );
 
-      await deps.personnelService.generate({
-        leagueId: league.id,
-        seasonId: season.id,
-        teamIds: teams.map((t) => t.id),
-        rosterSize: league.rosterSize,
-        salaryCap: league.salaryCap,
+        await deps.personnelService.generate({
+          leagueId: league.id,
+          seasonId: season.id,
+          teamIds: teams.map((t) => t.id),
+          rosterSize: league.rosterSize,
+          salaryCap: league.salaryCap,
+        }, tx);
+
+        await deps.scheduleService.generate({
+          seasonId: season.id,
+          teams: teams.map((t) => ({
+            teamId: t.id,
+            conference: t.conference,
+            division: t.division,
+          })),
+          seasonLength: league.seasonLength,
+        }, tx);
+
+        return league;
       });
-
-      await deps.scheduleService.generate({
-        seasonId: season.id,
-        teams: teams.map((t) => ({
-          teamId: t.id,
-          conference: t.conference,
-          division: t.division,
-        })),
-        seasonLength: league.seasonLength,
-      });
-
-      return league;
     },
 
     async deleteById(id) {
