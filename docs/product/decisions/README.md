@@ -19,3 +19,6 @@ as superseded.
 
 - [0001 — Roster page: active roster + depth chart view](./0001-roster-page.md)
   — single page, two views, no depth-chart editing
+- [0003 — Remove the standalone Schemes page; surface scheme as emergent](./0003-schemes-page-removal.md)
+  — kill `/schemes`, add a Scheme Fingerprint panel to Coaches and a Scheme Fit
+  indicator to Roster
