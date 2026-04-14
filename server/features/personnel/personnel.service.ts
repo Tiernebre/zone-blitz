@@ -4,12 +4,14 @@ import type { PlayersService } from "../players/players.service.interface.ts";
 import type { CoachesService } from "../coaches/coaches.service.interface.ts";
 import type { ScoutsService } from "../scouts/scouts.service.interface.ts";
 import type { FrontOfficeService } from "../front-office/front-office.service.interface.ts";
+import type { DepthChartPublisher } from "../depth-chart/depth-chart.publisher.interface.ts";
 
 export function createPersonnelService(deps: {
   playersService: PlayersService;
   coachesService: CoachesService;
   scoutsService: ScoutsService;
   frontOfficeService: FrontOfficeService;
+  depthChartPublisher: DepthChartPublisher;
   log: pino.Logger;
 }): PersonnelService {
   const log = deps.log.child({ module: "personnel.service" });
@@ -33,6 +35,16 @@ export function createPersonnelService(deps: {
         leagueId: input.leagueId,
         teamIds: input.teamIds,
       }, tx);
+
+      const depthChartResult = await deps.depthChartPublisher.publishForTeams({
+        leagueId: input.leagueId,
+        teamIds: input.teamIds,
+      }, tx);
+
+      log.info(
+        { depthChartEntries: depthChartResult.entryCount },
+        "published initial depth charts",
+      );
 
       const scoutsResult = await deps.scoutsService.generate({
         leagueId: input.leagueId,

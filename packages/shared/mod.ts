@@ -131,6 +131,12 @@ export type {
   DepthChartSlotGroup,
 } from "./depth-chart/vocabulary.ts";
 export { depthChartVocabulary } from "./depth-chart/vocabulary.ts";
+export { eligibleBucketsForSlot } from "./depth-chart/slot-mapping.ts";
+export { assignDepthChart } from "./depth-chart/assign.ts";
+export type {
+  DepthChartAssignment,
+  PlayerForAssignment,
+} from "./depth-chart/assign.ts";
 
 // Interfaces — simulation
 export type {

@@ -61,19 +61,12 @@ function axisValueFor(
   return (side as unknown as Record<string, number>)[demand.axis];
 }
 
-/**
- * Pure function: compute a qualitative fit label for a player against
- * a team's scheme fingerprint. Returns `'neutral'` when the position
- * has no archetype demands defined (v1 scope) or when the fingerprint
- * has no polarized axes at this position. Never exposes a numeric
- * score per ADR 0005.
- */
-export function computeSchemeFit(
+export function computeSchemeScore(
   player: PlayerForFit,
   fingerprint: SchemeFingerprint,
-): SchemeFitLabel {
+): number {
   const demands = POSITION_ARCHETYPE_WEIGHTS[player.neutralBucket];
-  if (!demands || demands.length === 0) return "neutral";
+  if (!demands || demands.length === 0) return 50;
 
   let totalWeight = 0;
   let totalContribution = 0;
@@ -89,8 +82,13 @@ export function computeSchemeFit(
     }
   }
 
-  if (totalWeight === 0) return "neutral";
+  if (totalWeight === 0) return 50;
+  return (totalContribution / totalWeight) * 100;
+}
 
-  const score = (totalContribution / totalWeight) * 100;
-  return bucketScore(score);
+export function computeSchemeFit(
+  player: PlayerForFit,
+  fingerprint: SchemeFingerprint,
+): SchemeFitLabel {
+  return bucketScore(computeSchemeScore(player, fingerprint));
 }
