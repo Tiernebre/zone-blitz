@@ -1,18 +1,15 @@
 import type pino from "pino";
-import type { Database } from "../../db/connection.ts";
-import { frontOfficeStaff } from "./personnel.schema.ts";
-import type { PersonnelGenerator } from "./personnel.generator.interface.ts";
 import type { PersonnelService } from "./personnel.service.interface.ts";
 import type { PlayersService } from "../players/players.service.interface.ts";
 import type { CoachesService } from "../coaches/coaches.service.interface.ts";
 import type { ScoutsService } from "../scouts/scouts.service.interface.ts";
+import type { FrontOfficeService } from "../front-office/front-office.service.interface.ts";
 
 export function createPersonnelService(deps: {
-  generator: PersonnelGenerator;
   playersService: PlayersService;
   coachesService: CoachesService;
   scoutsService: ScoutsService;
-  db: Database;
+  frontOfficeService: FrontOfficeService;
   log: pino.Logger;
 }): PersonnelService {
   const log = deps.log.child({ module: "personnel.service" });
@@ -42,30 +39,17 @@ export function createPersonnelService(deps: {
         teamIds: input.teamIds,
       });
 
-      const personnel = deps.generator.generate({
-        leagueId: input.leagueId,
-        teamIds: input.teamIds,
-      });
-
-      if (personnel.frontOfficeStaff.length > 0) {
-        await deps.db
-          .insert(frontOfficeStaff)
-          .values(personnel.frontOfficeStaff);
-      }
-
-      log.info(
-        {
+      const frontOfficeResult = await deps.frontOfficeService
+        .generateAndPersist({
           leagueId: input.leagueId,
-          frontOffice: personnel.frontOfficeStaff.length,
-        },
-        "persisted personnel",
-      );
+          teamIds: input.teamIds,
+        });
 
       return {
         playerCount: playersResult.playerCount,
         coachCount: coachesResult.coachCount,
         scoutCount: scoutsResult.scoutCount,
-        frontOfficeCount: personnel.frontOfficeStaff.length,
+        frontOfficeCount: frontOfficeResult.frontOfficeCount,
         draftProspectCount: playersResult.draftProspectCount,
         contractCount: playersResult.contractCount,
       };
