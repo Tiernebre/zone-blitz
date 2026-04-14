@@ -1,4 +1,5 @@
 import { useParams } from "@tanstack/react-router";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   Card,
   CardContent,
@@ -8,14 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable } from "@/components/ui/data-table";
 import type {
   PlayerPositionGroup,
   RosterPlayer,
@@ -57,6 +51,45 @@ function injuryBadgeVariant(
 function formatInjury(status: RosterPlayer["injuryStatus"]) {
   return status.replace(/_/g, " ");
 }
+
+const rosterColumns: ColumnDef<RosterPlayer>[] = [
+  {
+    id: "player",
+    header: "Player",
+    cell: ({ row }) => (
+      <span className="font-medium">
+        {row.original.firstName} {row.original.lastName}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "position",
+    header: "Pos",
+  },
+  {
+    accessorKey: "age",
+    header: "Age",
+  },
+  {
+    id: "capHit",
+    header: "Cap Hit",
+    cell: ({ row }) => formatCurrency(row.original.capHit),
+  },
+  {
+    id: "contract",
+    header: "Contract",
+    cell: ({ row }) => `${row.original.contractYearsRemaining} yrs`,
+  },
+  {
+    id: "status",
+    header: "Status",
+    cell: ({ row }) => (
+      <Badge variant={injuryBadgeVariant(row.original.injuryStatus)}>
+        {formatInjury(row.original.injuryStatus)}
+      </Badge>
+    ),
+  },
+];
 
 export function Roster() {
   const { leagueId } = useParams({ strict: false }) as { leagueId: string };
@@ -173,43 +206,11 @@ function RosterContent({
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Player</TableHead>
-                    <TableHead>Pos</TableHead>
-                    <TableHead>Age</TableHead>
-                    <TableHead>Cap Hit</TableHead>
-                    <TableHead>Contract</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {players.map((player) => (
-                    <TableRow
-                      key={player.id}
-                      data-testid={`roster-row-${player.id}`}
-                    >
-                      <TableCell className="font-medium">
-                        {player.firstName} {player.lastName}
-                      </TableCell>
-                      <TableCell>{player.position}</TableCell>
-                      <TableCell>{player.age}</TableCell>
-                      <TableCell>{formatCurrency(player.capHit)}</TableCell>
-                      <TableCell>
-                        {player.contractYearsRemaining} yrs
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={injuryBadgeVariant(player.injuryStatus)}
-                        >
-                          {formatInjury(player.injuryStatus)}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable
+                columns={rosterColumns}
+                data={players}
+                getRowTestId={(player) => `roster-row-${player.id}`}
+              />
             </CardContent>
           </Card>
         );
