@@ -176,24 +176,28 @@ Deno.test("coaches.service", async (t) => {
     },
   );
 
-  await t.step("getStaffTree delegates to repository", async () => {
-    const { db } = createMockDb();
-    const nodes = [createNode()];
-    const service = createCoachesService({
-      generator: createMockGenerator(),
-      repo: createMockRepo({
-        getStaffTreeByTeam: (teamId) => {
-          assertEquals(teamId, "t1");
-          return Promise.resolve(nodes);
-        },
-      }),
-      db,
-      log: createTestLogger(),
-    });
+  await t.step(
+    "getStaffTree delegates to repository with league and team",
+    async () => {
+      const { db } = createMockDb();
+      const nodes = [createNode()];
+      const service = createCoachesService({
+        generator: createMockGenerator(),
+        repo: createMockRepo({
+          getStaffTreeByTeam: (leagueId, teamId) => {
+            assertEquals(leagueId, "l1");
+            assertEquals(teamId, "t1");
+            return Promise.resolve(nodes);
+          },
+        }),
+        db,
+        log: createTestLogger(),
+      });
 
-    const result = await service.getStaffTree("t1");
-    assertEquals(result, nodes);
-  });
+      const result = await service.getStaffTree("l1", "t1");
+      assertEquals(result, nodes);
+    },
+  );
 
   await t.step("getCoachDetail returns the detail when found", async () => {
     const { db } = createMockDb();

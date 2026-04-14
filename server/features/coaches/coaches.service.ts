@@ -36,9 +36,9 @@ export function createCoachesService(deps: {
       return { coachCount: generated.length };
     },
 
-    async getStaffTree(teamId) {
-      log.debug({ teamId }, "fetching staff tree");
-      return await deps.repo.getStaffTreeByTeam(teamId);
+    async getStaffTree(leagueId, teamId) {
+      log.debug({ leagueId, teamId }, "fetching staff tree");
+      return await deps.repo.getStaffTreeByTeam(leagueId, teamId);
     },
 
     async getCoachDetail(id) {

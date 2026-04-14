@@ -14,7 +14,7 @@ export function Coaches() {
   // so the page has data to render end-to-end.
   const { data: teams, isLoading: teamsLoading } = useTeams();
   const teamId = (teams?.[0]?.id as string | undefined) ?? "";
-  const { data, isLoading, error } = useStaffTree(teamId);
+  const { data, isLoading, error } = useStaffTree(leagueId ?? "", teamId);
 
   const loading = teamsLoading || isLoading;
 

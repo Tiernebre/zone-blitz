@@ -3,9 +3,11 @@ import type { CoachDetail, CoachNode } from "@zone-blitz/shared";
 export interface CoachesRepository {
   /**
    * Returns every coach on a team as a flat list of staff-tree nodes.
-   * The client builds the hierarchy from `reportsToId`.
+   * Scoped to a league so teams that exist in multiple leagues do not
+   * leak coaching staff across universes. The client builds the
+   * hierarchy from `reportsToId`.
    */
-  getStaffTreeByTeam(teamId: string): Promise<CoachNode[]>;
+  getStaffTreeByTeam(leagueId: string, teamId: string): Promise<CoachNode[]>;
 
   /**
    * Returns the full public-record detail view for a single coach,

@@ -10,10 +10,14 @@ vi.mock("../api.ts", () => ({
   api: {
     api: {
       coaches: {
-        teams: {
-          [":teamId"]: {
-            staff: {
-              $get: (...args: unknown[]) => mockGet(...args),
+        leagues: {
+          [":leagueId"]: {
+            teams: {
+              [":teamId"]: {
+                staff: {
+                  $get: (...args: unknown[]) => mockGet(...args),
+                },
+              },
             },
           },
         },
@@ -31,11 +35,11 @@ function createWrapper() {
 }
 
 describe("useStaffTree", () => {
-  it("fetches the staff tree for a team", async () => {
+  it("fetches the staff tree for a team scoped to a league", async () => {
     const staff = [{ id: "c1", firstName: "A", lastName: "B", role: "HC" }];
     mockGet.mockResolvedValue({ json: () => Promise.resolve(staff) });
 
-    const { result } = renderHook(() => useStaffTree("team-1"), {
+    const { result } = renderHook(() => useStaffTree("league-1", "team-1"), {
       wrapper: createWrapper(),
     });
 
@@ -44,12 +48,23 @@ describe("useStaffTree", () => {
     });
 
     expect(result.current.data).toEqual(staff);
-    expect(mockGet).toHaveBeenCalledWith({ param: { teamId: "team-1" } });
+    expect(mockGet).toHaveBeenCalledWith({
+      param: { leagueId: "league-1", teamId: "team-1" },
+    });
   });
 
   it("skips fetching when teamId is empty", () => {
     mockGet.mockClear();
-    const { result } = renderHook(() => useStaffTree(""), {
+    const { result } = renderHook(() => useStaffTree("league-1", ""), {
+      wrapper: createWrapper(),
+    });
+    expect(result.current.isFetching).toBe(false);
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it("skips fetching when leagueId is empty", () => {
+    mockGet.mockClear();
+    const { result } = renderHook(() => useStaffTree("", "team-1"), {
       wrapper: createWrapper(),
     });
     expect(result.current.isFetching).toBe(false);

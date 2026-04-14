@@ -1,15 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../api.ts";
 
-export function useStaffTree(teamId: string) {
+export function useStaffTree(leagueId: string, teamId: string) {
   return useQuery({
-    queryKey: ["coaches", "staff-tree", teamId],
+    queryKey: ["coaches", "staff-tree", leagueId, teamId],
     queryFn: async () => {
-      const res = await api.api.coaches.teams[":teamId"].staff.$get({
-        param: { teamId },
-      });
+      const res = await api.api.coaches.leagues[":leagueId"].teams[":teamId"]
+        .staff.$get({
+          param: { leagueId, teamId },
+        });
       return res.json();
     },
-    enabled: teamId.length > 0,
+    enabled: leagueId.length > 0 && teamId.length > 0,
   });
 }
