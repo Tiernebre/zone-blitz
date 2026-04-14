@@ -35,6 +35,16 @@ export function createLeagueRepository(deps: {
       return league;
     },
 
+    async updateUserTeam(id, userTeamId) {
+      log.debug({ id, userTeamId }, "updating league user team");
+      const [league] = await deps.db
+        .update(leagues)
+        .set({ userTeamId, updatedAt: new Date() })
+        .where(eq(leagues.id, id))
+        .returning();
+      return league;
+    },
+
     async deleteById(id) {
       log.debug({ id }, "deleting league by id");
       await deps.db.delete(leagues).where(eq(leagues.id, id));

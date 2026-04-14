@@ -92,6 +92,20 @@
       "when": 1776163050389,
       "tag": "0012_states_cities_refactor",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1776174884115,
+      "tag": "0013_drop_league_season_length_teams",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1776174904125,
+      "tag": "0014_add_league_user_team",
+      "breakpoints": true
     }
   ]
 }

@@ -125,16 +125,14 @@ describe("LeagueSelect", () => {
             {
               id: 1,
               name: "NFL League",
-              numberOfTeams: 32,
-              seasonLength: 17,
+              userTeam: null,
               createdAt: "2026-01-15T00:00:00Z",
               currentSeason: { year: 1, phase: "preseason", week: 1 },
             },
             {
               id: 2,
               name: "XFL League",
-              numberOfTeams: 8,
-              seasonLength: 10,
+              userTeam: null,
               createdAt: "2026-02-20T00:00:00Z",
               currentSeason: { year: 3, phase: "regular_season", week: 5 },
             },
@@ -147,15 +145,71 @@ describe("LeagueSelect", () => {
     });
     expect(screen.getByText("XFL League")).toBeDefined();
     expect(screen.getByRole("columnheader", { name: "Name" })).toBeDefined();
-    expect(screen.getByRole("columnheader", { name: "Teams" })).toBeDefined();
-    expect(screen.getByRole("columnheader", { name: "Season Length" }))
+    expect(screen.getByRole("columnheader", { name: "Assigned Team" }))
       .toBeDefined();
     expect(screen.getByRole("columnheader", { name: "Status" })).toBeDefined();
     expect(screen.getByRole("columnheader", { name: "Created" })).toBeDefined();
-    expect(screen.getByText("32")).toBeDefined();
-    expect(screen.getByText("17")).toBeDefined();
+    expect(screen.queryByRole("columnheader", { name: "Teams" })).toBeNull();
+    expect(screen.queryByRole("columnheader", { name: "Season Length" }))
+      .toBeNull();
     expect(screen.getByText(/Season 1 · Preseason/)).toBeDefined();
     expect(screen.getByText(/Season 3 · Regular Season/)).toBeDefined();
+  });
+
+  it("renders the assigned team when set", async () => {
+    mockGet.mockReturnValue(
+      Promise.resolve({
+        json: () =>
+          Promise.resolve([
+            {
+              id: 1,
+              name: "League With Team",
+              userTeam: {
+                id: "team-1",
+                name: "Falcons",
+                city: "Atlanta",
+                abbreviation: "ATL",
+                primaryColor: "#A71930",
+              },
+              createdAt: "2026-01-15T00:00:00Z",
+              currentSeason: { year: 1, phase: "preseason", week: 1 },
+            },
+          ]),
+      }),
+    );
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText("Atlanta Falcons")).toBeDefined();
+    });
+    expect(
+      screen.queryByRole("button", { name: /no assigned team yet/i }),
+    ).toBeNull();
+  });
+
+  it("shows a CTA button and navigates to team-select when no team assigned", async () => {
+    mockGet.mockReturnValue(
+      Promise.resolve({
+        json: () =>
+          Promise.resolve([
+            {
+              id: 77,
+              name: "Teamless League",
+              userTeam: null,
+              createdAt: "2026-01-15T00:00:00Z",
+              currentSeason: { year: 1, phase: "preseason", week: 1 },
+            },
+          ]),
+      }),
+    );
+    renderWithProviders();
+    const cta = await screen.findByRole("button", {
+      name: /no assigned team yet/i,
+    });
+    fireEvent.click(cta);
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: "/leagues/$leagueId/team-select",
+      params: { leagueId: "77" },
+    });
   });
 
   it("renders a dash when a league has no current season", async () => {
@@ -166,8 +220,7 @@ describe("LeagueSelect", () => {
             {
               id: 1,
               name: "Stale League",
-              numberOfTeams: 32,
-              seasonLength: 17,
+              userTeam: null,
               createdAt: "2026-01-15T00:00:00Z",
               currentSeason: null,
             },
@@ -192,8 +245,7 @@ describe("LeagueSelect", () => {
             {
               id: 1,
               name: "League",
-              numberOfTeams: 32,
-              seasonLength: 17,
+              userTeam: null,
               createdAt: "2026-01-15T00:00:00Z",
               currentSeason: { year: 2, phase, week: 1 },
             },
@@ -214,8 +266,7 @@ describe("LeagueSelect", () => {
             {
               id: 42,
               name: "My League",
-              numberOfTeams: 32,
-              seasonLength: 17,
+              userTeam: null,
               createdAt: "2026-01-15T00:00:00Z",
               currentSeason: { year: 1, phase: "preseason", week: 1 },
             },
@@ -242,8 +293,7 @@ describe("LeagueSelect", () => {
             {
               id: 1,
               name: "League",
-              numberOfTeams: 32,
-              seasonLength: 17,
+              userTeam: null,
               createdAt: "2026-01-15T00:00:00Z",
               currentSeason: { year: 1, phase: "preseason", week: 1 },
             },
@@ -295,8 +345,7 @@ describe("LeagueSelect", () => {
               {
                 id: 7,
                 name: "Doomed League",
-                numberOfTeams: 32,
-                seasonLength: 17,
+                userTeam: null,
                 createdAt: "2026-01-15T00:00:00Z",
                 currentSeason: { year: 1, phase: "preseason", week: 1 },
               },
@@ -337,8 +386,7 @@ describe("LeagueSelect", () => {
               {
                 id: 7,
                 name: "Safe League",
-                numberOfTeams: 32,
-                seasonLength: 17,
+                userTeam: null,
                 createdAt: "2026-01-15T00:00:00Z",
                 currentSeason: { year: 1, phase: "preseason", week: 1 },
               },

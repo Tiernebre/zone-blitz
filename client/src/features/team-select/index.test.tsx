@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { TeamSelect } from "./index.tsx";
 
 const mockTeamsGet = vi.fn();
+const mockAssignTeam = vi.fn();
 const mockNavigate = vi.fn();
 
 vi.mock("../../api.ts", () => ({
@@ -17,6 +18,13 @@ vi.mock("../../api.ts", () => ({
     api: {
       teams: {
         $get: (...args: unknown[]) => mockTeamsGet(...args),
+      },
+      leagues: {
+        ":id": {
+          "user-team": {
+            $patch: (...args: unknown[]) => mockAssignTeam(...args),
+          },
+        },
       },
     },
   },
@@ -140,9 +148,46 @@ describe("TeamSelect", () => {
     });
   });
 
-  it("navigates to league dashboard when a team is selected", async () => {
+  it(
+    "persists the pick and navigates to league dashboard on success",
+    async () => {
+      mockTeamsGet.mockReturnValue(
+        Promise.resolve({ json: () => Promise.resolve(MOCK_TEAMS) }),
+      );
+      mockAssignTeam.mockReturnValue(
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: "league-1", userTeamId: "t1" }),
+        }),
+      );
+      renderWithProviders();
+      await waitFor(() => {
+        expect(screen.getByText("Boston Minutemen")).toBeDefined();
+      });
+
+      fireEvent.click(screen.getByText("Boston Minutemen"));
+
+      await waitFor(() => {
+        expect(mockAssignTeam).toHaveBeenCalledWith({
+          param: { id: "league-1" },
+          json: { userTeamId: "t1" },
+        });
+      });
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith({
+          to: "/leagues/$leagueId",
+          params: { leagueId: "league-1" },
+        });
+      });
+    },
+  );
+
+  it("surfaces an error alert when assignment fails", async () => {
     mockTeamsGet.mockReturnValue(
       Promise.resolve({ json: () => Promise.resolve(MOCK_TEAMS) }),
+    );
+    mockAssignTeam.mockReturnValue(
+      Promise.resolve({ ok: false, status: 500 }),
     );
     renderWithProviders();
     await waitFor(() => {
@@ -150,9 +195,10 @@ describe("TeamSelect", () => {
     });
 
     fireEvent.click(screen.getByText("Boston Minutemen"));
-    expect(mockNavigate).toHaveBeenCalledWith({
-      to: "/leagues/$leagueId",
-      params: { leagueId: "league-1" },
+
+    await waitFor(() => {
+      expect(screen.getByText("Failed to assign team")).toBeDefined();
     });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

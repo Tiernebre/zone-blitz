@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useTeams } from "../../hooks/use-teams.ts";
+import { useAssignUserTeam } from "../../hooks/use-leagues.ts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -58,13 +59,21 @@ function TeamCard({
 export function TeamSelect() {
   const { leagueId } = useParams({ strict: false });
   const { data: teams, isLoading, error } = useTeams();
+  const assignUserTeam = useAssignUserTeam();
   const navigate = useNavigate();
 
-  const handleSelect = (_team: Team) => {
-    navigate({
-      to: "/leagues/$leagueId",
-      params: { leagueId: leagueId! },
-    });
+  const handleSelect = (team: Team) => {
+    assignUserTeam.mutate(
+      { leagueId: leagueId!, userTeamId: team.id },
+      {
+        onSuccess: () => {
+          navigate({
+            to: "/leagues/$leagueId",
+            params: { leagueId: leagueId! },
+          });
+        },
+      },
+    );
   };
 
   if (isLoading) {
@@ -107,6 +116,15 @@ export function TeamSelect() {
             Select the franchise you want to manage.
           </p>
         </div>
+
+        {assignUserTeam.isError && (
+          <Alert variant="destructive">
+            <AlertTitle>Failed to assign team</AlertTitle>
+            <AlertDescription>
+              {assignUserTeam.error?.message}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {conferences.map((conference) => (
           <Card key={conference}>

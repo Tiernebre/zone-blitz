@@ -121,8 +121,7 @@ export function LeagueSelect() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Teams</TableHead>
-                  <TableHead className="text-right">Season Length</TableHead>
+                  <TableHead>Assigned Team</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Created</TableHead>
                   <TableHead className="w-10">
@@ -147,11 +146,36 @@ export function LeagueSelect() {
                       <TableCell className="font-medium">
                         {league.name}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {league.numberOfTeams}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {league.seasonLength}
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        {league.userTeam
+                          ? (
+                            <span className="inline-flex items-center gap-2">
+                              <span
+                                aria-hidden
+                                className="size-3 rounded-full border border-border"
+                                style={{
+                                  backgroundColor: league.userTeam.primaryColor,
+                                }}
+                              />
+                              <span>
+                                {league.userTeam.city} {league.userTeam.name}
+                              </span>
+                            </span>
+                          )
+                          : (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0 text-muted-foreground"
+                              onClick={() =>
+                                navigate({
+                                  to: "/leagues/$leagueId/team-select",
+                                  params: { leagueId: String(league.id) },
+                                })}
+                            >
+                              No assigned team yet
+                            </Button>
+                          )}
                       </TableCell>
                       <TableCell>
                         {phase
@@ -175,7 +199,8 @@ export function LeagueSelect() {
                       </TableCell>
                       <TableCell
                         className="text-right"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) =>
+                          e.stopPropagation()}
                       >
                         <AlertDialog>
                           <AlertDialogTrigger

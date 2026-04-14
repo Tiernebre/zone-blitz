@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import type { LeagueService } from "./league.service.interface.ts";
-import { createLeagueSchema } from "@zone-blitz/shared";
+import { assignUserTeamSchema, createLeagueSchema } from "@zone-blitz/shared";
 import type { AppEnv } from "../../env.ts";
 
 export function createLeagueRouter(leagueService: LeagueService) {
@@ -19,6 +19,18 @@ export function createLeagueRouter(leagueService: LeagueService) {
       const league = await leagueService.create(input);
       return c.json(league, 201);
     })
+    .patch(
+      "/:id/user-team",
+      zValidator("json", assignUserTeamSchema),
+      async (c) => {
+        const { userTeamId } = c.req.valid("json");
+        const league = await leagueService.assignUserTeam(
+          c.req.param("id"),
+          userTeamId,
+        );
+        return c.json(league);
+      },
+    )
     .delete("/:id", async (c) => {
       await leagueService.deleteById(c.req.param("id"));
       return c.body(null, 204);

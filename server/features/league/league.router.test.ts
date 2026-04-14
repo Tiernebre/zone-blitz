@@ -7,8 +7,7 @@ function createMockLeague(overrides: Partial<League> = {}): League {
   return {
     id: "1",
     name: "Test",
-    numberOfTeams: 32,
-    seasonLength: 17,
+    userTeamId: null,
     salaryCap: 255_000_000,
     capFloorPercent: 89,
     capGrowthRate: 5,
@@ -26,6 +25,7 @@ function createMockLeagueService(
     getAll: () => Promise.resolve([]),
     getById: () => Promise.resolve(createMockLeague()),
     create: () => Promise.resolve(createMockLeague({ id: "new-id" })),
+    assignUserTeam: () => Promise.resolve(createMockLeague()),
     deleteById: () => Promise.resolve(),
     ...overrides,
   };
@@ -37,10 +37,12 @@ Deno.test("league.router", async (t) => {
       {
         ...createMockLeague({ id: "1", name: "League One" }),
         currentSeason: { year: 1, phase: "preseason", week: 1 },
+        userTeam: null,
       },
       {
         ...createMockLeague({ id: "2", name: "League Two" }),
         currentSeason: null,
+        userTeam: null,
       },
     ];
     const router = createLeagueRouter(
@@ -134,6 +136,48 @@ Deno.test("league.router", async (t) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "a".repeat(101) }),
+      });
+      assertEquals(res.status, 400);
+    },
+  );
+
+  await t.step(
+    "PATCH /:id/user-team assigns the user team and returns the league",
+    async () => {
+      let received: { leagueId?: string; userTeamId?: string } = {};
+      const teamId = crypto.randomUUID();
+      const updated = createMockLeague({ id: "lg-1", userTeamId: teamId });
+      const router = createLeagueRouter(
+        createMockLeagueService({
+          assignUserTeam: (leagueId, userTeamId) => {
+            received = { leagueId, userTeamId };
+            return Promise.resolve(updated);
+          },
+        }),
+      );
+
+      const res = await router.request("/lg-1/user-team", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userTeamId: teamId }),
+      });
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.userTeamId, teamId);
+      assertEquals(received.leagueId, "lg-1");
+      assertEquals(received.userTeamId, teamId);
+    },
+  );
+
+  await t.step(
+    "PATCH /:id/user-team returns 400 when userTeamId is not a uuid",
+    async () => {
+      const router = createLeagueRouter(createMockLeagueService());
+
+      const res = await router.request("/lg-1/user-team", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userTeamId: "not-a-uuid" }),
       });
       assertEquals(res.status, 400);
     },

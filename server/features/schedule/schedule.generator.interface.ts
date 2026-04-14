@@ -9,7 +9,6 @@ export interface TeamDivisionInfo {
 export interface ScheduleGeneratorInput {
   seasonId: string;
   teams: TeamDivisionInfo[];
-  seasonLength: number;
 }
 
 export type GeneratedGame = Omit<Game, "id" | "createdAt" | "updatedAt">;

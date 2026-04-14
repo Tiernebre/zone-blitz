@@ -109,8 +109,7 @@ Deno.test({
 
       assertEquals(result.name, "New League");
       assertEquals(typeof result.id, "string");
-      assertEquals(result.numberOfTeams, 32);
-      assertEquals(result.seasonLength, 17);
+      assertEquals(result.userTeamId, null);
       assertEquals(result.salaryCap, 255_000_000);
       assertEquals(result.capFloorPercent, 89);
       assertEquals(result.capGrowthRate, 5);
@@ -120,8 +119,7 @@ Deno.test({
         eq(leagues.id, leagueId),
       );
       assertEquals(row.name, "New League");
-      assertEquals(row.numberOfTeams, 32);
-      assertEquals(row.seasonLength, 17);
+      assertEquals(row.userTeamId, null);
       assertEquals(row.salaryCap, 255_000_000);
       assertEquals(row.capFloorPercent, 89);
       assertEquals(row.capGrowthRate, 5);

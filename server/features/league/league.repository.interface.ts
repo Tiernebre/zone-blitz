@@ -5,5 +5,6 @@ export interface LeagueRepository {
   getAll(): Promise<League[]>;
   getById(id: string): Promise<League | undefined>;
   create(league: NewLeague, tx?: Executor): Promise<League>;
+  updateUserTeam(id: string, userTeamId: string): Promise<League | undefined>;
   deleteById(id: string): Promise<void>;
 }
