@@ -46,8 +46,8 @@ import {
   createStubScoutsGenerator,
 } from "./scouts/mod.ts";
 import {
+  createFrontOfficeGenerator,
   createFrontOfficeService,
-  createStubFrontOfficeGenerator,
 } from "./front-office/mod.ts";
 import {
   createScheduleService,
@@ -119,7 +119,7 @@ export function createFeatureRouters(
     log,
   });
   const frontOfficeService = createFrontOfficeService({
-    generator: createStubFrontOfficeGenerator(),
+    generator: createFrontOfficeGenerator(),
     db,
     log,
   });

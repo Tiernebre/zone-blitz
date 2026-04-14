@@ -54,3 +54,14 @@ entry when it's resolved or superseded.
   scheduled events. Surfaced while adding a league status column to the home
   page — today we can only show "Offseason" rather than "Drafting" or "Free
   Agency".
+- **2026-04-14 — Front office staff schema needs role/title columns.** The
+  `front_office_staff` table (and the `FrontOfficeStaff` shared type) only
+  carries `firstName` / `lastName` beyond identifiers, which is why the
+  graduated front-office generator can only vary names. Adding role (`GM`,
+  `President of Football Ops`, `Capologist`, `Director of Player
+  Personnel`,
+  etc.) plus age / contract / philosophy fields would let the generator produce
+  realistic front-office variance on the same tier-band pattern coaches and
+  scouts now use. Until then the generator is rename- only — code is in place to
+  consume an injected `nameGenerator`, so the expansion will be a localized
+  edit.
