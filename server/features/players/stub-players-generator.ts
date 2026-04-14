@@ -1,8 +1,10 @@
 import type {
-  GeneratedPersonnel,
-  PersonnelGenerator,
-  PersonnelGeneratorInput,
-} from "./personnel.generator.interface.ts";
+  ContractGeneratorInput,
+  GeneratedContract,
+  GeneratedPlayers,
+  PlayersGenerator,
+  PlayersGeneratorInput,
+} from "./players.generator.interface.ts";
 
 const FIRST_NAMES = [
   "James",
@@ -128,9 +130,8 @@ const LAST_NAMES = [
   "Murphy",
 ];
 
-const COACHES_PER_TEAM = 5;
-const SCOUTS_PER_TEAM = 3;
-const FRONT_OFFICE_PER_TEAM = 2;
+const FREE_AGENT_COUNT = 50;
+const DRAFT_PROSPECT_COUNT = 250;
 
 function randomName(index: number) {
   const firstName = FIRST_NAMES[index % FIRST_NAMES.length];
@@ -139,16 +140,16 @@ function randomName(index: number) {
   return { firstName, lastName };
 }
 
-export function createStubPersonnelGenerator(): PersonnelGenerator {
+export function createStubPlayersGenerator(): PlayersGenerator {
   return {
-    generate(input: PersonnelGeneratorInput): GeneratedPersonnel {
+    generate(input: PlayersGeneratorInput): GeneratedPlayers {
       let nameIndex = 0;
 
-      const coaches = [];
+      const players = [];
       for (const teamId of input.teamIds) {
-        for (let i = 0; i < COACHES_PER_TEAM; i++) {
+        for (let i = 0; i < input.rosterSize; i++) {
           const { firstName, lastName } = randomName(nameIndex++);
-          coaches.push({
+          players.push({
             leagueId: input.leagueId,
             teamId,
             firstName,
@@ -157,33 +158,45 @@ export function createStubPersonnelGenerator(): PersonnelGenerator {
         }
       }
 
-      const scouts = [];
-      for (const teamId of input.teamIds) {
-        for (let i = 0; i < SCOUTS_PER_TEAM; i++) {
-          const { firstName, lastName } = randomName(nameIndex++);
-          scouts.push({
-            leagueId: input.leagueId,
-            teamId,
-            firstName,
-            lastName,
-          });
-        }
+      for (let i = 0; i < FREE_AGENT_COUNT; i++) {
+        const { firstName, lastName } = randomName(nameIndex++);
+        players.push({
+          leagueId: input.leagueId,
+          teamId: null,
+          firstName,
+          lastName,
+        });
       }
 
-      const frontOfficeStaff = [];
-      for (const teamId of input.teamIds) {
-        for (let i = 0; i < FRONT_OFFICE_PER_TEAM; i++) {
-          const { firstName, lastName } = randomName(nameIndex++);
-          frontOfficeStaff.push({
-            leagueId: input.leagueId,
-            teamId,
-            firstName,
-            lastName,
-          });
-        }
+      const draftProspects = [];
+      for (let i = 0; i < DRAFT_PROSPECT_COUNT; i++) {
+        const { firstName, lastName } = randomName(nameIndex++);
+        draftProspects.push({
+          seasonId: input.seasonId,
+          firstName,
+          lastName,
+        });
       }
 
-      return { coaches, scouts, frontOfficeStaff };
+      return { players, draftProspects };
+    },
+
+    generateContracts(input: ContractGeneratorInput): GeneratedContract[] {
+      const rosteredPlayers = input.players.filter((p) => p.teamId !== null);
+      const perPlayerSalary = Math.floor(
+        input.salaryCap / Math.max(rosteredPlayers.length, 1),
+      );
+
+      return rosteredPlayers.map((player) => ({
+        playerId: player.id,
+        teamId: player.teamId!,
+        totalYears: 3,
+        currentYear: 1,
+        totalSalary: perPlayerSalary * 3,
+        annualSalary: perPlayerSalary,
+        guaranteedMoney: perPlayerSalary,
+        signingBonus: 0,
+      }));
     },
   };
 }

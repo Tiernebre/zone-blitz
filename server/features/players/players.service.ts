@@ -1,0 +1,75 @@
+import type pino from "pino";
+import type { Database } from "../../db/connection.ts";
+import { draftProspects, players } from "./player.schema.ts";
+import { contracts } from "./contract.schema.ts";
+import type { PlayersGenerator } from "./players.generator.interface.ts";
+import type { PlayersService } from "./players.service.interface.ts";
+
+export function createPlayersService(deps: {
+  generator: PlayersGenerator;
+  db: Database;
+  log: pino.Logger;
+}): PlayersService {
+  const log = deps.log.child({ module: "players.service" });
+
+  return {
+    async generateAndPersist(input) {
+      log.info(
+        { leagueId: input.leagueId, seasonId: input.seasonId },
+        "generating players",
+      );
+
+      const generated = deps.generator.generate({
+        leagueId: input.leagueId,
+        seasonId: input.seasonId,
+        teamIds: input.teamIds,
+        rosterSize: input.rosterSize,
+      });
+
+      let insertedPlayers: { id: string; teamId: string | null }[] = [];
+
+      if (generated.players.length > 0) {
+        insertedPlayers = await deps.db
+          .insert(players)
+          .values(generated.players)
+          .returning({ id: players.id, teamId: players.teamId });
+      }
+
+      if (generated.draftProspects.length > 0) {
+        await deps.db.insert(draftProspects).values(generated.draftProspects);
+      }
+
+      log.info(
+        {
+          leagueId: input.leagueId,
+          players: insertedPlayers.length,
+          draftProspects: generated.draftProspects.length,
+        },
+        "persisted players",
+      );
+
+      const generatedContracts = deps.generator.generateContracts({
+        salaryCap: input.salaryCap,
+        players: insertedPlayers,
+      });
+
+      if (generatedContracts.length > 0) {
+        await deps.db.insert(contracts).values(generatedContracts);
+      }
+
+      log.info(
+        {
+          leagueId: input.leagueId,
+          contracts: generatedContracts.length,
+        },
+        "persisted contracts",
+      );
+
+      return {
+        playerCount: insertedPlayers.length,
+        draftProspectCount: generated.draftProspects.length,
+        contractCount: generatedContracts.length,
+      };
+    },
+  };
+}

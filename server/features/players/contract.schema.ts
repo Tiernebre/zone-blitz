@@ -1,5 +1,5 @@
 import { integer, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
-import { players } from "./personnel.schema.ts";
+import { players } from "./player.schema.ts";
 import { teams } from "../team/team.schema.ts";
 
 export const contracts = pgTable("contracts", {
