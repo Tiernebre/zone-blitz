@@ -1,4 +1,8 @@
 import type { CoachRole, CoachSpecialty } from "@zone-blitz/shared";
+import {
+  createNameGenerator,
+  type NameGenerator,
+} from "../../shared/name-generator.ts";
 import type {
   CoachesGenerator,
   CoachesGeneratorInput,
@@ -11,32 +15,6 @@ import {
   pickDefensiveArchetype,
   pickOffensiveArchetype,
 } from "./coach-tendency-archetypes.ts";
-
-const FIRST_NAMES = [
-  "James",
-  "John",
-  "Robert",
-  "Michael",
-  "William",
-  "David",
-  "Richard",
-  "Joseph",
-  "Thomas",
-  "Charles",
-];
-
-const LAST_NAMES = [
-  "Smith",
-  "Johnson",
-  "Williams",
-  "Brown",
-  "Jones",
-  "Garcia",
-  "Miller",
-  "Davis",
-  "Rodriguez",
-  "Martinez",
-];
 
 interface RoleSpec {
   role: CoachRole;
@@ -191,19 +169,18 @@ function buildTendencies(
   return null;
 }
 
-function randomName(index: number) {
-  const firstName = FIRST_NAMES[index % FIRST_NAMES.length];
-  const lastName =
-    LAST_NAMES[Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length];
-  return { firstName, lastName };
+export interface StubCoachesGeneratorOptions {
+  nameGenerator?: NameGenerator;
 }
 
-export function createStubCoachesGenerator(): CoachesGenerator {
+export function createStubCoachesGenerator(
+  options: StubCoachesGeneratorOptions = {},
+): CoachesGenerator {
+  const nameGenerator = options.nameGenerator ?? createNameGenerator();
   return {
     generate(input: CoachesGeneratorInput): GeneratedCoach[] {
       const coaches: GeneratedCoach[] = [];
       const now = new Date();
-      let nameIndex = 0;
       let collegeIndex = 0;
       const pool = input.collegeIds ?? [];
 
@@ -214,7 +191,7 @@ export function createStubCoachesGenerator(): CoachesGenerator {
         }
 
         for (const spec of STAFF_BLUEPRINT) {
-          const { firstName, lastName } = randomName(nameIndex++);
+          const { firstName, lastName } = nameGenerator.next();
           const id = idsByRole.get(spec.role)!;
           const reportsToId = spec.reportsTo === null
             ? null

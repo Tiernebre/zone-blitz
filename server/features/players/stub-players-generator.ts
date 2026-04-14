@@ -5,6 +5,10 @@ import {
   type PlayerAttributeKey,
   type PlayerAttributes,
 } from "@zone-blitz/shared";
+import {
+  createNameGenerator,
+  type NameGenerator,
+} from "../../shared/name-generator.ts";
 import type {
   ContractGeneratorInput,
   GeneratedContract,
@@ -214,139 +218,8 @@ export function stubAttributesFor(bucket: NeutralBucket): PlayerAttributes {
   return attrs as PlayerAttributes;
 }
 
-const FIRST_NAMES = [
-  "James",
-  "John",
-  "Robert",
-  "Michael",
-  "William",
-  "David",
-  "Richard",
-  "Joseph",
-  "Thomas",
-  "Charles",
-  "Daniel",
-  "Matthew",
-  "Anthony",
-  "Mark",
-  "Donald",
-  "Steven",
-  "Paul",
-  "Andrew",
-  "Joshua",
-  "Kenneth",
-  "Kevin",
-  "Brian",
-  "George",
-  "Timothy",
-  "Ronald",
-  "Edward",
-  "Jason",
-  "Jeffrey",
-  "Ryan",
-  "Jacob",
-  "Gary",
-  "Nicholas",
-  "Eric",
-  "Jonathan",
-  "Stephen",
-  "Larry",
-  "Justin",
-  "Scott",
-  "Brandon",
-  "Benjamin",
-  "Samuel",
-  "Raymond",
-  "Gregory",
-  "Frank",
-  "Alexander",
-  "Patrick",
-  "Jack",
-  "Dennis",
-  "Jerry",
-  "Tyler",
-  "Aaron",
-  "Jose",
-  "Adam",
-  "Nathan",
-  "Henry",
-  "Douglas",
-  "Peter",
-  "Zachary",
-  "Kyle",
-];
-
-const LAST_NAMES = [
-  "Smith",
-  "Johnson",
-  "Williams",
-  "Brown",
-  "Jones",
-  "Garcia",
-  "Miller",
-  "Davis",
-  "Rodriguez",
-  "Martinez",
-  "Hernandez",
-  "Lopez",
-  "Gonzalez",
-  "Wilson",
-  "Anderson",
-  "Thomas",
-  "Taylor",
-  "Moore",
-  "Jackson",
-  "Martin",
-  "Lee",
-  "Perez",
-  "Thompson",
-  "White",
-  "Harris",
-  "Sanchez",
-  "Clark",
-  "Ramirez",
-  "Lewis",
-  "Robinson",
-  "Walker",
-  "Young",
-  "Allen",
-  "King",
-  "Wright",
-  "Scott",
-  "Torres",
-  "Nguyen",
-  "Hill",
-  "Flores",
-  "Green",
-  "Adams",
-  "Nelson",
-  "Baker",
-  "Hall",
-  "Rivera",
-  "Campbell",
-  "Mitchell",
-  "Carter",
-  "Roberts",
-  "Phillips",
-  "Evans",
-  "Turner",
-  "Parker",
-  "Collins",
-  "Edwards",
-  "Stewart",
-  "Morris",
-  "Murphy",
-];
-
 const FREE_AGENT_COUNT = 50;
 const DRAFT_PROSPECT_COUNT = 250;
-
-function randomName(index: number) {
-  const firstName = FIRST_NAMES[index % FIRST_NAMES.length];
-  const lastName =
-    LAST_NAMES[Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length];
-  return { firstName, lastName };
-}
 
 function stubOrigin(index: number, draftingTeamId: string | null) {
   const undrafted = index % 17 === 0;
@@ -398,7 +271,14 @@ function playerShell(
   };
 }
 
-export function createStubPlayersGenerator(): PlayersGenerator {
+export interface StubPlayersGeneratorOptions {
+  nameGenerator?: NameGenerator;
+}
+
+export function createStubPlayersGenerator(
+  options: StubPlayersGeneratorOptions = {},
+): PlayersGenerator {
+  const nameGenerator = options.nameGenerator ?? createNameGenerator();
   return {
     generate(input: PlayersGeneratorInput): GeneratedPlayers {
       let nameIndex = 0;
@@ -406,7 +286,8 @@ export function createStubPlayersGenerator(): PlayersGenerator {
       const players = [];
       for (const teamId of input.teamIds) {
         for (let i = 0; i < input.rosterSize; i++) {
-          const { firstName, lastName } = randomName(nameIndex++);
+          const { firstName, lastName } = nameGenerator.next();
+          nameIndex++;
           const bucket = ROSTER_BUCKET_SLOTS[i % ROSTER_BUCKET_SLOTS.length];
           const origin = stubOrigin(nameIndex, teamId);
           players.push({
@@ -424,7 +305,8 @@ export function createStubPlayersGenerator(): PlayersGenerator {
       }
 
       for (let i = 0; i < FREE_AGENT_COUNT; i++) {
-        const { firstName, lastName } = randomName(nameIndex++);
+        const { firstName, lastName } = nameGenerator.next();
+        nameIndex++;
         const bucket = FREE_AGENT_BUCKET_CYCLE[
           i % FREE_AGENT_BUCKET_CYCLE.length
         ];
@@ -443,7 +325,8 @@ export function createStubPlayersGenerator(): PlayersGenerator {
       }
 
       for (let i = 0; i < DRAFT_PROSPECT_COUNT; i++) {
-        const { firstName, lastName } = randomName(nameIndex++);
+        const { firstName, lastName } = nameGenerator.next();
+        nameIndex++;
         const bucket = FREE_AGENT_BUCKET_CYCLE[
           i % FREE_AGENT_BUCKET_CYCLE.length
         ];
