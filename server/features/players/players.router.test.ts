@@ -53,6 +53,7 @@ Deno.test("players.router", async (t) => {
         college: "State University",
         hometown: "Dallas, TX",
       },
+      preDraftEvaluation: null,
     };
 
     const router = createPlayersRouter(

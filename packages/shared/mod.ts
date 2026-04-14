@@ -63,6 +63,7 @@ export type {
   PlayerOrigin,
   PlayerPosition,
   PlayerStatus,
+  PreDraftEvaluation,
 } from "./types/player.ts";
 export {
   PLAYER_INJURY_STATUSES,

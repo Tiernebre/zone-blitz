@@ -71,6 +71,11 @@ const draftedPlayer = {
     college: "State University",
     hometown: "Dallas, TX",
   },
+  preDraftEvaluation: {
+    draftClassYear: 2020,
+    projectedRound: 1,
+    scoutingNotes: "Franchise-caliber arm talent with strong pocket poise.",
+  },
 };
 
 afterEach(() => {
@@ -241,5 +246,50 @@ describe("PlayerDetail — header + origin", () => {
     expect(main.textContent).not.toMatch(/overall/i);
     expect(main.textContent).not.toMatch(/scout grade/i);
     expect(main.textContent).not.toMatch(/potential/i);
+  });
+
+  it("renders the pre-draft evaluation when present", () => {
+    renderDetail();
+    const panel = screen.getByTestId("player-pre-draft");
+    expect(panel.textContent).toContain("Draft class");
+    expect(screen.getByTestId("player-pre-draft-class").textContent).toBe(
+      "2020",
+    );
+    expect(
+      screen.getByTestId("player-pre-draft-projection").textContent,
+    ).toContain("Round 1");
+    expect(screen.getByTestId("player-pre-draft-notes").textContent).toContain(
+      "Franchise-caliber",
+    );
+  });
+
+  it("omits the pre-draft evaluation when the profile is missing", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: { ...draftedPlayer, preDraftEvaluation: null },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    expect(screen.queryByTestId("player-pre-draft")).toBeNull();
+  });
+
+  it("shows Unprojected when the projected round is null", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        preDraftEvaluation: {
+          draftClassYear: 2020,
+          projectedRound: null,
+          scoutingNotes: null,
+        },
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    expect(screen.getByTestId("player-pre-draft").textContent).toContain(
+      "Unprojected",
+    );
+    expect(screen.queryByTestId("player-pre-draft-notes")).toBeNull();
   });
 });

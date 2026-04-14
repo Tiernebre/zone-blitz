@@ -159,6 +159,7 @@ Deno.test("players.service — getDetail", async (t) => {
           college: "State University",
           hometown: "Dallas, TX",
         },
+        preDraftEvaluation: null,
       };
       const { db } = createMockDb();
       const service = createPlayersService({

@@ -160,6 +160,7 @@ Deno.test({
       assertEquals(detail?.origin.draftingTeam?.name, "Bengals");
       assertEquals(detail?.origin.college, "State University");
       assertEquals(detail?.origin.hometown, "Dallas, TX");
+      assertEquals(detail?.preDraftEvaluation, null);
     } finally {
       await cleanup(db, {
         players: playersCreated,
@@ -479,6 +480,87 @@ Deno.test({
       });
       assertEquals(result, "not_found");
     } finally {
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "playersRepository.getDetailById: surfaces preDraftEvaluation when a draft profile exists",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const repo = createPlayersRepository({
+      db,
+      log: createTestLogger(),
+      now: () => new Date("2026-06-15T00:00:00Z"),
+    });
+    const playersCreated: string[] = [];
+    const leaguesCreated: string[] = [];
+    const citiesCreated: string[] = [];
+    const statesCreated: string[] = [];
+    const teamsCreated: string[] = [];
+    const seasonsCreated: string[] = [];
+
+    try {
+      const { league, team, city, state } = await setupFixtures(db);
+      leaguesCreated.push(league.id);
+      citiesCreated.push(city.id);
+      statesCreated.push(state.id);
+      teamsCreated.push(team.id);
+
+      const [season] = await db
+        .insert(seasons)
+        .values({ leagueId: league.id, year: 2028 })
+        .returning();
+      seasonsCreated.push(season.id);
+
+      const playerId = crypto.randomUUID();
+      await db.insert(players).values({
+        id: playerId,
+        leagueId: league.id,
+        status: "active",
+        firstName: "Abe",
+        lastName: "Adams",
+        position: "QB",
+        heightInches: 74,
+        weightPounds: 220,
+        birthDate: "2004-03-01",
+      });
+      playersCreated.push(playerId);
+      await db.insert(playerAttributes).values({
+        playerId,
+        ...zeroAttributes(),
+      });
+      await db.insert(playerDraftProfile).values({
+        playerId,
+        seasonId: season.id,
+        draftClassYear: 2028,
+        projectedRound: 2,
+        scoutingNotes: "Riser during the combine.",
+        ...zeroAttributes(),
+      });
+
+      const detail = await repo.getDetailById(playerId);
+      assertEquals(detail?.preDraftEvaluation?.draftClassYear, 2028);
+      assertEquals(detail?.preDraftEvaluation?.projectedRound, 2);
+      assertEquals(
+        detail?.preDraftEvaluation?.scoutingNotes,
+        "Riser during the combine.",
+      );
+    } finally {
+      await cleanup(db, {
+        players: playersCreated,
+        teams: teamsCreated,
+        cities: citiesCreated,
+        states: statesCreated,
+        leagues: leaguesCreated,
+      });
+      for (const id of seasonsCreated) {
+        await db.delete(seasons).where(eq(seasons.id, id));
+      }
       await client.end();
     }
   },
