@@ -18,6 +18,7 @@ function createMockService(
   const emptyChart: DepthChart = {
     leagueId: "l",
     teamId: "t",
+    vocabulary: [],
     slots: [],
     inactives: [],
     lastUpdatedAt: null,
@@ -99,6 +100,9 @@ Deno.test("roster.router", async (t) => {
             Promise.resolve({
               leagueId,
               teamId,
+              vocabulary: [
+                { code: "QB", label: "Quarterback", group: "offense" },
+              ],
               slots: [
                 {
                   playerId: "p1",
@@ -123,6 +127,8 @@ Deno.test("roster.router", async (t) => {
       const res = await router.request("/leagues/lg-1/teams/tm-1/depth-chart");
       assertEquals(res.status, 200);
       const body = await res.json();
+      assertEquals(body.vocabulary.length, 1);
+      assertEquals(body.vocabulary[0].code, "QB");
       assertEquals(body.slots.length, 1);
       assertEquals(body.lastUpdatedBy.role, "HC");
     },

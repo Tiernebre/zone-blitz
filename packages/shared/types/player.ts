@@ -1,9 +1,11 @@
 import type { NeutralBucket } from "../archetypes/neutral-bucket.ts";
 
-// Depth-chart slot codes. These are legacy coarse labels used on the depth
-// chart table (a scheme-dependent slot vocabulary will replace them in a
-// future ADR). Players themselves are positionless — see ADR 0006; use
-// `NeutralBucket` for player-level classification instead.
+/**
+ * Legacy fixed slot codes retained for the DB enum fallback and seed
+ * data. Scheme-driven vocabularies (see `depthChartVocabulary`) produce
+ * a richer, fingerprint-dependent set — new code should not hard-code
+ * against this list.
+ */
 export const DEPTH_CHART_SLOT_CODES = [
   "QB",
   "RB",
@@ -20,7 +22,7 @@ export const DEPTH_CHART_SLOT_CODES = [
   "LS",
 ] as const;
 
-export type DepthChartSlotCode = (typeof DEPTH_CHART_SLOT_CODES)[number];
+export type DepthChartSlotCode = string;
 
 export const PLAYER_STATUSES = ["prospect", "active", "retired"] as const;
 

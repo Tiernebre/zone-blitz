@@ -2,13 +2,14 @@ import {
   boolean,
   integer,
   pgTable,
+  text,
   timestamp,
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
 import { teams } from "../team/team.schema.ts";
 import { coaches } from "../coaches/coach.schema.ts";
-import { depthChartSlotEnum, players } from "./player.schema.ts";
+import { players } from "./player.schema.ts";
 
 export const depthChartEntries = pgTable(
   "depth_chart_entries",
@@ -20,7 +21,7 @@ export const depthChartEntries = pgTable(
     playerId: uuid("player_id")
       .notNull()
       .references(() => players.id, { onDelete: "cascade" }),
-    slotCode: depthChartSlotEnum("position").notNull(),
+    slotCode: text("position").notNull(),
     slotOrdinal: integer("slot_ordinal").notNull(),
     isInactive: boolean("is_inactive").notNull().default(false),
     publishedByCoachId: uuid("published_by_coach_id").references(

@@ -462,6 +462,8 @@ Deno.test({
       assertEquals(chart.inactives[0].playerId, inactiveId);
       assertEquals(chart.lastUpdatedBy?.id, coachId);
       assertEquals(typeof chart.lastUpdatedAt, "string");
+      assertEquals(Array.isArray(chart.vocabulary), true);
+      assertEquals(chart.vocabulary.length > 0, true);
     } finally {
       if (coachesCreated.length) {
         await db.delete(coaches).where(inArray(coaches.id, coachesCreated));
@@ -502,6 +504,8 @@ Deno.test({
       assertEquals(chart.inactives, []);
       assertEquals(chart.lastUpdatedAt, null);
       assertEquals(chart.lastUpdatedBy, null);
+      assertEquals(Array.isArray(chart.vocabulary), true);
+      assertEquals(chart.vocabulary.length > 0, true);
     } finally {
       await cleanup(db, {
         teams: teamsCreated,

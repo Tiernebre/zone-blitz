@@ -9,15 +9,6 @@ entry when it's resolved or superseded.
 
 ## Open
 
-- **2026-04-14 — Scheme-driven depth chart slots.** Decision 0006 says the depth
-  chart's slot vocabulary should come from the coach's personnel tendencies — a
-  spread team has WR4/WR5 slots, a ground-and-pound team has FB/TE2 instead.
-  Today the depth chart still uses the static 13-code slot enum
-  (`DEPTH_CHART_SLOT_CODES`, DB enum `player_position`) inherited from before
-  position was dropped. Needs a spec for the slot set per fingerprint, a
-  migration path for existing rows, and a depth-chart UI that renders slots
-  dynamically instead of from a fixed grid. Touches the sim too (which depth
-  chart slot a player occupies on a snap). Meaningful multi-PR scope.
 - **2026-04-14 — Scheme lens on scouting / FA / draft surfaces.** ADR 0006
   requires scout reports, free-agent shortlists, and draft boards to surface
   players as archetypes-in-role ("slot WR," "3-tech," "box safety") when

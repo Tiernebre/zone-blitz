@@ -347,7 +347,8 @@ function DepthChartContent({ chart }: { chart: DepthChart }) {
     existing.push(slot);
     bySlotCode.set(slot.slotCode, existing);
   }
-  const slotCodes = [...bySlotCode.keys()].sort();
+
+  const vocabCodes = chart.vocabulary;
 
   return (
     <>
@@ -357,17 +358,21 @@ function DepthChartContent({ chart }: { chart: DepthChart }) {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {slotCodes.map((slotCode) => {
-          const slots = [...bySlotCode.get(slotCode)!].sort(
+        {vocabCodes.map((def) => {
+          const slots = [...(bySlotCode.get(def.code) ?? [])].sort(
             (a, b) => a.slotOrdinal - b.slotOrdinal,
           );
+          if (slots.length === 0 && !bySlotCode.has(def.code)) return null;
           return (
             <Card
-              key={slotCode}
-              data-testid={`depth-chart-position-${slotCode}`}
+              key={def.code}
+              data-testid={`depth-chart-position-${def.code}`}
             >
               <CardHeader>
-                <CardTitle>{slotCode}</CardTitle>
+                <CardTitle>{def.code}</CardTitle>
+                {def.label !== def.code && (
+                  <CardDescription>{def.label}</CardDescription>
+                )}
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
                 {slots.map((slot) => (

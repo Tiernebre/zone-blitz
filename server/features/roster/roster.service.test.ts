@@ -32,6 +32,7 @@ function createMockRepo(
   const emptyChart: DepthChart = {
     leagueId: "l",
     teamId: "t",
+    vocabulary: [],
     slots: [],
     inactives: [],
     lastUpdatedAt: null,
@@ -92,6 +93,7 @@ Deno.test("roster.service", async (t) => {
           return Promise.resolve({
             leagueId,
             teamId,
+            vocabulary: [],
             slots: [],
             inactives: [],
             lastUpdatedAt: null,

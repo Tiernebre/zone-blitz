@@ -6,6 +6,7 @@ import {
   type DefensiveTendencies,
   type DepthChartInactive,
   type DepthChartSlot,
+  depthChartVocabulary,
   DomainError,
   neutralBucket,
   type NeutralBucketGroup,
@@ -217,26 +218,58 @@ export function createRosterRepository(deps: {
     async getDepthChart(leagueId, teamId) {
       log.debug({ leagueId, teamId }, "fetching depth chart");
 
-      const entryRows = await deps.db
-        .select({
-          playerId: depthChartEntries.playerId,
-          slotCode: depthChartEntries.slotCode,
-          slotOrdinal: depthChartEntries.slotOrdinal,
-          isInactive: depthChartEntries.isInactive,
-          publishedAt: depthChartEntries.publishedAt,
-          publishedByCoachId: depthChartEntries.publishedByCoachId,
-          firstName: players.firstName,
-          lastName: players.lastName,
-          injuryStatus: players.injuryStatus,
-        })
-        .from(depthChartEntries)
-        .innerJoin(players, eq(players.id, depthChartEntries.playerId))
-        .where(
-          and(
-            eq(depthChartEntries.teamId, teamId),
-            eq(players.leagueId, leagueId),
+      const [entryRows, coordinatorRows] = await Promise.all([
+        deps.db
+          .select({
+            playerId: depthChartEntries.playerId,
+            slotCode: depthChartEntries.slotCode,
+            slotOrdinal: depthChartEntries.slotOrdinal,
+            isInactive: depthChartEntries.isInactive,
+            publishedAt: depthChartEntries.publishedAt,
+            publishedByCoachId: depthChartEntries.publishedByCoachId,
+            firstName: players.firstName,
+            lastName: players.lastName,
+            injuryStatus: players.injuryStatus,
+          })
+          .from(depthChartEntries)
+          .innerJoin(players, eq(players.id, depthChartEntries.playerId))
+          .where(
+            and(
+              eq(depthChartEntries.teamId, teamId),
+              eq(players.leagueId, leagueId),
+            ),
           ),
-        );
+        deps.db
+          .select({
+            role: coaches.role,
+            tendencyRow: coachTendencies,
+          })
+          .from(coaches)
+          .innerJoin(
+            coachTendencies,
+            eq(coachTendencies.coachId, coaches.id),
+          )
+          .where(
+            and(
+              eq(coaches.teamId, teamId),
+              inArray(coaches.role, ["OC", "DC"]),
+            ),
+          ),
+      ]);
+
+      let ocTendencies: CoachTendencies | null = null;
+      let dcTendencies: CoachTendencies | null = null;
+      for (const row of coordinatorRows) {
+        if (!row.tendencyRow) continue;
+        const tendencies = toCoachTendencies(row.tendencyRow);
+        if (row.role === "OC") ocTendencies = tendencies;
+        if (row.role === "DC") dcTendencies = tendencies;
+      }
+      const fingerprint = computeFingerprint({
+        oc: ocTendencies,
+        dc: dcTendencies,
+      });
+      const vocabulary = depthChartVocabulary(fingerprint);
 
       const slots: DepthChartSlot[] = [];
       const inactives: DepthChartInactive[] = [];
@@ -294,6 +327,7 @@ export function createRosterRepository(deps: {
       return {
         leagueId,
         teamId,
+        vocabulary,
         slots,
         inactives,
         lastUpdatedAt: latest?.publishedAt?.toISOString() ?? null,
