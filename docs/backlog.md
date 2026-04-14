@@ -29,16 +29,14 @@ entry when it's resolved or superseded.
   qualify for two non-specialist neutral buckets (e.g. CB + WR). Wire this into
   the generator with a rate knob, and surface both bucket lenses in the scout /
   depth-chart / draft UIs.
-- **2026-04-14 — Stack overflow in full-roster bulk insert during league
-  creation.** Ran the full `leagueService.create` flow end-to-end against real
-  Postgres (32 teams × 53 roster) and drizzle's `mergeQueries` stack-overflows
-  while building the bulk `playerAttributes` insert (~1696 rows × ~50 attribute
-  columns). Observed while writing the league-creation transactional rollback
-  integration test — the integration test sidesteps this by stubbing
-  `personnelService` with a single-row probe insert. Fix options: chunk the
-  attribute insert, narrow the attribute row shape, or build the SQL
-  iteratively. Split attribute rows into columns-per-table is overkill; chunked
-  inserts are the cheapest fix.
+- **2026-04-14 — Coach sim depth-chart publisher.** Decision 0001 requires the
+  coach sim to publish a stable depth-chart artifact the roster page reads.
+  Initial roster page stubs the source (empty depth chart until the sim writes
+  rows). Wire the real producer when coach-side sim work begins.
+- **2026-04-14 — Player detail view with per-game splits.** Roster Statistics
+  view is specified to link each row to a detail view with game-by-game splits
+  (decision 0001). Initial PR ships without that detail route; add the page when
+  per-game sim output lands.
 - **2026-04-14 — Multi-user leagues would need a `user_leagues` join table.**
   The `last_played_at` column added in PR #105 lives directly on `leagues`,
   matching today's single-user-per-league assumption (each league has one
