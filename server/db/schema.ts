@@ -66,6 +66,11 @@ export {
   playerTransactions,
   playerTransactionTypeEnum,
 } from "../features/players/player-transaction.schema.ts";
+export { playerSeasonStats } from "../features/players/player-career-log.schema.ts";
+export {
+  playerAccolades,
+  playerAccoladeTypeEnum,
+} from "../features/players/player-accolades.schema.ts";
 export { games } from "../features/schedule/game.schema.ts";
 export {
   accounts,

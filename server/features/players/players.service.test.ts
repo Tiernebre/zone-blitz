@@ -162,6 +162,8 @@ Deno.test("players.service — getDetail", async (t) => {
         currentContract: null,
         contractHistory: [],
         transactions: [],
+        seasonStats: [],
+        accolades: [],
         preDraftEvaluation: null,
       };
       const { db } = createMockDb();

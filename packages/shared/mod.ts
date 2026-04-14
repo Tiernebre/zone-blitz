@@ -61,10 +61,13 @@ export type {
   CurrentContractSummary,
   DraftEligiblePlayer,
   Player,
+  PlayerAccoladeEntry,
+  PlayerAccoladeType,
   PlayerDetail,
   PlayerInjuryStatus,
   PlayerOrigin,
   PlayerPosition,
+  PlayerSeasonStatRow,
   PlayerStatus,
   PlayerTransactionEntry,
   PlayerTransactionType,
@@ -72,6 +75,7 @@ export type {
 } from "./types/player.ts";
 export {
   CONTRACT_TERMINATION_REASONS,
+  PLAYER_ACCOLADE_TYPES,
   PLAYER_INJURY_STATUSES,
   PLAYER_POSITION_GROUPS,
   PLAYER_POSITIONS,

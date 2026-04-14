@@ -4,7 +4,9 @@ import type {
   ContractHistoryEntry,
   CurrentContractSummary,
   DraftEligiblePlayer,
+  PlayerAccoladeEntry,
   PlayerDetail,
+  PlayerSeasonStatRow,
   PlayerTransactionEntry,
 } from "@zone-blitz/shared";
 import type { Database, Executor } from "../../db/connection.ts";
@@ -13,6 +15,8 @@ import { contracts } from "./contract.schema.ts";
 import { contractHistory } from "./contract-history.schema.ts";
 import { playerTransactions } from "./player-transaction.schema.ts";
 import { playerDraftProfile } from "./player-draft-profile.schema.ts";
+import { playerSeasonStats } from "./player-career-log.schema.ts";
+import { playerAccolades } from "./player-accolades.schema.ts";
 import { teams } from "../team/team.schema.ts";
 import { cities } from "../cities/city.schema.ts";
 import { alias } from "drizzle-orm/pg-core";
@@ -100,6 +104,62 @@ export function createPlayersRepository(deps: {
         }
         : null,
     }));
+  }
+
+  async function loadSeasonStats(
+    playerId: string,
+  ): Promise<PlayerSeasonStatRow[]> {
+    const rows = await deps.db
+      .select({
+        id: playerSeasonStats.id,
+        seasonYear: playerSeasonStats.seasonYear,
+        playoffs: playerSeasonStats.playoffs,
+        gamesPlayed: playerSeasonStats.gamesPlayed,
+        gamesStarted: playerSeasonStats.gamesStarted,
+        stats: playerSeasonStats.stats,
+        teamId: teams.id,
+        teamName: teams.name,
+        teamCity: cities.name,
+        teamAbbreviation: teams.abbreviation,
+      })
+      .from(playerSeasonStats)
+      .innerJoin(teams, eq(teams.id, playerSeasonStats.teamId))
+      .innerJoin(cities, eq(cities.id, teams.cityId))
+      .where(eq(playerSeasonStats.playerId, playerId))
+      .orderBy(
+        asc(playerSeasonStats.seasonYear),
+        asc(playerSeasonStats.playoffs),
+      );
+    return rows.map((row) => ({
+      id: row.id,
+      seasonYear: row.seasonYear,
+      playoffs: row.playoffs,
+      gamesPlayed: row.gamesPlayed,
+      gamesStarted: row.gamesStarted,
+      stats: (row.stats ?? {}) as Record<string, number | string>,
+      team: {
+        id: row.teamId,
+        name: row.teamName,
+        city: row.teamCity,
+        abbreviation: row.teamAbbreviation,
+      },
+    }));
+  }
+
+  async function loadAccolades(
+    playerId: string,
+  ): Promise<PlayerAccoladeEntry[]> {
+    const rows = await deps.db
+      .select({
+        id: playerAccolades.id,
+        seasonYear: playerAccolades.seasonYear,
+        type: playerAccolades.type,
+        detail: playerAccolades.detail,
+      })
+      .from(playerAccolades)
+      .where(eq(playerAccolades.playerId, playerId))
+      .orderBy(asc(playerAccolades.seasonYear));
+    return rows;
   }
 
   return {
@@ -256,6 +316,8 @@ export function createPlayersRepository(deps: {
         currentContract,
         contractHistory: contractHistoryEntries,
         transactions: await loadTransactions(playerId),
+        seasonStats: await loadSeasonStats(playerId),
+        accolades: await loadAccolades(playerId),
         preDraftEvaluation: row.preDraftClassYear !== null
           ? {
             draftClassYear: row.preDraftClassYear,

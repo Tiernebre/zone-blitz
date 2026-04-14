@@ -148,6 +148,50 @@ const draftedPlayer = {
     projectedRound: 1,
     scoutingNotes: "Franchise-caliber arm talent with strong pocket poise.",
   },
+  seasonStats: [
+    {
+      id: "ss1",
+      seasonYear: 2024,
+      team: {
+        id: "t2",
+        name: "Bengals",
+        city: "Cincinnati",
+        abbreviation: "CIN",
+      },
+      playoffs: false,
+      gamesPlayed: 17,
+      gamesStarted: 17,
+      stats: { passingYards: 4200, passingTouchdowns: 32 },
+    },
+    {
+      id: "ss2",
+      seasonYear: 2024,
+      team: {
+        id: "t2",
+        name: "Bengals",
+        city: "Cincinnati",
+        abbreviation: "CIN",
+      },
+      playoffs: true,
+      gamesPlayed: 2,
+      gamesStarted: 2,
+      stats: { passingYards: 480, passingTouchdowns: 4 },
+    },
+  ],
+  accolades: [
+    {
+      id: "acc1",
+      seasonYear: 2024,
+      type: "pro_bowl",
+      detail: null,
+    },
+    {
+      id: "acc2",
+      seasonYear: 2024,
+      type: "statistical_milestone",
+      detail: "4,000+ passing yards",
+    },
+  ],
 };
 
 afterEach(() => {
@@ -338,6 +382,8 @@ describe("PlayerDetail — header + origin", () => {
         currentContract: null,
         contractHistory: [],
         transactions: [],
+        seasonStats: [],
+        accolades: [],
       },
       isLoading: false,
       error: null,
@@ -346,6 +392,77 @@ describe("PlayerDetail — header + origin", () => {
     expect(screen.getByTestId("player-no-current-contract")).toBeDefined();
     expect(screen.getByTestId("player-contract-history-empty")).toBeDefined();
     expect(screen.getByTestId("player-transactions-empty")).toBeDefined();
+    expect(screen.getByTestId("player-career-log-empty")).toBeDefined();
+    expect(screen.getByTestId("player-accolades-empty")).toBeDefined();
+  });
+
+  it("renders the regular-season and playoff career log tables", () => {
+    renderDetail();
+    const regular = screen.getByTestId("player-career-log-regular");
+    expect(regular.textContent).toContain("2024");
+    expect(regular.textContent).toContain("4,200");
+    expect(regular.textContent).toContain("32");
+    const playoffs = screen.getByTestId("player-career-log-playoffs");
+    expect(playoffs.textContent).toContain("480");
+  });
+
+  it("renders accolade rows with labelled honors", () => {
+    renderDetail();
+    expect(screen.getByTestId("player-accolade-acc1").textContent).toContain(
+      "Pro Bowl",
+    );
+    expect(screen.getByTestId("player-accolade-acc2").textContent).toContain(
+      "Milestone",
+    );
+    expect(screen.getByTestId("player-accolade-acc2").textContent).toContain(
+      "4,000+ passing yards",
+    );
+  });
+
+  it("renders a trade transaction with both teams and a missing-team row", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        transactions: [
+          {
+            id: "tx-trade",
+            type: "traded",
+            seasonYear: 2023,
+            occurredAt: "2023-10-30T12:00:00.000Z",
+            team: {
+              id: "t3",
+              name: "Eagles",
+              city: "Philadelphia",
+              abbreviation: "PHI",
+            },
+            counterpartyTeam: {
+              id: "t4",
+              name: "Cowboys",
+              city: "Dallas",
+              abbreviation: "DAL",
+            },
+            detail: "Traded for two picks",
+          },
+          {
+            id: "tx-released",
+            type: "released",
+            seasonYear: 2024,
+            occurredAt: "2024-03-01T12:00:00.000Z",
+            team: null,
+            counterpartyTeam: null,
+            detail: null,
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    const trade = screen.getByTestId("player-transaction-row-tx-trade");
+    expect(trade.textContent).toContain("PHI");
+    expect(trade.textContent).toContain("DAL");
+    const released = screen.getByTestId("player-transaction-row-tx-released");
+    expect(released.textContent).toContain("Released");
   });
 
   it("renders a transactions table with labelled events", () => {

@@ -118,8 +118,7 @@ export function createPlayersService(deps: {
               counterpartyTeamId: null,
               type: "drafted",
               seasonYear: src.draftYear,
-              detail:
-                `Round ${src.draftRound}, pick ${src.draftPick} overall`,
+              detail: `Round ${src.draftRound}, pick ${src.draftPick} overall`,
             });
           }
           if (row.teamId !== null) {
