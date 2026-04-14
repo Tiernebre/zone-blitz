@@ -9,15 +9,26 @@ entry when it's resolved or superseded.
 
 ## Open
 
-- **2026-04-14 — Archetype-aware player generation.** Decision 0006
-  (positionless players) depends on the player generator producing
-  archetype-shaped attribute profiles — "gun-slinger QB," "zone-blocking guard,"
-  etc. — rather than uniform rolls. Also needs a rare cross-archetype case
-  (Travis Hunter-style CB/WR) with a tunable rate. No player should be elite at
-  every attribute; budgets/tradeoffs should enforce shapes. Scope this generator
-  design before a large player-creation pass ships. See
-  `docs/product/decisions/0006-positionless-players.md` "Note for the future —
-  player generation toward archetypes."
+- **2026-04-14 — Scheme lens on scouting / FA / draft surfaces.** ADR 0006
+  requires scout reports, free-agent shortlists, and draft boards to surface
+  players as archetypes-in-role ("slot WR," "3-tech," "box safety") when
+  projected through the hired coach's fingerprint, and `null` / "not a fit" when
+  the player has no role in that scheme. Today those surfaces still read the
+  neutral bucket only. Needs a
+  `schemeLens(attributes, fingerprint) →
+  archetype | null` mapping — richer
+  than the qualitative Scheme Fit label shipped in #148 — plus consumer wiring
+  in the scouts, FA, and draft features.
+- **2026-04-14 — Extend Scheme Fit badge to salary-cap and opponent-roster
+  tables.** `RosterPlayer.schemeFit` is on the wire everywhere but only the
+  Roster page renders the badge. Salary cap and opponents detail already have
+  the field in their fixtures — just add the column.
+- **2026-04-14 — Cross-archetype player generation (Travis Hunter case).** ADR
+  0009 ships the archetype-aware player generator but defers the rare
+  cross-archetype roll: a small, tunable fraction of generated players should
+  qualify for two non-specialist neutral buckets (e.g. CB + WR). Wire this into
+  the generator with a rate knob, and surface both bucket lenses in the scout /
+  depth-chart / draft UIs.
 - **2026-04-14 — Coach sim depth-chart publisher.** Decision 0001 requires the
   coach sim to publish a stable depth-chart artifact the roster page reads.
   Initial roster page stubs the source (empty depth chart until the sim writes
