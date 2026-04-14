@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# backlog-loop — autonomously work through docs/backlog.md top-to-bottom.
+#
+# For each open item: spawn a fresh headless `claude` session that implements
+# the item, opens a PR that also removes the bullet from backlog.md, enables
+# auto-merge, and watches CI until it merges (or the item is dropped as
+# obsolete). When the session returns, the outer loop refreshes main and picks
+# the next item. Stops when no open items remain.
+#
+# Usage:  bin/backlog-loop
+#
+# Requirements: `claude`, `gh`, `git`, and `awk` on PATH; `gh auth status` OK.
+# Runs Claude with --dangerously-skip-permissions so git/gh/deno commands do
+# not block on prompts — treat this as the human-authorized entry point.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BACKLOG="$REPO_ROOT/docs/backlog.md"
+
+cd "$REPO_ROOT"
+
+extract_first_item() {
+  awk '
+    /^## Open/       { in_open = 1; next }
+    /^## / && in_open { exit }
+    in_open && /^- \*\*/ {
+      if (found) exit
+      found = 1
+      print
+      next
+    }
+    in_open && found && /^  / { print }
+  ' "$BACKLOG"
+}
+
+attempted=()
+
+iteration=0
+while true; do
+  iteration=$((iteration + 1))
+  echo "=== backlog-loop iteration $iteration ==="
+
+  git checkout main --quiet
+  git pull --ff-only origin main --quiet
+
+  item="$(extract_first_item)"
+  if [[ -z "$item" ]]; then
+    echo "No open backlog items remaining. Done."
+    exit 0
+  fi
+
+  item_id="$(printf '%s' "$item" | head -n1)"
+  for prev in "${attempted[@]:-}"; do
+    if [[ "$prev" == "$item_id" ]]; then
+      echo "Top item unchanged after a full pass — would loop forever. Stopping:"
+      echo "$item_id"
+      exit 1
+    fi
+  done
+  attempted+=("$item_id")
+
+  echo "Next item:"
+  printf '%s\n\n' "$item"
+
+  prompt=$(cat <<PROMPT
+You are one iteration of an autonomous backlog loop. The top open item in
+docs/backlog.md is:
+
+$item
+
+Execute this end-to-end without asking for confirmation:
+
+1. EnterWorktree off main so parallel sessions don't clash.
+2. Read any docs the item references (e.g. paths under docs/product/...) before
+   designing the change.
+3. Implement the item following CLAUDE.md: strict TDD, one logical change,
+   deno lint clean, relevant test suites green.
+4. In the SAME branch, edit docs/backlog.md and delete this bullet — the
+   \`- **...\` header plus every 2-space-indented continuation line. Don't
+   leave a double blank line behind.
+5. Commit with Conventional Commits, push the branch, open a PR against main
+   with \`gh pr create\` (Summary section only, no test plan), then
+   \`gh pr merge --auto --squash\`.
+6. Watch with \`gh pr checks --watch\` until the PR merges. If checks fail, fix
+   on the same branch and push again — do not bypass.
+7. When the PR is merged, exit the worktree and end the session.
+
+If investigation shows the item is obsolete, superseded, or infeasible, open a
+tiny PR that only removes the bullet from docs/backlog.md, with a commit body
+explaining why it was dropped. Same auto-merge + watch flow.
+
+Do NOT stop until either the feature PR or the drop-the-bullet PR is merged.
+PROMPT
+)
+
+  if ! claude -p "$prompt" --dangerously-skip-permissions; then
+    echo "Claude session exited non-zero. Stopping loop."
+    exit 1
+  fi
+
+  sleep 2
+done
