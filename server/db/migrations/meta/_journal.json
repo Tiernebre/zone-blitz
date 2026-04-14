@@ -120,6 +120,13 @@
       "when": 1776179539032,
       "tag": "0016_restore_league_slim_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1776183326360,
+      "tag": "0017_scouts_staff_and_history",
+      "breakpoints": true
     }
   ]
 }
