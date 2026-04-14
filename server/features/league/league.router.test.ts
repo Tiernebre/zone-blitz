@@ -8,6 +8,8 @@ function createMockLeague(overrides: Partial<League> = {}): League {
     id: "1",
     name: "Test",
     userTeamId: null,
+    numberOfTeams: 32,
+    seasonLength: 17,
     salaryCap: 255_000_000,
     capFloorPercent: 89,
     capGrowthRate: 5,

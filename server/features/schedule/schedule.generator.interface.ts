@@ -8,6 +8,7 @@ export interface TeamDivisionInfo {
 
 export interface ScheduleGeneratorInput {
   seasonId: string;
+  seasonLength: number;
   teams: TeamDivisionInfo[];
 }
 

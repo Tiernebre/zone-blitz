@@ -95,6 +95,7 @@ export function createLeagueService(deps: {
 
         await deps.scheduleService.generate({
           seasonId: season.id,
+          seasonLength: league.seasonLength,
           teams: teams.map((t) => ({
             teamId: t.id,
             conference: t.conference,
