@@ -8,6 +8,7 @@ import { leagues } from "./league.schema.ts";
 import { seasons } from "../season/season.schema.ts";
 import { createLeagueRepository } from "./league.repository.ts";
 import { createLeagueService } from "./league.service.ts";
+import { createTransactionRunner } from "../../db/transaction-runner.ts";
 import { createSeasonRepository } from "../season/season.repository.ts";
 import { createSeasonService } from "../season/season.service.ts";
 import type { PersonnelService } from "../personnel/personnel.service.interface.ts";
@@ -91,7 +92,7 @@ Deno.test({
 
     const leagueName = `Rollback Test ${crypto.randomUUID()}`;
     const service = createLeagueService({
-      db,
+      txRunner: createTransactionRunner(db),
       leagueRepo,
       seasonService,
       teamService,

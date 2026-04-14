@@ -42,6 +42,7 @@ import {
   createScheduleService,
   createStubScheduleGenerator,
 } from "./schedule/mod.ts";
+import { createTransactionRunner } from "../db/transaction-runner.ts";
 
 export function createFeatureRouters(
   deps: {
@@ -116,8 +117,9 @@ export function createFeatureRouters(
     db,
     log,
   });
+  const txRunner = createTransactionRunner(db);
   const leagueService = createLeagueService({
-    db,
+    txRunner,
     leagueRepo,
     seasonService,
     teamService,
