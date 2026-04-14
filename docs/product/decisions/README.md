@@ -1,0 +1,21 @@
+# Product Decisions
+
+Short, dated records of specific product decisions. Each decision answers _why
+we picked X over Y_ at a point in time. Decisions are immutable once merged — if
+a later decision supersedes an earlier one, add a new entry and mark the old one
+as superseded.
+
+## How to add a decision
+
+1. Copy [`TEMPLATE.md`](./TEMPLATE.md) to `NNNN-short-slug.md`, where `NNNN` is
+   the next unused four-digit number.
+2. Keep it short — aim for one page. If it's getting long, the decision probably
+   belongs in a north-star doc instead.
+3. If the decision changes the rules of a feature area, also update the relevant
+   [`../north-star/`](../north-star/) doc and link back to this decision from
+   the bottom of that doc.
+
+## Log
+
+<!-- Add entries here in reverse-chronological order: -->
+<!-- - [0001 — Title](./0001-title.md) — one-line hook -->

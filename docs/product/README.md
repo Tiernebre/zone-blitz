@@ -55,33 +55,48 @@ drafts, real-time trade negotiations, competing for the same free agents, and
 trash-talking your way through a rivalry. Single-player should be great, but
 multiplayer is where the game reaches its potential.
 
-## Feature Areas
+## How this folder is organized
+
+- **[`north-star/`](./north-star/)** — evergreen vision documents that describe
+  _what each feature area is_ and the principles that guide it. Update these
+  when a decision materially changes the rules of a domain.
+- **[`decisions/`](./decisions/)** — short, dated ADR-style records of specific
+  product decisions ("we picked X over Y because…"). Numbered chronologically;
+  immutable once merged. Start here when you want to know _why_ something is the
+  way it is.
+
+## Feature Areas (north star)
 
 Each of these has a dedicated vision document:
 
-- [Scouting](./scouting.md) — the information engine; scout management,
-  evaluation process, and the multi-year feedback loop
-- [Drafting](./drafting.md) — prospect generation, the draft board, draft day,
-  and post-draft
-- [Schemes & Strategy](./schemes-and-strategy.md) — football identity and
-  personnel philosophy
-- [Trading](./trading.md) — negotiation, deal-making, and the social game
-- [Salary Cap Management](./salary-cap.md) — the cap constraint, contract
-  structure, and multi-year financial planning
-- [Free Agency & Contracts](./free-agency-and-contracts.md) — market
+- [Scouting](./north-star/scouting.md) — the information engine; scout
+  management, evaluation process, and the multi-year feedback loop
+- [Drafting](./north-star/drafting.md) — prospect generation, the draft board,
+  draft day, and post-draft
+- [Schemes & Strategy](./north-star/schemes-and-strategy.md) — football identity
+  and personnel philosophy
+- [Trading](./north-star/trading.md) — negotiation, deal-making, and the social
+  game
+- [Salary Cap Management](./north-star/salary-cap.md) — the cap constraint,
+  contract structure, and multi-year financial planning
+- [Free Agency & Contracts](./north-star/free-agency-and-contracts.md) — market
   competition, player decisions, and the bidding game
-- [NPC AI](./npc-ai.md) — making the league feel alive with distinct,
+- [NPC AI](./north-star/npc-ai.md) — making the league feel alive with distinct,
   intelligent opponents
-- [League Management](./league-management.md) — seasons, scheduling, and the
-  multiplayer experience
-- [Game Simulation](./game-simulation.md) — what happens on the field
-- [Player Attributes](./player-attributes.md) — the true 0-100 scale, hidden
-  potential, and progression
-- [Coaches](./coaches.md) — the coaching staff; hidden attributes, coaching
-  trees, the GM-coach relationship, and the coaching market
-- [Media](./media.md) — analysts, headlines, grades, narratives, and the
-  mechanical effects of public perception
-- [Owners](./owners.md) — the authority above the GM; personality, patience,
-  directives, and job security
-- [Teams & Branding](./teams-and-branding.md) — fictional franchises, market
-  size, relocation, divisions, visual identity, and custom team uploads
+- [League Management](./north-star/league-management.md) — seasons, scheduling,
+  and the multiplayer experience
+- [Game Simulation](./north-star/game-simulation.md) — what happens on the field
+- [Player Attributes](./north-star/player-attributes.md) — the true 0-100 scale,
+  hidden potential, and progression
+- [Coaches](./north-star/coaches.md) — the coaching staff; hidden attributes,
+  coaching trees, the GM-coach relationship, and the coaching market
+- [Media](./north-star/media.md) — analysts, headlines, grades, narratives, and
+  the mechanical effects of public perception
+- [Owners](./north-star/owners.md) — the authority above the GM; personality,
+  patience, directives, and job security
+- [Teams & Branding](./north-star/teams-and-branding.md) — fictional franchises,
+  market size, relocation, divisions, visual identity, and custom team uploads
+
+## Decisions
+
+See [`decisions/README.md`](./decisions/README.md) for the full log.
