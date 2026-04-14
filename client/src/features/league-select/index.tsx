@@ -121,7 +121,7 @@ export function LeagueSelect() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Assigned Team</TableHead>
+                  <TableHead>Team</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Created</TableHead>
                   <TableHead className="w-10">

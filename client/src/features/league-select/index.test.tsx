@@ -145,7 +145,7 @@ describe("LeagueSelect", () => {
     });
     expect(screen.getByText("XFL League")).toBeDefined();
     expect(screen.getByRole("columnheader", { name: "Name" })).toBeDefined();
-    expect(screen.getByRole("columnheader", { name: "Assigned Team" }))
+    expect(screen.getByRole("columnheader", { name: "Team" }))
       .toBeDefined();
     expect(screen.getByRole("columnheader", { name: "Status" })).toBeDefined();
     expect(screen.getByRole("columnheader", { name: "Created" })).toBeDefined();
