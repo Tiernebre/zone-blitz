@@ -49,7 +49,14 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.7.11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
       - run: deno install
+      - name: Install client npm deps
+        run: npm ci --prefix client
       - name: Run migrations
         run: deno task db:migrate
         env:
