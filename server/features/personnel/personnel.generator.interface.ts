@@ -1,4 +1,4 @@
-import type { FrontOfficeStaff, Scout } from "@zone-blitz/shared";
+import type { FrontOfficeStaff } from "@zone-blitz/shared";
 
 export interface PersonnelGeneratorInput {
   leagueId: string;
@@ -6,7 +6,6 @@ export interface PersonnelGeneratorInput {
 }
 
 export interface GeneratedPersonnel {
-  scouts: Omit<Scout, "id" | "createdAt" | "updatedAt">[];
   frontOfficeStaff: Omit<FrontOfficeStaff, "id" | "createdAt" | "updatedAt">[];
 }
 
