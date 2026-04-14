@@ -9,6 +9,29 @@ entry when it's resolved or superseded.
 
 ## Open
 
+- **2026-04-14 — Scheme-driven depth chart slots.** Decision 0006 says the depth
+  chart's slot vocabulary should come from the coach's personnel tendencies — a
+  spread team has WR4/WR5 slots, a ground-and-pound team has FB/TE2 instead.
+  Today the depth chart still uses the static 13-code slot enum
+  (`DEPTH_CHART_SLOT_CODES`, DB enum `player_position`) inherited from before
+  position was dropped. Needs a spec for the slot set per fingerprint, a
+  migration path for existing rows, and a depth-chart UI that renders slots
+  dynamically instead of from a fixed grid. Touches the sim too (which depth
+  chart slot a player occupies on a snap). Meaningful multi-PR scope.
+- **2026-04-14 — Scheme lens on scouting / FA / draft surfaces.** ADR 0006
+  requires scout reports, free-agent shortlists, and draft boards to surface
+  players as archetypes-in-role ("slot WR," "3-tech," "box safety") when
+  projected through the hired coach's fingerprint, and `null` / "not a fit" when
+  the player has no role in that scheme. Today those surfaces still read the
+  neutral bucket only. Needs a
+  `schemeLens(attributes, fingerprint) →
+  archetype | null` mapping — richer
+  than the qualitative Scheme Fit label shipped in #148 — plus consumer wiring
+  in the scouts, FA, and draft features.
+- **2026-04-14 — Extend Scheme Fit badge to salary-cap and opponent-roster
+  tables.** `RosterPlayer.schemeFit` is on the wire everywhere but only the
+  Roster page renders the badge. Salary cap and opponents detail already have
+  the field in their fixtures — just add the column.
 - **2026-04-14 — Archetype-aware player generation.** Decision 0006
   (positionless players) depends on the player generator producing
   archetype-shaped attribute profiles — "gun-slinger QB," "zone-blocking guard,"
