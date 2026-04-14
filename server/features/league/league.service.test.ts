@@ -3,7 +3,8 @@ import { createLeagueService } from "./league.service.ts";
 import { DomainError } from "@zone-blitz/shared";
 import pino from "pino";
 import type { League } from "@zone-blitz/shared";
-import type { Database } from "../../db/connection.ts";
+import type { Executor } from "../../db/connection.ts";
+import type { TransactionRunner } from "../../db/transaction-runner.ts";
 import type { LeagueRepository } from "./league.repository.interface.ts";
 import type { SeasonService } from "../season/season.service.interface.ts";
 import type { TeamService } from "../team/team.service.interface.ts";
@@ -12,10 +13,10 @@ import type { ScheduleService } from "../schedule/schedule.service.interface.ts"
 
 const TX_MARKER = { __tx: true };
 
-function createMockDb(): Database {
+function createMockTxRunner(): TransactionRunner {
   return {
-    transaction: <T>(cb: (tx: unknown) => Promise<T>) => cb(TX_MARKER),
-  } as unknown as Database;
+    run: (fn) => fn(TX_MARKER as unknown as Executor),
+  };
 }
 
 function createTestLogger() {
@@ -124,7 +125,7 @@ function createMockScheduleService(
 }
 
 function createService(overrides: {
-  db?: Database;
+  txRunner?: TransactionRunner;
   leagueRepo?: Partial<LeagueRepository>;
   seasonService?: Partial<SeasonService>;
   teamService?: Partial<TeamService>;
@@ -132,7 +133,7 @@ function createService(overrides: {
   scheduleService?: Partial<ScheduleService>;
 } = {}) {
   return createLeagueService({
-    db: overrides.db ?? createMockDb(),
+    txRunner: overrides.txRunner ?? createMockTxRunner(),
     leagueRepo: createMockRepo(overrides.leagueRepo),
     seasonService: createMockSeasonService(overrides.seasonService),
     teamService: createMockTeamService(overrides.teamService),

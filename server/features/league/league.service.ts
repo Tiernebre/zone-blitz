@@ -1,6 +1,6 @@
 import { DomainError } from "@zone-blitz/shared";
 import type pino from "pino";
-import type { Database } from "../../db/connection.ts";
+import type { TransactionRunner } from "../../db/transaction-runner.ts";
 import type { LeagueRepository } from "./league.repository.interface.ts";
 import type { LeagueService } from "./league.service.interface.ts";
 import type { SeasonService } from "../season/season.service.interface.ts";
@@ -9,7 +9,7 @@ import type { PersonnelService } from "../personnel/personnel.service.interface.
 import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
 
 export function createLeagueService(deps: {
-  db: Database;
+  txRunner: TransactionRunner;
   leagueRepo: LeagueRepository;
   seasonService: SeasonService;
   teamService: TeamService;
@@ -61,7 +61,7 @@ export function createLeagueService(deps: {
         );
       }
 
-      return await deps.db.transaction(async (tx) => {
+      return await deps.txRunner.run(async (tx) => {
         const league = await deps.leagueRepo.create(input, tx);
 
         const season = await deps.seasonService.create(
