@@ -5,20 +5,19 @@ import type {
   TeamDivisionInfo,
 } from "./schedule.generator.interface.ts";
 
-const TOTAL_WEEKS = 18;
-
 /**
  * A stub schedule generator that produces a legal schedule:
- * - Each team plays exactly 17 games across 18 weeks
+ * - Each team plays `seasonLength` games across `seasonLength + 1` weeks
  * - Each team has exactly 1 bye week
  * - No team plays twice in the same week
  * - Division rivals play home-and-away (6 division games)
- * - Remaining 11 games are filled from non-division opponents
+ * - Remaining games are filled from non-division opponents
  */
 export function createStubScheduleGenerator(): ScheduleGenerator {
   return {
     generate(input: ScheduleGeneratorInput): GeneratedGame[] {
-      const { seasonId, teams } = input;
+      const { seasonId, seasonLength, teams } = input;
+      const totalWeeks = seasonLength + 1;
 
       // Group teams by division and conference
       const divisionMap = new Map<string, TeamDivisionInfo[]>();
@@ -194,7 +193,7 @@ export function createStubScheduleGenerator(): ScheduleGenerator {
       for (const m of matchups) {
         const hc = teamGameCounts.get(m.home) ?? 0;
         const ac = teamGameCounts.get(m.away) ?? 0;
-        if (hc < 17 && ac < 17) {
+        if (hc < seasonLength && ac < seasonLength) {
           finalMatchups.push(m);
           teamGameCounts.set(m.home, hc + 1);
           teamGameCounts.set(m.away, ac + 1);
@@ -210,7 +209,7 @@ export function createStubScheduleGenerator(): ScheduleGenerator {
       const games: GeneratedGame[] = [];
 
       for (const matchup of finalMatchups) {
-        for (let week = 1; week <= TOTAL_WEEKS; week++) {
+        for (let week = 1; week <= totalWeeks; week++) {
           const homeUsed = teamWeekUsed.get(matchup.home)!;
           const awayUsed = teamWeekUsed.get(matchup.away)!;
           if (!homeUsed.has(week) && !awayUsed.has(week)) {

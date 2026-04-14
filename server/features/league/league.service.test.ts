@@ -28,6 +28,8 @@ function createMockLeague(overrides: Partial<League> = {}): League {
     id: "1",
     name: "Test",
     userTeamId: null,
+    numberOfTeams: 32,
+    seasonLength: 17,
     salaryCap: 255_000_000,
     capFloorPercent: 89,
     capGrowthRate: 5,
@@ -329,6 +331,7 @@ Deno.test("league.service", async (t) => {
         generate: (input) => {
           scheduleCalled = true;
           assertEquals(input.seasonId, "season-1");
+          assertEquals(input.seasonLength, 17);
           return Promise.resolve({ gameCount: 0 });
         },
       },
@@ -340,6 +343,30 @@ Deno.test("league.service", async (t) => {
     assertEquals(personnelCalled, true);
     assertEquals(scheduleCalled, true);
   });
+
+  await t.step(
+    "create forwards the league's seasonLength into the schedule service",
+    async () => {
+      let receivedSeasonLength: number | undefined;
+      const service = createService({
+        leagueRepo: {
+          create: () =>
+            Promise.resolve(
+              createMockLeague({ id: "new-id", seasonLength: 14 }),
+            ),
+        },
+        scheduleService: {
+          generate: (input) => {
+            receivedSeasonLength = input.seasonLength;
+            return Promise.resolve({ gameCount: 0 });
+          },
+        },
+      });
+
+      await service.create({ name: "Short Season" });
+      assertEquals(receivedSeasonLength, 14);
+    },
+  );
 
   await t.step(
     "create throws PRECONDITION_FAILED when no teams are seeded",

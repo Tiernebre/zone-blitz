@@ -11,12 +11,13 @@ const TEAMS: TeamDivisionInfo[] = DEFAULT_TEAMS.map((t, i) => ({
 
 const INPUT = {
   seasonId: "season-1",
+  seasonLength: 17,
   teams: TEAMS,
 };
 
-function generateSchedule() {
+function generateSchedule(seasonLength = 17) {
   const generator = createStubScheduleGenerator();
-  return generator.generate(INPUT);
+  return generator.generate({ ...INPUT, seasonLength });
 }
 
 Deno.test("each team plays exactly 17 games", () => {
@@ -144,6 +145,42 @@ Deno.test("all games are within weeks 1-18", () => {
     assertEquals(game.week >= 1 && game.week <= 18, true);
   }
 });
+
+Deno.test(
+  "custom seasonLength caps each team's games at seasonLength",
+  () => {
+    const games = generateSchedule(14);
+    const teamGameCounts = new Map<string, number>();
+    for (const game of games) {
+      teamGameCounts.set(
+        game.homeTeamId,
+        (teamGameCounts.get(game.homeTeamId) ?? 0) + 1,
+      );
+      teamGameCounts.set(
+        game.awayTeamId,
+        (teamGameCounts.get(game.awayTeamId) ?? 0) + 1,
+      );
+    }
+    for (const team of TEAMS) {
+      const count = teamGameCounts.get(team.teamId) ?? 0;
+      assertEquals(
+        count <= 14,
+        true,
+        `${team.teamId} played ${count} games, expected <= 14`,
+      );
+    }
+  },
+);
+
+Deno.test(
+  "custom seasonLength confines games to seasonLength + 1 weeks",
+  () => {
+    const games = generateSchedule(14);
+    for (const game of games) {
+      assertEquals(game.week >= 1 && game.week <= 15, true);
+    }
+  },
+);
 
 Deno.test("all games reference the correct seasonId", () => {
   const games = generateSchedule();
