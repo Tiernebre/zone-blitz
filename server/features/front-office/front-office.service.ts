@@ -12,7 +12,7 @@ export function createFrontOfficeService(deps: {
   const log = deps.log.child({ module: "front-office.service" });
 
   return {
-    async generateAndPersist(input) {
+    async generate(input) {
       log.info({ leagueId: input.leagueId }, "generating front office staff");
 
       const generated = deps.generator.generate({

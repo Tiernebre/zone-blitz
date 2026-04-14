@@ -12,7 +12,7 @@ export function createCoachesService(deps: {
   const log = deps.log.child({ module: "coaches.service" });
 
   return {
-    async generateAndPersist(input) {
+    async generate(input) {
       log.info({ leagueId: input.leagueId }, "generating coaches");
 
       const generated = deps.generator.generate({

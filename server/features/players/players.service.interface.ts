@@ -13,7 +13,7 @@ export interface PlayersGenerateResult {
 }
 
 export interface PlayersService {
-  generateAndPersist(
+  generate(
     input: PlayersGenerateInput,
   ): Promise<PlayersGenerateResult>;
 }

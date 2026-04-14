@@ -61,7 +61,7 @@ export function createLeagueService(deps: {
 
       const teams = await deps.teamService.getAll();
 
-      await deps.personnelService.generateAndPersist({
+      await deps.personnelService.generate({
         leagueId: league.id,
         seasonId: season.id,
         teamIds: teams.map((t) => t.id),
@@ -69,7 +69,7 @@ export function createLeagueService(deps: {
         salaryCap: league.salaryCap,
       });
 
-      await deps.scheduleService.generateAndPersist({
+      await deps.scheduleService.generate({
         seasonId: season.id,
         teams: teams.map((t) => ({
           teamId: t.id,

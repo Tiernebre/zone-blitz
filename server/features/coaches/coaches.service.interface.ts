@@ -8,7 +8,7 @@ export interface CoachesGenerateResult {
 }
 
 export interface CoachesService {
-  generateAndPersist(
+  generate(
     input: CoachesGenerateInput,
   ): Promise<CoachesGenerateResult>;
 }

@@ -11,7 +11,7 @@ export interface ScheduleGenerateResult {
 }
 
 export interface ScheduleService {
-  generateAndPersist(
+  generate(
     input: ScheduleGenerateInput,
   ): Promise<ScheduleGenerateResult>;
 }

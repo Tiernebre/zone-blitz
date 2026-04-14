@@ -19,7 +19,7 @@ function createMockPlayersService(
   overrides: Partial<PlayersService> = {},
 ): PlayersService {
   return {
-    generateAndPersist: () =>
+    generate: () =>
       Promise.resolve({
         playerCount: 0,
         draftProspectCount: 0,
@@ -33,7 +33,7 @@ function createMockCoachesService(
   overrides: Partial<CoachesService> = {},
 ): CoachesService {
   return {
-    generateAndPersist: () => Promise.resolve({ coachCount: 0 }),
+    generate: () => Promise.resolve({ coachCount: 0 }),
     ...overrides,
   };
 }
@@ -42,7 +42,7 @@ function createMockScoutsService(
   overrides: Partial<ScoutsService> = {},
 ): ScoutsService {
   return {
-    generateAndPersist: () => Promise.resolve({ scoutCount: 0 }),
+    generate: () => Promise.resolve({ scoutCount: 0 }),
     ...overrides,
   };
 }
@@ -51,14 +51,14 @@ function createMockFrontOfficeService(
   overrides: Partial<FrontOfficeService> = {},
 ): FrontOfficeService {
   return {
-    generateAndPersist: () => Promise.resolve({ frontOfficeCount: 0 }),
+    generate: () => Promise.resolve({ frontOfficeCount: 0 }),
     ...overrides,
   };
 }
 
 Deno.test("personnel.service", async (t) => {
   await t.step(
-    "generateAndPersist delegates to all four services and aggregates counts",
+    "generate delegates to all four services and aggregates counts",
     async () => {
       let playersServiceInput:
         | {
@@ -70,7 +70,7 @@ Deno.test("personnel.service", async (t) => {
         }
         | undefined;
       const playersService = createMockPlayersService({
-        generateAndPersist: (input) => {
+        generate: (input) => {
           playersServiceInput = input;
           return Promise.resolve({
             playerCount: 2,
@@ -84,7 +84,7 @@ Deno.test("personnel.service", async (t) => {
         | { leagueId: string; teamIds: string[] }
         | undefined;
       const coachesService = createMockCoachesService({
-        generateAndPersist: (input) => {
+        generate: (input) => {
           coachesServiceInput = input;
           return Promise.resolve({ coachCount: 5 });
         },
@@ -94,7 +94,7 @@ Deno.test("personnel.service", async (t) => {
         | { leagueId: string; teamIds: string[] }
         | undefined;
       const scoutsService = createMockScoutsService({
-        generateAndPersist: (input) => {
+        generate: (input) => {
           scoutsServiceInput = input;
           return Promise.resolve({ scoutCount: 3 });
         },
@@ -104,7 +104,7 @@ Deno.test("personnel.service", async (t) => {
         | { leagueId: string; teamIds: string[] }
         | undefined;
       const frontOfficeService = createMockFrontOfficeService({
-        generateAndPersist: (input) => {
+        generate: (input) => {
           frontOfficeServiceInput = input;
           return Promise.resolve({ frontOfficeCount: 2 });
         },
@@ -118,7 +118,7 @@ Deno.test("personnel.service", async (t) => {
         log: createTestLogger(),
       });
 
-      const result = await service.generateAndPersist({
+      const result = await service.generate({
         leagueId: "l1",
         seasonId: "s1",
         teamIds: ["t1"],
@@ -151,7 +151,7 @@ Deno.test("personnel.service", async (t) => {
   );
 
   await t.step(
-    "generateAndPersist returns zero counts when all services return zero",
+    "generate returns zero counts when all services return zero",
     async () => {
       const service = createPersonnelService({
         playersService: createMockPlayersService(),
@@ -161,7 +161,7 @@ Deno.test("personnel.service", async (t) => {
         log: createTestLogger(),
       });
 
-      const result = await service.generateAndPersist({
+      const result = await service.generate({
         leagueId: "l1",
         seasonId: "s1",
         teamIds: [],

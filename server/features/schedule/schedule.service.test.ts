@@ -45,7 +45,7 @@ const TEAMS: TeamDivisionInfo[] = [
 
 Deno.test("schedule.service", async (t) => {
   await t.step(
-    "generateAndPersist inserts generated games and returns count",
+    "generate inserts generated games and returns count",
     async () => {
       const { db, calls } = createMockDb();
       const generator: ScheduleGenerator = {
@@ -71,7 +71,7 @@ Deno.test("schedule.service", async (t) => {
         log: createTestLogger(),
       });
 
-      const result = await service.generateAndPersist({
+      const result = await service.generate({
         seasonId: "s1",
         teams: TEAMS,
         seasonLength: 17,
@@ -84,7 +84,7 @@ Deno.test("schedule.service", async (t) => {
   );
 
   await t.step(
-    "generateAndPersist skips insert when generator returns no games",
+    "generate skips insert when generator returns no games",
     async () => {
       const { db, calls } = createMockDb();
       const generator: ScheduleGenerator = {
@@ -97,7 +97,7 @@ Deno.test("schedule.service", async (t) => {
         log: createTestLogger(),
       });
 
-      const result = await service.generateAndPersist({
+      const result = await service.generate({
         seasonId: "s1",
         teams: TEAMS,
         seasonLength: 17,
@@ -108,7 +108,7 @@ Deno.test("schedule.service", async (t) => {
     },
   );
 
-  await t.step("generateAndPersist forwards input to generator", async () => {
+  await t.step("generate forwards input to generator", async () => {
     const { db } = createMockDb();
     let receivedInput:
       | { seasonId: string; teams: TeamDivisionInfo[]; seasonLength: number }
@@ -126,7 +126,7 @@ Deno.test("schedule.service", async (t) => {
       log: createTestLogger(),
     });
 
-    await service.generateAndPersist({
+    await service.generate({
       seasonId: "s1",
       teams: TEAMS,
       seasonLength: 17,
