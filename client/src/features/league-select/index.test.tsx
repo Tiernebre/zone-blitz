@@ -11,6 +11,7 @@ import { LeagueSelect } from "./index.tsx";
 
 const mockGet = vi.fn();
 const mockPost = vi.fn();
+const mockDelete = vi.fn();
 const mockNavigate = vi.fn();
 
 vi.mock("../../api.ts", () => ({
@@ -19,6 +20,9 @@ vi.mock("../../api.ts", () => ({
       leagues: {
         $get: (...args: unknown[]) => mockGet(...args),
         $post: (...args: unknown[]) => mockPost(...args),
+        ":id": {
+          $delete: (...args: unknown[]) => mockDelete(...args),
+        },
       },
       users: {
         me: {
@@ -329,4 +333,80 @@ describe("LeagueSelect", () => {
       expect(screen.getByText("Creating...")).toBeDefined();
     });
   });
+
+  it(
+    "confirms and deletes a league when the row delete action is used",
+    async () => {
+      mockGet.mockReturnValue(
+        Promise.resolve({
+          json: () =>
+            Promise.resolve([
+              {
+                id: 7,
+                name: "Doomed League",
+                numberOfTeams: 32,
+                seasonLength: 17,
+                createdAt: "2026-01-15T00:00:00Z",
+                currentSeason: { year: 1, phase: "preseason", week: 1 },
+              },
+            ]),
+        }),
+      );
+      mockDelete.mockReturnValue(Promise.resolve({}));
+      renderWithProviders();
+
+      await waitFor(() => {
+        expect(screen.getByText("Doomed League")).toBeDefined();
+      });
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Delete Doomed League" }),
+      );
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      const confirm = await screen.findByRole("button", {
+        name: "Confirm Delete",
+      });
+      fireEvent.click(confirm);
+
+      await waitFor(() => {
+        expect(mockDelete).toHaveBeenCalledWith({ param: { id: "7" } });
+      });
+    },
+  );
+
+  it(
+    "does not delete when the delete dialog is cancelled",
+    async () => {
+      mockGet.mockReturnValue(
+        Promise.resolve({
+          json: () =>
+            Promise.resolve([
+              {
+                id: 7,
+                name: "Safe League",
+                numberOfTeams: 32,
+                seasonLength: 17,
+                createdAt: "2026-01-15T00:00:00Z",
+                currentSeason: { year: 1, phase: "preseason", week: 1 },
+              },
+            ]),
+        }),
+      );
+      renderWithProviders();
+
+      await waitFor(() => {
+        expect(screen.getByText("Safe League")).toBeDefined();
+      });
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Delete Safe League" }),
+      );
+      const cancel = await screen.findByRole("button", { name: "Cancel" });
+      fireEvent.click(cancel);
+
+      expect(mockDelete).not.toHaveBeenCalled();
+    },
+  );
 });
