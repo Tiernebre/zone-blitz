@@ -19,3 +19,5 @@ as superseded.
 
 - [0001 — Roster page: active roster + depth chart view](./0001-roster-page.md)
   — single page, two views, no depth-chart editing
+- [0002 — Coaches page: org chart tree + coach detail view](./0002-coaches-page.md)
+  — staff tree landing, one detail page per coach, no ratings surfaced
