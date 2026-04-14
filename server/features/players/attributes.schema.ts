@@ -1,6 +1,9 @@
 import { check, pgTable, smallint, timestamp, uuid } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { PLAYER_ATTRIBUTE_KEYS } from "@zone-blitz/shared";
+import {
+  PLAYER_ATTRIBUTE_KEYS,
+  type PlayerAttributes,
+} from "@zone-blitz/shared";
 import { players } from "./player.schema.ts";
 
 export function camelToSnake(key: string): string {
@@ -15,6 +18,17 @@ export function attributeColumns() {
     columns[`${key}Potential`] = smallint(`${snake}_potential`).notNull();
   }
   return columns;
+}
+
+export function pickAttributes(
+  row: Record<string, unknown>,
+): PlayerAttributes {
+  const attrs: Record<string, number> = {};
+  for (const key of PLAYER_ATTRIBUTE_KEYS) {
+    attrs[key] = row[key] as number;
+    attrs[`${key}Potential`] = row[`${key}Potential`] as number;
+  }
+  return attrs as PlayerAttributes;
 }
 
 export function attributeRangeChecks(tableAlias: string) {
@@ -45,3 +59,18 @@ export const playerAttributes = pgTable(
   },
   () => attributeRangeChecks("player_attributes"),
 );
+
+export function attributeSelectColumns() {
+  const columns: Record<string, unknown> = {};
+  for (const key of PLAYER_ATTRIBUTE_KEYS) {
+    const attrCol = (playerAttributes as unknown as Record<string, unknown>)[
+      key
+    ];
+    const potCol = (playerAttributes as unknown as Record<string, unknown>)[
+      `${key}Potential`
+    ];
+    columns[key] = attrCol;
+    columns[`${key}Potential`] = potCol;
+  }
+  return columns;
+}

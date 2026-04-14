@@ -1,14 +1,33 @@
+import type { NeutralBucket } from "../archetypes/neutral-bucket.ts";
 import type { CoachSummary } from "./coach.ts";
-import type { PlayerInjuryStatus, PlayerPosition } from "./player.ts";
+import type { DepthChartSlotCode, PlayerInjuryStatus } from "./player.ts";
 
-export type PlayerPositionGroup = "offense" | "defense" | "special_teams";
+export type NeutralBucketGroup = "offense" | "defense" | "special_teams";
+
+export const NEUTRAL_BUCKET_GROUPS: Record<
+  NeutralBucketGroup,
+  readonly NeutralBucket[]
+> = {
+  offense: ["QB", "RB", "WR", "TE", "OT", "IOL"],
+  defense: ["EDGE", "IDL", "LB", "CB", "S"],
+  special_teams: ["K", "P", "LS"],
+};
+
+export function neutralBucketGroupOf(
+  bucket: NeutralBucket,
+): NeutralBucketGroup {
+  for (const group of ["offense", "defense", "special_teams"] as const) {
+    if (NEUTRAL_BUCKET_GROUPS[group].includes(bucket)) return group;
+  }
+  throw new Error(`Unknown group for neutral bucket ${bucket}`);
+}
 
 export interface RosterPlayer {
   id: string;
   firstName: string;
   lastName: string;
-  position: PlayerPosition;
-  positionGroup: PlayerPositionGroup;
+  neutralBucket: NeutralBucket;
+  neutralBucketGroup: NeutralBucketGroup;
   age: number;
   capHit: number;
   contractYearsRemaining: number;
@@ -16,7 +35,7 @@ export interface RosterPlayer {
 }
 
 export interface RosterPositionGroupSummary {
-  group: PlayerPositionGroup;
+  group: NeutralBucketGroup;
   headcount: number;
   totalCap: number;
 }
@@ -35,7 +54,7 @@ export interface DepthChartSlot {
   playerId: string;
   firstName: string;
   lastName: string;
-  position: PlayerPosition;
+  slotCode: DepthChartSlotCode;
   slotOrdinal: number;
   injuryStatus: PlayerInjuryStatus;
 }
@@ -44,7 +63,7 @@ export interface DepthChartInactive {
   playerId: string;
   firstName: string;
   lastName: string;
-  position: PlayerPosition;
+  slotCode: DepthChartSlotCode;
   injuryStatus: PlayerInjuryStatus;
 }
 
@@ -61,8 +80,8 @@ export interface RosterStatisticsRow {
   playerId: string;
   firstName: string;
   lastName: string;
-  position: PlayerPosition;
-  positionGroup: PlayerPositionGroup;
+  neutralBucket: NeutralBucket;
+  neutralBucketGroup: NeutralBucketGroup;
   gamesPlayed: number;
 }
 

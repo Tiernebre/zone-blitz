@@ -10,14 +10,20 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import {
+  DEPTH_CHART_SLOT_CODES,
   PLAYER_INJURY_STATUSES,
-  PLAYER_POSITIONS,
   PLAYER_STATUSES,
 } from "@zone-blitz/shared";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
 
-export const playerPositionEnum = pgEnum("player_position", PLAYER_POSITIONS);
+// Kept under the legacy `player_position` postgres enum name to avoid an
+// invasive DB rename; only used by depth_chart_entries.slot_code going
+// forward. Players themselves have no position column per ADR 0006.
+export const depthChartSlotEnum = pgEnum(
+  "player_position",
+  DEPTH_CHART_SLOT_CODES,
+);
 export const playerInjuryStatusEnum = pgEnum(
   "player_injury_status",
   PLAYER_INJURY_STATUSES,
@@ -33,7 +39,6 @@ export const players = pgTable("players", {
   status: playerStatusEnum("status").notNull().default("active"),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
-  position: playerPositionEnum("position").notNull(),
   injuryStatus: playerInjuryStatusEnum("injury_status")
     .notNull()
     .default("healthy"),

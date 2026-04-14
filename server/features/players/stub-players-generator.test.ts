@@ -1,12 +1,13 @@
 import { assertEquals } from "@std/assert";
 import {
+  NEUTRAL_BUCKETS,
+  type NeutralBucket,
+  neutralBucket,
   PLAYER_ATTRIBUTE_KEYS,
-  PLAYER_POSITIONS,
-  type PlayerPosition,
 } from "@zone-blitz/shared";
 import {
   createStubPlayersGenerator,
-  ROSTER_POSITION_COMPOSITION,
+  ROSTER_BUCKET_COMPOSITION,
 } from "./stub-players-generator.ts";
 
 const TEAM_IDS = ["team-1", "team-2", "team-3"];
@@ -16,6 +17,17 @@ const INPUT = {
   teamIds: TEAM_IDS,
   rosterSize: 53,
 };
+
+function bucketOf(entry: {
+  player: { heightInches: number; weightPounds: number };
+  attributes: Parameters<typeof neutralBucket>[0]["attributes"];
+}): NeutralBucket {
+  return neutralBucket({
+    attributes: entry.attributes,
+    heightInches: entry.player.heightInches,
+    weightPounds: entry.player.weightPounds,
+  });
+}
 
 Deno.test("generates correct number of rostered players per team", () => {
   const generator = createStubPlayersGenerator();
@@ -128,7 +140,7 @@ Deno.test("stub contracts distribute salary evenly under cap", () => {
 });
 
 Deno.test("roster composition sums to 53 players", () => {
-  const total = ROSTER_POSITION_COMPOSITION.reduce(
+  const total = ROSTER_BUCKET_COMPOSITION.reduce(
     (sum, entry) => sum + entry.count,
     0,
   );
@@ -136,19 +148,19 @@ Deno.test("roster composition sums to 53 players", () => {
 });
 
 Deno.test(
-  "every generated player receives a position from the known set",
+  "every generated player classifies into a known neutral bucket",
   () => {
     const generator = createStubPlayersGenerator();
     const result = generator.generate(INPUT);
-    const validPositions = new Set<PlayerPosition>(PLAYER_POSITIONS);
+    const validBuckets = new Set<NeutralBucket>(NEUTRAL_BUCKETS);
     for (const entry of result.players) {
-      assertEquals(validPositions.has(entry.player.position), true);
+      assertEquals(validBuckets.has(bucketOf(entry)), true);
     }
   },
 );
 
 Deno.test(
-  "per-team rostered positions match the 53-man composition",
+  "per-team rostered neutral buckets match the 53-man composition",
   () => {
     const generator = createStubPlayersGenerator();
     const result = generator.generate(INPUT);
@@ -156,15 +168,13 @@ Deno.test(
       const teamPlayers = result.players.filter(
         (p) => p.player.teamId === teamId && p.player.status === "active",
       );
-      const byPosition = new Map<PlayerPosition, number>();
+      const byBucket = new Map<NeutralBucket, number>();
       for (const entry of teamPlayers) {
-        byPosition.set(
-          entry.player.position,
-          (byPosition.get(entry.player.position) ?? 0) + 1,
-        );
+        const bucket = bucketOf(entry);
+        byBucket.set(bucket, (byBucket.get(bucket) ?? 0) + 1);
       }
-      for (const { position, count } of ROSTER_POSITION_COMPOSITION) {
-        assertEquals(byPosition.get(position) ?? 0, count);
+      for (const { bucket, count } of ROSTER_BUCKET_COMPOSITION) {
+        assertEquals(byBucket.get(bucket) ?? 0, count);
       }
     }
   },

@@ -172,7 +172,7 @@ function Header(
         </Badge>
       </div>
       <p className="text-sm text-muted-foreground">
-        {detail.position} · Age {detail.age} ·{" "}
+        {detail.neutralBucket} · Age {detail.age} ·{" "}
         {formatHeight(detail.heightInches)} · {detail.weightPounds} lbs ·{" "}
         {detail.yearsOfExperience} yr exp
       </p>

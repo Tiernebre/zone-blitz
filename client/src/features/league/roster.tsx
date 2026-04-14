@@ -24,7 +24,7 @@ import { DataTable, SortableHeader } from "@/components/ui/data-table";
 import type {
   ActiveRoster,
   DepthChart,
-  PlayerPositionGroup,
+  NeutralBucketGroup,
   RosterPlayer,
 } from "@zone-blitz/shared/types/roster.ts";
 import type { PlayerInjuryStatus } from "@zone-blitz/shared/types/player.ts";
@@ -32,13 +32,13 @@ import { useLeague } from "../../hooks/use-league.ts";
 import { useActiveRoster } from "../../hooks/use-active-roster.ts";
 import { useDepthChart } from "../../hooks/use-depth-chart.ts";
 
-const groupLabels: Record<PlayerPositionGroup, string> = {
+const groupLabels: Record<NeutralBucketGroup, string> = {
   offense: "Offense",
   defense: "Defense",
   special_teams: "Special Teams",
 };
 
-const groupFilterOptions: (PlayerPositionGroup | "all")[] = [
+const groupFilterOptions: (NeutralBucketGroup | "all")[] = [
   "all",
   "offense",
   "defense",
@@ -98,7 +98,7 @@ const rosterColumns: ColumnDef<RosterPlayer>[] = [
     ),
   },
   {
-    accessorKey: "position",
+    accessorKey: "neutralBucket",
     header: ({ column }) => (
       <SortableHeader column={column}>
         Pos
@@ -106,13 +106,13 @@ const rosterColumns: ColumnDef<RosterPlayer>[] = [
     ),
   },
   {
-    accessorKey: "positionGroup",
+    accessorKey: "neutralBucketGroup",
     header: ({ column }) => (
       <SortableHeader column={column}>Group</SortableHeader>
     ),
-    cell: ({ row }) => groupLabels[row.original.positionGroup],
+    cell: ({ row }) => groupLabels[row.original.neutralBucketGroup],
     filterFn: (row: Row<RosterPlayer>, _id, value) =>
-      value === "all" || row.original.positionGroup === value,
+      value === "all" || row.original.neutralBucketGroup === value,
   },
   {
     accessorKey: "age",
@@ -209,8 +209,8 @@ function ActiveRosterContent({ roster }: { roster: ActiveRoster }) {
         getRowTestId={(player) => `roster-row-${player.id}`}
         toolbar={(table) => {
           const groupFilter =
-            (table.getColumn("positionGroup")?.getFilterValue() as
-              | PlayerPositionGroup
+            (table.getColumn("neutralBucketGroup")?.getFilterValue() as
+              | NeutralBucketGroup
               | "all"
               | undefined) ?? "all";
           return (
@@ -242,7 +242,7 @@ function ActiveRosterContent({ roster }: { roster: ActiveRoster }) {
                       aria-pressed={active}
                       onClick={() =>
                         table
-                          .getColumn("positionGroup")
+                          .getColumn("neutralBucketGroup")
                           ?.setFilterValue(option)}
                     >
                       {option === "all" ? "All" : groupLabels[option]}
@@ -296,13 +296,13 @@ function DepthChartContent({ chart }: { chart: DepthChart }) {
     );
   }
 
-  const byPosition = new Map<string, typeof chart.slots>();
+  const bySlotCode = new Map<string, typeof chart.slots>();
   for (const slot of chart.slots) {
-    const existing = byPosition.get(slot.position) ?? [];
+    const existing = bySlotCode.get(slot.slotCode) ?? [];
     existing.push(slot);
-    byPosition.set(slot.position, existing);
+    bySlotCode.set(slot.slotCode, existing);
   }
-  const positions = [...byPosition.keys()].sort();
+  const slotCodes = [...bySlotCode.keys()].sort();
 
   return (
     <>
@@ -312,17 +312,17 @@ function DepthChartContent({ chart }: { chart: DepthChart }) {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {positions.map((position) => {
-          const slots = [...byPosition.get(position)!].sort(
+        {slotCodes.map((slotCode) => {
+          const slots = [...bySlotCode.get(slotCode)!].sort(
             (a, b) => a.slotOrdinal - b.slotOrdinal,
           );
           return (
             <Card
-              key={position}
-              data-testid={`depth-chart-position-${position}`}
+              key={slotCode}
+              data-testid={`depth-chart-position-${slotCode}`}
             >
               <CardHeader>
-                <CardTitle>{position}</CardTitle>
+                <CardTitle>{slotCode}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
                 {slots.map((slot) => (
@@ -373,7 +373,7 @@ function DepthChartContent({ chart }: { chart: DepthChart }) {
                     <TableCell className="font-medium">
                       {player.firstName} {player.lastName}
                     </TableCell>
-                    <TableCell>{player.position}</TableCell>
+                    <TableCell>{player.slotCode}</TableCell>
                     <TableCell>
                       <Badge
                         variant={injuryBadgeVariant(player.injuryStatus)}

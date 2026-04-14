@@ -1,3 +1,5 @@
+import type { NeutralBucket } from "../../archetypes/neutral-bucket.ts";
+
 export interface GMStrategy {
   evaluateTrade(offer: TradeOffer): TradeDecision;
   selectDraftPick(
@@ -20,12 +22,12 @@ export interface TradeDecision {
 
 export interface DraftCandidate {
   playerId: string;
-  position: string;
+  neutralBucket: NeutralBucket;
   rating: number;
 }
 
 export interface TeamNeeds {
-  positions: string[];
+  buckets: NeutralBucket[];
   strategy: "win-now" | "rebuild";
 }
 

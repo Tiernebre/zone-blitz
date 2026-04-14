@@ -3,12 +3,20 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { eq, inArray } from "drizzle-orm";
 import postgres from "postgres";
 import pino from "pino";
-import { DomainError, PLAYER_ATTRIBUTE_KEYS } from "@zone-blitz/shared";
+import {
+  DomainError,
+  type NeutralBucket,
+  PLAYER_ATTRIBUTE_KEYS,
+} from "@zone-blitz/shared";
 import * as schema from "../../db/schema.ts";
 import { players } from "../players/player.schema.ts";
 import { playerAttributes } from "../players/attributes.schema.ts";
 import { contracts } from "../contracts/contract.schema.ts";
 import { depthChartEntries } from "../players/depth-chart.schema.ts";
+import {
+  BUCKET_PROFILES,
+  stubAttributesFor,
+} from "../players/stub-players-generator.ts";
 import { coaches } from "../coaches/coach.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
@@ -66,13 +74,23 @@ async function setupFixtures(db: ReturnType<typeof createTestDb>["db"]) {
   return { league, team, state, city };
 }
 
-function stubAttributeColumns(): Record<string, number> {
+function stubAttributeColumns(
+  bucket: NeutralBucket = "QB",
+): Record<string, number> {
+  const attrs = stubAttributesFor(bucket);
   const row: Record<string, number> = {};
   for (const key of PLAYER_ATTRIBUTE_KEYS) {
-    row[key] = 50;
-    row[`${key}Potential`] = 60;
+    row[key] = attrs[key];
+    row[`${key}Potential`] = attrs[`${key}Potential`];
   }
   return row;
+}
+
+function sizeFor(bucket: NeutralBucket) {
+  return {
+    heightInches: BUCKET_PROFILES[bucket].heightInches,
+    weightPounds: BUCKET_PROFILES[bucket].weightPounds,
+  };
 }
 
 async function cleanup(
@@ -128,7 +146,7 @@ Deno.test({
       statesCreated.push(state.id);
 
       const qbId = crypto.randomUUID();
-      const dlId = crypto.randomUUID();
+      const idlId = crypto.randomUUID();
       await db.insert(players).values([
         {
           id: qbId,
@@ -136,30 +154,26 @@ Deno.test({
           teamId: team.id,
           firstName: "Sam",
           lastName: "Stone",
-          position: "QB",
           injuryStatus: "healthy",
-          heightInches: 75,
-          weightPounds: 220,
+          ...sizeFor("QB"),
           birthDate: "2000-01-01",
         },
         {
-          id: dlId,
+          id: idlId,
           leagueId: league.id,
           teamId: team.id,
           firstName: "Dan",
           lastName: "Line",
-          position: "DL",
           injuryStatus: "questionable",
-          heightInches: 76,
-          weightPounds: 280,
+          ...sizeFor("IDL"),
           birthDate: "1998-08-01",
         },
       ]);
-      playersCreated.push(qbId, dlId);
+      playersCreated.push(qbId, idlId);
 
       await db.insert(playerAttributes).values([
-        { playerId: qbId, ...stubAttributeColumns() },
-        { playerId: dlId, ...stubAttributeColumns() },
+        { playerId: qbId, ...stubAttributeColumns("QB") },
+        { playerId: idlId, ...stubAttributeColumns("IDL") },
       ]);
 
       await db.insert(contracts).values([
@@ -174,7 +188,7 @@ Deno.test({
           signingBonus: 5_000_000,
         },
         {
-          playerId: dlId,
+          playerId: idlId,
           teamId: team.id,
           totalYears: 3,
           currentYear: 1,
@@ -195,16 +209,17 @@ Deno.test({
       assertEquals(roster.capSpace, 240_000_000);
 
       const qb = roster.players.find((p) => p.id === qbId);
-      assertEquals(qb?.position, "QB");
-      assertEquals(qb?.positionGroup, "offense");
+      assertEquals(qb?.neutralBucket, "QB");
+      assertEquals(qb?.neutralBucketGroup, "offense");
       assertEquals(qb?.capHit, 10_000_000);
       assertEquals(qb?.contractYearsRemaining, 3);
       assertEquals(qb?.age, 30);
       assertEquals(qb?.injuryStatus, "healthy");
 
-      const dl = roster.players.find((p) => p.id === dlId);
-      assertEquals(dl?.positionGroup, "defense");
-      assertEquals(dl?.injuryStatus, "questionable");
+      const idl = roster.players.find((p) => p.id === idlId);
+      assertEquals(idl?.neutralBucket, "IDL");
+      assertEquals(idl?.neutralBucketGroup, "defense");
+      assertEquals(idl?.injuryStatus, "questionable");
 
       const offense = roster.positionGroups.find((g) => g.group === "offense");
       assertEquals(offense?.headcount, 1);
@@ -293,10 +308,8 @@ Deno.test({
           teamId: team.id,
           firstName: "Sam",
           lastName: "Stone",
-          position: "QB",
           injuryStatus: "healthy",
-          heightInches: 75,
-          weightPounds: 220,
+          ...sizeFor("QB"),
           birthDate: "2000-01-01",
         },
         {
@@ -305,25 +318,23 @@ Deno.test({
           teamId: team.id,
           firstName: "Ben",
           lastName: "Bench",
-          position: "RB",
           injuryStatus: "out",
-          heightInches: 70,
-          weightPounds: 210,
+          ...sizeFor("RB"),
           birthDate: "2001-01-01",
         },
       ]);
       playersCreated.push(starterId, inactiveId);
 
       await db.insert(playerAttributes).values([
-        { playerId: starterId, ...stubAttributeColumns() },
-        { playerId: inactiveId, ...stubAttributeColumns() },
+        { playerId: starterId, ...stubAttributeColumns("QB") },
+        { playerId: inactiveId, ...stubAttributeColumns("RB") },
       ]);
 
       await db.insert(depthChartEntries).values([
         {
           teamId: team.id,
           playerId: starterId,
-          position: "QB",
+          slotCode: "QB",
           slotOrdinal: 1,
           isInactive: false,
           publishedByCoachId: coachId,
@@ -331,7 +342,7 @@ Deno.test({
         {
           teamId: team.id,
           playerId: inactiveId,
-          position: "RB",
+          slotCode: "RB",
           slotOrdinal: 1,
           isInactive: true,
           publishedByCoachId: coachId,

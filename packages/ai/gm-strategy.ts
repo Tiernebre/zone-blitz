@@ -25,9 +25,9 @@ export function createGMStrategy(): GMStrategy {
       available: DraftCandidate[],
       needs: TeamNeeds,
     ): DraftSelection {
-      // Placeholder — pick the highest-rated player at a need position
+      // Placeholder — pick the highest-rated player at a need bucket
       const needPick = available
-        .filter((p) => needs.positions.includes(p.position))
+        .filter((p) => needs.buckets.includes(p.neutralBucket))
         .sort((a, b) => b.rating - a.rating)[0];
 
       const pick = needPick ?? available.sort((a, b) => b.rating - a.rating)[0];
@@ -35,8 +35,8 @@ export function createGMStrategy(): GMStrategy {
       return {
         playerId: pick.playerId,
         reasoning: needPick
-          ? `Filling need at ${pick.position}`
-          : `Best player available: ${pick.position}`,
+          ? `Filling need at ${pick.neutralBucket}`
+          : `Best player available: ${pick.neutralBucket}`,
       };
     },
   };

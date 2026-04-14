@@ -86,6 +86,12 @@ Notes on the set:
 - **Returner is dropped** from the proposed set. A returner is a depth-chart
   role, not an archetype; a fast WR/RB/CB with ball-carrying surfaces as a
   returner on the depth chart without needing a separate neutral label.
+- **Fullback is not a separate bucket.** A lead-blocking fullback classifies as
+  `RB` under the neutral lens. The blocking side of his job is a scheme-lens
+  concern — a heavy-personnel (21/22) offense surfaces him as a "lead-blocking
+  RB / FB" archetype-in-role, and a spread offense never rosters him in the
+  first place. Keeping FB out of the neutral set avoids forcing light-personnel
+  teams to carry a roster label they don't use.
 - **LS is kept** despite being niche — it is the one bucket where a player's
   snap accuracy is the only attribute that meaningfully qualifies him, and
   collapsing it into OL/TE loses that signal.

@@ -1,4 +1,10 @@
-export const PLAYER_POSITIONS = [
+import type { NeutralBucket } from "../archetypes/neutral-bucket.ts";
+
+// Depth-chart slot codes. These are legacy coarse labels used on the depth
+// chart table (a scheme-dependent slot vocabulary will replace them in a
+// future ADR). Players themselves are positionless — see ADR 0006; use
+// `NeutralBucket` for player-level classification instead.
+export const DEPTH_CHART_SLOT_CODES = [
   "QB",
   "RB",
   "FB",
@@ -14,16 +20,7 @@ export const PLAYER_POSITIONS = [
   "LS",
 ] as const;
 
-export type PlayerPosition = (typeof PLAYER_POSITIONS)[number];
-
-export const PLAYER_POSITION_GROUPS: Record<
-  "offense" | "defense" | "special_teams",
-  readonly PlayerPosition[]
-> = {
-  offense: ["QB", "RB", "FB", "WR", "TE", "OL"],
-  defense: ["DL", "LB", "CB", "S"],
-  special_teams: ["K", "P", "LS"],
-};
+export type DepthChartSlotCode = (typeof DEPTH_CHART_SLOT_CODES)[number];
 
 export const PLAYER_STATUSES = ["prospect", "active", "retired"] as const;
 
@@ -47,7 +44,6 @@ export interface Player {
   status: PlayerStatus;
   firstName: string;
   lastName: string;
-  position: PlayerPosition;
   injuryStatus: PlayerInjuryStatus;
   heightInches: number;
   weightPounds: number;
@@ -156,7 +152,7 @@ export interface PlayerDetail {
   id: string;
   firstName: string;
   lastName: string;
-  position: PlayerPosition;
+  neutralBucket: NeutralBucket;
   age: number;
   heightInches: number;
   weightPounds: number;
@@ -181,7 +177,7 @@ export interface DraftEligiblePlayer {
   id: string;
   firstName: string;
   lastName: string;
-  position: PlayerPosition;
+  neutralBucket: NeutralBucket;
   college: string | null;
   hometown: string | null;
   heightInches: number;

@@ -1,6 +1,6 @@
 import type {
+  NeutralBucket,
   PlayerAttributes,
-  PlayerPosition,
   SchemeFingerprint,
   SchemeFitLabel,
 } from "@zone-blitz/shared";
@@ -17,7 +17,7 @@ import {
  * influence the result.
  */
 export interface PlayerForFit {
-  position: PlayerPosition;
+  neutralBucket: NeutralBucket;
   attributes: PlayerAttributes;
 }
 
@@ -72,7 +72,7 @@ export function computeSchemeFit(
   player: PlayerForFit,
   fingerprint: SchemeFingerprint,
 ): SchemeFitLabel {
-  const demands = POSITION_ARCHETYPE_WEIGHTS[player.position];
+  const demands = POSITION_ARCHETYPE_WEIGHTS[player.neutralBucket];
   if (!demands || demands.length === 0) return "neutral";
 
   let totalWeight = 0;

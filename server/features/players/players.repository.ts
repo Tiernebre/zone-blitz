@@ -1,16 +1,23 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import type pino from "pino";
-import type {
-  ContractHistoryEntry,
-  CurrentContractSummary,
-  DraftEligiblePlayer,
-  PlayerAccoladeEntry,
-  PlayerDetail,
-  PlayerSeasonStatRow,
-  PlayerTransactionEntry,
+import {
+  type ContractHistoryEntry,
+  type CurrentContractSummary,
+  type DraftEligiblePlayer,
+  neutralBucket,
+  type PlayerAccoladeEntry,
+  type PlayerAttributes,
+  type PlayerDetail,
+  type PlayerSeasonStatRow,
+  type PlayerTransactionEntry,
 } from "@zone-blitz/shared";
 import type { Database, Executor } from "../../db/connection.ts";
 import { players } from "./player.schema.ts";
+import {
+  attributeSelectColumns,
+  pickAttributes,
+  playerAttributes,
+} from "./attributes.schema.ts";
 import { contracts } from "../contracts/contract.schema.ts";
 import { contractHistory } from "../contracts/contract-history.schema.ts";
 import { playerTransactions } from "../contracts/player-transaction.schema.ts";
@@ -171,7 +178,6 @@ export function createPlayersRepository(deps: {
           id: players.id,
           firstName: players.firstName,
           lastName: players.lastName,
-          position: players.position,
           injuryStatus: players.injuryStatus,
           heightInches: players.heightInches,
           weightPounds: players.weightPounds,
@@ -192,8 +198,13 @@ export function createPlayersRepository(deps: {
           preDraftClassYear: playerDraftProfile.draftClassYear,
           preDraftProjectedRound: playerDraftProfile.projectedRound,
           preDraftScoutingNotes: playerDraftProfile.scoutingNotes,
+          ...attributeSelectColumns(),
         })
         .from(players)
+        .innerJoin(
+          playerAttributes,
+          eq(playerAttributes.playerId, players.id),
+        )
         .leftJoin(currentTeams, eq(currentTeams.id, players.teamId))
         .leftJoin(currentCities, eq(currentCities.id, currentTeams.cityId))
         .leftJoin(draftingTeams, eq(draftingTeams.id, players.draftingTeamId))
@@ -206,6 +217,15 @@ export function createPlayersRepository(deps: {
         .limit(1);
 
       if (!row) return undefined;
+
+      const attributes: PlayerAttributes = pickAttributes(
+        row as unknown as Record<string, unknown>,
+      );
+      const bucket = neutralBucket({
+        attributes,
+        heightInches: row.heightInches,
+        weightPounds: row.weightPounds,
+      });
 
       const yearsOfExperience = row.draftYear !== null
         ? Math.max(0, now().getUTCFullYear() - row.draftYear)
@@ -284,7 +304,7 @@ export function createPlayersRepository(deps: {
         id: row.id,
         firstName: row.firstName,
         lastName: row.lastName,
-        position: row.position,
+        neutralBucket: bucket,
         age: ageFromBirthDate(row.birthDate, now()),
         heightInches: row.heightInches,
         weightPounds: row.weightPounds,
@@ -337,7 +357,6 @@ export function createPlayersRepository(deps: {
           id: players.id,
           firstName: players.firstName,
           lastName: players.lastName,
-          position: players.position,
           college: players.college,
           hometown: players.hometown,
           heightInches: players.heightInches,
@@ -345,11 +364,16 @@ export function createPlayersRepository(deps: {
           birthDate: players.birthDate,
           draftClassYear: playerDraftProfile.draftClassYear,
           projectedRound: playerDraftProfile.projectedRound,
+          ...attributeSelectColumns(),
         })
         .from(players)
         .innerJoin(
           playerDraftProfile,
           eq(playerDraftProfile.playerId, players.id),
+        )
+        .innerJoin(
+          playerAttributes,
+          eq(playerAttributes.playerId, players.id),
         )
         .where(
           and(
@@ -366,7 +390,11 @@ export function createPlayersRepository(deps: {
         id: row.id,
         firstName: row.firstName,
         lastName: row.lastName,
-        position: row.position,
+        neutralBucket: neutralBucket({
+          attributes: pickAttributes(row as unknown as Record<string, unknown>),
+          heightInches: row.heightInches,
+          weightPounds: row.weightPounds,
+        }),
         college: row.college,
         hometown: row.hometown,
         heightInches: row.heightInches,
