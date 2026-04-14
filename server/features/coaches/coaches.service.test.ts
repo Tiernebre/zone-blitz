@@ -49,10 +49,26 @@ Deno.test("coaches.service", async (t) => {
     "generate inserts generated coaches and returns count",
     async () => {
       const { db, calls } = createMockDb();
+      const base = {
+        leagueId: "l1",
+        teamId: "t1",
+        role: "HC" as const,
+        reportsToId: null,
+        playCaller: "offense" as const,
+        age: 50,
+        hiredAt: new Date(),
+        contractYears: 3,
+        contractSalary: 1_000_000,
+        contractBuyout: 1_000_000,
+        collegeId: null,
+        specialty: "ceo" as const,
+        isVacancy: false,
+        mentorCoachId: null,
+      };
       const generator = createMockGenerator({
         generate: () => [
-          { leagueId: "l1", teamId: "t1", firstName: "A", lastName: "B" },
-          { leagueId: "l1", teamId: "t1", firstName: "C", lastName: "D" },
+          { ...base, id: "c1", firstName: "A", lastName: "B" },
+          { ...base, id: "c2", firstName: "C", lastName: "D" },
         ],
       });
 

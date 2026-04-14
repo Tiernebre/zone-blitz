@@ -1,6 +1,6 @@
 {
-  "id": "443bc676-facd-4870-a50d-ad291c2e1239",
-  "prevId": "fe2fb083-a90d-4c25-b269-f14c18ce76cf",
+  "id": "5ced0229-b93c-4f02-aa56-b6fd0839ea29",
+  "prevId": "443bc676-facd-4870-a50d-ad291c2e1239",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -111,6 +111,556 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.coach_accolades": {
+      "name": "coach_accolades",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "coach_id": {
+          "name": "coach_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "season": {
+          "name": "season",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "coach_accolade_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "detail": {
+          "name": "detail",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "coach_accolades_coach_id_coaches_id_fk": {
+          "name": "coach_accolades_coach_id_coaches_id_fk",
+          "tableFrom": "coach_accolades",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.coach_career_stops": {
+      "name": "coach_career_stops",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "coach_id": {
+          "name": "coach_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "team_name": {
+          "name": "team_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_year": {
+          "name": "start_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_year": {
+          "name": "end_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "team_wins": {
+          "name": "team_wins",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "team_losses": {
+          "name": "team_losses",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "team_ties": {
+          "name": "team_ties",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unit_rank": {
+          "name": "unit_rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unit_side": {
+          "name": "unit_side",
+          "type": "coach_tenure_unit_side",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "coach_career_stops_coach_id_coaches_id_fk": {
+          "name": "coach_career_stops_coach_id_coaches_id_fk",
+          "tableFrom": "coach_career_stops",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "coach_career_stops_team_id_teams_id_fk": {
+          "name": "coach_career_stops_team_id_teams_id_fk",
+          "tableFrom": "coach_career_stops",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.coach_connections": {
+      "name": "coach_connections",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "coach_id": {
+          "name": "coach_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "other_coach_id": {
+          "name": "other_coach_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "relation": {
+          "name": "relation",
+          "type": "coach_connection_relation",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "coach_connections_coach_id_coaches_id_fk": {
+          "name": "coach_connections_coach_id_coaches_id_fk",
+          "tableFrom": "coach_connections",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "coach_connections_other_coach_id_coaches_id_fk": {
+          "name": "coach_connections_other_coach_id_coaches_id_fk",
+          "tableFrom": "coach_connections",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "other_coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.coach_depth_chart_notes": {
+      "name": "coach_depth_chart_notes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "coach_id": {
+          "name": "coach_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "season": {
+          "name": "season",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "coach_depth_chart_notes_coach_id_coaches_id_fk": {
+          "name": "coach_depth_chart_notes_coach_id_coaches_id_fk",
+          "tableFrom": "coach_depth_chart_notes",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.coach_reputation_labels": {
+      "name": "coach_reputation_labels",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "coach_id": {
+          "name": "coach_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "coach_reputation_labels_coach_id_coaches_id_fk": {
+          "name": "coach_reputation_labels_coach_id_coaches_id_fk",
+          "tableFrom": "coach_reputation_labels",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.coach_tenure_player_dev": {
+      "name": "coach_tenure_player_dev",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "coach_id": {
+          "name": "coach_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "player_id": {
+          "name": "player_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "season": {
+          "name": "season",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "delta": {
+          "name": "delta",
+          "type": "coach_player_dev_delta",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "coach_tenure_player_dev_coach_id_coaches_id_fk": {
+          "name": "coach_tenure_player_dev_coach_id_coaches_id_fk",
+          "tableFrom": "coach_tenure_player_dev",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "coach_tenure_player_dev_player_id_players_id_fk": {
+          "name": "coach_tenure_player_dev_player_id_players_id_fk",
+          "tableFrom": "coach_tenure_player_dev",
+          "tableTo": "players",
+          "columnsFrom": [
+            "player_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.coach_tenure_unit_performance": {
+      "name": "coach_tenure_unit_performance",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "coach_id": {
+          "name": "coach_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "season": {
+          "name": "season",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_side": {
+          "name": "unit_side",
+          "type": "coach_tenure_unit_side",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rank": {
+          "name": "rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "metrics": {
+          "name": "metrics",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "coach_tenure_unit_performance_coach_id_coaches_id_fk": {
+          "name": "coach_tenure_unit_performance_coach_id_coaches_id_fk",
+          "tableFrom": "coach_tenure_unit_performance",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.coaches": {
       "name": "coaches",
       "schema": "",
@@ -145,6 +695,82 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "coach_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reports_to_id": {
+          "name": "reports_to_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "play_caller": {
+          "name": "play_caller",
+          "type": "coach_play_caller",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "age": {
+          "name": "age",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hired_at": {
+          "name": "hired_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contract_years": {
+          "name": "contract_years",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contract_salary": {
+          "name": "contract_salary",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contract_buyout": {
+          "name": "contract_buyout",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "college_id": {
+          "name": "college_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "specialty": {
+          "name": "specialty",
+          "type": "coach_specialty",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_vacancy": {
+          "name": "is_vacancy",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "mentor_coach_id": {
+          "name": "mentor_coach_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -187,6 +813,45 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "coaches_reports_to_id_coaches_id_fk": {
+          "name": "coaches_reports_to_id_coaches_id_fk",
+          "tableFrom": "coaches",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "reports_to_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "coaches_college_id_colleges_id_fk": {
+          "name": "coaches_college_id_colleges_id_fk",
+          "tableFrom": "coaches",
+          "tableTo": "colleges",
+          "columnsFrom": [
+            "college_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "coaches_mentor_coach_id_coaches_id_fk": {
+          "name": "coaches_mentor_coach_id_coaches_id_fk",
+          "tableFrom": "coaches",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "mentor_coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -1295,6 +1960,80 @@
     }
   },
   "enums": {
+    "public.coach_accolade_type": {
+      "name": "coach_accolade_type",
+      "schema": "public",
+      "values": [
+        "coy_vote",
+        "championship",
+        "position_pro_bowl",
+        "other"
+      ]
+    },
+    "public.coach_play_caller": {
+      "name": "coach_play_caller",
+      "schema": "public",
+      "values": [
+        "offense",
+        "defense",
+        "ceo"
+      ]
+    },
+    "public.coach_role": {
+      "name": "coach_role",
+      "schema": "public",
+      "values": [
+        "HC",
+        "OC",
+        "DC",
+        "STC",
+        "QB",
+        "RB",
+        "WR",
+        "TE",
+        "OL",
+        "DL",
+        "LB",
+        "DB",
+        "ST_ASSISTANT"
+      ]
+    },
+    "public.coach_specialty": {
+      "name": "coach_specialty",
+      "schema": "public",
+      "values": [
+        "offense",
+        "defense",
+        "special_teams",
+        "quarterbacks",
+        "running_backs",
+        "wide_receivers",
+        "tight_ends",
+        "offensive_line",
+        "defensive_line",
+        "linebackers",
+        "defensive_backs",
+        "ceo"
+      ]
+    },
+    "public.coach_connection_relation": {
+      "name": "coach_connection_relation",
+      "schema": "public",
+      "values": [
+        "mentor",
+        "mentee",
+        "peer"
+      ]
+    },
+    "public.coach_player_dev_delta": {
+      "name": "coach_player_dev_delta",
+      "schema": "public",
+      "values": [
+        "improved",
+        "stagnated",
+        "regressed"
+      ]
+    },
     "public.season_phase": {
       "name": "season_phase",
       "schema": "public",
@@ -1303,6 +2042,15 @@
         "regular_season",
         "playoffs",
         "offseason"
+      ]
+    },
+    "public.coach_tenure_unit_side": {
+      "name": "coach_tenure_unit_side",
+      "schema": "public",
+      "values": [
+        "offense",
+        "defense",
+        "special_teams"
       ]
     }
   },

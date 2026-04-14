@@ -26,3 +26,6 @@ as superseded.
   numbers
 - [0004 — NPC portraits: generic silhouette placeholder](./0004-npc-portraits.md)
   — one shared head-and-shoulders SVG for every NPC; defer real portrait system
+- [0005 — Remove the standalone Schemes page; surface scheme as emergent](./0005-schemes-page-removal.md)
+  — kill `/schemes`, add a Scheme Fingerprint panel to Coaches and a Scheme Fit
+  indicator to Roster
