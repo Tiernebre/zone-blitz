@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { TeamLogo } from "../../components/team-logo.tsx";
 
 interface Team {
   id: string;
@@ -42,10 +43,7 @@ function TeamCard({
       onClick={() => onSelect(team)}
       className="flex items-center gap-3 px-4 py-3 text-left h-auto w-full justify-start"
     >
-      <div
-        className="h-8 w-8 rounded-full shrink-0"
-        style={{ backgroundColor: team.primaryColor }}
-      />
+      <TeamLogo team={team} className="size-8 text-xs" decorative />
       <div className="min-w-0">
         <p className="text-sm font-medium text-card-foreground truncate">
           {team.city} {team.name}

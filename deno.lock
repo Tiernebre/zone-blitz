@@ -6,6 +6,11 @@
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "npm:@base-ui/react@^1.4.0": "1.4.0_@date-fns+tz@1.4.1_@types+react@19.2.14_date-fns@4.1.0_react@19.2.4_react-dom@19.2.4__react@19.2.4",
     "npm:@fontsource-variable/geist@^5.2.8": "5.2.8",
+    "npm:@fontsource/bebas-neue@^5.2.7": "5.2.7",
+    "npm:@fontsource/bungee@^5.2.7": "5.2.7",
+    "npm:@fontsource/rye@^5.2.7": "5.2.7",
+    "npm:@fontsource/staatliches@^5.2.8": "5.2.8",
+    "npm:@fontsource/unifrakturcook@^5.2.8": "5.2.8",
     "npm:@hono/zod-validator@0.4": "0.4.3_hono@4.12.12_zod@3.25.76",
     "npm:@playwright/test@^1.52.0": "1.59.1",
     "npm:@tailwindcss/vite@4": "4.2.2_vite@6.4.2",
@@ -848,6 +853,21 @@
     },
     "@fontsource-variable/geist@5.2.8": {
       "integrity": "sha512-cJ6m9e+8MQ5dCYJsLylfZrgBh6KkG4bOLckB35Tr9J/EqdkEM6QllH5PxqP1dhTvFup+HtMRPuz9xOjxXJggxw=="
+    },
+    "@fontsource/bebas-neue@5.2.7": {
+      "integrity": "sha512-DsmBrmq55d9BCU0mt4DT4RZDdH8vhWRKEUOfbuNB1EEjMuwbtFvM8N+3gIlkYSFbsb10P8Q19BV5OdpMu2h0fA=="
+    },
+    "@fontsource/bungee@5.2.7": {
+      "integrity": "sha512-pzUlTXEFdiDM5p0inlWRM+1ovS3vTWG6NplJ65EpfBwZNQmM6wNS6z22tml07+NWKK+e8/FPPupBVbzd0th54w=="
+    },
+    "@fontsource/rye@5.2.7": {
+      "integrity": "sha512-WJcc+SkIFMTuLNY6L1Y+WTsUhDanHyUe+ySvpKvgZkZW4xII52/FcG1h0djg1HJbqCRKHIhJEEDfBsKYxe7G5A=="
+    },
+    "@fontsource/staatliches@5.2.8": {
+      "integrity": "sha512-z52At6eCXmoQZKGSECzd6FqQSEmvWE5okTajgTaogjS2KP0fhgWCgd8KZzUQYi/phGE65u0M28AjhNdy1xbnbw=="
+    },
+    "@fontsource/unifrakturcook@5.2.8": {
+      "integrity": "sha512-CfSVmZWbkUO2XEgjhKWBgzoQbndmlt/idxcwqHfqsI8b9rja7sbgnGZ6H/Wd3vuu9xYQ/eOreKOPGlKCGdK3Ww=="
     },
     "@hono/node-server@1.19.14_hono@4.12.12": {
       "integrity": "sha512-GwtvgtXxnWsucXvbQXkRgqksiH2Qed37H9xHZocE5sA3N8O8O8/8FA3uclQXxXVzc9XBZuEOMK7+r02FmSpHtw==",
@@ -3933,6 +3953,11 @@
           "dependencies": [
             "npm:@base-ui/react@^1.4.0",
             "npm:@fontsource-variable/geist@^5.2.8",
+            "npm:@fontsource/bebas-neue@^5.2.7",
+            "npm:@fontsource/bungee@^5.2.7",
+            "npm:@fontsource/rye@^5.2.7",
+            "npm:@fontsource/staatliches@^5.2.8",
+            "npm:@fontsource/unifrakturcook@^5.2.8",
             "npm:@tailwindcss/vite@4",
             "npm:@tanstack/react-query@5",
             "npm:@tanstack/react-router@^1.168.18",

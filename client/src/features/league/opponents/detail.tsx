@@ -22,6 +22,7 @@ import type {
 import type { PlayerInjuryStatus } from "@zone-blitz/shared/types/player.ts";
 import { useActiveRoster } from "../../../hooks/use-active-roster.ts";
 import { useTeams } from "../../../hooks/use-teams.ts";
+import { TeamLogo } from "../../../components/team-logo.tsx";
 
 const groupLabels: Record<PlayerPositionGroup, string> = {
   offense: "Offense",
@@ -137,12 +138,21 @@ export function OpponentRoster() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
-        <h1
-          className="text-3xl font-bold tracking-tight"
-          data-testid="opponent-heading"
-        >
-          {team ? `${team.city} ${team.name}` : "Opposing Team"}
-        </h1>
+        <div className="flex items-center gap-4">
+          {team && (
+            <TeamLogo
+              team={team}
+              className="size-14 text-lg"
+              decorative
+            />
+          )}
+          <h1
+            className="text-3xl font-bold tracking-tight"
+            data-testid="opponent-heading"
+          >
+            {team ? `${team.city} ${team.name}` : "Opposing Team"}
+          </h1>
+        </div>
         <p className="max-w-2xl text-muted-foreground">
           Public record only — contracts and box scores. What your scouts think
           of this team lives in the scouting room.

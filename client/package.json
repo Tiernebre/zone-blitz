@@ -5,6 +5,11 @@
   "dependencies": {
     "@base-ui/react": "^1.4.0",
     "@fontsource-variable/geist": "^5.2.8",
+    "@fontsource/bebas-neue": "^5.2.7",
+    "@fontsource/bungee": "^5.2.7",
+    "@fontsource/rye": "^5.2.7",
+    "@fontsource/staatliches": "^5.2.8",
+    "@fontsource/unifrakturcook": "^5.2.8",
     "@tanstack/react-query": "^5",
     "@tanstack/react-router": "^1.168.18",
     "@tanstack/react-table": "^8.21.3",
