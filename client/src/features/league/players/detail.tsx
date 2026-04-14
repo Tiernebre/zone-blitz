@@ -3,7 +3,10 @@ import type { PlayerDetail as PlayerDetailData } from "@zone-blitz/shared";
 import type {
   ContractHistoryEntry,
   ContractTerminationReason,
+  PlayerAccoladeEntry,
+  PlayerAccoladeType,
   PlayerInjuryStatus,
+  PlayerSeasonStatRow,
   PlayerTransactionEntry,
   PlayerTransactionType,
 } from "@zone-blitz/shared/types/player.ts";
@@ -49,6 +52,35 @@ const transactionLabels: Record<PlayerTransactionType, string> = {
   extended: "Extended",
   franchise_tagged: "Franchise tagged",
 };
+
+const accoladeLabels: Record<PlayerAccoladeType, string> = {
+  pro_bowl: "Pro Bowl",
+  all_pro_first: "All-Pro (1st team)",
+  all_pro_second: "All-Pro (2nd team)",
+  championship: "Championship",
+  mvp: "MVP",
+  offensive_player_of_the_year: "Offensive Player of the Year",
+  defensive_player_of_the_year: "Defensive Player of the Year",
+  offensive_rookie_of_the_year: "Offensive Rookie of the Year",
+  defensive_rookie_of_the_year: "Defensive Rookie of the Year",
+  comeback_player_of_the_year: "Comeback Player of the Year",
+  statistical_milestone: "Milestone",
+  other: "Honor",
+};
+
+const numberFormatter = new Intl.NumberFormat("en-US");
+
+function formatStatValue(value: number | string): string {
+  if (typeof value === "number") return numberFormatter.format(value);
+  return value;
+}
+
+function toStatLabel(key: string): string {
+  return key
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
+}
 
 function injuryBadgeVariant(
   status: PlayerInjuryStatus,
@@ -119,7 +151,8 @@ export function PlayerDetail() {
       <Origin detail={detail} leagueId={leagueId} />
       <ContractSection detail={detail} leagueId={leagueId} />
       <TransactionsSection detail={detail} leagueId={leagueId} />
-      <PlaceholderSections />
+      <CareerLogSection detail={detail} leagueId={leagueId} />
+      <AccoladesSection detail={detail} />
     </div>
   );
 }
@@ -431,17 +464,150 @@ function TransactionRow(
   );
 }
 
-function PlaceholderSections() {
-  return (
-    <Card data-testid="player-detail-placeholder">
-      <CardHeader>
-        <CardTitle>More coming soon</CardTitle>
-      </CardHeader>
-      <CardContent className="text-sm text-muted-foreground">
-        <p>
-          Career log and accolades will appear here once the sim persists them.
+function CareerLogSection(
+  { detail, leagueId }: { detail: PlayerDetailData; leagueId: string },
+) {
+  const regular = detail.seasonStats.filter((row) => !row.playoffs);
+  const playoff = detail.seasonStats.filter((row) => row.playoffs);
+
+  if (regular.length === 0 && playoff.length === 0) {
+    return (
+      <Section title="Career log">
+        <p
+          className="text-sm text-muted-foreground"
+          data-testid="player-career-log-empty"
+        >
+          No box score data recorded yet.
         </p>
+      </Section>
+    );
+  }
+
+  const statKeys = new Set<string>();
+  for (const row of detail.seasonStats) {
+    for (const key of Object.keys(row.stats)) statKeys.add(key);
+  }
+  const statColumns = [...statKeys];
+
+  return (
+    <Section title="Career log">
+      <CareerLogTable
+        caption="Regular season"
+        rows={regular}
+        statColumns={statColumns}
+        leagueId={leagueId}
+        testId="player-career-log-regular"
+      />
+      {playoff.length > 0 && (
+        <CareerLogTable
+          caption="Playoffs"
+          rows={playoff}
+          statColumns={statColumns}
+          leagueId={leagueId}
+          testId="player-career-log-playoffs"
+        />
+      )}
+    </Section>
+  );
+}
+
+function CareerLogTable(
+  { caption, rows, statColumns, leagueId, testId }: {
+    caption: string;
+    rows: PlayerSeasonStatRow[];
+    statColumns: string[];
+    leagueId: string;
+    testId: string;
+  },
+) {
+  return (
+    <Card data-testid={testId}>
+      <CardHeader>
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {caption}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Year</TableHead>
+              <TableHead>Team</TableHead>
+              <TableHead>GP</TableHead>
+              <TableHead>GS</TableHead>
+              {statColumns.map((key) => (
+                <TableHead key={key}>{toStatLabel(key)}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-testid={`player-career-row-${row.id}`}
+              >
+                <TableCell>{row.seasonYear}</TableCell>
+                <TableCell>
+                  <Link
+                    to="/leagues/$leagueId/opponents/$teamId"
+                    params={{ leagueId, teamId: row.team.id }}
+                    className="underline-offset-2 hover:underline"
+                  >
+                    {row.team.abbreviation}
+                  </Link>
+                </TableCell>
+                <TableCell>{row.gamesPlayed}</TableCell>
+                <TableCell>{row.gamesStarted}</TableCell>
+                {statColumns.map((key) => (
+                  <TableCell key={key}>
+                    {key in row.stats ? formatStatValue(row.stats[key]) : "—"}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
+  );
+}
+
+function AccoladesSection({ detail }: { detail: PlayerDetailData }) {
+  const entries = detail.accolades;
+  if (entries.length === 0) {
+    return (
+      <Section title="Accolades">
+        <p
+          className="text-sm text-muted-foreground"
+          data-testid="player-accolades-empty"
+        >
+          No accolades yet.
+        </p>
+      </Section>
+    );
+  }
+  return (
+    <Section title="Accolades">
+      <Card data-testid="player-accolades">
+        <CardContent className="flex flex-col gap-2 pt-4">
+          {entries.map((entry) => <AccoladeRow key={entry.id} entry={entry} />)}
+        </CardContent>
+      </Card>
+    </Section>
+  );
+}
+
+function AccoladeRow({ entry }: { entry: PlayerAccoladeEntry }) {
+  return (
+    <div
+      className="flex items-center gap-3 text-sm"
+      data-testid={`player-accolade-${entry.id}`}
+    >
+      <Badge variant="secondary">{entry.seasonYear}</Badge>
+      <span className="font-medium">{accoladeLabels[entry.type]}</span>
+      {entry.detail && (
+        <span className="text-muted-foreground">· {entry.detail}</span>
+      )}
+    </div>
   );
 }

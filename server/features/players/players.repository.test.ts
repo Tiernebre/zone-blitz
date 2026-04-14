@@ -8,6 +8,8 @@ import { players } from "./player.schema.ts";
 import { contracts } from "./contract.schema.ts";
 import { contractHistory } from "./contract-history.schema.ts";
 import { playerTransactions } from "./player-transaction.schema.ts";
+import { playerSeasonStats } from "./player-career-log.schema.ts";
+import { playerAccolades } from "./player-accolades.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
 import { cities } from "../cities/city.schema.ts";
@@ -404,6 +406,113 @@ Deno.test({
       );
       assertEquals(detail?.transactions[1].type, "extended");
       assertEquals(detail?.transactions[1].counterpartyTeam, null);
+    } finally {
+      await cleanup(db, {
+        players: playersCreated,
+        teams: teamsCreated,
+        cities: citiesCreated,
+        states: statesCreated,
+        leagues: leaguesCreated,
+      });
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "playersRepository.getDetailById: returns the career log and accolade list",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const repo = createPlayersRepository({
+      db,
+      log: createTestLogger(),
+      now: () => new Date("2026-06-15T00:00:00Z"),
+    });
+    const playersCreated: string[] = [];
+    const leaguesCreated: string[] = [];
+    const citiesCreated: string[] = [];
+    const statesCreated: string[] = [];
+    const teamsCreated: string[] = [];
+
+    try {
+      const { league, team, city, state } = await setupFixtures(db);
+      leaguesCreated.push(league.id);
+      citiesCreated.push(city.id);
+      statesCreated.push(state.id);
+      teamsCreated.push(team.id);
+
+      const playerId = crypto.randomUUID();
+      await db.insert(players).values({
+        id: playerId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Sam",
+        lastName: "Stone",
+        position: "QB",
+        injuryStatus: "healthy",
+        heightInches: 74,
+        weightPounds: 225,
+        college: "State University",
+        hometown: "Dallas, TX",
+        birthDate: "2000-03-10",
+        draftYear: 2022,
+        draftRound: 1,
+        draftPick: 3,
+        draftingTeamId: team.id,
+      });
+      playersCreated.push(playerId);
+
+      await db.insert(playerSeasonStats).values([
+        {
+          playerId,
+          teamId: team.id,
+          seasonYear: 2024,
+          playoffs: false,
+          gamesPlayed: 17,
+          gamesStarted: 17,
+          stats: { passingYards: 4200, passingTouchdowns: 32 },
+        },
+        {
+          playerId,
+          teamId: team.id,
+          seasonYear: 2024,
+          playoffs: true,
+          gamesPlayed: 2,
+          gamesStarted: 2,
+          stats: { passingYards: 480, passingTouchdowns: 4 },
+        },
+      ]);
+
+      await db.insert(playerAccolades).values([
+        {
+          playerId,
+          seasonYear: 2024,
+          type: "pro_bowl",
+          detail: null,
+        },
+        {
+          playerId,
+          seasonYear: 2024,
+          type: "statistical_milestone",
+          detail: "4,000+ passing yards",
+        },
+      ]);
+
+      const detail = await repo.getDetailById(playerId);
+      assertEquals(detail?.seasonStats.length, 2);
+      assertEquals(detail?.seasonStats[0].gamesPlayed, 17);
+      assertEquals(
+        (detail?.seasonStats[0].stats as Record<string, number>)
+          .passingTouchdowns,
+        32,
+      );
+      assertEquals(detail?.seasonStats[1].playoffs, true);
+      assertEquals(detail?.accolades.length, 2);
+      assertEquals(detail?.accolades[0].type, "pro_bowl");
+      assertEquals(detail?.accolades[1].detail, "4,000+ passing yards");
     } finally {
       await cleanup(db, {
         players: playersCreated,

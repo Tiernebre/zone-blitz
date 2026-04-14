@@ -76,6 +76,45 @@ export interface PlayerOrigin {
   hometown: string | null;
 }
 
+export const PLAYER_ACCOLADE_TYPES = [
+  "pro_bowl",
+  "all_pro_first",
+  "all_pro_second",
+  "championship",
+  "mvp",
+  "offensive_player_of_the_year",
+  "defensive_player_of_the_year",
+  "offensive_rookie_of_the_year",
+  "defensive_rookie_of_the_year",
+  "comeback_player_of_the_year",
+  "statistical_milestone",
+  "other",
+] as const;
+
+export type PlayerAccoladeType = (typeof PLAYER_ACCOLADE_TYPES)[number];
+
+export interface PlayerAccoladeEntry {
+  id: string;
+  seasonYear: number;
+  type: PlayerAccoladeType;
+  detail: string | null;
+}
+
+export interface PlayerSeasonStatRow {
+  id: string;
+  seasonYear: number;
+  team: {
+    id: string;
+    name: string;
+    city: string;
+    abbreviation: string;
+  };
+  playoffs: boolean;
+  gamesPlayed: number;
+  gamesStarted: number;
+  stats: Record<string, number | string>;
+}
+
 export const PLAYER_TRANSACTION_TYPES = [
   "drafted",
   "signed",
@@ -127,6 +166,8 @@ export interface PlayerDetail {
   currentContract: CurrentContractSummary | null;
   contractHistory: ContractHistoryEntry[];
   transactions: PlayerTransactionEntry[];
+  seasonStats: PlayerSeasonStatRow[];
+  accolades: PlayerAccoladeEntry[];
 }
 
 export interface Contract {
