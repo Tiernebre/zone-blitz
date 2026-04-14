@@ -1,7 +1,13 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { afterEach, describe, expect, it } from "vitest";
-import { DataTable } from "./data-table.tsx";
+import { DataTable, SortableHeader } from "./data-table.tsx";
 
 type Row = { id: string; name: string; value: number };
 
@@ -11,8 +17,8 @@ const columns: ColumnDef<Row>[] = [
 ];
 
 const data: Row[] = [
-  { id: "a", name: "Alpha", value: 1 },
-  { id: "b", name: "Beta", value: 2 },
+  { id: "a", name: "Alpha", value: 2 },
+  { id: "b", name: "Beta", value: 1 },
 ];
 
 afterEach(cleanup);
@@ -45,5 +51,57 @@ describe("DataTable", () => {
     );
     const row = screen.getByTestId("row-a");
     expect(within(row).getByText("Alpha")).toBeDefined();
+  });
+
+  it("sorts rows ascending then descending when a SortableHeader is clicked", () => {
+    const sortableColumns: ColumnDef<Row>[] = [
+      {
+        accessorKey: "value",
+        header: ({ column }) => (
+          <SortableHeader column={column}>Value</SortableHeader>
+        ),
+      },
+      { accessorKey: "name", header: "Name" },
+    ];
+    render(
+      <DataTable
+        columns={sortableColumns}
+        data={data}
+        getRowTestId={(row) => `row-${row.id}`}
+      />,
+    );
+    const orderedIds = () =>
+      Array.from(document.querySelectorAll("tbody tr"))
+        .map((r) => r.getAttribute("data-testid"));
+
+    expect(orderedIds()).toEqual(["row-a", "row-b"]);
+    fireEvent.click(screen.getByRole("button", { name: /value/i }));
+    expect(orderedIds()).toEqual(["row-b", "row-a"]);
+    fireEvent.click(screen.getByRole("button", { name: /value/i }));
+    expect(orderedIds()).toEqual(["row-a", "row-b"]);
+  });
+
+  it("renders a toolbar and filters rows via the global filter", () => {
+    render(
+      <DataTable
+        columns={columns}
+        data={data}
+        getRowTestId={(row) => `row-${row.id}`}
+        toolbar={(table) => (
+          <input
+            aria-label="search"
+            value={(table.getState().globalFilter as string) ?? ""}
+            onChange={(e) => table.setGlobalFilter(e.target.value)}
+          />
+        )}
+      />,
+    );
+    expect(screen.getByTestId("row-a")).toBeDefined();
+    expect(screen.getByTestId("row-b")).toBeDefined();
+    fireEvent.change(screen.getByLabelText("search"), {
+      target: { value: "Alpha" },
+    });
+    expect(screen.getByTestId("row-a")).toBeDefined();
+    expect(screen.queryByTestId("row-b")).toBeNull();
   });
 });
