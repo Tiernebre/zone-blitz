@@ -130,19 +130,65 @@ function createService(overrides: {
 }
 
 Deno.test("league.service", async (t) => {
-  await t.step("getAll returns all leagues from repository", async () => {
-    const leagues: League[] = [
-      createMockLeague({ id: "1", name: "League One" }),
-      createMockLeague({ id: "2", name: "League Two" }),
-    ];
-    const service = createService({
-      leagueRepo: { getAll: () => Promise.resolve(leagues) },
-    });
+  await t.step(
+    "getAll returns leagues with their current season embedded",
+    async () => {
+      const leagues: League[] = [
+        createMockLeague({ id: "1", name: "League One" }),
+        createMockLeague({ id: "2", name: "League Two" }),
+      ];
+      const service = createService({
+        leagueRepo: { getAll: () => Promise.resolve(leagues) },
+        seasonService: {
+          getByLeagueId: (leagueId) =>
+            Promise.resolve([
+              {
+                id: `${leagueId}-s1`,
+                leagueId,
+                year: 1,
+                phase: "preseason" as const,
+                week: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
+              {
+                id: `${leagueId}-s2`,
+                leagueId,
+                year: 2,
+                phase: "regular_season" as const,
+                week: 5,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
+            ]),
+        },
+      });
 
-    const result = await service.getAll();
-    assertEquals(result.length, 2);
-    assertEquals(result[0].name, "League One");
-  });
+      const result = await service.getAll();
+      assertEquals(result.length, 2);
+      assertEquals(result[0].name, "League One");
+      assertEquals(result[0].currentSeason, {
+        year: 2,
+        phase: "regular_season",
+        week: 5,
+      });
+    },
+  );
+
+  await t.step(
+    "getAll returns currentSeason null when a league has no seasons",
+    async () => {
+      const service = createService({
+        leagueRepo: {
+          getAll: () => Promise.resolve([createMockLeague({ id: "1" })]),
+        },
+        seasonService: { getByLeagueId: () => Promise.resolve([]) },
+      });
+
+      const result = await service.getAll();
+      assertEquals(result[0].currentSeason, null);
+    },
+  );
 
   await t.step("getById returns league when found", async () => {
     const league = createMockLeague({ id: "1", name: "Found League" });

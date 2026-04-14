@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { createLeagueRouter } from "./league.router.ts";
-import type { League } from "@zone-blitz/shared";
+import type { League, LeagueListItem } from "@zone-blitz/shared";
 import type { LeagueService } from "./league.service.interface.ts";
 
 function createMockLeague(overrides: Partial<League> = {}): League {
@@ -32,10 +32,16 @@ function createMockLeagueService(
 }
 
 Deno.test("league.router", async (t) => {
-  await t.step("GET / returns all leagues", async () => {
-    const leagues: League[] = [
-      createMockLeague({ id: "1", name: "League One" }),
-      createMockLeague({ id: "2", name: "League Two" }),
+  await t.step("GET / returns all leagues with current season", async () => {
+    const leagues: LeagueListItem[] = [
+      {
+        ...createMockLeague({ id: "1", name: "League One" }),
+        currentSeason: { year: 1, phase: "preseason", week: 1 },
+      },
+      {
+        ...createMockLeague({ id: "2", name: "League Two" }),
+        currentSeason: null,
+      },
     ];
     const router = createLeagueRouter(
       createMockLeagueService({ getAll: () => Promise.resolve(leagues) }),
@@ -47,7 +53,12 @@ Deno.test("league.router", async (t) => {
     const body = await res.json();
     assertEquals(body.length, 2);
     assertEquals(body[0].name, "League One");
-    assertEquals(body[1].name, "League Two");
+    assertEquals(body[0].currentSeason, {
+      year: 1,
+      phase: "preseason",
+      week: 1,
+    });
+    assertEquals(body[1].currentSeason, null);
   });
 
   await t.step("GET / returns empty array when no leagues", async () => {

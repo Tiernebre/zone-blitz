@@ -20,7 +20,23 @@ export function createLeagueService(deps: {
   return {
     async getAll() {
       log.debug("fetching all leagues");
-      return await deps.leagueRepo.getAll();
+      const leagues = await deps.leagueRepo.getAll();
+      return await Promise.all(
+        leagues.map(async (league) => {
+          const seasons = await deps.seasonService.getByLeagueId(league.id);
+          const current = seasons.reduce<typeof seasons[number] | undefined>(
+            (latest, season) =>
+              !latest || season.year > latest.year ? season : latest,
+            undefined,
+          );
+          return {
+            ...league,
+            currentSeason: current
+              ? { year: current.year, phase: current.phase, week: current.week }
+              : null,
+          };
+        }),
+      );
     },
 
     async getById(id) {
