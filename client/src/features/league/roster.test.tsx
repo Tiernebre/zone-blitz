@@ -334,6 +334,42 @@ describe("Roster — active roster tab (default)", () => {
       "roster-row-p3",
     ]);
   });
+
+  it("renders an Actions column header", () => {
+    renderRoster();
+    expect(screen.getByText("Actions")).toBeDefined();
+  });
+
+  it("renders disabled Release, Trade, and Restructure buttons for each player", () => {
+    renderRoster();
+    const row = screen.getByTestId("roster-row-p1");
+    const releaseBtn = within(row).getByRole("button", { name: /release/i });
+    const tradeBtn = within(row).getByRole("button", { name: /trade/i });
+    const restructureBtn = within(row).getByRole("button", {
+      name: /restructure/i,
+    });
+
+    expect(releaseBtn).toBeDefined();
+    expect(tradeBtn).toBeDefined();
+    expect(restructureBtn).toBeDefined();
+
+    expect(releaseBtn.hasAttribute("disabled")).toBe(true);
+    expect(tradeBtn.hasAttribute("disabled")).toBe(true);
+    expect(restructureBtn.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("renders action buttons for every player row", () => {
+    renderRoster();
+    for (const id of ["p1", "p2", "p3", "p4"]) {
+      const row = screen.getByTestId(`roster-row-${id}`);
+      expect(within(row).getByRole("button", { name: /release/i }))
+        .toBeDefined();
+      expect(within(row).getByRole("button", { name: /trade/i }))
+        .toBeDefined();
+      expect(within(row).getByRole("button", { name: /restructure/i }))
+        .toBeDefined();
+    }
+  });
 });
 
 describe("Roster — depth chart tab", () => {

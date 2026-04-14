@@ -18,11 +18,6 @@ entry when it's resolved or superseded.
   design before a large player-creation pass ships. See
   `docs/product/decisions/0006-positionless-players.md` "Note for the future —
   player generation toward archetypes."
-- **2026-04-14 — Roster page release/trade/restructure flows.** The Active
-  Roster view (decision 0001) lists release, trade, and restructure as
-  per-player actions. Initial roster page PR ships these as disabled "coming
-  soon" buttons. Build out each flow as its own feature once product priorities
-  surface them.
 - **2026-04-14 — Coach sim depth-chart publisher.** Decision 0001 requires the
   coach sim to publish a stable depth-chart artifact the roster page reads.
   Initial roster page stubs the source (empty depth chart until the sim writes

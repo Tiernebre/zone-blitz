@@ -146,6 +146,24 @@ const rosterColumns: ColumnDef<RosterPlayer>[] = [
       </Badge>
     ),
   },
+  {
+    id: "actions",
+    header: () => <span>Actions</span>,
+    cell: () => (
+      <div className="flex gap-1">
+        <Button variant="ghost" size="sm" disabled>
+          Release
+        </Button>
+        <Button variant="ghost" size="sm" disabled>
+          Trade
+        </Button>
+        <Button variant="ghost" size="sm" disabled>
+          Restructure
+        </Button>
+      </div>
+    ),
+    enableSorting: false,
+  },
 ];
 
 export function Roster() {
