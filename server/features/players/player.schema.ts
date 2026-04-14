@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  date,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
 import { seasons } from "../season/season.schema.ts";
@@ -11,6 +18,10 @@ export const players = pgTable("players", {
   teamId: uuid("team_id").references(() => teams.id, { onDelete: "set null" }),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
+  heightInches: integer("height_inches").notNull(),
+  weightPounds: integer("weight_pounds").notNull(),
+  college: text("college"),
+  birthDate: date("birth_date").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -22,6 +33,10 @@ export const draftProspects = pgTable("draft_prospects", {
     .references(() => seasons.id, { onDelete: "cascade" }),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
+  heightInches: integer("height_inches").notNull(),
+  weightPounds: integer("weight_pounds").notNull(),
+  college: text("college"),
+  birthDate: date("birth_date").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

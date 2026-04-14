@@ -1,6 +1,10 @@
 import type pino from "pino";
 import type { Database } from "../../db/connection.ts";
 import { draftProspects, players } from "./player.schema.ts";
+import {
+  draftProspectAttributes,
+  playerAttributes,
+} from "./attributes.schema.ts";
 import { contracts } from "./contract.schema.ts";
 import type { PlayersGenerator } from "./players.generator.interface.ts";
 import type { PlayersService } from "./players.service.interface.ts";
@@ -31,12 +35,29 @@ export function createPlayersService(deps: {
       if (generated.players.length > 0) {
         insertedPlayers = await deps.db
           .insert(players)
-          .values(generated.players)
+          .values(generated.players.map((entry) => entry.player))
           .returning({ id: players.id, teamId: players.teamId });
+
+        const attributeRows = insertedPlayers.map((row, index) => ({
+          playerId: row.id,
+          ...generated.players[index].attributes,
+        }));
+        await deps.db.insert(playerAttributes).values(attributeRows);
       }
 
       if (generated.draftProspects.length > 0) {
-        await deps.db.insert(draftProspects).values(generated.draftProspects);
+        const insertedProspects = await deps.db
+          .insert(draftProspects)
+          .values(generated.draftProspects.map((entry) => entry.prospect))
+          .returning({ id: draftProspects.id });
+
+        const prospectAttributeRows = insertedProspects.map((row, index) => ({
+          draftProspectId: row.id,
+          ...generated.draftProspects[index].attributes,
+        }));
+        await deps.db
+          .insert(draftProspectAttributes)
+          .values(prospectAttributeRows);
       }
 
       log.info(

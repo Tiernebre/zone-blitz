@@ -64,6 +64,13 @@
       "when": 1776116477104,
       "tag": "0008_little_taskmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1776129229529,
+      "tag": "0009_windy_chamber",
+      "breakpoints": true
     }
   ]
 }

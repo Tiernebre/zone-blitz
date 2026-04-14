@@ -4,6 +4,10 @@ export interface Player {
   teamId: string | null;
   firstName: string;
   lastName: string;
+  heightInches: number;
+  weightPounds: number;
+  college: string | null;
+  birthDate: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +31,10 @@ export interface DraftProspect {
   seasonId: string;
   firstName: string;
   lastName: string;
+  heightInches: number;
+  weightPounds: number;
+  college: string | null;
+  birthDate: string;
   createdAt: Date;
   updatedAt: Date;
 }

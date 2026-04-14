@@ -14,6 +14,10 @@ export { frontOfficeStaff } from "../features/front-office/front-office.schema.t
 export { coaches } from "../features/coaches/coach.schema.ts";
 export { scouts } from "../features/scouts/scout.schema.ts";
 export { draftProspects, players } from "../features/players/player.schema.ts";
+export {
+  draftProspectAttributes,
+  playerAttributes,
+} from "../features/players/attributes.schema.ts";
 export { contracts } from "../features/players/contract.schema.ts";
 export { games } from "../features/schedule/game.schema.ts";
 export {
