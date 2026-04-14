@@ -29,3 +29,6 @@ as superseded.
 - [0005 — Remove the standalone Schemes page; surface scheme as emergent](./0005-schemes-page-removal.md)
   — kill `/schemes`, add a Scheme Fingerprint panel to Coaches and a Scheme Fit
   indicator to Roster
+- [0007 — Coaching scheme implementation: tendency vectors on coordinators](./0007-coaching-scheme-implementation.md)
+  — per-coordinator tendency spectrums in `coach_tendencies`; fingerprint and
+  fit computed on read; OC + DC first

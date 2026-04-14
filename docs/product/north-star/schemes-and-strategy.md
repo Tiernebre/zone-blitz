@@ -1543,3 +1543,10 @@ and both are roster decisions.
 
 This creates one of the game's deepest strategic questions: do you hire coaches
 who fit your current players, or draft players who fit the coaches you want?
+
+---
+
+## Related decisions
+
+- [0005 — Remove the standalone Schemes page; surface scheme as emergent](../decisions/0005-schemes-page-removal.md)
+- [0007 — Coaching scheme implementation: tendency vectors on coordinators](../decisions/0007-coaching-scheme-implementation.md)
