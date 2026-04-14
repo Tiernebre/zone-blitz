@@ -1,4 +1,4 @@
-export interface FrontOfficeStaff {
+export interface Scout {
   id: string;
   leagueId: string;
   teamId: string;

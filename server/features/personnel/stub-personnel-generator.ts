@@ -128,7 +128,6 @@ const LAST_NAMES = [
   "Murphy",
 ];
 
-const SCOUTS_PER_TEAM = 3;
 const FRONT_OFFICE_PER_TEAM = 2;
 
 function randomName(index: number) {
@@ -143,19 +142,6 @@ export function createStubPersonnelGenerator(): PersonnelGenerator {
     generate(input: PersonnelGeneratorInput): GeneratedPersonnel {
       let nameIndex = 0;
 
-      const scouts = [];
-      for (const teamId of input.teamIds) {
-        for (let i = 0; i < SCOUTS_PER_TEAM; i++) {
-          const { firstName, lastName } = randomName(nameIndex++);
-          scouts.push({
-            leagueId: input.leagueId,
-            teamId,
-            firstName,
-            lastName,
-          });
-        }
-      }
-
       const frontOfficeStaff = [];
       for (const teamId of input.teamIds) {
         for (let i = 0; i < FRONT_OFFICE_PER_TEAM; i++) {
@@ -169,7 +155,7 @@ export function createStubPersonnelGenerator(): PersonnelGenerator {
         }
       }
 
-      return { scouts, frontOfficeStaff };
+      return { frontOfficeStaff };
     },
   };
 }

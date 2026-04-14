@@ -2,7 +2,7 @@ import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
 
-export const frontOfficeStaff = pgTable("front_office_staff", {
+export const scouts = pgTable("scouts", {
   id: uuid("id").defaultRandom().primaryKey(),
   leagueId: uuid("league_id")
     .notNull()

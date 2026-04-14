@@ -7,17 +7,6 @@ const INPUT = {
   teamIds: TEAM_IDS,
 };
 
-Deno.test("generates scouts for each team", () => {
-  const generator = createStubPersonnelGenerator();
-  const result = generator.generate(INPUT);
-
-  assertEquals(result.scouts.length, TEAM_IDS.length * 3);
-  for (const teamId of TEAM_IDS) {
-    const teamScouts = result.scouts.filter((s) => s.teamId === teamId);
-    assertEquals(teamScouts.length, 3);
-  }
-});
-
 Deno.test("generates front office staff for each team", () => {
   const generator = createStubPersonnelGenerator();
   const result = generator.generate(INPUT);
@@ -35,9 +24,7 @@ Deno.test("all generated personnel have non-empty names and correct leagueId", (
   const generator = createStubPersonnelGenerator();
   const result = generator.generate(INPUT);
 
-  const allPeople = [...result.scouts, ...result.frontOfficeStaff];
-
-  for (const person of allPeople) {
+  for (const person of result.frontOfficeStaff) {
     assertEquals(person.firstName.length > 0, true);
     assertEquals(person.lastName.length > 0, true);
     assertEquals(person.leagueId, INPUT.leagueId);
