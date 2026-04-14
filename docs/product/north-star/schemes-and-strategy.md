@@ -835,6 +835,180 @@ construction:
 
 ---
 
+## Personnel & Play Calls
+
+Archetypes describe who a player is. Personnel groupings and positional labels
+describe how the coach deploys those players on a given snap. A coach's
+preferences here — which groupings he lives in, how he uses each label, how
+often he motions, how he matches up against defensive personnel — are part of
+his scheme fingerprint, and they shape what your roster actually needs beyond
+raw archetype fit.
+
+### Offensive Personnel Groupings
+
+Personnel groupings are labeled with a two-digit number. The first digit is the
+number of running backs on the field, the second is the number of tight ends.
+Everyone else (minus the five offensive linemen and the quarterback) is a
+receiver. So 11 personnel = 1 RB + 1 TE + 3 WR. 21 personnel = 2 RB + 1 TE + 2
+WR. The grouping doesn't say anything about formation — an offense can line up
+11 personnel in shotgun trips, empty, under-center play-action, or ten other
+looks — but it does tell the defense (and your roster) what skill positions must
+be on the field.
+
+**11 personnel (1 RB / 1 TE / 3 WR):** The modern NFL's default grouping. Most
+teams spend 50-70% of their offensive snaps here. Demands a tight end who can
+both block and threaten as a receiver (a one-dimensional TE tips the play) and a
+legitimate every-down slot receiver — not a gadget piece, a starter. An offense
+that lives in 11 personnel but has a blocking-only Y has a problem: defenses
+will go nickel and dare you to run.
+
+**12 personnel (1 RB / 2 TE / 2 WR):** The play-action grouping. Two tight ends
+— typically one inline Y blocker and one move F/H-back — creates a heavy look
+that defenses have to honor against the run, which is what makes the play-action
+pass lethal. The real value of 12 personnel is that it forces the defense to
+make a choice: stay in base and you're outmatched by a 3x1 spread formation; go
+nickel and you're light against the run. Requires carrying two credible TEs on
+the roster, which is a real investment.
+
+**13 personnel (1 RB / 3 TE / 1 WR):** Heavy/goal-line grouping. Only works if
+you've drafted and developed TE depth well past where most teams invest. The
+payoff: near-unsolvable short-yardage looks, strong play-action in the red zone,
+and formation flexibility where any of the three TEs can flex out. The cost: a
+roster spot philosophy most teams can't afford.
+
+**21 personnel (2 RB / 1 TE / 2 WR):** Classic power/lead grouping. Requires a
+fullback — a roster spot most teams won't spend on. A coach who uses 21
+personnel meaningfully is making a philosophical statement about how he wants to
+play offense: downhill, physical, play-action off run action. In a spread
+league, 21 personnel is a throwback — but one that can punish a defense built to
+defend spread looks.
+
+**22 personnel (2 RB / 2 TE / 1 WR):** Jumbo / short-yardage identity. Eight
+blockers plus the QB. Used primarily in short yardage, goal line, and
+four-minute offense. A coach with a strong 22 package has a clear identity when
+games get physical — and a real answer on 3rd-and-1 that doesn't depend on his
+QB's legs.
+
+**10 personnel (1 RB / 0 TE / 4 WR):** Spread grouping. Four wide receivers
+forces the defense into dime or a light nickel, which can open up running lanes
+for a creative OC willing to run from spread. Requires WR depth and a back who
+can block in pass protection without tight end help.
+
+**Empty (0 RB / any TE count, 5 receivers wide):** Not technically a personnel
+package — it's a formation alignment out of existing personnel — but coaches
+treat empty tendencies as a distinct fingerprint. Heavy empty usage forces the
+QB to handle protection calls alone and commits to throwing the ball.
+
+#### Personnel lean as a coaching fingerprint
+
+A coach's distribution across these groupings is a hidden tendency. Two OCs both
+called "modern" might split very differently:
+
+```
+OC A — Spread-leaning
+  11 personnel: 72%     12 personnel: 14%     21/22: 2%
+  10/empty:     12%
+
+OC B — Multiple pro-style
+  11 personnel: 48%     12 personnel: 31%     21 personnel: 11%
+  13 personnel: 6%      10/empty:      4%
+```
+
+Same league, same era, completely different roster requirements. OC A can get by
+with one TE and needs four roster-worthy receivers. OC B needs two starting TEs,
+a fullback or H-back, and can play three-receiver football with less depth
+behind his top two.
+
+#### Personnel vs. defensive personnel
+
+Personnel is a matchup game. When the offense substitutes, the defense
+substitutes back. This creates leverage points a good OC exploits:
+
+- **No-huddle locks the defense in.** If you snap the ball before the defense
+  can substitute, whatever package they were in is what they're stuck with. A
+  spread offense that goes no-huddle after a 12-personnel run is a classic way
+  to catch base defense on the field against a 3x1 passing look.
+- **12 personnel forces a defensive choice.** Stay in base (4 DB, 3 LB) and the
+  offense has a physical run advantage with two TEs; go nickel and the offense
+  spreads out and has a body-count advantage in the run game with a DB on the
+  field instead of an LB. Either way, the OC wins something.
+- **Heavy personnel against sub-packages is a gift.** If the defense stays in
+  nickel against 22 personnel out of ego or scheme rigidity, the offense runs
+  the ball at a light box all day. An adaptable DC will match personnel; a
+  stubborn one won't, and the offense collects.
+- **Light personnel against base is the mirror image.** 10 personnel against a
+  base defense that refuses to sub is a coverage advantage the offense should
+  attack immediately, and a spread-capable OC will.
+
+### Offensive Positional Labels
+
+Personnel tells you how many of each position group are on the field. Labels
+tell you what role each of them is playing on this specific snap. Labels are
+positional responsibilities, not player identities — motion and formation shifts
+rotate them, and some offenses flip labels by strength while others keep them
+fixed by side.
+
+**X (split end / boundary receiver):** On the line of scrimmage, typically to
+the short side of the field (boundary). Rarely motions because he's covering the
+LOS on his side. Usually the offense's alpha — the guy who wins contested
+catches in single coverage on the backside of a 3x1 formation. Maps to the **X
+receiver archetype** from the archetypes section.
+
+**Z (flanker / field receiver):** Off the line of scrimmage (because the Y is on
+the LOS on his side), typically to the wide side of the field. Motion- eligible
+— a Z who doesn't motion is a waste of the position, because the whole point of
+Z is using pre-snap movement to diagnose coverage and create leverage. Maps to
+the **Z receiver archetype**.
+
+**Y (inline tight end):** On the line of scrimmage, attached to the formation.
+The Y's skill set drives his usage: a blocking-Y sets the edge in the run game
+and chips pass rushers; a receiving-Y is the seam-stretching, coverage- warping
+mismatch the archetypes section describes. Most offenses need a credible Y who
+can do both at a baseline level — a pure blocking Y in 11 personnel tips the
+play 60% of the time.
+
+**F / H (move tight end / H-back):** Off the line of scrimmage. Aligns anywhere
+— offset in the backfield, in the slot, wing off the tackle, split out wide. The
+F/H is the scheme's chess piece: motion him, and his alignment post-motion tells
+you what the offense wants. Maps to the **H-back / move TE archetype**. In 12
+personnel, the F is usually the more athletic of the two TEs; in 21 personnel,
+the F role is often filled by a fullback or a hybrid.
+
+**Slot (interior receiver in 3+ WR sets):** In 11 personnel, the slot is the
+third receiver, aligned between the tackle and the outside WR. In 10 personnel,
+there are two slots. Slot is a distinct role with its own archetype (the slot
+receiver archetype) — not just "the third-best WR." A slot works in traffic,
+runs option routes, and catches in the high-contact middle of the field. Teams
+that use a boundary corner's backup at slot give up a structural matchup on 60%+
+of snaps.
+
+**How personnel dictates labels on the field:**
+
+```
+11 personnel:  X  +  Z  +  Slot  +  Y  +  RB
+12 personnel:  X  +  Z  +  Y  +  F (H-back)  +  RB
+13 personnel:  X  +  Y1  +  Y2  +  F  +  RB
+21 personnel:  X  +  Z  +  Y  +  FB  +  RB
+10 personnel:  X  +  Z  +  Slot1  +  Slot2  +  RB
+```
+
+Motion rotates these labels. An offense that motions the Z into the slot
+pre-snap is functionally playing a different formation than where it lined up,
+and the label that matters for the play is the post-motion alignment. A coach's
+motion rate is itself a tendency — high-motion offenses (Shanahan- tree,
+McVay-tree, McDaniel) use motion diagnostically on 60%+ of snaps; low-motion
+offenses run the same formation static and win with execution.
+
+**Label rules vs. flipping:** Some offenses assign labels by role and flip them
+based on formation strength — X is always the backside boundary receiver, so he
+switches sides when the formation flips. Other offenses keep labels fixed by
+player — X is always #11, lined up wherever he lines up. This is a scheme detail
+that affects how versatile your receivers need to be. A fixed-label offense can
+carry a one-sided receiver; a strength-flipping offense needs receivers who can
+execute the same route tree from either side.
+
+---
+
 ## Scheme Fit
 
 Scheme fit is not a separate rating. It's **emergent from the interaction
