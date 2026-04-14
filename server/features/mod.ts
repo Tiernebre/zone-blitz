@@ -28,11 +28,11 @@ import {
   createPlayersService,
 } from "./players/mod.ts";
 import {
+  createCoachesGenerator,
   createCoachesRepository,
   createCoachesRouter,
   createCoachesService,
   createCoachTendenciesRepository,
-  createStubCoachesGenerator,
 } from "./coaches/mod.ts";
 import {
   createRosterRepository,
@@ -106,7 +106,7 @@ export function createFeatureRouters(
     log,
   });
   const coachesService = createCoachesService({
-    generator: createStubCoachesGenerator(),
+    generator: createCoachesGenerator(),
     repo: coachesRepo,
     tendenciesRepo: coachTendenciesRepo,
     db,

@@ -1,4 +1,4 @@
-export { createStubCoachesGenerator } from "./stub-coaches-generator.ts";
+export { createCoachesGenerator } from "./coaches-generator.ts";
 export { createCoachesRepository } from "./coaches.repository.ts";
 export { createCoachTendenciesRepository } from "./coach-tendencies.repository.ts";
 export { createCoachesService } from "./coaches.service.ts";
