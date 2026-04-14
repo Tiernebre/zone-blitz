@@ -5,6 +5,7 @@ import type {
   PersonnelGenerator,
 } from "./personnel.generator.interface.ts";
 import type { PlayersService } from "../players/players.service.interface.ts";
+import type { CoachesService } from "../coaches/coaches.service.interface.ts";
 
 function createTestLogger() {
   return {
@@ -18,7 +19,6 @@ function createTestLogger() {
 
 function createEmptyPersonnel(): GeneratedPersonnel {
   return {
-    coaches: [],
     scouts: [],
     frontOfficeStaff: [],
   };
@@ -43,6 +43,15 @@ function createMockPlayersService(
         draftProspectCount: 0,
         contractCount: 0,
       }),
+    ...overrides,
+  };
+}
+
+function createMockCoachesService(
+  overrides: Partial<CoachesService> = {},
+): CoachesService {
+  return {
+    generateAndPersist: () => Promise.resolve({ coachCount: 0 }),
     ...overrides,
   };
 }
@@ -72,14 +81,11 @@ function createMockDb(): {
 
 Deno.test("personnel.service", async (t) => {
   await t.step(
-    "generateAndPersist delegates to players service and inserts coaches/scouts/front office",
+    "generateAndPersist delegates to players and coaches services and inserts scouts/front office",
     async () => {
       const { db, calls } = createMockDb();
       const generator = createMockGenerator({
         generate: () => ({
-          coaches: [
-            { leagueId: "l1", teamId: "t1", firstName: "E", lastName: "F" },
-          ],
           scouts: [
             { leagueId: "l1", teamId: "t1", firstName: "G", lastName: "H" },
           ],
@@ -109,9 +115,20 @@ Deno.test("personnel.service", async (t) => {
         },
       });
 
+      let coachesServiceInput:
+        | { leagueId: string; teamIds: string[] }
+        | undefined;
+      const coachesService = createMockCoachesService({
+        generateAndPersist: (input) => {
+          coachesServiceInput = input;
+          return Promise.resolve({ coachCount: 5 });
+        },
+      });
+
       const service = createPersonnelService({
         generator,
         playersService,
+        coachesService,
         db,
         log: createTestLogger(),
       });
@@ -125,7 +142,7 @@ Deno.test("personnel.service", async (t) => {
       });
 
       assertEquals(result.playerCount, 2);
-      assertEquals(result.coachCount, 1);
+      assertEquals(result.coachCount, 5);
       assertEquals(result.scoutCount, 1);
       assertEquals(result.frontOfficeCount, 1);
       assertEquals(result.draftProspectCount, 1);
@@ -137,8 +154,11 @@ Deno.test("personnel.service", async (t) => {
       assertEquals(playersServiceInput?.rosterSize, 2);
       assertEquals(playersServiceInput?.salaryCap, 255_000_000);
 
-      // 3 insert calls: coaches, scouts, frontOffice
-      assertEquals(calls.length, 3);
+      assertEquals(coachesServiceInput?.leagueId, "l1");
+      assertEquals(coachesServiceInput?.teamIds, ["t1"]);
+
+      // 2 insert calls: scouts, frontOffice
+      assertEquals(calls.length, 2);
     },
   );
 
@@ -148,10 +168,12 @@ Deno.test("personnel.service", async (t) => {
       const { db, calls } = createMockDb();
       const generator = createMockGenerator();
       const playersService = createMockPlayersService();
+      const coachesService = createMockCoachesService();
 
       const service = createPersonnelService({
         generator,
         playersService,
+        coachesService,
         db,
         log: createTestLogger(),
       });
