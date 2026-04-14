@@ -59,6 +59,7 @@ export interface ScoutEvaluation {
   prospectName: string;
   draftYear: number;
   positionGroup: string;
+  schemeArchetype: string | null;
   roundTier: ScoutRoundTier;
   grade: string;
   evaluationLevel: ScoutEvaluationLevel;

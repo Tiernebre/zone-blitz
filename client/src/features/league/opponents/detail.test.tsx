@@ -68,6 +68,7 @@ const roster = {
       contractYearsRemaining: 3,
       injuryStatus: "healthy",
       schemeFit: "fits",
+      schemeArchetype: null,
     },
     {
       id: "p2",
@@ -80,6 +81,7 @@ const roster = {
       contractYearsRemaining: 4,
       injuryStatus: "out",
       schemeFit: null,
+      schemeArchetype: null,
     },
     {
       id: "p3",
@@ -92,6 +94,7 @@ const roster = {
       contractYearsRemaining: 2,
       injuryStatus: "questionable",
       schemeFit: "miscast",
+      schemeArchetype: null,
     },
   ],
   positionGroups: [

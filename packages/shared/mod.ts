@@ -42,6 +42,13 @@ export type {
 } from "./types/scheme-fingerprint.ts";
 export type { SchemeFitLabel } from "./types/scheme-fit.ts";
 export { SCHEME_FIT_LABELS } from "./types/scheme-fit.ts";
+export type { SchemeArchetype, SchemeLensResult } from "./types/scheme-lens.ts";
+export {
+  DEFENSIVE_BUCKETS,
+  OFFENSIVE_BUCKETS,
+  SCHEME_ARCHETYPES,
+  SPECIALIST_BUCKETS,
+} from "./types/scheme-lens.ts";
 export type {
   Scout,
   ScoutCareerStop,

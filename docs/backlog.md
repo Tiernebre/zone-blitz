@@ -9,16 +9,6 @@ entry when it's resolved or superseded.
 
 ## Open
 
-- **2026-04-14 — Scheme lens on scouting / FA / draft surfaces.** ADR 0006
-  requires scout reports, free-agent shortlists, and draft boards to surface
-  players as archetypes-in-role ("slot WR," "3-tech," "box safety") when
-  projected through the hired coach's fingerprint, and `null` / "not a fit" when
-  the player has no role in that scheme. Today those surfaces still read the
-  neutral bucket only. Needs a
-  `schemeLens(attributes, fingerprint) →
-  archetype | null` mapping — richer
-  than the qualitative Scheme Fit label shipped in #148 — plus consumer wiring
-  in the scouts, FA, and draft features.
 - **2026-04-14 — Archetype-aware player generation.** Decision 0006
   (positionless players) depends on the player generator producing
   archetype-shaped attribute profiles — "gun-slinger QB," "zone-blocking guard,"
