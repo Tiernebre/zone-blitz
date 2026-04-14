@@ -40,10 +40,10 @@ import {
   createRosterService,
 } from "./roster/mod.ts";
 import {
+  createScoutsGenerator,
   createScoutsRepository,
   createScoutsRouter,
   createScoutsService,
-  createStubScoutsGenerator,
 } from "./scouts/mod.ts";
 import {
   createFrontOfficeService,
@@ -113,7 +113,7 @@ export function createFeatureRouters(
     log,
   });
   const scoutsService = createScoutsService({
-    generator: createStubScoutsGenerator(),
+    generator: createScoutsGenerator(),
     repo: scoutsRepo,
     db,
     log,
