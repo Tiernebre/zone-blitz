@@ -1,3 +1,10 @@
+-- The new player/draft-prospect shape adds NOT NULL identity columns
+-- (height_inches, weight_pounds, birth_date) that the prior stub rows
+-- did not carry. Wipe existing records so the ALTER TABLE statements
+-- below can enforce NOT NULL safely; leagues regenerate their rosters
+-- and draft classes under the new shape on next seed.
+DELETE FROM "players";--> statement-breakpoint
+DELETE FROM "draft_prospects";--> statement-breakpoint
 CREATE TABLE "draft_prospect_attributes" (
 	"draft_prospect_id" uuid PRIMARY KEY NOT NULL,
 	"speed" smallint NOT NULL,
