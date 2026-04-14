@@ -3,7 +3,8 @@ export type { HealthStatus } from "./types/health.ts";
 export type { League, NewLeague } from "./types/league.ts";
 export type { Team } from "./types/team.ts";
 export type { NewSeason, Season, SeasonPhase } from "./types/season.ts";
-export type { Coach, FrontOfficeStaff, Scout } from "./types/personnel.ts";
+export type { FrontOfficeStaff, Scout } from "./types/personnel.ts";
+export type { Coach } from "./types/coach.ts";
 export type { Contract, DraftProspect, Player } from "./types/player.ts";
 export type { Game } from "./types/game.ts";
 

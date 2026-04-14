@@ -28,6 +28,10 @@ import {
   createStubPlayersGenerator,
 } from "./players/mod.ts";
 import {
+  createCoachesService,
+  createStubCoachesGenerator,
+} from "./coaches/mod.ts";
+import {
   createScheduleService,
   createStubScheduleGenerator,
 } from "./schedule/mod.ts";
@@ -76,9 +80,15 @@ export function createFeatureRouters(
     db,
     log,
   });
+  const coachesService = createCoachesService({
+    generator: createStubCoachesGenerator(),
+    db,
+    log,
+  });
   const personnelService = createPersonnelService({
     generator: createStubPersonnelGenerator(),
     playersService,
+    coachesService,
     db,
     log,
   });
