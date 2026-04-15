@@ -1,0 +1,273 @@
+{
+  "generated_at": "2026-04-15T18:11:07Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Per-team-season position stat concentration. For each metric, players are ranked within their position group by the counting stat (carries, targets, pass attempts, tackles, or defensive snaps), and the share going to top-1, top-3, and top-5 players is computed. Mid-season QB changes are handled naturally: weekly stats are summed to season totals per player, so a starter benched in week 8 accumulates only 8 weeks of attempts, and the replacement accumulates the rest. The QB attempt share top-1 captures the starter's dominance (or lack thereof in a committee/injury season). Injured starters are handled the same way: a player who misses games accumulates fewer counting stats, so their share drops and the backup's share rises. This correctly reflects real NFL concentration variance — healthy teams have higher top-1 concentration, injury-plagued teams have more diffuse distributions. CB snap share uses load_snap_counts() (defense_snaps column) rather than load_participation() because snap counts are available for all seasons in the window while participation data stopped updating after 2023. Regular season only. Minimum team totals applied to filter out noise (10 for most metrics, 100 for QB pass attempts).",
+  "bands": {
+    "rb_carry_share": {
+      "top1_share": {
+        "n": 160,
+        "mean": 0.5722,
+        "sd": 0.1299,
+        "min": 0.2516,
+        "p10": 0.4013,
+        "p25": 0.4863,
+        "p50": 0.568,
+        "p75": 0.6666,
+        "p90": 0.7461,
+        "max": 0.8995
+      },
+      "top3_share": {
+        "n": 160,
+        "mean": 0.9395,
+        "sd": 0.0637,
+        "min": 0.6516,
+        "p10": 0.8475,
+        "p25": 0.9087,
+        "p50": 0.9654,
+        "p75": 0.9886,
+        "p90": 1,
+        "max": 1
+      },
+      "top5_share": {
+        "n": 160,
+        "mean": 0.9944,
+        "sd": 0.0128,
+        "min": 0.9194,
+        "p10": 0.9809,
+        "p25": 0.9966,
+        "p50": 1,
+        "p75": 1,
+        "p90": 1,
+        "max": 1
+      }
+    },
+    "rb_target_share": {
+      "top1_share": {
+        "n": 160,
+        "mean": 0.5377,
+        "sd": 0.124,
+        "min": 0.2556,
+        "p10": 0.3723,
+        "p25": 0.4565,
+        "p50": 0.5353,
+        "p75": 0.6283,
+        "p90": 0.6957,
+        "max": 0.8624
+      },
+      "top3_share": {
+        "n": 160,
+        "mean": 0.9194,
+        "sd": 0.0797,
+        "min": 0.6617,
+        "p10": 0.7972,
+        "p25": 0.8788,
+        "p50": 0.9389,
+        "p75": 0.9834,
+        "p90": 1,
+        "max": 1
+      },
+      "top5_share": {
+        "n": 160,
+        "mean": 0.9916,
+        "sd": 0.0205,
+        "min": 0.8571,
+        "p10": 0.9702,
+        "p25": 0.9921,
+        "p50": 1,
+        "p75": 1,
+        "p90": 1,
+        "max": 1
+      }
+    },
+    "wr_target_share": {
+      "top1_share": {
+        "n": 160,
+        "mean": 0.3838,
+        "sd": 0.0724,
+        "min": 0.1849,
+        "p10": 0.283,
+        "p25": 0.3379,
+        "p50": 0.3837,
+        "p75": 0.436,
+        "p90": 0.467,
+        "max": 0.5833
+      },
+      "top3_share": {
+        "n": 160,
+        "mean": 0.8044,
+        "sd": 0.0952,
+        "min": 0.5042,
+        "p10": 0.6759,
+        "p25": 0.7392,
+        "p50": 0.8104,
+        "p75": 0.881,
+        "p90": 0.9276,
+        "max": 0.9594
+      },
+      "top5_share": {
+        "n": 160,
+        "mean": 0.9545,
+        "sd": 0.0462,
+        "min": 0.7353,
+        "p10": 0.8837,
+        "p25": 0.9333,
+        "p50": 0.968,
+        "p75": 0.9884,
+        "p90": 1,
+        "max": 1
+      }
+    },
+    "te_target_share": {
+      "top1_share": {
+        "n": 160,
+        "mean": 0.6388,
+        "sd": 0.156,
+        "min": 0.3194,
+        "p10": 0.429,
+        "p25": 0.5143,
+        "p50": 0.6347,
+        "p75": 0.7671,
+        "p90": 0.8463,
+        "max": 0.9483
+      },
+      "top3_share": {
+        "n": 160,
+        "mean": 0.9674,
+        "sd": 0.0456,
+        "min": 0.8015,
+        "p10": 0.8954,
+        "p25": 0.95,
+        "p50": 0.986,
+        "p75": 1,
+        "p90": 1,
+        "max": 1
+      },
+      "top5_share": {
+        "n": 160,
+        "mean": 0.9996,
+        "sd": 0.0025,
+        "min": 0.9783,
+        "p10": 1,
+        "p25": 1,
+        "p50": 1,
+        "p75": 1,
+        "p90": 1,
+        "max": 1
+      }
+    },
+    "qb_attempt_share": {
+      "top1_share": {
+        "n": 160,
+        "mean": 0.8104,
+        "sd": 0.1869,
+        "min": 0.3269,
+        "p10": 0.5108,
+        "p25": 0.675,
+        "p50": 0.8748,
+        "p75": 0.9763,
+        "p90": 0.9968,
+        "max": 1
+      },
+      "top3_share": {
+        "n": 160,
+        "mean": 0.994,
+        "sd": 0.0253,
+        "min": 0.7804,
+        "p10": 0.9954,
+        "p25": 1,
+        "p50": 1,
+        "p75": 1,
+        "p90": 1,
+        "max": 1
+      },
+      "top5_share": {
+        "n": 160,
+        "mean": 1,
+        "sd": 0,
+        "min": 1,
+        "p10": 1,
+        "p25": 1,
+        "p50": 1,
+        "p75": 1,
+        "p90": 1,
+        "max": 1
+      }
+    },
+    "lb_tackle_share": {
+      "top1_share": {
+        "n": 160,
+        "mean": 0.3388,
+        "sd": 0.0795,
+        "min": 0.16,
+        "p10": 0.2347,
+        "p25": 0.2802,
+        "p50": 0.334,
+        "p75": 0.3877,
+        "p90": 0.4446,
+        "max": 0.5615
+      },
+      "top3_share": {
+        "n": 160,
+        "mean": 0.7258,
+        "sd": 0.1152,
+        "min": 0.395,
+        "p10": 0.5818,
+        "p25": 0.6459,
+        "p50": 0.7325,
+        "p75": 0.8135,
+        "p90": 0.8647,
+        "max": 0.9667
+      },
+      "top5_share": {
+        "n": 160,
+        "mean": 0.8907,
+        "sd": 0.0822,
+        "min": 0.5843,
+        "p10": 0.7828,
+        "p25": 0.8492,
+        "p50": 0.9042,
+        "p75": 0.9522,
+        "p90": 0.9819,
+        "max": 1
+      }
+    },
+    "cb_snap_share": {
+      "top1_share": {
+        "n": 160,
+        "mean": 0.3194,
+        "sd": 0.0516,
+        "min": 0.1689,
+        "p10": 0.2541,
+        "p25": 0.2836,
+        "p50": 0.3196,
+        "p75": 0.3519,
+        "p90": 0.3756,
+        "max": 0.471
+      },
+      "top3_share": {
+        "n": 160,
+        "mean": 0.7595,
+        "sd": 0.0954,
+        "min": 0.4487,
+        "p10": 0.6508,
+        "p25": 0.7069,
+        "p50": 0.7595,
+        "p75": 0.8135,
+        "p90": 0.8892,
+        "max": 0.972
+      },
+      "top5_share": {
+        "n": 160,
+        "mean": 0.9369,
+        "sd": 0.0613,
+        "min": 0.6332,
+        "p10": 0.8667,
+        "p25": 0.9045,
+        "p50": 0.9549,
+        "p75": 0.9807,
+        "p90": 0.9944,
+        "max": 1
+      }
+    }
+  }
+}
