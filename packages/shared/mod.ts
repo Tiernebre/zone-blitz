@@ -95,6 +95,16 @@ export {
   CONTRACT_TYPES,
 } from "./contracts/contract-ledger.ts";
 export type {
+  BonusProration,
+  CapContract,
+  CapContractYear,
+} from "./contracts/cap-engine.ts";
+export {
+  computeCapHit,
+  computeDeadCap,
+  restructureContract,
+} from "./contracts/cap-engine.ts";
+export type {
   Contract,
   ContractBonusSource,
   ContractGuaranteeType,
