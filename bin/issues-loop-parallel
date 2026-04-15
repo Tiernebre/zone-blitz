@@ -101,8 +101,8 @@ gh issue list \
   --label "$LABEL" \
   --state open \
   --limit 200 \
-  --json number \
-  --jq '.[].number' > "$numbers_file"
+  --json number,createdAt \
+  --jq 'sort_by(.createdAt) | .[].number' > "$numbers_file"
 
 count=$(wc -l < "$numbers_file" | tr -d ' ')
 if [[ "$count" == "0" ]]; then
