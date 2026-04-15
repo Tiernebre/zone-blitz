@@ -65,6 +65,7 @@ Deno.test("roster.router", async (t) => {
                   injuryStatus: "healthy",
                   schemeFit: null,
                   schemeArchetype: null,
+                  depthChartSlot: null,
                 },
               ],
               positionGroups: [

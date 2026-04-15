@@ -130,6 +130,7 @@ export function createRosterRepository(deps: {
           annualSalary: contracts.annualSalary,
           totalYears: contracts.totalYears,
           currentYear: contracts.currentYear,
+          depthChartSlot: depthChartEntries.slotCode,
           ...attributeSelectColumns(),
         })
         .from(players)
@@ -138,6 +139,13 @@ export function createRosterRepository(deps: {
           eq(playerAttributes.playerId, players.id),
         )
         .leftJoin(contracts, eq(contracts.playerId, players.id))
+        .leftJoin(
+          depthChartEntries,
+          and(
+            eq(depthChartEntries.playerId, players.id),
+            eq(depthChartEntries.teamId, teamId),
+          ),
+        )
         .where(
           and(eq(players.leagueId, leagueId), eq(players.teamId, teamId)),
         );
@@ -207,6 +215,7 @@ export function createRosterRepository(deps: {
           injuryStatus: row.injuryStatus,
           schemeFit,
           schemeArchetype,
+          depthChartSlot: row.depthChartSlot ?? null,
         };
       });
 
