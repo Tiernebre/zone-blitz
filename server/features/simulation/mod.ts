@@ -37,3 +37,14 @@ export type {
   Situation,
   TeamRuntime,
 } from "./resolve-play.ts";
+
+export { simulateGame } from "./simulate-game.ts";
+export { simulateSeason } from "./simulate-season.ts";
+export type { SeasonInput, SeasonResult } from "./simulate-season.ts";
+export {
+  computeGameAggregates,
+  computeSeasonAggregates,
+} from "./season-aggregates.ts";
+export type { GameAggregates, SeasonAggregates } from "./season-aggregates.ts";
+export { seedSweep } from "./seed-sweep.ts";
+export type { BandStats, SweepResult } from "./seed-sweep.ts";
