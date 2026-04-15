@@ -175,6 +175,19 @@ export function createLeagueClockService(deps: {
         targetStepIndex = next.stepIndex;
       }
 
+      if (
+        targetPhase.startsWith("genesis_") && clock.hasCompletedGenesis
+      ) {
+        throw new DomainError(
+          "GENESIS_COMPLETED",
+          "Cannot re-enter genesis phases after Year 1",
+        );
+      }
+
+      const isLeavingGenesis = clock.phase === "genesis_kickoff" &&
+        !targetPhase.startsWith("genesis_");
+      const setGenesisComplete = isLeavingGenesis ? true : undefined;
+
       const gate = getGateForPhase(targetPhase);
       let overrideReason: string | null = null;
       let overrideBlockers: Blocker[] | null = null;
@@ -222,6 +235,7 @@ export function createLeagueClockService(deps: {
             advancedByUserId: actor.userId,
             overrideReason,
             overrideBlockers,
+            hasCompletedGenesis: setGenesisComplete,
           },
           tx,
         );
