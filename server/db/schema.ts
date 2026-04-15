@@ -82,3 +82,10 @@ export {
   users,
   verifications,
 } from "../features/auth/auth.schema.ts";
+export {
+  leagueAdvanceVote,
+  leagueClock,
+  leaguePhaseEnum,
+  leaguePhaseStep,
+  stepKindEnum,
+} from "../features/league-clock/league-clock.schema.ts";
