@@ -810,3 +810,8 @@ season coverage patterns. See [Media](./media.md).
 - [0024 — Allocation draft as Year 1's only draft](../decisions/0024-allocation-draft-as-year-one-only-draft.md)
 - [0025 — Expansion by ownership vote](../decisions/0025-expansion-by-ownership-vote.md)
 - [0026 — Founding player pool composition and attribute normalization](../decisions/0026-founding-pool-composition-and-attribute-normalization.md)
+- [0027 — MVP league creation wizard scope](../decisions/0027-mvp-league-creation-wizard.md)
+- [0028 — Readonly league settings in MVP creation wizard](../decisions/0028-readonly-league-settings-mvp.md)
+- [0029 — Default 8 founding franchises with no count selector in MVP](../decisions/0029-eight-team-default-no-count-selector.md)
+- [0030 — Synchronous league generation with progress UI](../decisions/0030-synchronous-league-generation-with-progress-ui.md)
+- [0031 — Post-generation landing on the first in-dashboard genesis phase](../decisions/0031-post-generation-land-in-first-genesis-phase.md)
