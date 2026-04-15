@@ -89,13 +89,6 @@ function formatStatValue(value: number | string): string {
   return value;
 }
 
-function toStatLabel(key: string): string {
-  return key
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (c) => c.toUpperCase())
-    .trim();
-}
-
 function injuryBadgeVariant(
   status: PlayerInjuryStatus,
 ): "secondary" | "destructive" | "outline" {
