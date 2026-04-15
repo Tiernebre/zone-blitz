@@ -9,8 +9,8 @@ seamlessly.
 > that founds small (8 teams by default), runs a one-time genesis sequence, and
 > grows via expansion over many seasons. See
 > [League Genesis](./league-genesis.md) for the full vision. This document
-> covers the league **as a running system** across both a genesis-founded league
-> and an established-mode league.
+> covers the league **as a running system** from Year 2 onward, once genesis has
+> completed and the league has entered its recurring annual rhythm.
 
 ## League Modes
 
@@ -40,10 +40,6 @@ Multiple human owner/GMs, with NPC franchises filling remaining slots:
 
 When creating a league, the commissioner (or single-player founder) configures:
 
-- **Creation mode**: **Genesis** (the default — brand-new startup league with a
-  founding sequence; see [League Genesis](./league-genesis.md)) or
-  **Established** (jump into a mature league with fictional history; secondary
-  path)
 - **Founding franchise count**: genesis default is **8**, configurable. The
   league grows from there via expansion over many seasons — see
   [Expansion](#expansion) below

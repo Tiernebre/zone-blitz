@@ -1,4 +1,4 @@
-# 0022 — Sim football completeness: close the gap to real football
+# 0023 — Sim football completeness: close the gap to real football
 
 - **Date:** 2026-04-15
 - **Status:** Proposed

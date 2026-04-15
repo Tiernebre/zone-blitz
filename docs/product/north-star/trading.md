@@ -185,8 +185,8 @@ In multiplayer, the system should discourage but not over-police:
 
 ## League Genesis
 
-Trading applies the same way in both genesis and established leagues — the
-mechanics are identical. A few genesis-specific notes worth flagging (see
+Every league starts at genesis, so trading's baseline is the inaugural year. A
+few genesis-specific notes worth flagging (see
 [League Genesis](./league-genesis.md) for full context):
 
 - **There are no trades during Year 1's allocation draft or founding free
