@@ -50,6 +50,16 @@ export type {
   TeamRuntime,
 } from "./resolve-play.ts";
 
+export { resolvePunt } from "./resolve-punt.ts";
+export type { PuntInput, PuntOutcome, PuntResult } from "./resolve-punt.ts";
+
+export { resolveFieldGoal } from "./resolve-field-goal.ts";
+export type {
+  FieldGoalInput,
+  FieldGoalOutcome,
+  FieldGoalResult,
+} from "./resolve-field-goal.ts";
+
 export { simulateSeason } from "./simulate-season.ts";
 export type { SeasonInput, SeasonResult } from "./simulate-season.ts";
 

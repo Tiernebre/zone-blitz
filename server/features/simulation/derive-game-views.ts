@@ -85,6 +85,7 @@ function inferDriveResult(lastEvent: PlayEvent): DriveResult {
   if (lastEvent.outcome === "touchdown") return "touchdown";
   if (lastEvent.tags.includes("safety")) return "safety";
   if (lastEvent.tags.includes("turnover")) return "turnover";
+  if (lastEvent.outcome === "missed_field_goal") return "missed_field_goal";
   if (
     lastEvent.outcome === "field_goal" ||
     lastEvent.call.concept === "field_goal"
