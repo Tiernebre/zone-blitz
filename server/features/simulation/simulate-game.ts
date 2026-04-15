@@ -1,15 +1,10 @@
 import type { SeededRng } from "./rng.ts";
 import { createSeededRng } from "./rng.ts";
 import type {
-  BoxScore,
-  DriveResult,
-  DriveSummary,
   GameResult,
-  InjuryEntry,
   InjurySeverity,
   PlayEvent,
   PlayTag,
-  TeamBoxScore,
 } from "./events.ts";
 import type {
   CoachingMods,
@@ -19,6 +14,11 @@ import type {
 } from "./resolve-play.ts";
 import type { SchemeFingerprint } from "@zone-blitz/shared";
 import { resolvePlay } from "./resolve-play.ts";
+import {
+  deriveBoxScore,
+  deriveDriveLog,
+  deriveInjuryReport,
+} from "./derive-game-views.ts";
 
 export interface SimTeam {
   teamId: string;
@@ -135,17 +135,6 @@ function promoteNextManUp(
   }
 }
 
-function makeEmptyTeamBoxScore(): TeamBoxScore {
-  return {
-    totalYards: 0,
-    passingYards: 0,
-    rushingYards: 0,
-    turnovers: 0,
-    sacks: 0,
-    penalties: 0,
-  };
-}
-
 function shouldClockStop(event: PlayEvent): boolean {
   return (
     event.outcome === "pass_incomplete" ||
@@ -162,12 +151,6 @@ export function simulateGame(input: SimulationInput): GameResult {
   const gameId = input.gameId ?? `game-${input.seed}`;
 
   const events: PlayEvent[] = [];
-  const driveLog: DriveSummary[] = [];
-  const injuryReport: InjuryEntry[] = [];
-  const boxScore: BoxScore = {
-    home: makeEmptyTeamBoxScore(),
-    away: makeEmptyTeamBoxScore(),
-  };
 
   const rosters: ActiveRosters = {
     homeActive: [...input.home.starters],
@@ -202,17 +185,6 @@ export function simulateGame(input: SimulationInput): GameResult {
     return state.possession === "home" ? input.away.teamId : input.home.teamId;
   }
 
-  function endDrive(result: DriveResult): void {
-    driveLog.push({
-      driveIndex: state.driveIndex,
-      offenseTeamId: currentOffenseTeamId(),
-      startYardLine: state.driveStartYardLine,
-      plays: state.drivePlays,
-      yards: state.driveYards,
-      result,
-    });
-  }
-
   function startNewDrive(yardLine: number): void {
     state.driveIndex++;
     state.playIndex = 0;
@@ -245,35 +217,6 @@ export function simulateGame(input: SimulationInput): GameResult {
     };
   }
 
-  function updateBoxScore(event: PlayEvent): void {
-    const isHome = event.offenseTeamId === input.home.teamId;
-    const offenseBox = isHome ? boxScore.home : boxScore.away;
-    const defenseBox = isHome ? boxScore.away : boxScore.home;
-
-    if (event.outcome === "pass_complete") {
-      offenseBox.passingYards += event.yardage;
-      offenseBox.totalYards += event.yardage;
-    } else if (event.outcome === "rush") {
-      offenseBox.rushingYards += event.yardage;
-      offenseBox.totalYards += event.yardage;
-    } else if (event.outcome === "sack") {
-      offenseBox.passingYards += event.yardage;
-      offenseBox.totalYards += event.yardage;
-    } else if (event.outcome === "touchdown") {
-      offenseBox.totalYards += event.yardage;
-    }
-
-    if (event.tags.includes("turnover")) {
-      offenseBox.turnovers++;
-    }
-    if (event.tags.includes("sack")) {
-      defenseBox.sacks++;
-    }
-    if (event.tags.includes("penalty")) {
-      offenseBox.penalties++;
-    }
-  }
-
   function processInjury(event: PlayEvent): void {
     if (!event.tags.includes("injury")) return;
 
@@ -291,14 +234,6 @@ export function simulateGame(input: SimulationInput): GameResult {
     if (!injuredParticipant) return;
 
     injuredParticipant.tags.push("injury", severity);
-
-    injuryReport.push({
-      playerId: injuredParticipant.playerId,
-      playIndex: event.playIndex,
-      driveIndex: event.driveIndex,
-      quarter: event.quarter,
-      severity,
-    });
 
     if (severity !== "shake_off") {
       rosters.injuredPlayerIds.add(injuredParticipant.playerId);
@@ -333,7 +268,6 @@ export function simulateGame(input: SimulationInput): GameResult {
       if (isHome) state.homeScore += 7;
       else state.awayScore += 7;
 
-      endDrive("touchdown");
       switchPossession();
       startNewDrive(25);
       return true;
@@ -344,7 +278,6 @@ export function simulateGame(input: SimulationInput): GameResult {
       if (isHome) state.awayScore += 2;
       else state.homeScore += 2;
 
-      endDrive("safety");
       switchPossession();
       startNewDrive(25);
       return true;
@@ -356,7 +289,6 @@ export function simulateGame(input: SimulationInput): GameResult {
   function handleTurnover(event: PlayEvent): boolean {
     if (!event.tags.includes("turnover")) return false;
 
-    endDrive("turnover");
     const turnoverYardLine = Math.max(
       1,
       Math.min(99, state.yardLine + event.yardage),
@@ -416,7 +348,6 @@ export function simulateGame(input: SimulationInput): GameResult {
         state.drivePlays++;
         state.globalPlayIndex++;
         state.playIndex++;
-        endDrive("field_goal");
         switchPossession();
         startNewDrive(25);
       } else {
@@ -426,7 +357,6 @@ export function simulateGame(input: SimulationInput): GameResult {
         state.drivePlays++;
         state.globalPlayIndex++;
         state.playIndex++;
-        endDrive("field_goal");
         switchPossession();
         startNewDrive(100 - state.yardLine);
       }
@@ -474,7 +404,6 @@ export function simulateGame(input: SimulationInput): GameResult {
     state.globalPlayIndex++;
     state.playIndex++;
 
-    endDrive("punt");
     switchPossession();
     startNewDrive(100 - landingSpot);
     return true;
@@ -518,7 +447,6 @@ export function simulateGame(input: SimulationInput): GameResult {
 
     processInjury(event);
     events.push(event);
-    updateBoxScore(event);
 
     state.drivePlays++;
     state.globalPlayIndex++;
@@ -549,7 +477,6 @@ export function simulateGame(input: SimulationInput): GameResult {
     state.clock = QUARTER_SECONDS;
 
     if (q === 3) {
-      endDrive("end_of_half");
       switchPossession();
       const secondHalfReceiver = state.possession;
       state.possession = secondHalfReceiver;
@@ -562,17 +489,13 @@ export function simulateGame(input: SimulationInput): GameResult {
     }
   }
 
-  if (state.drivePlays > 0) {
-    endDrive("end_of_half");
-  }
-
   return {
     gameId,
     seed: input.seed,
     finalScore: { home: state.homeScore, away: state.awayScore },
     events,
-    boxScore,
-    driveLog,
-    injuryReport,
+    boxScore: deriveBoxScore(events, input.home.teamId, input.away.teamId),
+    driveLog: deriveDriveLog(events),
+    injuryReport: deriveInjuryReport(events),
   };
 }
