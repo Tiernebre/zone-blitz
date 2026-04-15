@@ -54,6 +54,7 @@ export interface TeamRuntime {
 export interface CoachingMods {
   schemeFitBonus: number;
   situationalBonus: number;
+  aggressiveness: number;
 }
 
 export type MatchupType =

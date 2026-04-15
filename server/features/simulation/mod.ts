@@ -94,6 +94,12 @@ export type { ConversionChoice } from "./scoring.ts";
 export { seedSweep } from "./seed-sweep.ts";
 export type { BandStats, SweepResult } from "./seed-sweep.ts";
 
+export { resolveFourthDown } from "./resolve-fourth-down.ts";
+export type {
+  FourthDownDecision,
+  FourthDownInput,
+} from "./resolve-fourth-down.ts";
+
 export {
   decidePenaltyAcceptance,
   PENALTY_CATALOG,

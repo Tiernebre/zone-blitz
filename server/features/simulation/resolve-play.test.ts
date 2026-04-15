@@ -87,7 +87,12 @@ function makePlayer(
 function makeCoachingMods(
   overrides: Partial<CoachingMods> = {},
 ): CoachingMods {
-  return { schemeFitBonus: 0, situationalBonus: 0, ...overrides };
+  return {
+    schemeFitBonus: 0,
+    situationalBonus: 0,
+    aggressiveness: 50,
+    ...overrides,
+  };
 }
 
 function makeOffense(): PlayerRuntime[] {

@@ -72,6 +72,8 @@ export type PlayTag =
   | "injury_miss_season"
   | "injury_career_ending"
   | "onside"
+  | "missed_fg"
+  | "fourth_down_attempt"
   | "return_td"
   | "two_minute"
   | "victory_formation"
