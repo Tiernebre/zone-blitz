@@ -1,0 +1,214 @@
+{
+  "generated_at": "2026-04-15T17:17:23Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season rushes only (rush == 1), excluding QB scrambles (those are classified as dropbacks in passing-plays.json), kneels, and two-point conversions. down_distance_bucket splits non-1st downs into short (<=3 or <=2 on 4th), medium (4-6), long (>=7). field_zone uses yardline_100 (yards from opponent endzone): own_deep >=90, own_side 50-89, opp_side 20-49, red_zone_outer 10-19, red_zone_inner <10. rates are per-rush fractions over the full window.",
+  "bands": {
+    "overall": {
+      "n": 67046,
+      "mean": 4.2165,
+      "sd": 6.1134,
+      "min": -28,
+      "p10": 0,
+      "p25": 1,
+      "p50": 3,
+      "p75": 6,
+      "p90": 10,
+      "max": 98
+    },
+    "by_down_distance": {
+      "1st": {
+        "n": 37134,
+        "mean": 4.299,
+        "sd": 6.0845,
+        "min": -20,
+        "p10": 0,
+        "p25": 1,
+        "p50": 3,
+        "p75": 6,
+        "p90": 10,
+        "max": 98
+      },
+      "2nd_long": {
+        "n": 9643,
+        "mean": 4.5834,
+        "sd": 6.3683,
+        "min": -12,
+        "p10": 0,
+        "p25": 1,
+        "p50": 3,
+        "p75": 6,
+        "p90": 10,
+        "max": 82
+      },
+      "2nd_medium": {
+        "n": 6273,
+        "mean": 4.2477,
+        "sd": 6.0337,
+        "min": -12,
+        "p10": 0,
+        "p25": 1,
+        "p50": 3,
+        "p75": 6,
+        "p90": 10,
+        "max": 74
+      },
+      "2nd_short": {
+        "n": 5805,
+        "mean": 3.7116,
+        "sd": 5.4101,
+        "min": -11,
+        "p10": 0,
+        "p25": 1,
+        "p50": 2,
+        "p75": 5,
+        "p90": 9,
+        "max": 72
+      },
+      "3rd_long": {
+        "n": 1162,
+        "mean": 5.6997,
+        "sd": 6.7339,
+        "min": -7,
+        "p10": 0,
+        "p25": 2,
+        "p50": 5,
+        "p75": 8,
+        "p90": 13,
+        "max": 74
+      },
+      "3rd_medium": {
+        "n": 786,
+        "mean": 4.729,
+        "sd": 7.214,
+        "min": -9,
+        "p10": 0,
+        "p25": 1,
+        "p50": 3,
+        "p75": 6,
+        "p90": 10,
+        "max": 72
+      },
+      "3rd_short": {
+        "n": 4899,
+        "mean": 3.4146,
+        "sd": 6.2655,
+        "min": -9,
+        "p10": 0,
+        "p25": 0,
+        "p50": 2,
+        "p75": 4,
+        "p90": 8,
+        "max": 79
+      },
+      "4th_long": {
+        "n": 90,
+        "mean": 4.6667,
+        "sd": 12.4341,
+        "min": -28,
+        "p10": -2,
+        "p25": 0,
+        "p50": 3,
+        "p75": 5.75,
+        "p90": 14.5,
+        "max": 73
+      },
+      "4th_short": {
+        "n": 1248,
+        "mean": 2.5513,
+        "sd": 4.8808,
+        "min": -23,
+        "p10": 0,
+        "p25": 0,
+        "p50": 2,
+        "p75": 3,
+        "p90": 6,
+        "max": 50
+      },
+      "unknown": {
+        "n": 6,
+        "mean": 0,
+        "sd": 0,
+        "min": 0,
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0,
+        "max": 0
+      }
+    },
+    "by_field_zone": {
+      "opp_side": {
+        "n": 20596,
+        "mean": 4.3773,
+        "sd": 5.898,
+        "min": -12,
+        "p10": 0,
+        "p25": 1,
+        "p50": 3,
+        "p75": 6,
+        "p90": 11,
+        "max": 49
+      },
+      "own_deep": {
+        "n": 2109,
+        "mean": 4.3594,
+        "sd": 6.6267,
+        "min": -10,
+        "p10": 0,
+        "p25": 1,
+        "p50": 3,
+        "p75": 6,
+        "p90": 10,
+        "max": 98
+      },
+      "own_side": {
+        "n": 33020,
+        "mean": 4.6388,
+        "sd": 6.7828,
+        "min": -28,
+        "p10": 0,
+        "p25": 1,
+        "p50": 3,
+        "p75": 6,
+        "p90": 11,
+        "max": 87
+      },
+      "red_zone_inner": {
+        "n": 5802,
+        "mean": 1.6746,
+        "sd": 2.3876,
+        "min": -12,
+        "p10": -1,
+        "p25": 0,
+        "p50": 1,
+        "p75": 3,
+        "p90": 5,
+        "max": 9
+      },
+      "red_zone_outer": {
+        "n": 5519,
+        "mean": 3.7077,
+        "sd": 4.2399,
+        "min": -20,
+        "p10": -1,
+        "p25": 1,
+        "p50": 3,
+        "p75": 6,
+        "p90": 10,
+        "max": 19
+      }
+    },
+    "rates": {
+      "n_rushes": 67082,
+      "stuff_rate": 0.2003,
+      "gain_5_plus_rate": 0.3366,
+      "gain_10_plus_rate": 0.1049,
+      "gain_20_plus_rate": 0.0228,
+      "gain_40_plus_rate": 0.0045,
+      "touchdown_rate": 0.0348,
+      "fumble_rate": 0.0156,
+      "fumble_lost_rate": 0.0065
+    }
+  }
+}
