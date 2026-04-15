@@ -14,6 +14,12 @@ export interface CoachesGeneratorInput {
   collegeIds?: string[];
 }
 
+export interface CoachesPoolInput {
+  leagueId: string;
+  numberOfTeams: number;
+  collegeIds?: string[];
+}
+
 /**
  * Optional tendency payload emitted for coaches who carry a scheme
  * identity — OCs populate `offense`, DCs populate `defense`. Absent on
@@ -38,4 +44,5 @@ export type GeneratedCoach =
 
 export interface CoachesGenerator {
   generate(input: CoachesGeneratorInput): GeneratedCoach[];
+  generatePool(input: CoachesPoolInput): GeneratedCoach[];
 }

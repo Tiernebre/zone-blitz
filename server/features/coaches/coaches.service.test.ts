@@ -26,6 +26,7 @@ function createMockGenerator(
 ): CoachesGenerator {
   return {
     generate: () => [],
+    generatePool: () => [],
     ...overrides,
   };
 }
@@ -443,6 +444,120 @@ Deno.test("coaches.service", async (t) => {
         DomainError,
         "Coach missing not found",
       );
+    },
+  );
+
+  await t.step(
+    "generatePool persists pool coaches and returns count",
+    async () => {
+      const { db, calls } = createMockDb();
+      const base = {
+        leagueId: "l1",
+        teamId: null,
+        role: "HC" as const,
+        reportsToId: null,
+        playCaller: "offense" as const,
+        age: 50,
+        hiredAt: new Date(),
+        contractYears: 3,
+        contractSalary: 1_000_000,
+        contractBuyout: 1_000_000,
+        collegeId: null,
+        specialty: "ceo" as const,
+        isVacancy: false,
+        mentorCoachId: null,
+      };
+      const generator = createMockGenerator({
+        generatePool: () => [
+          { ...base, id: "p1", firstName: "A", lastName: "B" },
+          { ...base, id: "p2", firstName: "C", lastName: "D" },
+          { ...base, id: "p3", firstName: "E", lastName: "F" },
+        ],
+      });
+
+      const service = createCoachesService({
+        generator,
+        repo: createMockRepo(),
+        db,
+        tendenciesRepo: createMockTendenciesRepo(),
+        log: createTestLogger(),
+      });
+
+      const result = await service.generatePool({
+        leagueId: "l1",
+        numberOfTeams: 2,
+      });
+
+      assertEquals(result.coachCount, 3);
+      assertEquals(calls.length, 1);
+    },
+  );
+
+  await t.step(
+    "generatePool skips insert when generator returns empty",
+    async () => {
+      const { db, calls } = createMockDb();
+      const generator = createMockGenerator({
+        generatePool: () => [],
+      });
+
+      const service = createCoachesService({
+        generator,
+        repo: createMockRepo(),
+        db,
+        tendenciesRepo: createMockTendenciesRepo(),
+        log: createTestLogger(),
+      });
+
+      const result = await service.generatePool({
+        leagueId: "l1",
+        numberOfTeams: 0,
+      });
+
+      assertEquals(result.coachCount, 0);
+      assertEquals(calls.length, 0);
+    },
+  );
+
+  await t.step(
+    "generatePool routes inserts through tx when provided",
+    async () => {
+      const { db, calls: dbCalls } = createMockDb();
+      const { db: tx, calls: txCalls } = createMockDb();
+      const base = {
+        leagueId: "l1",
+        teamId: null,
+        role: "HC" as const,
+        reportsToId: null,
+        playCaller: "offense" as const,
+        age: 50,
+        hiredAt: new Date(),
+        contractYears: 3,
+        contractSalary: 1_000_000,
+        contractBuyout: 1_000_000,
+        collegeId: null,
+        specialty: "ceo" as const,
+        isVacancy: false,
+        mentorCoachId: null,
+      };
+      const generator = createMockGenerator({
+        generatePool: () => [
+          { ...base, id: "p1", firstName: "A", lastName: "B" },
+        ],
+      });
+
+      const service = createCoachesService({
+        generator,
+        repo: createMockRepo(),
+        db,
+        tendenciesRepo: createMockTendenciesRepo(),
+        log: createTestLogger(),
+      });
+
+      await service.generatePool({ leagueId: "l1", numberOfTeams: 1 }, tx);
+
+      assertEquals(dbCalls.length, 0);
+      assertEquals(txCalls.length, 1);
     },
   );
 });

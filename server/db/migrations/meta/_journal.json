@@ -246,6 +246,13 @@
       "when": 1776284375063,
       "tag": "0034_contract_per_year_structure",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1776285922697,
+      "tag": "0035_icy_firedrake",
+      "breakpoints": true
     }
   ]
 }

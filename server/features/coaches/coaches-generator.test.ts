@@ -332,3 +332,184 @@ Deno.test("seeded generator is deterministic", () => {
     assertEquals(a[i].hiredAt.getTime(), b[i].hiredAt.getTime());
   }
 });
+
+// ---- Mentor wiring (ADR 0022) ----
+
+Deno.test("generate wires mentorCoachId to some coaches", () => {
+  const result = makeGenerator().generate(INPUT);
+  const withMentor = result.filter((c) => c.mentorCoachId !== null);
+  assertEquals(withMentor.length > 0, true);
+});
+
+Deno.test("generate mentorCoachId only references coaches within the same generation", () => {
+  const result = makeGenerator().generate(INPUT);
+  const ids = new Set(result.map((c) => c.id));
+  for (const coach of result) {
+    if (coach.mentorCoachId !== null) {
+      assertEquals(
+        ids.has(coach.mentorCoachId),
+        true,
+        `mentor ${coach.mentorCoachId} not in generation`,
+      );
+    }
+  }
+});
+
+Deno.test("generate HCs have no mentorCoachId", () => {
+  const result = makeGenerator().generate(INPUT);
+  const hcs = result.filter((c) => c.role === "HC");
+  for (const hc of hcs) {
+    assertEquals(hc.mentorCoachId, null);
+  }
+});
+
+// ---- Pool generation (ADR 0022) ----
+
+const POOL_INPUT = {
+  leagueId: "league-pool",
+  numberOfTeams: 8,
+};
+
+function makePoolGenerator(seed = 99999) {
+  return createCoachesGenerator({
+    random: seededRandom(seed),
+    nameGenerator: fixedNameGenerator(),
+  });
+}
+
+Deno.test("generatePool creates coaches with correct leagueId", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  for (const coach of result) {
+    assertEquals(coach.leagueId, POOL_INPUT.leagueId);
+  }
+});
+
+Deno.test("generatePool creates coaches with null teamId", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  for (const coach of result) {
+    assertEquals(coach.teamId, null);
+  }
+});
+
+Deno.test("generatePool creates surplus coaches beyond team need", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  const minimumNeeded = POOL_INPUT.numberOfTeams * COACHES_PER_TEAM;
+  assertEquals(result.length > minimumNeeded, true);
+});
+
+Deno.test("generatePool creates coaches for all role types", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  const roles = new Set(result.map((c) => c.role));
+  for (const role of EXPECTED_ROLES) {
+    assertEquals(roles.has(role), true, `pool missing role ${role}`);
+  }
+});
+
+Deno.test("generatePool creates multiple candidates per role", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  for (const role of EXPECTED_ROLES) {
+    const count = result.filter((c) => c.role === role).length;
+    assertEquals(
+      count >= POOL_INPUT.numberOfTeams,
+      true,
+      `role ${role}: expected >= ${POOL_INPUT.numberOfTeams}, got ${count}`,
+    );
+  }
+});
+
+Deno.test("generatePool assigns mentorCoachId to some coaches", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  const withMentor = result.filter((c) => c.mentorCoachId !== null);
+  assertEquals(withMentor.length > 0, true);
+});
+
+Deno.test("generatePool mentorCoachId only references coaches within the same pool", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  const poolIds = new Set(result.map((c) => c.id));
+  for (const coach of result) {
+    if (coach.mentorCoachId !== null) {
+      assertEquals(
+        poolIds.has(coach.mentorCoachId),
+        true,
+        `mentor ${coach.mentorCoachId} not in pool`,
+      );
+    }
+  }
+});
+
+Deno.test("generatePool HCs have no mentorCoachId", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  const hcs = result.filter((c) => c.role === "HC");
+  assertEquals(hcs.length > 0, true);
+  for (const hc of hcs) {
+    assertEquals(hc.mentorCoachId, null);
+  }
+});
+
+Deno.test("generatePool coordinator mentors are HCs", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  const hcIds = new Set(result.filter((c) => c.role === "HC").map((c) => c.id));
+  const coordinatorRoles = new Set(["OC", "DC", "STC"]);
+  const mentored = result.filter(
+    (c) => coordinatorRoles.has(c.role) && c.mentorCoachId !== null,
+  );
+  for (const coord of mentored) {
+    assertEquals(
+      hcIds.has(coord.mentorCoachId!),
+      true,
+      `coordinator mentor ${coord.mentorCoachId} is not an HC`,
+    );
+  }
+});
+
+Deno.test("generatePool position coach mentors are coordinators", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  const coordinatorRoles = new Set(["OC", "DC", "STC"]);
+  const coordinatorIds = new Set(
+    result.filter((c) => coordinatorRoles.has(c.role)).map((c) => c.id),
+  );
+  const positionRoles = new Set(
+    EXPECTED_ROLES.filter((r) => !coordinatorRoles.has(r) && r !== "HC"),
+  );
+  const mentored = result.filter(
+    (c) => positionRoles.has(c.role) && c.mentorCoachId !== null,
+  );
+  for (const pos of mentored) {
+    assertEquals(
+      coordinatorIds.has(pos.mentorCoachId!),
+      true,
+      `position coach mentor ${pos.mentorCoachId} is not a coordinator`,
+    );
+  }
+});
+
+Deno.test("generatePool all coaches have null reportsToId (pool has no org chart)", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  for (const coach of result) {
+    assertEquals(coach.reportsToId, null);
+  }
+});
+
+Deno.test("generatePool coaches have unique ids", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  const ids = new Set(result.map((c) => c.id));
+  assertEquals(ids.size, result.length);
+});
+
+Deno.test("generatePool produces no coaches when numberOfTeams is 0", () => {
+  const result = makePoolGenerator().generatePool({
+    leagueId: "l1",
+    numberOfTeams: 0,
+  });
+  assertEquals(result.length, 0);
+});
+
+Deno.test("generatePool two leagues produce independent pools with no shared ids", () => {
+  const gen = makePoolGenerator();
+  const poolA = gen.generatePool({ leagueId: "league-a", numberOfTeams: 4 });
+  const poolB = gen.generatePool({ leagueId: "league-b", numberOfTeams: 4 });
+  const idsA = new Set(poolA.map((c) => c.id));
+  for (const coach of poolB) {
+    assertEquals(idsA.has(coach.id), false, `shared id ${coach.id}`);
+  }
+});

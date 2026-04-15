@@ -31,6 +31,16 @@ export function createPersonnelService(deps: {
         salaryCap: input.salaryCap,
       }, tx);
 
+      const poolResult = await deps.coachesService.generatePool({
+        leagueId: input.leagueId,
+        numberOfTeams: input.teamIds.length,
+      }, tx);
+
+      log.info(
+        { leagueId: input.leagueId, poolSize: poolResult.coachCount },
+        "generated coaching candidate pool",
+      );
+
       const coachesResult = await deps.coachesService.generate({
         leagueId: input.leagueId,
         teamIds: input.teamIds,
