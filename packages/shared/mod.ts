@@ -178,5 +178,11 @@ export {
   playerAttributesSchema,
 } from "./schemas/player-attributes.ts";
 
+// Statistics
+export type { StatColumnDefinition } from "./statistics/position-stat-columns.ts";
+export { statColumnsForBucket } from "./statistics/position-stat-columns.ts";
+export type { CareerTotalsResult } from "./statistics/career-totals.ts";
+export { computeCareerTotals } from "./statistics/career-totals.ts";
+
 // Errors
 export { DomainError } from "./errors/domain-error.ts";
