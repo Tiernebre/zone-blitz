@@ -95,6 +95,13 @@ export {
   CONTRACT_TYPES,
 } from "./contracts/contract-ledger.ts";
 export type {
+  CapHitBonusProration,
+  CapHitContract,
+  CapHitContractYear,
+} from "./contracts/cap-hit.ts";
+export { computeCapHit } from "./contracts/cap-hit.ts";
+export type {
+  CapArchetype,
   Contract,
   ContractBonusSource,
   ContractGuaranteeType,
@@ -117,6 +124,7 @@ export type {
   PreDraftEvaluation,
 } from "./types/player.ts";
 export {
+  CAP_ARCHETYPES,
   CONTRACT_BONUS_SOURCES,
   CONTRACT_GUARANTEE_TYPES,
   CONTRACT_TAG_TYPES,

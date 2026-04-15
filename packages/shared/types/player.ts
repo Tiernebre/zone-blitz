@@ -209,6 +209,14 @@ export interface DraftEligiblePlayer {
   projectedRound: number | null;
 }
 
+export const CAP_ARCHETYPES = [
+  "cap-hell",
+  "tight",
+  "balanced",
+  "flush",
+] as const;
+export type CapArchetype = (typeof CAP_ARCHETYPES)[number];
+
 export const CONTRACT_TAG_TYPES = ["franchise", "transition"] as const;
 export type ContractTagType = (typeof CONTRACT_TAG_TYPES)[number];
 
