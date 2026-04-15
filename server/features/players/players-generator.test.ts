@@ -133,12 +133,37 @@ Deno.test("generates contracts for rostered players only", () => {
     { id: "p2", teamId: "team-1" },
     { id: "p3", teamId: null },
   ];
-  const contracts = generator.generateContracts({
+  const bundles = generator.generateContracts({
     salaryCap: 255_000_000,
     players,
   });
-  assertEquals(contracts.length, 2);
-  assertEquals(contracts.every((c) => c.teamId === "team-1"), true);
+  assertEquals(bundles.length, 2);
+  assertEquals(
+    bundles.every((b) => b.contract.teamId === "team-1"),
+    true,
+  );
+});
+
+Deno.test("contract bundles include per-year rows matching totalYears", () => {
+  const generator = makeGenerator();
+  const salaryCap = 255_000_000;
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+  const bundles = generator.generateContracts({ salaryCap, players });
+  for (const b of bundles) {
+    assertEquals(b.years.length, b.contract.totalYears);
+    assertEquals(
+      b.contract.totalYears >= 1 && b.contract.totalYears <= 5,
+      true,
+    );
+    assertEquals(b.contract.realYears, b.contract.totalYears);
+    for (const y of b.years) {
+      assertEquals(y.base > 0, true);
+      assertEquals(y.isVoid, false);
+    }
+  }
 });
 
 Deno.test("stub contracts stay under the team salary cap", () => {
@@ -148,29 +173,50 @@ Deno.test("stub contracts stay under the team salary cap", () => {
     id: `p${i}`,
     teamId: "team-1",
   }));
-  const contracts = generator.generateContracts({ salaryCap, players });
-  const totalAnnual = contracts.reduce((sum, c) => sum + c.annualSalary, 0);
+  const bundles = generator.generateContracts({ salaryCap, players });
+  const totalAnnual = bundles.reduce((sum, b) => sum + b.years[0].base, 0);
   assertEquals(totalAnnual <= salaryCap, true);
-  for (const c of contracts) {
-    assertEquals(c.totalYears >= 1 && c.totalYears <= 5, true);
-    assertEquals(c.currentYear, 1);
-    assertEquals(c.totalSalary, c.annualSalary * c.totalYears);
-  }
 });
 
-Deno.test("contract annual salaries vary across a full roster", () => {
+Deno.test("contract base salaries vary across a full roster", () => {
   const generator = makeGenerator();
   const players = Array.from({ length: 53 }, (_, i) => ({
     id: `p${i}`,
     teamId: "team-1",
   }));
-  const contracts = generator.generateContracts({
+  const bundles = generator.generateContracts({
     salaryCap: 255_000_000,
     players,
   });
-  const unique = new Set(contracts.map((c) => c.annualSalary));
-  // Graduated generator replaces a single-value flat split with a distribution.
+  const unique = new Set(bundles.map((b) => b.years[0].base));
   assertEquals(unique.size > 10, true);
+});
+
+Deno.test("signing bonus produces a bonus proration row with source 'signing'", () => {
+  const generator = makeGenerator();
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+  const bundles = generator.generateContracts({
+    salaryCap: 999_999_999,
+    players,
+  });
+  const withBonus = bundles.filter((b) => b.contract.signingBonus > 0);
+  assertEquals(withBonus.length > 0, true);
+  for (const b of withBonus) {
+    const signingProrations = b.bonusProrations.filter(
+      (p) => p.source === "signing",
+    );
+    assertEquals(signingProrations.length, 1);
+    assertEquals(signingProrations[0].amount, b.contract.signingBonus);
+    assertEquals(signingProrations[0].firstYear, b.contract.signedYear);
+    assertEquals(
+      signingProrations[0].years <= 5 &&
+        signingProrations[0].years <= b.contract.totalYears,
+      true,
+    );
+  }
 });
 
 Deno.test("roster composition sums to 53 players", () => {
@@ -434,19 +480,19 @@ Deno.test(
       teamId: "team-1",
     }));
     const cap = 999_999_999_999;
-    const normalContracts = normalGen.generateContracts({
+    const normalBundles = normalGen.generateContracts({
       salaryCap: cap,
       players,
     });
-    const extremeContracts = extremeGen.generateContracts({
+    const extremeBundles = extremeGen.generateContracts({
       salaryCap: cap,
       players,
     });
     let identicalCount = 0;
     let differentCount = 0;
-    for (let i = 0; i < normalContracts.length; i++) {
+    for (let i = 0; i < normalBundles.length; i++) {
       if (
-        normalContracts[i].annualSalary === extremeContracts[i].annualSalary
+        normalBundles[i].years[0].base === extremeBundles[i].years[0].base
       ) {
         identicalCount++;
       } else {
@@ -495,10 +541,44 @@ Deno.test(
       id: `p${i}`,
       teamId: "team-1",
     }));
-    const contracts = gen.generateContracts({
+    const bundles = gen.generateContracts({
       salaryCap: 999_999_999_999,
       players,
     });
-    assertEquals(contracts.length, 53);
+    assertEquals(bundles.length, 53);
   },
 );
+
+Deno.test("contract years have sequential league years starting from signedYear", () => {
+  const generator = makeGenerator();
+  const players = Array.from({ length: 10 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+  const bundles = generator.generateContracts({
+    salaryCap: 999_999_999,
+    players,
+  });
+  for (const b of bundles) {
+    for (let i = 0; i < b.years.length; i++) {
+      assertEquals(b.years[i].leagueYear, b.contract.signedYear + i);
+    }
+  }
+});
+
+Deno.test("rookie-age contracts are flagged as isRookieDeal", () => {
+  const generator = makeGenerator();
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+  const bundles = generator.generateContracts({
+    salaryCap: 999_999_999,
+    players,
+  });
+  const rookies = bundles.filter((b) => b.contract.isRookieDeal);
+  assertEquals(rookies.length > 0, true);
+  for (const b of rookies) {
+    assertEquals(b.contract.tagType, null);
+  }
+});

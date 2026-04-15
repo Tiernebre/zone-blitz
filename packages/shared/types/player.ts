@@ -209,16 +209,30 @@ export interface DraftEligiblePlayer {
   projectedRound: number | null;
 }
 
+export const CONTRACT_TAG_TYPES = ["franchise", "transition"] as const;
+export type ContractTagType = (typeof CONTRACT_TAG_TYPES)[number];
+
+export const CONTRACT_GUARANTEE_TYPES = ["full", "injury", "none"] as const;
+export type ContractGuaranteeType = (typeof CONTRACT_GUARANTEE_TYPES)[number];
+
+export const CONTRACT_BONUS_SOURCES = [
+  "signing",
+  "restructure",
+  "option",
+] as const;
+export type ContractBonusSource = (typeof CONTRACT_BONUS_SOURCES)[number];
+
 export interface Contract {
   id: string;
   playerId: string;
   teamId: string;
+  signedYear: number;
   totalYears: number;
-  currentYear: number;
-  totalSalary: number;
-  annualSalary: number;
-  guaranteedMoney: number;
+  realYears: number;
   signingBonus: number;
+  isRookieDeal: boolean;
+  rookieDraftPick: number | null;
+  tagType: ContractTagType | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -255,11 +269,10 @@ export type { ContractLedgerEntry } from "../contracts/contract-ledger.ts";
 
 export interface CurrentContractSummary {
   teamId: string;
+  signedYear: number;
   totalYears: number;
-  currentYear: number;
-  yearsRemaining: number;
-  annualSalary: number;
-  totalSalary: number;
-  guaranteedMoney: number;
+  realYears: number;
   signingBonus: number;
+  isRookieDeal: boolean;
+  tagType: ContractTagType | null;
 }

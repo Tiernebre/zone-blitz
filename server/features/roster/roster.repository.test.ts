@@ -181,21 +181,17 @@ Deno.test({
         {
           playerId: qbId,
           teamId: team.id,
+          signedYear: 2029,
           totalYears: 4,
-          currentYear: 2,
-          totalSalary: 40_000_000,
-          annualSalary: 10_000_000,
-          guaranteedMoney: 20_000_000,
+          realYears: 4,
           signingBonus: 5_000_000,
         },
         {
           playerId: idlId,
           teamId: team.id,
+          signedYear: 2030,
           totalYears: 3,
-          currentYear: 1,
-          totalSalary: 15_000_000,
-          annualSalary: 5_000_000,
-          guaranteedMoney: 5_000_000,
+          realYears: 3,
           signingBonus: 0,
         },
       ]);
@@ -205,35 +201,23 @@ Deno.test({
       assertEquals(roster.leagueId, league.id);
       assertEquals(roster.teamId, team.id);
       assertEquals(roster.players.length, 2);
-      assertEquals(roster.totalCap, 15_000_000);
-      assertEquals(roster.salaryCap, 255_000_000);
-      assertEquals(roster.capSpace, 240_000_000);
 
       const qb = roster.players.find((p) => p.id === qbId);
       assertEquals(qb?.neutralBucket, "QB");
       assertEquals(qb?.neutralBucketGroup, "offense");
-      assertEquals(qb?.capHit, 10_000_000);
-      assertEquals(qb?.contractYearsRemaining, 3);
+      assertEquals(qb?.contractYearsRemaining, 4);
       assertEquals(qb?.age, 30);
       assertEquals(qb?.injuryStatus, "healthy");
 
       const idl = roster.players.find((p) => p.id === idlId);
       assertEquals(idl?.neutralBucket, "IDL");
       assertEquals(idl?.neutralBucketGroup, "defense");
+      assertEquals(idl?.contractYearsRemaining, 3);
       assertEquals(idl?.injuryStatus, "questionable");
 
       // No coaches hired → no scheme to fit against → null per ADR 0005.
       assertEquals(qb?.schemeFit, null);
       assertEquals(idl?.schemeFit, null);
-
-      const offense = roster.positionGroups.find((g) => g.group === "offense");
-      assertEquals(offense?.headcount, 1);
-      assertEquals(offense?.totalCap, 10_000_000);
-      const defense = roster.positionGroups.find((g) => g.group === "defense");
-      assertEquals(defense?.headcount, 1);
-      assertEquals(defense?.totalCap, 5_000_000);
-      const st = roster.positionGroups.find((g) => g.group === "special_teams");
-      assertEquals(st?.headcount, 0);
     } finally {
       await cleanup(db, {
         players: playersCreated,

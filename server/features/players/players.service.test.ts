@@ -80,15 +80,13 @@ function createMockDb(
               if (Array.isArray(values)) {
                 return Promise.resolve(
                   values.map((v, i) => {
-                    const row = v as {
-                      teamId?: string | null;
-                      status?: PlayerStatus;
-                    };
+                    const row = v as Record<string, unknown>;
                     return {
+                      ...row,
                       id: rosteredPlayerIds[i] ??
                         `generated-${calls.length}-${i}`,
                       teamId: row.teamId ?? null,
-                      status: row.status ?? "active",
+                      status: (row.status as PlayerStatus) ?? "active",
                     };
                   }),
                 );
@@ -260,14 +258,47 @@ Deno.test("players.service", async (t) => {
         }),
         generateContracts: (input) =>
           input.players.map((p) => ({
-            playerId: p.id,
-            teamId: p.teamId!,
-            totalYears: 3,
-            currentYear: 1,
-            totalSalary: 300_000,
-            annualSalary: 100_000,
-            guaranteedMoney: 100_000,
-            signingBonus: 0,
+            contract: {
+              playerId: p.id,
+              teamId: p.teamId!,
+              signedYear: 2026,
+              totalYears: 3,
+              realYears: 3,
+              signingBonus: 0,
+              isRookieDeal: false,
+              rookieDraftPick: null,
+              tagType: null,
+            },
+            years: [
+              {
+                leagueYear: 2026,
+                base: 100_000,
+                rosterBonus: 0,
+                workoutBonus: 0,
+                perGameRosterBonus: 0,
+                guaranteeType: "full" as const,
+                isVoid: false,
+              },
+              {
+                leagueYear: 2027,
+                base: 100_000,
+                rosterBonus: 0,
+                workoutBonus: 0,
+                perGameRosterBonus: 0,
+                guaranteeType: "none" as const,
+                isVoid: false,
+              },
+              {
+                leagueYear: 2028,
+                base: 100_000,
+                rosterBonus: 0,
+                workoutBonus: 0,
+                perGameRosterBonus: 0,
+                guaranteeType: "none" as const,
+                isVoid: false,
+              },
+            ],
+            bonusProrations: [],
           })),
       });
 
@@ -290,8 +321,8 @@ Deno.test("players.service", async (t) => {
       assertEquals(result.draftProspectCount, 0);
       assertEquals(result.contractCount, 2);
 
-      // players + player_attributes + player_transactions + contracts + contract_history = 5 writes
-      assertEquals(calls.length, 5);
+      // players + player_attributes + player_transactions + contracts + contract_years + contract_history = 6 writes
+      assertEquals(calls.length, 6);
 
       const attributeRows = calls[1].values as Array<Record<string, unknown>>;
       assertEquals(attributeRows.length, 2);

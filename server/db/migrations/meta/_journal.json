@@ -239,6 +239,13 @@
       "when": 1776277163035,
       "tag": "0033_new_piledriver",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1776284375063,
+      "tag": "0034_contract_per_year_structure",
+      "breakpoints": true
     }
   ]
 }

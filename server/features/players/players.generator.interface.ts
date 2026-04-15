@@ -1,4 +1,10 @@
-import type { Contract, Player, PlayerAttributes } from "@zone-blitz/shared";
+import type {
+  ContractBonusSource,
+  ContractGuaranteeType,
+  ContractTagType,
+  Player,
+  PlayerAttributes,
+} from "@zone-blitz/shared";
 
 export interface PlayersGeneratorInput {
   leagueId: string;
@@ -21,12 +27,44 @@ export interface ContractGeneratorInput {
   players: Pick<Player, "id" | "teamId">[];
 }
 
-export type GeneratedContract = Omit<
-  Contract,
-  "id" | "createdAt" | "updatedAt"
->;
+export interface GeneratedContract {
+  playerId: string;
+  teamId: string;
+  signedYear: number;
+  totalYears: number;
+  realYears: number;
+  signingBonus: number;
+  isRookieDeal: boolean;
+  rookieDraftPick: number | null;
+  tagType: ContractTagType | null;
+}
+
+export interface GeneratedContractYear {
+  leagueYear: number;
+  base: number;
+  rosterBonus: number;
+  workoutBonus: number;
+  perGameRosterBonus: number;
+  guaranteeType: ContractGuaranteeType;
+  isVoid: boolean;
+}
+
+export interface GeneratedBonusProration {
+  amount: number;
+  firstYear: number;
+  years: number;
+  source: ContractBonusSource;
+}
+
+export interface GeneratedContractBundle {
+  contract: GeneratedContract;
+  years: GeneratedContractYear[];
+  bonusProrations: GeneratedBonusProration[];
+}
 
 export interface PlayersGenerator {
   generate(input: PlayersGeneratorInput): GeneratedPlayers;
-  generateContracts(input: ContractGeneratorInput): GeneratedContract[];
+  generateContracts(
+    input: ContractGeneratorInput,
+  ): GeneratedContractBundle[];
 }

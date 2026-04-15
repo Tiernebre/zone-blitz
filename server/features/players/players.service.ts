@@ -9,7 +9,11 @@ import {
 import { players } from "./player.schema.ts";
 import { playerAttributes } from "./attributes.schema.ts";
 import { playerDraftProfile } from "./player-draft-profile.schema.ts";
-import { contracts } from "../contracts/contract.schema.ts";
+import {
+  contractBonusProrations,
+  contracts,
+  contractYears,
+} from "../contracts/contract.schema.ts";
 import { contractHistory } from "../contracts/contract-history.schema.ts";
 import { playerTransactions } from "../contracts/player-transaction.schema.ts";
 import { seasons } from "../season/season.schema.ts";
@@ -185,22 +189,66 @@ export function createPlayersService(deps: {
       const rosteredPlayers = insertedPlayers.filter(
         (p) => p.status === "active" && p.teamId !== null,
       );
-      const generatedContracts = deps.generator.generateContracts({
+      const contractBundles = deps.generator.generateContracts({
         salaryCap: input.salaryCap,
         players: rosteredPlayers,
       });
 
-      if (generatedContracts.length > 0) {
-        await chunkedInsert(exec, contracts, generatedContracts);
+      if (contractBundles.length > 0) {
+        const contractRows = contractBundles.map(
+          (b) => b.contract as unknown as Record<string, unknown>,
+        );
+        const insertedContracts = await chunkedInsertReturning<{
+          id: string;
+          playerId: string;
+          teamId: string;
+          signedYear: number;
+          totalYears: number;
+          signingBonus: number;
+        }>(exec, contracts, contractRows, {
+          id: contracts.id,
+          playerId: contracts.playerId,
+          teamId: contracts.teamId,
+          signedYear: contracts.signedYear,
+          totalYears: contracts.totalYears,
+          signingBonus: contracts.signingBonus,
+        });
 
-        const currentLeagueYear = new Date().getUTCFullYear();
-        const historyRows = generatedContracts.map((contract) => ({
-          playerId: contract.playerId,
-          teamId: contract.teamId,
-          signedInYear: currentLeagueYear - (contract.currentYear - 1),
-          totalYears: contract.totalYears,
-          totalSalary: contract.totalSalary,
-          guaranteedMoney: contract.guaranteedMoney,
+        const yearRows = insertedContracts.flatMap((row, idx) =>
+          contractBundles[idx].years.map((y) => ({
+            contractId: row.id,
+            ...y,
+          }))
+        );
+        if (yearRows.length > 0) {
+          await chunkedInsert(exec, contractYears, yearRows);
+        }
+
+        const prorationRows = insertedContracts.flatMap((row, idx) =>
+          contractBundles[idx].bonusProrations.map((p) => ({
+            contractId: row.id,
+            ...p,
+          }))
+        );
+        if (prorationRows.length > 0) {
+          await chunkedInsert(exec, contractBonusProrations, prorationRows);
+        }
+
+        const totalBaseSalaryForHistory = (bundleIdx: number) =>
+          contractBundles[bundleIdx].years.reduce(
+            (sum, y) => sum + y.base,
+            0,
+          );
+
+        const historyRows = insertedContracts.map((row, idx) => ({
+          playerId: row.playerId,
+          teamId: row.teamId,
+          signedInYear: row.signedYear,
+          totalYears: row.totalYears,
+          totalSalary: totalBaseSalaryForHistory(idx) + row.signingBonus,
+          guaranteedMoney: contractBundles[idx].years
+            .filter((y) => y.guaranteeType === "full")
+            .reduce((sum, y) => sum + y.base, 0),
           terminationReason: "active" as const,
           endedInYear: null,
         }));
@@ -210,7 +258,7 @@ export function createPlayersService(deps: {
       log.info(
         {
           leagueId: input.leagueId,
-          contracts: generatedContracts.length,
+          contracts: contractBundles.length,
         },
         "persisted contracts",
       );
@@ -218,7 +266,7 @@ export function createPlayersService(deps: {
       return {
         playerCount: insertedPlayers.length,
         draftProspectCount: prospectCount,
-        contractCount: generatedContracts.length,
+        contractCount: contractBundles.length,
       };
     },
   };
