@@ -1,6 +1,7 @@
 // Types
 export type { HealthStatus } from "./types/health.ts";
 export type {
+  AdvancePolicy,
   League,
   LeagueListItem,
   LeagueSeasonSummary,
@@ -182,7 +183,11 @@ export type {
 } from "./interfaces/ai/gm-strategy.ts";
 
 // Schemas
-export { assignUserTeamSchema, createLeagueSchema } from "./schemas/league.ts";
+export {
+  assignUserTeamSchema,
+  castAdvanceVoteSchema,
+  createLeagueSchema,
+} from "./schemas/league.ts";
 export {
   attributeRatingSchema,
   playerAttributesSchema,

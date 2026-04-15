@@ -42,13 +42,33 @@ export interface ClockState {
   advancedAt: Date;
 }
 
+export interface ReadyCheckState {
+  policy: "commissioner" | "ready_check";
+  votedTeamIds: string[];
+  activeHumanTeamIds: string[];
+}
+
+export interface VoteResult {
+  leagueId: string;
+  teamId: string;
+  phase: string;
+  stepIndex: number;
+  readyAt: Date;
+}
+
 export interface LeagueClockService {
   getClockState(leagueId: string): Promise<ClockState>;
   advance(
     leagueId: string,
     actor: Actor,
     gateState: LeagueGateState,
+    readyCheckState?: ReadyCheckState,
   ): Promise<AdvanceResult>;
+
+  castVote(
+    leagueId: string,
+    teamId: string,
+  ): Promise<VoteResult>;
 }
 
 export function createLeagueClockService(deps: {
@@ -86,8 +106,22 @@ export function createLeagueClockService(deps: {
       };
     },
 
-    async advance(leagueId, actor, gateState) {
+    async advance(leagueId, actor, gateState, readyCheckState?) {
       log.info({ leagueId, userId: actor.userId }, "advancing league clock");
+
+      const policy = readyCheckState?.policy ?? "commissioner";
+      if (policy === "ready_check" && !actor.isCommissioner) {
+        const voted = new Set(readyCheckState!.votedTeamIds);
+        const allReady = readyCheckState!.activeHumanTeamIds.every((id) =>
+          voted.has(id)
+        );
+        if (!allReady) {
+          throw new DomainError(
+            "READY_CHECK_INCOMPLETE",
+            "Not all active human teams have voted ready",
+          );
+        }
+      }
 
       const clock = await deps.leagueClockRepo.getByLeagueId(leagueId);
       if (!clock) {
@@ -201,6 +235,33 @@ export function createLeagueClockService(deps: {
           looped,
         };
       });
+    },
+
+    async castVote(leagueId, teamId) {
+      log.info({ leagueId, teamId }, "casting ready vote");
+
+      const clock = await deps.leagueClockRepo.getByLeagueId(leagueId);
+      if (!clock) {
+        throw new DomainError(
+          "NOT_FOUND",
+          `League clock for ${leagueId} not found`,
+        );
+      }
+
+      const row = await deps.leagueClockRepo.castVote({
+        leagueId,
+        teamId,
+        phase: clock.phase,
+        stepIndex: clock.stepIndex,
+      });
+
+      return {
+        leagueId: row.leagueId,
+        teamId: row.teamId,
+        phase: row.phase,
+        stepIndex: row.stepIndex,
+        readyAt: row.readyAt,
+      };
     },
   };
 }

@@ -26,6 +26,16 @@ jobs:
           deno-version: v2.7.11
       - run: deno fmt --check
 
+  migration-journal:
+    name: Migration Journal Order
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.11
+      - run: deno task db:check-journal
+
   test:
     name: Test
     runs-on: ubuntu-latest

@@ -4,6 +4,7 @@ import pino from "pino";
 import type { Executor } from "../../db/connection.ts";
 import type { TransactionRunner } from "../../db/transaction-runner.ts";
 import type {
+  LeagueAdvanceVoteRow,
   LeagueClockRepository,
   LeagueClockRow,
 } from "./league-clock.repository.ts";
@@ -42,6 +43,19 @@ function createMockClock(
   };
 }
 
+function createMockVote(
+  overrides: Partial<LeagueAdvanceVoteRow> = {},
+): LeagueAdvanceVoteRow {
+  return {
+    leagueId: "league-1",
+    teamId: "team-1",
+    phase: "offseason_review",
+    stepIndex: 0,
+    readyAt: new Date(),
+    ...overrides,
+  };
+}
+
 function createMockRepo(
   overrides: Partial<LeagueClockRepository> = {},
 ): LeagueClockRepository {
@@ -59,6 +73,16 @@ function createMockRepo(
           overrideBlockers: row.overrideBlockers ?? null,
         }),
       ),
+    castVote: (vote) =>
+      Promise.resolve(
+        createMockVote({
+          leagueId: vote.leagueId,
+          teamId: vote.teamId,
+          phase: vote.phase,
+          stepIndex: vote.stepIndex,
+        }),
+      ),
+    getVotesForStep: () => Promise.resolve([]),
     ...overrides,
   };
 }
@@ -560,6 +584,171 @@ Deno.test("league-clock.service", async (t) => {
     );
 
     await t.step(
+      "ready_check policy: rejects non-commissioner when votes are missing",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({ phase: "offseason_review", stepIndex: 0 }),
+              ),
+          },
+        });
+
+        await assertRejects(
+          () =>
+            service.advance(
+              "league-1",
+              createActor(),
+              createGateState(),
+              {
+                policy: "ready_check",
+                votedTeamIds: ["team-1"],
+                activeHumanTeamIds: ["team-1", "team-2"],
+              },
+            ),
+          DomainError,
+          "Not all active human teams have voted ready",
+        );
+      },
+    );
+
+    await t.step(
+      "ready_check policy: allows advance when all human teams voted",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({ phase: "offseason_review", stepIndex: 0 }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+          {
+            policy: "ready_check",
+            votedTeamIds: ["team-1", "team-2"],
+            activeHumanTeamIds: ["team-1", "team-2"],
+          },
+        );
+
+        assertEquals(result.phase, "offseason_review");
+        assertEquals(result.stepIndex, 1);
+      },
+    );
+
+    await t.step(
+      "ready_check policy: commissioner can force-advance without all votes",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({ phase: "offseason_review", stepIndex: 0 }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor({ isCommissioner: true }),
+          createGateState(),
+          {
+            policy: "ready_check",
+            votedTeamIds: [],
+            activeHumanTeamIds: ["team-1", "team-2"],
+          },
+        );
+
+        assertEquals(result.phase, "offseason_review");
+        assertEquals(result.stepIndex, 1);
+      },
+    );
+
+    await t.step(
+      "ready_check policy: autoPilot teams are excluded from activeHumanTeamIds requirement",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({ phase: "offseason_review", stepIndex: 0 }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+          {
+            policy: "ready_check",
+            votedTeamIds: ["team-1"],
+            activeHumanTeamIds: ["team-1"],
+          },
+        );
+
+        assertEquals(result.phase, "offseason_review");
+        assertEquals(result.stepIndex, 1);
+      },
+    );
+
+    await t.step(
+      "commissioner policy: allows non-commissioner advance without votes",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({ phase: "offseason_review", stepIndex: 0 }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+          {
+            policy: "commissioner",
+            votedTeamIds: [],
+            activeHumanTeamIds: ["team-1", "team-2"],
+          },
+        );
+
+        assertEquals(result.phase, "offseason_review");
+        assertEquals(result.stepIndex, 1);
+      },
+    );
+
+    await t.step(
+      "advance still works without readyCheckState (defaults to commissioner policy)",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({ phase: "offseason_review", stepIndex: 0 }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+        );
+
+        assertEquals(result.phase, "offseason_review");
+        assertEquals(result.stepIndex, 1);
+      },
+    );
+
+    await t.step(
       "clears override fields on non-override advance",
       async () => {
         let upsertedRow:
@@ -659,5 +848,63 @@ Deno.test("league-clock.service", async (t) => {
       assertEquals(state.kind, "week");
       assertEquals(state.flavorDate, "Sep 7");
     });
+  });
+
+  await t.step("castVote", async (t) => {
+    await t.step("throws NOT_FOUND when clock does not exist", async () => {
+      const service = createService({
+        leagueClockRepo: {
+          getByLeagueId: () => Promise.resolve(undefined),
+        },
+      });
+
+      await assertRejects(
+        () => service.castVote("missing", "team-1"),
+        DomainError,
+        "not found",
+      );
+    });
+
+    await t.step(
+      "casts vote for current phase and stepIndex",
+      async () => {
+        let castVoteArgs:
+          | Parameters<LeagueClockRepository["castVote"]>[0]
+          | undefined;
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "free_agency",
+                  stepIndex: 2,
+                }),
+              ),
+            castVote: (vote) => {
+              castVoteArgs = vote;
+              return Promise.resolve(
+                createMockVote({
+                  leagueId: vote.leagueId,
+                  teamId: vote.teamId,
+                  phase: vote.phase,
+                  stepIndex: vote.stepIndex,
+                }),
+              );
+            },
+          },
+        });
+
+        const result = await service.castVote("league-1", "team-42");
+
+        assertEquals(result.leagueId, "league-1");
+        assertEquals(result.teamId, "team-42");
+        assertEquals(result.phase, "free_agency");
+        assertEquals(result.stepIndex, 2);
+        assertEquals(castVoteArgs?.leagueId, "league-1");
+        assertEquals(castVoteArgs?.teamId, "team-42");
+        assertEquals(castVoteArgs?.phase, "free_agency");
+        assertEquals(castVoteArgs?.stepIndex, 2);
+      },
+    );
   });
 });

@@ -2,14 +2,17 @@ import { assertExists } from "@std/assert";
 import type {
   BoxScore,
   DefensiveCall,
+  DriveResult,
   DriveSummary,
   GameResult,
   InjuryEntry,
+  InjurySeverity,
   OffensiveCall,
   PlayEvent,
   PlayOutcome,
   PlayParticipant,
   PlayTag,
+  TeamBoxScore,
 } from "./events.ts";
 
 Deno.test("PlayEvent types", async (t) => {
@@ -73,9 +76,26 @@ Deno.test("PlayEvent types", async (t) => {
       seed: 42,
       finalScore: { home: 24, away: 17 },
       events: [],
-      boxScore: {} as BoxScore,
-      driveLog: [] as DriveSummary[],
-      injuryReport: [] as InjuryEntry[],
+      boxScore: {
+        home: {
+          totalYards: 0,
+          passingYards: 0,
+          rushingYards: 0,
+          turnovers: 0,
+          sacks: 0,
+          penalties: 0,
+        },
+        away: {
+          totalYards: 0,
+          passingYards: 0,
+          rushingYards: 0,
+          turnovers: 0,
+          sacks: 0,
+          penalties: 0,
+        },
+      },
+      driveLog: [],
+      injuryReport: [],
     };
     assertExists(result);
   });
@@ -144,7 +164,97 @@ Deno.test("PlayEvent types", async (t) => {
       "interception",
       "fumble",
       "fumble_recovery",
+      "injury_shake_off",
+      "injury_miss_drive",
+      "injury_miss_quarter",
+      "injury_miss_game",
+      "injury_miss_weeks",
+      "injury_miss_season",
+      "injury_career_ending",
     ];
     assertExists(tags);
+  });
+
+  await t.step("InjurySeverity covers all tiers", () => {
+    const severities: InjurySeverity[] = [
+      "shake_off",
+      "miss_drive",
+      "miss_quarter",
+      "miss_game",
+      "miss_weeks",
+      "miss_season",
+      "career_ending",
+    ];
+    assertExists(severities);
+  });
+
+  await t.step("InjuryEntry has structured fields", () => {
+    const entry: InjuryEntry = {
+      playerId: "p1",
+      playIndex: 5,
+      driveIndex: 2,
+      quarter: 2,
+      severity: "miss_drive",
+    };
+    assertExists(entry);
+  });
+
+  await t.step("DriveSummary has structured fields", () => {
+    const drive: DriveSummary = {
+      driveIndex: 0,
+      offenseTeamId: "team-a",
+      startYardLine: 25,
+      plays: 8,
+      yards: 75,
+      result: "touchdown",
+    };
+    assertExists(drive);
+  });
+
+  await t.step("DriveResult covers expected values", () => {
+    const results: DriveResult[] = [
+      "touchdown",
+      "field_goal",
+      "punt",
+      "turnover",
+      "turnover_on_downs",
+      "end_of_half",
+      "safety",
+    ];
+    assertExists(results);
+  });
+
+  await t.step("TeamBoxScore has team stat fields", () => {
+    const stats: TeamBoxScore = {
+      totalYards: 350,
+      passingYards: 250,
+      rushingYards: 100,
+      turnovers: 2,
+      sacks: 3,
+      penalties: 5,
+    };
+    assertExists(stats);
+  });
+
+  await t.step("BoxScore has home and away", () => {
+    const box: BoxScore = {
+      home: {
+        totalYards: 0,
+        passingYards: 0,
+        rushingYards: 0,
+        turnovers: 0,
+        sacks: 0,
+        penalties: 0,
+      },
+      away: {
+        totalYards: 0,
+        passingYards: 0,
+        rushingYards: 0,
+        turnovers: 0,
+        sacks: 0,
+        penalties: 0,
+      },
+    };
+    assertExists(box);
   });
 });
