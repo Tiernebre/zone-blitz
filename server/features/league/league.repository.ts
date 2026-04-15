@@ -36,7 +36,12 @@ export function createLeagueRepository(deps: {
       log.debug({ name: input.name }, "creating league");
       const [league] = await (tx ?? deps.db)
         .insert(leagues)
-        .values({ name: input.name })
+        .values({
+          name: input.name,
+          ...(input.seasonLength !== undefined && {
+            seasonLength: input.seasonLength,
+          }),
+        })
         .returning();
       return league;
     },

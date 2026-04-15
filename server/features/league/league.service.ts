@@ -1,4 +1,4 @@
-import { DomainError } from "@zone-blitz/shared";
+import { deriveDefaultSeasonLength, DomainError } from "@zone-blitz/shared";
 import type pino from "pino";
 import type { TransactionRunner } from "../../db/transaction-runner.ts";
 import type { LeagueRepository } from "./league.repository.interface.ts";
@@ -78,8 +78,14 @@ export function createLeagueService(deps: {
         );
       }
 
+      const seasonLength = input.seasonLength ??
+        deriveDefaultSeasonLength(teams.length);
+
       return await deps.txRunner.run(async (tx) => {
-        const league = await deps.leagueRepo.create(input, tx);
+        const league = await deps.leagueRepo.create(
+          { ...input, seasonLength },
+          tx,
+        );
 
         const season = await deps.seasonService.create(
           { leagueId: league.id },
