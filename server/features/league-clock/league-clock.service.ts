@@ -78,6 +78,9 @@ export function createLeagueClockService(deps: {
 }): LeagueClockService {
   const log = deps.log.child({ module: "league-clock.service" });
   const phases = leaguePhaseEnum.enumValues;
+  const firstRecurringPhase = phases.find(
+    (p) => !p.startsWith("genesis_"),
+  )!;
 
   return {
     async getClockState(leagueId) {
@@ -147,7 +150,7 @@ export function createLeagueClockService(deps: {
 
       if (isAtRolloverEnd) {
         seasonYear = clock.seasonYear + 1;
-        targetPhase = phases[0];
+        targetPhase = firstRecurringPhase;
         targetStepIndex = 0;
         looped = true;
         log.info(
@@ -170,6 +173,24 @@ export function createLeagueClockService(deps: {
 
         targetPhase = next.phase;
         targetStepIndex = next.stepIndex;
+      }
+
+      if (
+        targetPhase.startsWith("genesis_") && clock.hasCompletedGenesis
+      ) {
+        throw new DomainError(
+          "GENESIS_COMPLETED",
+          "Cannot re-enter genesis phases after Year 1",
+        );
+      }
+
+      const isLeavingGenesis = clock.phase === "genesis_kickoff" &&
+        !targetPhase.startsWith("genesis_");
+      const setGenesisComplete = isLeavingGenesis ? true : undefined;
+
+      if (isLeavingGenesis) {
+        targetPhase = "regular_season";
+        targetStepIndex = 0;
       }
 
       const gate = getGateForPhase(targetPhase);
@@ -219,6 +240,7 @@ export function createLeagueClockService(deps: {
             advancedByUserId: actor.userId,
             overrideReason,
             overrideBlockers,
+            hasCompletedGenesis: setGenesisComplete,
           },
           tx,
         );

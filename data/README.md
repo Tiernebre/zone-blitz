@@ -15,10 +15,13 @@ data/
     setup.R           # verifies package install, prints versions
     lib.R             # shared helpers (season windows, JSON writer)
     bands/
-      team-game.R     # per-team-per-game distributions (first-cut)
-      passing-plays.R # per-dropback outcome tree and yardage
-      rushing-plays.R # per-rush yardage and gain-threshold rates
-      special-teams.R # FG/punt/kickoff/return-TD distributions
+      team-game.R              # per-team-per-game distributions (first-cut)
+      passing-plays.R          # per-dropback outcome tree + yardage
+      rushing-plays.R          # per-rush yardage + gain thresholds
+      special-teams.R          # FG/punt/kickoff/return-TD distributions
+      situational.R            # 4th-down, 2-point, and onside kick decision rates
+      position-concentration.R # top-k share by position group
+      injuries.R               # injury rates by position, severity, and category
   bands/              # generated JSON artifacts — checked in
   cache/              # nflreadr disk cache — gitignored
 ```
@@ -75,6 +78,30 @@ without depending on network or R at test time. Regenerate them when:
   (touchback rate, return yards, return TD rate, out-of-bounds rate), extra
   point success and blocked rates, blocked kick rates across all kick types, and
   return TD rates per team per season (punt and kickoff).
+- **`situational.json`** — situational decision rates for game-management AI
+  calibration. Covers 4th-down go-for-it rate and conversion rate by field zone
+  and distance bucket, 2-point conversion attempt rate by score differential and
+  success rate, onside kick attempt rate by late-game situation (trailing
+  margin, last 5 min of Q4) and recovery rate. All metrics are aggregate rates
+  with sample counts.
+- **`position-concentration.json`** — per-team-season stat concentration by
+  position group. For each metric (RB carries, RB/WR/TE targets, QB pass
+  attempts, LB tackles, CB defensive snaps), ranks players within the position
+  group and computes the share going to the top-1, top-3, and top-5 players.
+  Captures the "star concentration" pattern: RB1 averages ~57% of team carries,
+  WR1 averages ~38% of WR targets, QB1 averages ~81% of pass attempts. Uses
+  `load_player_stats()` for offensive/defensive counting stats and
+  `load_snap_counts()` for CB snap share. Mid-season QB changes and injured
+  starters are handled naturally — weekly stats are summed per player, so a
+  starter who misses games accumulates less and the backup's share rises.
+- **`injuries.json`** — injury rate bands by position, severity, and category.
+  Derived from `nflreadr::load_injuries()` joined to
+  `nflreadr::load_rosters_weekly()` to determine actual weeks missed (severity
+  from roster absence, not game-status designation). Covers: injuries per team
+  per game, season-ending rate as % of roster, position-specific injury rates,
+  injury category distribution (soft-tissue, knee, ankle, concussion, etc.),
+  severity split (0 games / 1 game / 2-3 weeks / 4-7 weeks / season-ending), and
+  re-injury rate. Non-injury reports (illness, rest, personal) excluded.
 
 ## Planned bands (follow-up work)
 
@@ -82,12 +109,8 @@ These map to
 [`docs/product/north-star/game-simulation.md`](../docs/product/north-star/game-simulation.md#calibration)
 and are tracked as GitHub issues labeled `ready-for-agent`:
 
-- **Situational rates** (#246) — 4th-down go-for-it by field zone, 2-point
-  attempts by score diff, onside kick attempt/recovery rates
 - **Position stat concentration** (#248) — RB1/RB2/RB3 carry share, WR1/WR2/slot
   target share, CB1 coverage share
-- **Injury rates by position** (#249) — separate source (`nflverse` injury
-  tables)
 
 ## Why R
 
