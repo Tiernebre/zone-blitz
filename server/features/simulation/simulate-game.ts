@@ -43,6 +43,7 @@ export interface SimulationInput {
   away: SimTeam;
   seed: number;
   gameId?: string;
+  isPlayoff?: boolean;
 }
 
 const QUARTER_SECONDS = 900;
@@ -58,8 +59,10 @@ const INJURY_SEVERITIES: InjurySeverity[] = [
 ];
 const INJURY_WEIGHTS = [0.35, 0.25, 0.15, 0.10, 0.08, 0.05, 0.02];
 
+const OT_SECONDS = 600;
+
 interface MutableGameState {
-  quarter: 1 | 2 | 3 | 4;
+  quarter: 1 | 2 | 3 | 4 | "OT";
   clock: number;
   homeScore: number;
   awayScore: number;
@@ -751,6 +754,60 @@ export function simulateGame(input: SimulationInput): GameResult {
     while (state.clock > 0) {
       runPlay();
       if (state.clock <= 0) break;
+    }
+  }
+
+  if (state.homeScore === state.awayScore) {
+    const isPlayoff = input.isPlayoff ?? false;
+    state.quarter = "OT";
+    state.clock = OT_SECONDS;
+
+    const otCoinFlip: "home" | "away" = rng.next() < 0.5 ? "home" : "away";
+    state.possession = otCoinFlip;
+    performKickoff(otCoinFlip === "home" ? "away" : "home");
+
+    const scoreBeforeOt = { home: state.homeScore, away: state.awayScore };
+    let otDriveCount = 0;
+    let otOver = false;
+
+    while (!otOver) {
+      const driveStartScore = { home: state.homeScore, away: state.awayScore };
+      const driveStartDriveIndex = state.driveIndex;
+
+      while (state.clock > 0 && state.driveIndex === driveStartDriveIndex) {
+        runPlay();
+        if (state.clock <= 0) break;
+      }
+
+      otDriveCount++;
+
+      if (state.homeScore !== state.awayScore) {
+        otOver = true;
+        break;
+      }
+
+      if (!isPlayoff) {
+        const firstDriveWasTd = otDriveCount === 1 &&
+          (driveStartScore.home !== state.homeScore ||
+            driveStartScore.away !== state.awayScore) &&
+          (state.homeScore - scoreBeforeOt.home >= 6 ||
+            state.awayScore - scoreBeforeOt.away >= 6);
+
+        if (firstDriveWasTd) {
+          otOver = true;
+          break;
+        }
+
+        if (otDriveCount >= 2 || state.clock <= 0) {
+          otOver = true;
+          break;
+        }
+      } else {
+        if (state.clock <= 0) {
+          state.clock = OT_SECONDS;
+          performKickoff(rng.next() < 0.5 ? "home" : "away");
+        }
+      }
     }
   }
 

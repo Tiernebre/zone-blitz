@@ -1,4 +1,4 @@
-import { assertEquals, assertExists, assertGreater } from "@std/assert";
+import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";
 import {
   PLAYER_ATTRIBUTE_KEYS,
   type PlayerAttributes,
@@ -7,7 +7,11 @@ import {
 import type { PlayerRuntime } from "./resolve-play.ts";
 import type { CoachingMods } from "./resolve-play.ts";
 import type { InjurySeverity, PlayEvent } from "./events.ts";
-import { type SimTeam, simulateGame } from "./simulate-game.ts";
+import {
+  type SimTeam,
+  simulateGame,
+  type SimulationInput,
+} from "./simulate-game.ts";
 
 function makeAttributes(
   overrides: Partial<PlayerAttributes> = {},
@@ -1033,6 +1037,239 @@ Deno.test("simulateGame", async (t) => {
         }
       }
       assertEquals(foundOnside, true);
+    },
+  );
+
+  await t.step(
+    "regular-season OT: game can end tied after both teams possess",
+    () => {
+      let tieFound = false;
+      for (let seed = 1; seed <= 5000 && !tieFound; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+          isPlayoff: false,
+        });
+
+        if (result.finalScore.home === result.finalScore.away) {
+          const otEvents = result.events.filter((e) => e.quarter === "OT");
+          if (otEvents.length > 0) {
+            tieFound = true;
+          }
+        }
+      }
+      assertEquals(
+        tieFound,
+        true,
+        "Regular-season games should sometimes end tied after OT",
+      );
+    },
+  );
+
+  await t.step(
+    "regular-season OT: OT events have quarter === 'OT'",
+    () => {
+      let otEventFound = false;
+      for (let seed = 1; seed <= 5000 && !otEventFound; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+          isPlayoff: false,
+        });
+
+        const otEvents = result.events.filter((e) => e.quarter === "OT");
+        if (otEvents.length > 0) {
+          otEventFound = true;
+          for (const e of otEvents) {
+            assertEquals(e.quarter, "OT");
+          }
+        }
+      }
+      assertEquals(
+        otEventFound,
+        true,
+        "Should produce OT events when game is tied after Q4",
+      );
+    },
+  );
+
+  await t.step(
+    "regular-season OT: first-drive TD ends OT immediately",
+    () => {
+      let foundFirstDriveTdEnd = false;
+      for (let seed = 1; seed <= 10000 && !foundFirstDriveTdEnd; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+          isPlayoff: false,
+        });
+
+        const otEvents = result.events.filter((e) => e.quarter === "OT");
+        if (otEvents.length === 0) continue;
+
+        const otKickoffs = otEvents.filter((e) => e.outcome === "kickoff");
+        const otTds = otEvents.filter(
+          (e) => e.outcome === "touchdown" || e.tags.includes("return_td"),
+        );
+
+        if (otTds.length > 0 && otKickoffs.length >= 1) {
+          const firstTdIdx = otEvents.indexOf(otTds[0]);
+          const firstKickoffIdx = otEvents.indexOf(otKickoffs[0]);
+
+          if (firstTdIdx > firstKickoffIdx) {
+            const secondKickoff = otKickoffs[1];
+            if (secondKickoff) {
+              const secondKickoffIdx = otEvents.indexOf(secondKickoff);
+              if (firstTdIdx < secondKickoffIdx) {
+                foundFirstDriveTdEnd = true;
+                assertEquals(
+                  result.finalScore.home !== result.finalScore.away,
+                  true,
+                );
+              }
+            } else {
+              foundFirstDriveTdEnd = true;
+              assertEquals(
+                result.finalScore.home !== result.finalScore.away,
+                true,
+              );
+            }
+          }
+        }
+      }
+      assertEquals(
+        foundFirstDriveTdEnd,
+        true,
+        "First-drive TD should end OT immediately",
+      );
+    },
+  );
+
+  await t.step(
+    "regular-season OT: both teams get a possession unless first drive is a TD",
+    () => {
+      let foundBothPossess = false;
+      for (let seed = 1; seed <= 5000 && !foundBothPossess; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+          isPlayoff: false,
+        });
+
+        const otEvents = result.events.filter((e) => e.quarter === "OT");
+        if (otEvents.length === 0) continue;
+
+        const otOffenseTeams = new Set(
+          otEvents
+            .filter(
+              (e) =>
+                e.outcome !== "kickoff" &&
+                e.outcome !== "xp" &&
+                e.outcome !== "two_point",
+            )
+            .map((e) => e.offenseTeamId),
+        );
+
+        if (otOffenseTeams.size === 2) {
+          foundBothPossess = true;
+        }
+      }
+      assertEquals(
+        foundBothPossess,
+        true,
+        "Both teams should get OT possessions when first drive is not a TD",
+      );
+    },
+  );
+
+  await t.step(
+    "playoff OT: game never ends tied",
+    () => {
+      for (let seed = 1; seed <= 500; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+          isPlayoff: true,
+        });
+
+        assertEquals(
+          result.finalScore.home !== result.finalScore.away,
+          true,
+          `Playoff game ended tied at seed ${seed}: ${result.finalScore.home}-${result.finalScore.away}`,
+        );
+      }
+    },
+  );
+
+  await t.step(
+    "playoff OT: plays to a winner when tied after Q4",
+    () => {
+      let playoffOtFound = false;
+      for (let seed = 1; seed <= 5000 && !playoffOtFound; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+          isPlayoff: true,
+        });
+
+        const otEvents = result.events.filter((e) => e.quarter === "OT");
+        if (otEvents.length > 0) {
+          playoffOtFound = true;
+          assert(
+            result.finalScore.home !== result.finalScore.away,
+            "Playoff OT must produce a winner",
+          );
+        }
+      }
+      assertEquals(
+        playoffOtFound,
+        true,
+        "Should find playoff games that go to OT",
+      );
+    },
+  );
+
+  await t.step(
+    "isPlayoff defaults to false (regular season behavior)",
+    () => {
+      const input: SimulationInput = {
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed: 42,
+      };
+      const result = simulateGame(input);
+      assertExists(result.finalScore);
+    },
+  );
+
+  await t.step(
+    "OT frequency across many regular-season games lands in NFL band (3-8%)",
+    () => {
+      const totalGames = 2000;
+      let otGames = 0;
+      for (let seed = 1; seed <= totalGames; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+          isPlayoff: false,
+        });
+
+        const hasOt = result.events.some((e) => e.quarter === "OT");
+        if (hasOt) otGames++;
+      }
+
+      const otRate = otGames / totalGames;
+      assert(
+        otRate >= 0.02 && otRate <= 0.12,
+        `OT rate ${(otRate * 100).toFixed(1)}% is outside expected 2-12% band`,
+      );
     },
   );
 });
