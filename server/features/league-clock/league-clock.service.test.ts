@@ -906,9 +906,158 @@ Deno.test("league-clock.service", async (t) => {
           createGateState(),
         );
 
-        assertEquals(result.phase, "offseason_review");
+        assertEquals(result.phase, "regular_season");
         assertEquals(result.stepIndex, 0);
         assertEquals(upsertedRow?.hasCompletedGenesis, true);
+      },
+    );
+
+    await t.step(
+      "Year 1: genesis_kickoff skips preseason and lands in regular_season",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "genesis_kickoff",
+                  stepIndex: 0,
+                  hasCompletedGenesis: false,
+                }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+        );
+
+        assertEquals(result.phase, "regular_season");
+        assertEquals(result.stepIndex, 0);
+      },
+    );
+
+    await t.step(
+      "Year 2+: offseason_program advances to preseason normally",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "offseason_program",
+                  stepIndex: 0,
+                  hasCompletedGenesis: true,
+                }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+        );
+
+        assertEquals(result.phase, "preseason");
+        assertEquals(result.stepIndex, 0);
+      },
+    );
+
+    await t.step(
+      "Year 1: commissioner override respects genesis_kickoff skip to regular_season",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "genesis_kickoff",
+                  stepIndex: 0,
+                  hasCompletedGenesis: false,
+                }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor({
+            isCommissioner: true,
+            overrideReason: "Fast-track to season",
+          }),
+          createGateState(),
+        );
+
+        assertEquals(result.phase, "regular_season");
+        assertEquals(result.stepIndex, 0);
+      },
+    );
+
+    await t.step(
+      "Year 1: ready_check advance respects genesis_kickoff skip to regular_season",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "genesis_kickoff",
+                  stepIndex: 0,
+                  hasCompletedGenesis: false,
+                }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+          {
+            policy: "ready_check",
+            votedTeamIds: ["team-1"],
+            activeHumanTeamIds: ["team-1"],
+          },
+        );
+
+        assertEquals(result.phase, "regular_season");
+        assertEquals(result.stepIndex, 0);
+      },
+    );
+
+    await t.step(
+      "Year 1: genesis_kickoff skip to regular_season runs regular_season gate",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "genesis_kickoff",
+                  stepIndex: 0,
+                  hasCompletedGenesis: false,
+                }),
+              ),
+          },
+        });
+
+        await assertRejects(
+          () =>
+            service.advance(
+              "league-1",
+              createActor(),
+              createGateState({
+                teams: [
+                  createTeam({ teamId: "t1", capCompliant: false }),
+                ],
+              }),
+            ),
+          DomainError,
+          "Cannot advance to regular_season",
+        );
       },
     );
 

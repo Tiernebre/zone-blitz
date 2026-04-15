@@ -188,6 +188,11 @@ export function createLeagueClockService(deps: {
         !targetPhase.startsWith("genesis_");
       const setGenesisComplete = isLeavingGenesis ? true : undefined;
 
+      if (isLeavingGenesis) {
+        targetPhase = "regular_season";
+        targetStepIndex = 0;
+      }
+
       const gate = getGateForPhase(targetPhase);
       let overrideReason: string | null = null;
       let overrideBlockers: Blocker[] | null = null;
