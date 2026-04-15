@@ -1544,6 +1544,14 @@ and both are roster decisions.
 This creates one of the game's deepest strategic questions: do you hire coaches
 who fit your current players, or draft players who fit the coaches you want?
 
+In a genesis league (see [League Genesis](./league-genesis.md)), this question
+lands at league founding: you hire your staff _before_ the allocation draft, so
+your staff's scheme preferences actively shape which founding-pool players fit
+your roster. The coordinator you pick in Phase 3 is betting on the players
+you'll draft in Phase 5, and the founding-pool archetypes (raw college athletes,
+practice-squad journeymen, back-end vets, middling pros) won't all fit every
+scheme equally.
+
 ---
 
 ## Related decisions

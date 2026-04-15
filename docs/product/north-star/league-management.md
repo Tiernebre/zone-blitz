@@ -5,43 +5,91 @@ and structure within which all the strategic decisions play out. It needs to
 support both single-player franchise experiences and online multiplayer leagues
 seamlessly.
 
+> **The canonical creation flow is League Genesis** — a brand-new startup league
+> that founds small (8 teams by default), runs a one-time genesis sequence, and
+> grows via expansion over many seasons. See
+> [League Genesis](./league-genesis.md) for the full vision. This document
+> covers the league **as a running system** across both a genesis-founded league
+> and an established-mode league.
+
 ## League Modes
 
 ### Single-Player Franchise
 
-You control one team. The other 31 are NPC-controlled. The full experience:
+You control one franchise as its owner/GM. The others are NPC-controlled. The
+full experience:
 
-- Complete control over your team's front office, coaching, and roster
-- NPC teams operate autonomously with distinct AI personalities
+- Complete control over your franchise's front office, coaching, and roster
+- NPC franchises operate autonomously with distinct owner/GM AI personalities
 - Play at your own pace — advance the season whenever you're ready
 - The challenge is building and sustaining a dynasty against competent AI
   opponents over many seasons
 
 ### Multiplayer League
 
-Multiple human GMs, with NPC teams filling remaining slots:
+Multiple human owner/GMs, with NPC franchises filling remaining slots:
 
-- Up to 32 human-controlled teams (one per team)
-- Remaining teams are NPC-controlled
+- Up to one human operator per franchise
+- Remaining franchises are NPC-controlled
 - Commissioner role with league management tools
 - Synchronized season advancement (everyone must be ready to advance)
-- Real-time events: live drafts, trade deadlines, free agency windows
+- Real-time events: live drafts, trade deadlines, free agency windows, expansion
+  votes
 
 ### League Creation Options
 
-When creating a league, the commissioner (or single-player GM) configures:
+When creating a league, the commissioner (or single-player founder) configures:
 
-- **Number of teams**: Standard 32, or custom (24, 28, 36, etc.)
-- **Schedule length**: Standard 17-game season, or custom
-- **Salary cap settings**: Cap amount, growth rate, floor percentage
-- **Draft settings**: Number of rounds, pick timer, trade-up rules
-- **Roster limits**: Active roster size, practice squad size, IR spots
-- **Difficulty / AI aggressiveness**: How tough NPC opponents are
-- **Custom rules**: Optional tweaks to standard NFL-style rules
+- **Creation mode**: **Genesis** (the default — brand-new startup league with a
+  founding sequence; see [League Genesis](./league-genesis.md)) or
+  **Established** (jump into a mature league with fictional history; secondary
+  path)
+- **Founding franchise count**: genesis default is **8**, configurable. The
+  league grows from there via expansion over many seasons — see
+  [Expansion](#expansion) below
+- **Schedule length**: scales with league size. An 8-team league defaults to a
+  shorter regular season (~10–12 games); 32 teams gets the standard 17-game
+  season
+- **Salary cap settings**: cap amount, growth rate, floor percentage
+- **Draft settings**: rounds, pick timer, trade-up rules
+- **Roster limits**: active roster size, practice squad size, IR spots
+- **Difficulty / AI aggressiveness**: how tough NPC opponents are
+- **Custom rules**: optional tweaks to standard NFL-style rules
+
+## Expansion
+
+A genesis-founded league is explicitly designed to grow. Expansion happens
+through an **ownership vote** — every franchise (human-run and NPC alike) gets
+one vote on any expansion proposal. Proposals can originate from any owner,
+including you. If the vote passes, the league runs an expansion cycle
+(establishment of new franchises, an expansion draft protecting/exposing
+existing players, rookie-draft adjustments, and schedule/division realignment)
+between seasons.
+
+Natural scaling milestones unlock structural features as the league grows:
+
+- **12 teams**: three divisions of four; a meaningful unbalanced schedule
+- **16 teams**: four-division conference structure; a full wild-card playoff
+  round
+- **24 teams**: dual-conference structure with full inter-conference play
+- **32 teams**: the canonical "mature league" size
+- **Beyond 32**: expansion can continue for leagues that want a larger footprint
+
+See
+[League Genesis — Expansion Over Time](./league-genesis.md#expansion-over-time)
+for the full narrative and voting mechanics.
 
 ## Season Structure
 
-The season follows a calendar that creates natural pacing and drama:
+The season follows a calendar that creates natural pacing and drama.
+
+> **Year 1 of a genesis league uses a different calendar.** The founding
+> sequence (charter, franchise establishment, staff hiring, founding pool,
+> allocation draft, free agency) replaces the normal offseason, and **Year 1 has
+> no preseason** — the league doesn't yet have the infrastructure for exhibition
+> games. Starting in Year 2, the league settles into the calendar described
+> below. See
+> [League Genesis — The Inaugural Calendar](./league-genesis.md#the-inaugural-calendar).
 
 ### Offseason
 

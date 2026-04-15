@@ -8,15 +8,54 @@ incomplete lens of your coaches and scouts.
 
 ## Design Philosophy
 
+### Attributes are normalized to _this_ league
+
+The first thing to understand about Zone Blitz attributes: the scale is
+**league-local**, not an external measurement against real-world professional
+football. A 95 in your league is the best in your league, period — not a
+guarantee that the player would be a 95 in the NFL or any other reference
+league.
+
+In particular: a young [genesis league](./league-genesis.md) draws from a
+founding player pool that is genuinely more modest than the NFL's talent
+population — raw college athletes, practice-squad journeymen, back-end vets,
+middling pros looking for a new shot. The league normalizes attributes across
+that pool anyway, because that's the talent the league actually has. The
+league's top quarterback in Year 1 rates as a top quarterback, full stop.
+Whether he would have started in the NFL is not a question this game needs to
+answer — and, realistically, a 90+ player in a young Zone Blitz league is
+probably closer to an NFL starter than an NFL superstar in absolute terms.
+
+This matters because:
+
+- **The scale floats with the league's talent level.** A league that has
+  accumulated twenty years of generational rookies has a different effective
+  ceiling than a Year 1 genesis league — even though both use the same 0-100
+  range.
+- **Comparisons across saves are meaningless.** The 95 QB in your current save
+  is not directly comparable to the 95 QB in your friend's save. Each league's
+  attributes reflect that league's talent distribution.
+- **Stars are stars within their league.** The simulation, media, awards, and
+  record book all treat league-top attributes as the top. The league doesn't
+  hedge its own superlatives against external reality.
+- **As the league matures, the ceiling rises.** Later-generation draftees,
+  coached by the league's accumulated knowledge, pass on improved development to
+  the generation after them. The absolute level of the league's best players
+  grows over decades of simulated play.
+
+The real-world references below are **illustrative scale anchors, not literal
+equivalences.** They help calibrate the feel of each tier, not promise that an
+85 in your league would actually be Patrick Mahomes in ours.
+
 ### A true 0-100 scale
 
 Most sports games treat 0-100 as a 50-100 scale in disguise. A "50 overall"
 player is the worst player in the game — which raises the question: what are
 0-49 for? This game uses the full range, and every number means something.
 
-The scale is calibrated to professional football:
+The scale is calibrated to professional football within the current league:
 
-| Range     | What it means                                                  | Real-world example                         |
+| Range     | What it means                                                  | Scale anchor (illustrative only)           |
 | --------- | -------------------------------------------------------------- | ------------------------------------------ |
 | 95-100    | Generational. One per decade at a position, maybe.             | Peak Tom Brady, Joe Montana, Walter Payton |
 | 85-94     | Elite. Perennial All-Pro, franchise-defining.                  | Patrick Mahomes, prime Aaron Donald        |
@@ -29,10 +68,10 @@ The scale is calibrated to professional football:
 | 1-14      | Shouldn't be on a professional football field.                 | Guy off the street                         |
 | 0         | Horrendous. Cannot perform this skill at a professional level. | A punter trying to play linebacker         |
 
-**50 is the line.** Above it, you're a starter somewhere in this league. Below
-it, you're fighting for your job. The further above 50, the harder you are to
-replace. The further below, the more your team is hoping the guy behind you
-develops.
+**50 is the line — within your league.** Above it, you're a starter somewhere in
+this league. Below it, you're fighting for your job. A young league whose 50s
+and 60s would be 30s and 40s on an NFL scale doesn't care: inside the league,
+those ratings mark the starter/backup boundary all the same.
 
 ### Bell curve distribution
 
