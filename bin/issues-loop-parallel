@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
-# issues-loop-parallel — fan out GitHub issues labeled `ready-for-agent`
-# across N concurrent `claude -p` sessions. Each session claims one specific
-# issue (passed in), opens a worktree, ships a PR that closes the issue, and
-# watches it to merge.
+# issues-loop-parallel — long-running dispatcher that polls GitHub for issues
+# labeled `ready-for-agent` and fans them out across N concurrent `claude -p`
+# sessions. Each session claims one specific issue (passed in), opens a
+# worktree, ships a PR that closes the issue, and watches it to merge.
+#
+# The dispatcher never exits on its own — it keeps polling at
+# ISSUES_LOOP_POLL_INTERVAL seconds (default 60) so that issues filed or
+# unblocked after startup get picked up without re-running the command.
+# Stop it with Ctrl-C; in-flight workers are left to finish.
 #
 # Usage:  bin/issues-loop-parallel [concurrency]   # default 3
+#
+# Env:
+#   ISSUES_LOOP_LABEL          label to watch (default: ready-for-agent)
+#   ISSUES_LOOP_POLL_INTERVAL  seconds between GH polls (default: 60)
 #
 # Source of truth is GitHub Issues with the `ready-for-agent` label (filed
 # by /file-adr-tickets from an Accepted ADR, or opened ad-hoc for follow-up
@@ -21,6 +30,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CONCURRENCY="${1:-3}"
 LABEL="${ISSUES_LOOP_LABEL:-ready-for-agent}"
+POLL_INTERVAL="${ISSUES_LOOP_POLL_INTERVAL:-60}"
 
 cd "$REPO_ROOT"
 
@@ -94,25 +104,70 @@ fi
 git checkout main --quiet
 git pull --ff-only origin main --quiet
 
-numbers_file="$(mktemp)"
-trap 'rm -f "$numbers_file"' EXIT
+declare -A PID_TO_ISSUE=()
 
-gh issue list \
-  --label "$LABEL" \
-  --state open \
-  --limit 200 \
-  --json number,createdAt \
-  --jq 'sort_by(.createdAt) | .[].number' > "$numbers_file"
+cleanup() {
+  if [[ ${#PID_TO_ISSUE[@]} -gt 0 ]]; then
+    echo "Dispatcher exiting; ${#PID_TO_ISSUE[@]} worker(s) still running in background:"
+    for pid in "${!PID_TO_ISSUE[@]}"; do
+      echo "  pid=$pid issue=#${PID_TO_ISSUE[$pid]}"
+    done
+  fi
+}
+trap cleanup EXIT
+trap 'echo "Received interrupt, shutting down dispatcher."; exit 0' INT TERM
 
-count=$(wc -l < "$numbers_file" | tr -d ' ')
-if [[ "$count" == "0" ]]; then
-  echo "No open issues with label '$LABEL'. Done."
-  exit 0
-fi
+reap_finished() {
+  for pid in "${!PID_TO_ISSUE[@]}"; do
+    if ! kill -0 "$pid" 2>/dev/null; then
+      wait "$pid" 2>/dev/null || true
+      echo "--- worker done: #${PID_TO_ISSUE[$pid]} (pid=$pid) ---"
+      unset 'PID_TO_ISSUE[$pid]'
+    fi
+  done
+}
 
-echo "Dispatching $count issues across $CONCURRENCY workers…"
+issue_in_flight() {
+  local needle="$1"
+  for n in "${PID_TO_ISSUE[@]}"; do
+    [[ "$n" == "$needle" ]] && return 0
+  done
+  return 1
+}
 
-ISSUES_LOOP_WORKER=1 \
-  xargs -n 1 -P "$CONCURRENCY" "$0" < "$numbers_file"
+echo "Dispatcher started: label='$LABEL', concurrency=$CONCURRENCY, poll=${POLL_INTERVAL}s. Ctrl-C to stop."
 
-echo "All workers finished."
+while true; do
+  reap_finished
+
+  free_slots=$(( CONCURRENCY - ${#PID_TO_ISSUE[@]} ))
+  if (( free_slots > 0 )); then
+    candidates="$(gh issue list \
+      --label "$LABEL" \
+      --state open \
+      --limit 200 \
+      --json number,createdAt \
+      --jq 'sort_by(.createdAt) | .[].number' || true)"
+
+    dispatched=0
+    while IFS= read -r issue_number; do
+      [[ -z "$issue_number" ]] && continue
+      (( free_slots <= 0 )) && break
+      if issue_in_flight "$issue_number"; then
+        continue
+      fi
+      ISSUES_LOOP_WORKER=1 "$0" "$issue_number" &
+      pid=$!
+      PID_TO_ISSUE[$pid]="$issue_number"
+      echo "+++ dispatched #$issue_number (pid=$pid); in-flight=${#PID_TO_ISSUE[@]}/$CONCURRENCY"
+      free_slots=$(( free_slots - 1 ))
+      dispatched=$(( dispatched + 1 ))
+    done <<< "$candidates"
+
+    if (( dispatched == 0 )) && (( ${#PID_TO_ISSUE[@]} == 0 )); then
+      echo "Idle: no '$LABEL' issues. Sleeping ${POLL_INTERVAL}s…"
+    fi
+  fi
+
+  sleep "$POLL_INTERVAL"
+done
