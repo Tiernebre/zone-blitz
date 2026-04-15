@@ -104,13 +104,20 @@ fi
 git checkout main --quiet
 git pull --ff-only origin main --quiet
 
-declare -A PID_TO_ISSUE=()
+# Parallel indexed arrays (bash 3.2-compatible — no associative arrays).
+# WORKER_PIDS[i] owns the same slot as WORKER_ISSUES[i].
+WORKER_PIDS=()
+WORKER_ISSUES=()
+
+in_flight_count() { echo "${#WORKER_PIDS[@]}"; }
 
 cleanup() {
-  if [[ ${#PID_TO_ISSUE[@]} -gt 0 ]]; then
-    echo "Dispatcher exiting; ${#PID_TO_ISSUE[@]} worker(s) still running in background:"
-    for pid in "${!PID_TO_ISSUE[@]}"; do
-      echo "  pid=$pid issue=#${PID_TO_ISSUE[$pid]}"
+  local count=${#WORKER_PIDS[@]}
+  if (( count > 0 )); then
+    echo "Dispatcher exiting; $count worker(s) still running in background:"
+    local i
+    for (( i=0; i<count; i++ )); do
+      echo "  pid=${WORKER_PIDS[$i]} issue=#${WORKER_ISSUES[$i]}"
     done
   fi
 }
@@ -118,18 +125,28 @@ trap cleanup EXIT
 trap 'echo "Received interrupt, shutting down dispatcher."; exit 0' INT TERM
 
 reap_finished() {
-  for pid in "${!PID_TO_ISSUE[@]}"; do
-    if ! kill -0 "$pid" 2>/dev/null; then
+  local new_pids=()
+  local new_issues=()
+  local i
+  for (( i=0; i<${#WORKER_PIDS[@]}; i++ )); do
+    local pid="${WORKER_PIDS[$i]}"
+    local issue="${WORKER_ISSUES[$i]}"
+    if kill -0 "$pid" 2>/dev/null; then
+      new_pids+=("$pid")
+      new_issues+=("$issue")
+    else
       wait "$pid" 2>/dev/null || true
-      echo "--- worker done: #${PID_TO_ISSUE[$pid]} (pid=$pid) ---"
-      unset 'PID_TO_ISSUE[$pid]'
+      echo "--- worker done: #$issue (pid=$pid) ---"
     fi
   done
+  WORKER_PIDS=("${new_pids[@]+"${new_pids[@]}"}")
+  WORKER_ISSUES=("${new_issues[@]+"${new_issues[@]}"}")
 }
 
 issue_in_flight() {
   local needle="$1"
-  for n in "${PID_TO_ISSUE[@]}"; do
+  local n
+  for n in ${WORKER_ISSUES[@]+"${WORKER_ISSUES[@]}"}; do
     [[ "$n" == "$needle" ]] && return 0
   done
   return 1
@@ -140,7 +157,7 @@ echo "Dispatcher started: label='$LABEL', concurrency=$CONCURRENCY, poll=${POLL_
 while true; do
   reap_finished
 
-  free_slots=$(( CONCURRENCY - ${#PID_TO_ISSUE[@]} ))
+  free_slots=$(( CONCURRENCY - ${#WORKER_PIDS[@]} ))
   if (( free_slots > 0 )); then
     candidates="$(gh issue list \
       --label "$LABEL" \
@@ -158,13 +175,14 @@ while true; do
       fi
       ISSUES_LOOP_WORKER=1 "$0" "$issue_number" &
       pid=$!
-      PID_TO_ISSUE[$pid]="$issue_number"
-      echo "+++ dispatched #$issue_number (pid=$pid); in-flight=${#PID_TO_ISSUE[@]}/$CONCURRENCY"
+      WORKER_PIDS+=("$pid")
+      WORKER_ISSUES+=("$issue_number")
+      echo "+++ dispatched #$issue_number (pid=$pid); in-flight=${#WORKER_PIDS[@]}/$CONCURRENCY"
       free_slots=$(( free_slots - 1 ))
       dispatched=$(( dispatched + 1 ))
     done <<< "$candidates"
 
-    if (( dispatched == 0 )) && (( ${#PID_TO_ISSUE[@]} == 0 )); then
+    if (( dispatched == 0 )) && (( ${#WORKER_PIDS[@]} == 0 )); then
       echo "Idle: no '$LABEL' issues. Sleeping ${POLL_INTERVAL}s…"
     fi
   fi
