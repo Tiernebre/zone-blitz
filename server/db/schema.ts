@@ -7,7 +7,10 @@ export const healthChecks = pgTable("health_checks", {
 });
 
 // Feature schemas
-export { leagues } from "../features/league/league.schema.ts";
+export {
+  advancePolicyEnum,
+  leagues,
+} from "../features/league/league.schema.ts";
 export { states } from "../features/states/state.schema.ts";
 export { cities } from "../features/cities/city.schema.ts";
 export { teams } from "../features/team/team.schema.ts";
