@@ -262,7 +262,10 @@ export function simulateGame(input: SimulationInput): GameResult {
       .slice(0, 4);
   }
 
-  function performKickoff(kickingSide: "home" | "away"): void {
+  function performKickoff(
+    kickingSide: "home" | "away",
+    options?: { isSafetyKick?: boolean },
+  ): void {
     const receivingSide = kickingSide === "home" ? "away" : "home";
     const kickingTeamId = kickingSide === "home"
       ? input.home.teamId
@@ -290,6 +293,7 @@ export function simulateGame(input: SimulationInput): GameResult {
       returner: findReturner(receivingSide),
       coverageUnit: findCoverageUnit(kickingSide),
       scoreDifferential: receiverScore - kickerScore,
+      isSafetyKick: options?.isSafetyKick,
     };
 
     const result = resolveKickoff(ctx, rng);
@@ -304,7 +308,6 @@ export function simulateGame(input: SimulationInput): GameResult {
       resolveConversion(receivingTeamId);
 
       state.possession = kickingSide;
-      startNewDrive(25);
       performKickoff(receivingSide);
       return;
     }
@@ -499,7 +502,7 @@ export function simulateGame(input: SimulationInput): GameResult {
       else state.homeScore += 2;
 
       const concedingSide: "home" | "away" = isHome ? "home" : "away";
-      performKickoff(concedingSide);
+      performKickoff(concedingSide, { isSafetyKick: true });
       return true;
     }
 

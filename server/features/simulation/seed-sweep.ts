@@ -22,6 +22,7 @@ export interface SweepResult {
   sacksPerTeamPerGame: BandStats;
   turnoversPerTeamPerGame: BandStats;
   fourthDownGoRate: BandStats;
+  averageDriveStartYardLine: BandStats;
   averageElapsedMs: number;
 }
 
@@ -73,6 +74,9 @@ export function seedSweep(
     ),
     fourthDownGoRate: computeBandStats(
       aggregates.map((a) => a.fourthDownGoRate),
+    ),
+    averageDriveStartYardLine: computeBandStats(
+      aggregates.map((a) => a.averageDriveStartYardLine),
     ),
     averageElapsedMs: elapsed.reduce((a, b) => a + b, 0) / elapsed.length,
   };

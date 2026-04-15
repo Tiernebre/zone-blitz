@@ -257,6 +257,29 @@ Deno.test("resolveFieldGoal", async (t) => {
     },
   );
 
+  await t.step(
+    "missed FG from inside the 20 gives defense ball at the 20 per NFL rules",
+    () => {
+      let foundMiss = false;
+      for (let seed = 1; seed <= 2000 && !foundMiss; seed++) {
+        const result = resolveFieldGoal({
+          kicker: makeKicker({ kickingAccuracy: 20, kickingPower: 20 }),
+          yardLine: 90,
+          rng: createSeededRng(seed),
+        });
+        if (result.outcome === "missed" || result.outcome === "blocked") {
+          foundMiss = true;
+          assertEquals(
+            result.defenseYardLine >= 20,
+            true,
+            `defenseYardLine should be at least 20, got ${result.defenseYardLine}`,
+          );
+        }
+      }
+      assertEquals(foundMiss, true);
+    },
+  );
+
   await t.step("very long FGs have low success rate", () => {
     const trials = 500;
     let made = 0;

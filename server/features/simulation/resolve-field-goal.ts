@@ -46,7 +46,7 @@ function getSuccessProbability(
 export function resolveFieldGoal(input: FieldGoalInput): FieldGoalResult {
   const { kicker, yardLine, weatherPenalty = 0, rng } = input;
   const distance = 100 - yardLine + 17;
-  const defenseYardLine = 100 - yardLine;
+  const defenseYardLine = Math.max(20, 100 - yardLine);
 
   const kickingAccuracy =
     (kicker.attributes as unknown as Record<string, number>).kickingAccuracy ??
