@@ -35,3 +35,6 @@ as superseded.
 - [0008 — Generate tendency vectors for every coach, not just active coordinators](./0008-coach-tendency-generation-scope.md)
   — HCs and STCs get full generated vectors too; v1 application scope is
   unchanged from 0007
+- [0012 — Depth chart section labels surface the scheme](./0012-depth-chart-scheme-section-labels.md)
+  — group headers show "Base 3-4 · Nickel" / "11 Personnel" etc., derived from
+  the fingerprint; row labels unchanged
