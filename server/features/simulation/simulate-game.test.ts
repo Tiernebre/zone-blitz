@@ -678,8 +678,7 @@ Deno.test("simulateGame", async (t) => {
       });
 
       const tdEvents = result.events.filter(
-        (e) =>
-          e.outcome === "touchdown" && !e.tags.includes("negated_play"),
+        (e) => e.outcome === "touchdown" && !e.tags.includes("negated_play"),
       );
       assertGreater(tdEvents.length, 0, "Should have touchdowns");
 
