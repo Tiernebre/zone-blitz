@@ -45,3 +45,6 @@ as superseded.
   — ordered phase enum + per-phase step catalog on a single `league_clock`;
   user-initiated advance with gated transitions; unblocks draft, FA, contracts,
   trading, and cap-compliance ADRs (Proposed)
+- [0015 — Simulation resolution model: play-by-play core with fast-mode parity](./0015-simulation-resolution-model.md)
+  — single play-by-play engine; fast mode is the same engine headless; seeded
+  RNG; per-play event stream is canonical output (Proposed)
