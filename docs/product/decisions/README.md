@@ -52,3 +52,11 @@ as superseded.
   — parent `contracts` + `contract_years` + `contract_bonus_prorations`; pure
   `computeCapHit` / `computeDeadCap`; void years in, post-June-1 and incentives
   deferred (Proposed)
+- [0017 — League genesis as the default creation flow](./0017-league-genesis-default-creation-flow.md)
+  — genesis is canonical; established mode is the secondary path (Proposed)
+- [0018 — Genesis phase state machine](./0018-genesis-phase-state-machine.md) —
+  extends ADR 0014 with a one-shot genesis phase sequence sharing the same
+  `league_clock` row (Proposed)
+- [0019 — Inaugural Year 1 calendar (no preseason)](./0019-inaugural-year-one-calendar.md)
+  — Year 1 skips preseason and uses a compressed regular season scaled to league
+  size; Year 2+ uses the recurring calendar (Proposed)

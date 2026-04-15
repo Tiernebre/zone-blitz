@@ -215,3 +215,6 @@ made is recorded, and you can look back and trace the consequences.
 ## Related decisions
 
 - [0014 — Season calendar and phase state machine](../decisions/0014-season-calendar-phase-state-machine.md)
+- [0017 — League genesis as the default creation flow](../decisions/0017-league-genesis-default-creation-flow.md)
+- [0018 — Genesis phase state machine](../decisions/0018-genesis-phase-state-machine.md)
+- [0019 — Inaugural Year 1 calendar (no preseason)](../decisions/0019-inaugural-year-one-calendar.md)

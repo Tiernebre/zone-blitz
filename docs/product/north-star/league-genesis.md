@@ -803,3 +803,9 @@ season coverage patterns. See [Media](./media.md).
 - "There was no preseason in Year 1 — the league didn't have one yet. We went
   straight from training camp into a Week 1 that nobody had a read on. Half the
   league's depth charts looked nothing like what people expected."
+
+## Related decisions
+
+- [0017 — League genesis as the default creation flow](../decisions/0017-league-genesis-default-creation-flow.md)
+- [0018 — Genesis phase state machine](../decisions/0018-genesis-phase-state-machine.md)
+- [0019 — Inaugural Year 1 calendar (no preseason)](../decisions/0019-inaugural-year-one-calendar.md)
