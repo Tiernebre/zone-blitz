@@ -3,12 +3,14 @@ export type { HealthStatus } from "./types/health.ts";
 export type {
   AdvancePolicy,
   League,
+  LeagueFoundResult,
   LeagueListItem,
   LeagueSeasonSummary,
   LeagueUserTeamSummary,
   NewLeague,
 } from "./types/league.ts";
 export type { Team } from "./types/team.ts";
+export type { Franchise } from "./types/franchise.ts";
 export type {
   NewSeason,
   OffseasonStage,

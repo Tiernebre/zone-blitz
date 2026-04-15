@@ -38,9 +38,6 @@ export function createLeagueRepository(deps: {
         .insert(leagues)
         .values({
           name: input.name,
-          ...(input.seasonLength !== undefined && {
-            seasonLength: input.seasonLength,
-          }),
         })
         .returning();
       return league;

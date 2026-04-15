@@ -40,5 +40,12 @@ export interface LeagueListItem extends League {
 
 export interface NewLeague {
   name: string;
-  seasonLength?: number;
+}
+
+export interface LeagueFoundResult {
+  leagueId: string;
+  seasonId: string;
+  playerCount: number;
+  coachCount: number;
+  scoutCount: number;
 }

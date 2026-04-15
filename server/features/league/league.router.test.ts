@@ -1,15 +1,18 @@
 import { assertEquals } from "@std/assert";
 import { createLeagueRouter } from "./league.router.ts";
-import type { League, LeagueListItem } from "@zone-blitz/shared";
-import type { LeagueService } from "./league.service.interface.ts";
+import type { Franchise, League, LeagueListItem } from "@zone-blitz/shared";
+import type {
+  CreateLeagueResult,
+  LeagueService,
+} from "./league.service.interface.ts";
 
 function createMockLeague(overrides: Partial<League> = {}): League {
   return {
     id: "1",
     name: "Test",
     userTeamId: null,
-    numberOfTeams: 32,
-    seasonLength: 17,
+    numberOfTeams: 8,
+    seasonLength: 10,
     salaryCap: 255_000_000,
     capFloorPercent: 89,
     capGrowthRate: 5,
@@ -22,13 +25,44 @@ function createMockLeague(overrides: Partial<League> = {}): League {
   };
 }
 
+function createMockFranchise(
+  overrides: Partial<Franchise> = {},
+): Franchise {
+  return {
+    id: "f-1",
+    leagueId: "1",
+    teamId: "team-1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  };
+}
+
 function createMockLeagueService(
   overrides: Partial<LeagueService> = {},
 ): LeagueService {
+  const defaultResult: CreateLeagueResult = {
+    league: createMockLeague({ id: "new-id" }),
+    franchises: Array.from({ length: 8 }, (_, i) =>
+      createMockFranchise({
+        id: `f-${i}`,
+        leagueId: "new-id",
+        teamId: `team-${i + 1}`,
+      })),
+  };
+
   return {
     getAll: () => Promise.resolve([]),
     getById: () => Promise.resolve(createMockLeague()),
-    create: () => Promise.resolve(createMockLeague({ id: "new-id" })),
+    create: () => Promise.resolve(defaultResult),
+    found: () =>
+      Promise.resolve({
+        leagueId: "lg-1",
+        seasonId: "s-1",
+        playerCount: 50,
+        coachCount: 10,
+        scoutCount: 5,
+      }),
     assignUserTeam: () => Promise.resolve(createMockLeague()),
     touchLastPlayed: () => Promise.resolve(createMockLeague()),
     deleteById: () => Promise.resolve(),
@@ -98,23 +132,35 @@ Deno.test("league.router", async (t) => {
     assertEquals(body.name, "Found League");
   });
 
-  await t.step("POST / creates a league and returns 201", async () => {
-    const created = createMockLeague({ id: "new-id", name: "New League" });
-    const router = createLeagueRouter(
-      createMockLeagueService({ create: () => Promise.resolve(created) }),
-    );
+  await t.step(
+    "POST / creates a league shell with franchises and returns 201",
+    async () => {
+      const result: CreateLeagueResult = {
+        league: createMockLeague({ id: "new-id", name: "New League" }),
+        franchises: Array.from({ length: 8 }, (_, i) =>
+          createMockFranchise({
+            id: `f-${i}`,
+            leagueId: "new-id",
+            teamId: `team-${i + 1}`,
+          })),
+      };
+      const router = createLeagueRouter(
+        createMockLeagueService({ create: () => Promise.resolve(result) }),
+      );
 
-    const res = await router.request("/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "New League" }),
-    });
-    assertEquals(res.status, 201);
+      const res = await router.request("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "New League" }),
+      });
+      assertEquals(res.status, 201);
 
-    const body = await res.json();
-    assertEquals(body.id, "new-id");
-    assertEquals(body.name, "New League");
-  });
+      const body = await res.json();
+      assertEquals(body.league.id, "new-id");
+      assertEquals(body.league.name, "New League");
+      assertEquals(body.franchises.length, 8);
+    },
+  );
 
   await t.step("POST / returns 400 when name is missing", async () => {
     const router = createLeagueRouter(createMockLeagueService());
@@ -149,6 +195,35 @@ Deno.test("league.router", async (t) => {
         body: JSON.stringify({ name: "a".repeat(101) }),
       });
       assertEquals(res.status, 400);
+    },
+  );
+
+  await t.step(
+    "POST /:id/found runs founding generation and returns result",
+    async () => {
+      let foundLeagueId: string | undefined;
+      const router = createLeagueRouter(
+        createMockLeagueService({
+          found: (leagueId) => {
+            foundLeagueId = leagueId;
+            return Promise.resolve({
+              leagueId,
+              seasonId: "s-1",
+              playerCount: 50,
+              coachCount: 10,
+              scoutCount: 5,
+            });
+          },
+        }),
+      );
+
+      const res = await router.request("/lg-1/found", { method: "POST" });
+      assertEquals(res.status, 200);
+      const body = await res.json();
+      assertEquals(body.leagueId, "lg-1");
+      assertEquals(body.seasonId, "s-1");
+      assertEquals(body.playerCount, 50);
+      assertEquals(foundLeagueId, "lg-1");
     },
   );
 

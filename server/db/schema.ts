@@ -101,3 +101,4 @@ export {
   leaguePhaseStep,
   stepKindEnum,
 } from "../features/league-clock/league-clock.schema.ts";
+export { franchises } from "../features/franchise/franchise.schema.ts";

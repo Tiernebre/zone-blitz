@@ -90,7 +90,11 @@ describe("CreateLeague", () => {
       Promise.resolve({
         ok: true,
         status: 201,
-        json: () => Promise.resolve({ id: 42, name: "Gridiron" }),
+        json: () =>
+          Promise.resolve({
+            league: { id: 42, name: "Gridiron" },
+            franchises: [],
+          }),
       }),
     );
     renderWithProviders();

@@ -16,8 +16,12 @@ export function createLeagueRouter(leagueService: LeagueService) {
     })
     .post("/", zValidator("json", createLeagueSchema), async (c) => {
       const input = c.req.valid("json");
-      const league = await leagueService.create(input);
-      return c.json(league, 201);
+      const result = await leagueService.create(input);
+      return c.json(result, 201);
+    })
+    .post("/:id/found", async (c) => {
+      const result = await leagueService.found(c.req.param("id"));
+      return c.json(result);
     })
     .patch(
       "/:id/user-team",
