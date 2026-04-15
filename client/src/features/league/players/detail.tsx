@@ -7,11 +7,20 @@ import type {
   PlayerAccoladeType,
   PlayerInjuryStatus,
   PlayerSeasonStatRow,
+  PlayerStatus,
   PlayerTransactionEntry,
   PlayerTransactionType,
 } from "@zone-blitz/shared/types/player.ts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { usePlayerDetail } from "../../../hooks/use-player-detail.ts";
+import { UserIcon } from "lucide-react";
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -91,7 +101,7 @@ function injuryBadgeVariant(
 }
 
 function formatInjury(status: PlayerInjuryStatus) {
-  return status.replace(/_/g, " ");
+  return status.replace(/_/g, " ").toUpperCase();
 }
 
 function formatHeight(inches: number) {
@@ -100,19 +110,32 @@ function formatHeight(inches: number) {
   return `${feet}'${remainder}"`;
 }
 
-function ordinal(n: number): string {
-  const mod100 = n % 100;
-  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
-  switch (n % 10) {
-    case 1:
-      return `${n}st`;
-    case 2:
-      return `${n}nd`;
-    case 3:
-      return `${n}rd`;
-    default:
-      return `${n}th`;
-  }
+function statusLabel(
+  status: PlayerStatus,
+  injuryStatus: PlayerInjuryStatus,
+  hasTeam: boolean,
+): string {
+  if (status === "retired") return "Retired";
+  if (status === "prospect") return "Prospect";
+  if (injuryStatus === "ir") return "IR";
+  if (!hasTeam) return "Free Agent";
+  return "Active";
+}
+
+function statusBadgeVariant(
+  status: PlayerStatus,
+  injuryStatus: PlayerInjuryStatus,
+  hasTeam: boolean,
+): "secondary" | "destructive" | "outline" {
+  if (status === "retired") return "outline";
+  if (injuryStatus === "ir") return "destructive";
+  if (!hasTeam) return "outline";
+  return "secondary";
+}
+
+function formatBirthDate(iso: string): string {
+  const [year, month, day] = iso.split("-");
+  return `${month}/${day}/${year}`;
 }
 
 export function PlayerDetail() {
@@ -147,8 +170,8 @@ export function PlayerDetail() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
+      <PlayerBreadcrumb detail={detail} leagueId={leagueId} />
       <Header detail={detail} leagueId={leagueId} />
-      <Origin detail={detail} leagueId={leagueId} />
       <ContractSection detail={detail} leagueId={leagueId} />
       <TransactionsSection detail={detail} leagueId={leagueId} />
       <CareerLogSection detail={detail} leagueId={leagueId} />
@@ -158,41 +181,192 @@ export function PlayerDetail() {
   );
 }
 
-function Header(
+function PlayerBreadcrumb(
   { detail, leagueId }: { detail: PlayerDetailData; leagueId: string },
 ) {
+  const playerName = `${detail.firstName} ${detail.lastName}`;
+
+  if (detail.status === "prospect" && detail.preDraftEvaluation) {
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              render={
+                <Link
+                  to="/leagues/$leagueId/draft"
+                  params={{ leagueId }}
+                />
+              }
+            >
+              Draft {detail.preDraftEvaluation.draftClassYear}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{playerName}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
+
+  if (!detail.currentTeam) {
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              render={
+                <Link
+                  to="/leagues/$leagueId/free-agency"
+                  params={{ leagueId }}
+                />
+              }
+            >
+              Free Agents
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{playerName}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
+
   return (
-    <header className="flex flex-col gap-2" data-testid="player-header">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-3xl font-bold tracking-tight">
-          {detail.firstName} {detail.lastName}
-        </h1>
-        <Badge variant={injuryBadgeVariant(detail.injuryStatus)}>
-          {formatInjury(detail.injuryStatus)}
-        </Badge>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        {detail.neutralBucket} · Age {detail.age} ·{" "}
-        {formatHeight(detail.heightInches)} · {detail.weightPounds} lbs ·{" "}
-        {detail.yearsOfExperience} yr exp
-      </p>
-      <p className="text-sm text-muted-foreground">
-        {detail.currentTeam
-          ? (
-            <>
-              Currently with{" "}
+    <Breadcrumb>
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink
+            render={
               <Link
                 to="/leagues/$leagueId/opponents/$teamId"
                 params={{ leagueId, teamId: detail.currentTeam.id }}
-                className="font-medium underline-offset-2 hover:underline"
-                data-testid="player-current-team-link"
-              >
-                {detail.currentTeam.city} {detail.currentTeam.name}
-              </Link>
-            </>
-          )
-          : <span>Unsigned free agent</span>}
-      </p>
+              />
+            }
+          >
+            {detail.currentTeam.city} {detail.currentTeam.name}
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbLink
+            render={
+              <Link
+                to="/leagues/$leagueId/roster"
+                params={{ leagueId }}
+              />
+            }
+          >
+            Roster
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbPage>{playerName}</BreadcrumbPage>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
+  );
+}
+
+function Header(
+  { detail, leagueId }: { detail: PlayerDetailData; leagueId: string },
+) {
+  const proBowlCount = detail.accolades.filter(
+    (a) => a.type === "pro_bowl",
+  ).length;
+  const allProCount = detail.accolades.filter(
+    (a) => a.type === "all_pro_first" || a.type === "all_pro_second",
+  ).length;
+  const displayStatus = statusLabel(
+    detail.status,
+    detail.injuryStatus,
+    detail.currentTeam !== null,
+  );
+  const badgeVariant = statusBadgeVariant(
+    detail.status,
+    detail.injuryStatus,
+    detail.currentTeam !== null,
+  );
+
+  return (
+    <header className="flex gap-5" data-testid="player-header">
+      <div
+        className="flex size-24 shrink-0 items-center justify-center rounded-lg bg-muted"
+        data-testid="player-headshot"
+      >
+        <UserIcon className="size-12 text-muted-foreground" />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-3xl font-bold tracking-tight">
+            {detail.jerseyNumber !== null && (
+              <span className="text-muted-foreground">
+                #{detail.jerseyNumber}
+              </span>
+            )}
+            {detail.firstName} {detail.lastName}
+          </h1>
+          <Badge variant={badgeVariant}>{displayStatus}</Badge>
+          {detail.injuryStatus !== "healthy" && (
+            <Badge variant={injuryBadgeVariant(detail.injuryStatus)}>
+              {formatInjury(detail.injuryStatus)}
+            </Badge>
+          )}
+        </div>
+
+        <p className="text-sm text-muted-foreground">
+          {detail.neutralBucket}
+          {detail.currentTeam
+            ? (
+              <>
+                {" · "}
+                <Link
+                  to="/leagues/$leagueId/opponents/$teamId"
+                  params={{ leagueId, teamId: detail.currentTeam.id }}
+                  className="font-medium underline-offset-2 hover:underline"
+                  data-testid="player-current-team-link"
+                >
+                  {detail.currentTeam.city} {detail.currentTeam.name}
+                </Link>
+              </>
+            )
+            : <span>· Free Agent</span>}
+        </p>
+
+        <p className="text-sm text-muted-foreground">
+          {formatHeight(detail.heightInches)} · {detail.weightPounds} lbs
+        </p>
+
+        <p className="text-sm text-muted-foreground">
+          Age {detail.age} ({formatBirthDate(detail.birthDate)})
+          {detail.origin.hometown && <>· {detail.origin.hometown}</>}
+          {detail.origin.college && <>· {detail.origin.college}</>}
+        </p>
+
+        <p className="text-sm text-muted-foreground">
+          {detail.yearsOfExperience} yr exp
+          {detail.origin.draftYear !== null
+            ? (
+              <>
+                {" · "}
+                {detail.origin.draftYear} Rd {detail.origin.draftRound} Pick
+                {" "}
+                {detail.origin.draftPick}
+                {detail.origin.draftingTeam && (
+                  <>({detail.origin.draftingTeam.abbreviation})</>
+                )}
+              </>
+            )
+            : <>· Undrafted</>}
+          {proBowlCount > 0 && <>· {proBowlCount}× Pro Bowl</>}
+          {allProCount > 0 && <>· {allProCount}× All-Pro</>}
+        </p>
+      </div>
     </header>
   );
 }
@@ -208,64 +382,6 @@ function Section(
       </div>
       {children}
     </section>
-  );
-}
-
-function Origin(
-  { detail, leagueId }: { detail: PlayerDetailData; leagueId: string },
-) {
-  const { origin } = detail;
-  const undrafted = origin.draftYear === null;
-  return (
-    <Section title="Origin">
-      <Card data-testid="player-origin">
-        <CardContent className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2">
-          <Fact label="Draft">
-            {undrafted
-              ? <span data-testid="player-origin-undrafted">Undrafted</span>
-              : (
-                <span data-testid="player-origin-draft">
-                  {origin.draftYear}, Round {origin.draftRound} (Pick{" "}
-                  {ordinal(origin.draftPick!)})
-                </span>
-              )}
-          </Fact>
-          <Fact label="Drafted by">
-            {origin.draftingTeam
-              ? (
-                <Link
-                  to="/leagues/$leagueId/opponents/$teamId"
-                  params={{ leagueId, teamId: origin.draftingTeam.id }}
-                  className="font-medium underline-offset-2 hover:underline"
-                  data-testid="player-drafting-team-link"
-                >
-                  {origin.draftingTeam.city} {origin.draftingTeam.name}
-                </Link>
-              )
-              : <span className="text-muted-foreground">—</span>}
-          </Fact>
-          <Fact label="College">
-            <span>{origin.college ?? "—"}</span>
-          </Fact>
-          <Fact label="Hometown">
-            <span>{origin.hometown ?? "—"}</span>
-          </Fact>
-        </CardContent>
-      </Card>
-    </Section>
-  );
-}
-
-function Fact(
-  { label, children }: { label: string; children: React.ReactNode },
-) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </span>
-      <span className="text-sm">{children}</span>
-    </div>
   );
 }
 
@@ -305,6 +421,19 @@ function ContractSection(
 
       <ContractHistoryTable entries={contractHistory} leagueId={leagueId} />
     </Section>
+  );
+}
+
+function Fact(
+  { label, children }: { label: string; children: React.ReactNode },
+) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
+      <span className="text-sm">{children}</span>
+    </div>
   );
 }
 

@@ -27,6 +27,7 @@ export const players = pgTable("players", {
   status: playerStatusEnum("status").notNull().default("active"),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
+  jerseyNumber: integer("jersey_number"),
   injuryStatus: playerInjuryStatusEnum("injury_status")
     .notNull()
     .default("healthy"),

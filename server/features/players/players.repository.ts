@@ -176,8 +176,10 @@ export function createPlayersRepository(deps: {
       const [row] = await deps.db
         .select({
           id: players.id,
+          status: players.status,
           firstName: players.firstName,
           lastName: players.lastName,
+          jerseyNumber: players.jerseyNumber,
           injuryStatus: players.injuryStatus,
           heightInches: players.heightInches,
           weightPounds: players.weightPounds,
@@ -302,11 +304,14 @@ export function createPlayersRepository(deps: {
 
       const detail: PlayerDetail = {
         id: row.id,
+        status: row.status,
         firstName: row.firstName,
         lastName: row.lastName,
+        jerseyNumber: row.jerseyNumber,
         neutralBucket: bucket,
         schemeArchetype: null,
         age: ageFromBirthDate(row.birthDate, now()),
+        birthDate: row.birthDate,
         heightInches: row.heightInches,
         weightPounds: row.weightPounds,
         yearsOfExperience,
