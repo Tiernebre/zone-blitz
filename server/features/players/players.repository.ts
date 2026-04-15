@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import type pino from "pino";
 import {
   buildContractYears,
@@ -59,6 +59,7 @@ export function createPlayersRepository(deps: {
   const txCities = alias(cities, "tx_city");
   const txCounterTeams = alias(teams, "tx_counter_team");
   const txCounterCities = alias(cities, "tx_counter_city");
+  const counterpartyPlayers = alias(players, "counterparty_player");
 
   async function loadTransactions(
     playerId: string,
@@ -70,6 +71,7 @@ export function createPlayersRepository(deps: {
         seasonYear: playerTransactions.seasonYear,
         occurredAt: playerTransactions.occurredAt,
         detail: playerTransactions.detail,
+        tradeId: playerTransactions.tradeId,
         teamId: txTeams.id,
         teamName: txTeams.name,
         teamCity: txCities.name,
@@ -78,6 +80,9 @@ export function createPlayersRepository(deps: {
         counterpartyTeamName: txCounterTeams.name,
         counterpartyTeamCity: txCounterCities.name,
         counterpartyTeamAbbreviation: txCounterTeams.abbreviation,
+        counterpartyPlayerId: counterpartyPlayers.id,
+        counterpartyPlayerFirstName: counterpartyPlayers.firstName,
+        counterpartyPlayerLastName: counterpartyPlayers.lastName,
       })
       .from(playerTransactions)
       .leftJoin(txTeams, eq(txTeams.id, playerTransactions.teamId))
@@ -87,8 +92,12 @@ export function createPlayersRepository(deps: {
         eq(txCounterTeams.id, playerTransactions.counterpartyTeamId),
       )
       .leftJoin(txCounterCities, eq(txCounterCities.id, txCounterTeams.cityId))
+      .leftJoin(
+        counterpartyPlayers,
+        eq(counterpartyPlayers.id, playerTransactions.counterpartyPlayerId),
+      )
       .where(eq(playerTransactions.playerId, playerId))
-      .orderBy(asc(playerTransactions.occurredAt));
+      .orderBy(desc(playerTransactions.occurredAt));
 
     return rows.map((row) => ({
       id: row.id,
@@ -96,6 +105,7 @@ export function createPlayersRepository(deps: {
       seasonYear: row.seasonYear,
       occurredAt: row.occurredAt.toISOString(),
       detail: row.detail,
+      tradeId: row.tradeId,
       team: row.teamId
         ? {
           id: row.teamId,
@@ -110,6 +120,13 @@ export function createPlayersRepository(deps: {
           name: row.counterpartyTeamName!,
           city: row.counterpartyTeamCity!,
           abbreviation: row.counterpartyTeamAbbreviation!,
+        }
+        : null,
+      counterpartyPlayer: row.counterpartyPlayerId
+        ? {
+          id: row.counterpartyPlayerId,
+          firstName: row.counterpartyPlayerFirstName!,
+          lastName: row.counterpartyPlayerLastName!,
         }
         : null,
     }));

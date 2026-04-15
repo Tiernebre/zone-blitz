@@ -487,7 +487,7 @@ Deno.test({
 
 Deno.test({
   name:
-    "playersRepository.getDetailById: surfaces the chronological transaction log",
+    "playersRepository.getDetailById: surfaces the reverse-chronological transaction log",
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
@@ -539,6 +539,7 @@ Deno.test({
           teamId: team.id,
           type: "drafted",
           seasonYear: 2022,
+          occurredAt: new Date("2022-04-28T20:00:00Z"),
           detail: "Round 1, pick 3 overall",
         },
         {
@@ -546,19 +547,175 @@ Deno.test({
           teamId: team.id,
           type: "extended",
           seasonYear: 2025,
+          occurredAt: new Date("2025-08-01T15:00:00Z"),
           detail: "4-year extension",
         },
       ]);
 
       const detail = await repo.getDetailById(playerId);
       assertEquals(detail?.transactions.length, 2);
-      assertEquals(detail?.transactions[0].type, "drafted");
+      assertEquals(detail?.transactions[0].type, "extended");
+      assertEquals(detail?.transactions[0].tradeId, null);
+      assertEquals(detail?.transactions[0].counterpartyPlayer, null);
+      assertEquals(detail?.transactions[1].type, "drafted");
       assertEquals(
-        detail?.transactions[0].team?.abbreviation,
+        detail?.transactions[1].team?.abbreviation,
         team.abbreviation,
       );
-      assertEquals(detail?.transactions[1].type, "extended");
       assertEquals(detail?.transactions[1].counterpartyTeam, null);
+    } finally {
+      await cleanup(db, {
+        players: playersCreated,
+        teams: teamsCreated,
+        cities: citiesCreated,
+        states: statesCreated,
+        leagues: leaguesCreated,
+      });
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "playersRepository.getDetailById: two-sided trade links both players via shared tradeId",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const repo = createPlayersRepository({
+      db,
+      log: createTestLogger(),
+      now: () => new Date("2026-06-15T00:00:00Z"),
+    });
+    const playersCreated: string[] = [];
+    const leaguesCreated: string[] = [];
+    const citiesCreated: string[] = [];
+    const statesCreated: string[] = [];
+    const teamsCreated: string[] = [];
+
+    try {
+      const { league, team, city, state } = await setupFixtures(db);
+      leaguesCreated.push(league.id);
+      citiesCreated.push(city.id);
+      statesCreated.push(state.id);
+      teamsCreated.push(team.id);
+
+      const [state2] = await db
+        .insert(states)
+        .values({
+          code: `t-${crypto.randomUUID().slice(0, 6)}`,
+          name: `TestState2-${crypto.randomUUID()}`,
+          region: "East",
+        })
+        .returning();
+      statesCreated.push(state2.id);
+      const [city2] = await db
+        .insert(cities)
+        .values({
+          name: `TestCity2-${crypto.randomUUID()}`,
+          stateId: state2.id,
+        })
+        .returning();
+      citiesCreated.push(city2.id);
+      const [team2] = await db
+        .insert(teams)
+        .values({
+          name: "Eagles",
+          cityId: city2.id,
+          abbreviation: `E${crypto.randomUUID().slice(0, 2).toUpperCase()}`,
+          primaryColor: "#004C54",
+          secondaryColor: "#A5ACAF",
+          accentColor: "#000000",
+          conference: "NFC",
+          division: "NFC East",
+        })
+        .returning();
+      teamsCreated.push(team2.id);
+
+      const playerA = crypto.randomUUID();
+      const playerB = crypto.randomUUID();
+      await db.insert(players).values([
+        {
+          id: playerA,
+          leagueId: league.id,
+          teamId: team2.id,
+          firstName: "Alpha",
+          lastName: "Trader",
+          injuryStatus: "healthy",
+          ...sizeFor("WR"),
+          birthDate: "2000-01-01",
+        },
+        {
+          id: playerB,
+          leagueId: league.id,
+          teamId: team.id,
+          firstName: "Beta",
+          lastName: "Swap",
+          injuryStatus: "healthy",
+          ...sizeFor("RB"),
+          birthDate: "2000-06-01",
+        },
+      ]);
+      playersCreated.push(playerA, playerB);
+      await db.insert(playerAttributes).values([
+        { playerId: playerA, ...attributesForBucket("WR") },
+        { playerId: playerB, ...attributesForBucket("RB") },
+      ]);
+
+      const tradeId = crypto.randomUUID();
+      await db.insert(playerTransactions).values([
+        {
+          playerId: playerA,
+          teamId: team2.id,
+          counterpartyTeamId: team.id,
+          counterpartyPlayerId: playerB,
+          tradeId,
+          type: "traded",
+          seasonYear: 2025,
+          occurredAt: new Date("2025-10-15T12:00:00Z"),
+          detail: "Traded for Beta Swap and a 3rd-round pick",
+        },
+        {
+          playerId: playerB,
+          teamId: team.id,
+          counterpartyTeamId: team2.id,
+          counterpartyPlayerId: playerA,
+          tradeId,
+          type: "traded",
+          seasonYear: 2025,
+          occurredAt: new Date("2025-10-15T12:00:00Z"),
+          detail: "Traded for Alpha Trader and a 3rd-round pick",
+        },
+      ]);
+
+      const detailA = await repo.getDetailById(playerA);
+      assertEquals(detailA?.transactions.length, 1);
+      assertEquals(detailA?.transactions[0].type, "traded");
+      assertEquals(detailA?.transactions[0].tradeId, tradeId);
+      assertEquals(detailA?.transactions[0].counterpartyPlayer?.id, playerB);
+      assertEquals(
+        detailA?.transactions[0].counterpartyPlayer?.firstName,
+        "Beta",
+      );
+      assertEquals(
+        detailA?.transactions[0].counterpartyPlayer?.lastName,
+        "Swap",
+      );
+
+      const detailB = await repo.getDetailById(playerB);
+      assertEquals(detailB?.transactions.length, 1);
+      assertEquals(detailB?.transactions[0].tradeId, tradeId);
+      assertEquals(detailB?.transactions[0].counterpartyPlayer?.id, playerA);
+      assertEquals(
+        detailB?.transactions[0].counterpartyPlayer?.firstName,
+        "Alpha",
+      );
+
+      assertEquals(
+        detailA?.transactions[0].tradeId,
+        detailB?.transactions[0].tradeId,
+      );
     } finally {
       await cleanup(db, {
         players: playersCreated,
