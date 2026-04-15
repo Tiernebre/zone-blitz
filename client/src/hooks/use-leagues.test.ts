@@ -39,12 +39,15 @@ function createWrapper() {
 }
 
 describe("useCreateLeague", () => {
-  it("returns the created league on success", async () => {
-    const league = { id: "abc", name: "Test League" };
+  it("returns the created league with franchises on success", async () => {
+    const response = {
+      league: { id: "abc", name: "Test League" },
+      franchises: [{ id: "f-1", leagueId: "abc", teamId: "t-1" }],
+    };
     mockPost.mockResolvedValue({
       ok: true,
       status: 201,
-      json: () => Promise.resolve(league),
+      json: () => Promise.resolve(response),
     });
 
     const { result } = renderHook(() => useCreateLeague(), {
@@ -57,7 +60,7 @@ describe("useCreateLeague", () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(result.current.data).toEqual(league);
+    expect(result.current.data).toEqual(response);
   });
 
   it("rejects when the server responds with a non-ok status", async () => {

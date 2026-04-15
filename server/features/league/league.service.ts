@@ -7,6 +7,11 @@ import type { SeasonService } from "../season/season.service.interface.ts";
 import type { TeamService } from "../team/team.service.interface.ts";
 import type { PersonnelService } from "../personnel/personnel.service.interface.ts";
 import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
+import type { FranchiseRepository } from "../franchise/franchise.repository.ts";
+import type { LeagueClockRepository } from "../league-clock/league-clock.repository.ts";
+
+const FOUNDING_TEAM_COUNT = 8;
+const FIRST_INCOMPLETE_GENESIS_PHASE = "genesis_staff_hiring";
 
 export function createLeagueService(deps: {
   txRunner: TransactionRunner;
@@ -15,6 +20,8 @@ export function createLeagueService(deps: {
   teamService: TeamService;
   personnelService: PersonnelService;
   scheduleService: ScheduleService;
+  franchiseRepo: FranchiseRepository;
+  leagueClockRepo: LeagueClockRepository;
   log: pino.Logger;
 }): LeagueService {
   const log = deps.log.child({ module: "league.service" });
@@ -68,7 +75,7 @@ export function createLeagueService(deps: {
     },
 
     async create(input) {
-      log.info({ name: input.name }, "creating league");
+      log.info({ name: input.name }, "creating league shell");
 
       const teams = await deps.teamService.getAll();
       if (teams.length === 0) {
@@ -78,43 +85,120 @@ export function createLeagueService(deps: {
         );
       }
 
-      const seasonLength = input.seasonLength ??
-        deriveDefaultSeasonLength(teams.length);
+      const foundingTeams = teams.slice(0, FOUNDING_TEAM_COUNT);
 
       return await deps.txRunner.run(async (tx) => {
         const league = await deps.leagueRepo.create(
-          { ...input, seasonLength },
+          { name: input.name },
           tx,
         );
 
+        const franchises = await deps.franchiseRepo.createMany(
+          foundingTeams.map((t) => ({
+            leagueId: league.id,
+            teamId: t.id,
+          })),
+          tx,
+        );
+
+        log.info(
+          { leagueId: league.id, franchiseCount: franchises.length },
+          "created league shell with founding franchises",
+        );
+
+        return { league, franchises };
+      });
+    },
+
+    async found(leagueId) {
+      log.info({ leagueId }, "founding league");
+
+      const league = await deps.leagueRepo.getById(leagueId);
+      if (!league) {
+        throw new DomainError("NOT_FOUND", `League ${leagueId} not found`);
+      }
+
+      const existingClock = await deps.leagueClockRepo.getByLeagueId(leagueId);
+      if (existingClock) {
+        throw new DomainError(
+          "ALREADY_FOUNDED",
+          `League ${leagueId} has already been founded`,
+        );
+      }
+
+      const franchises = await deps.franchiseRepo.getByLeagueId(leagueId);
+      const teamIds = franchises.map((f) => f.teamId);
+      const seasonLength = deriveDefaultSeasonLength(teamIds.length);
+
+      const allTeams = await deps.teamService.getAll();
+      const teamMap = new Map(allTeams.map((t) => [t.id, t]));
+
+      return await deps.txRunner.run(async (tx) => {
         const season = await deps.seasonService.create(
-          { leagueId: league.id },
+          { leagueId },
           tx,
         );
         log.info(
-          { leagueId: league.id, seasonId: season.id },
+          { leagueId, seasonId: season.id },
           "created season 1",
         );
 
-        await deps.personnelService.generate({
-          leagueId: league.id,
-          seasonId: season.id,
-          teamIds: teams.map((t) => t.id),
-          rosterSize: league.rosterSize,
-          salaryCap: league.salaryCap,
-        }, tx);
+        const personnelResult = await deps.personnelService.generate(
+          {
+            leagueId,
+            seasonId: season.id,
+            teamIds,
+            rosterSize: league.rosterSize,
+            salaryCap: league.salaryCap,
+          },
+          tx,
+        );
 
-        await deps.scheduleService.generate({
-          seasonId: season.id,
-          seasonLength: league.seasonLength,
-          teams: teams.map((t) => ({
-            teamId: t.id,
-            conference: t.conference,
-            division: t.division,
-          })),
-        }, tx);
+        await deps.scheduleService.generate(
+          {
+            seasonId: season.id,
+            seasonLength,
+            teams: franchises.map((f) => {
+              const team = teamMap.get(f.teamId);
+              return {
+                teamId: f.teamId,
+                conference: team?.conference ?? "",
+                division: team?.division ?? "",
+              };
+            }),
+          },
+          tx,
+        );
 
-        return league;
+        await deps.leagueClockRepo.upsert(
+          {
+            leagueId,
+            seasonYear: 1,
+            phase: FIRST_INCOMPLETE_GENESIS_PHASE,
+            stepIndex: 0,
+            advancedByUserId: null,
+          },
+          tx,
+        );
+
+        log.info(
+          {
+            leagueId,
+            seasonId: season.id,
+            playerCount: personnelResult.playerCount,
+            coachCount: personnelResult.coachCount,
+            scoutCount: personnelResult.scoutCount,
+          },
+          "league founding complete",
+        );
+
+        return {
+          leagueId,
+          seasonId: season.id,
+          playerCount: personnelResult.playerCount,
+          coachCount: personnelResult.coachCount,
+          scoutCount: personnelResult.scoutCount,
+        };
       });
     },
 

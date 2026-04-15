@@ -33,10 +33,10 @@ export function CreateLeague() {
     createLeague.mutate(
       { name: trimmed },
       {
-        onSuccess: (league) => {
+        onSuccess: (result) => {
           navigate({
             to: "/leagues/$leagueId/team-select",
-            params: { leagueId: String(league.id) },
+            params: { leagueId: String(result.league.id) },
           });
         },
       },

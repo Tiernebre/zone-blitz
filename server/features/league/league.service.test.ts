@@ -1,8 +1,8 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { createLeagueService } from "./league.service.ts";
-import { deriveDefaultSeasonLength, DomainError } from "@zone-blitz/shared";
+import { DomainError } from "@zone-blitz/shared";
 import pino from "pino";
-import type { League } from "@zone-blitz/shared";
+import type { Franchise, League } from "@zone-blitz/shared";
 import type { Executor } from "../../db/connection.ts";
 import type { TransactionRunner } from "../../db/transaction-runner.ts";
 import type { LeagueRepository } from "./league.repository.interface.ts";
@@ -10,8 +10,11 @@ import type { SeasonService } from "../season/season.service.interface.ts";
 import type { TeamService } from "../team/team.service.interface.ts";
 import type { PersonnelService } from "../personnel/personnel.service.interface.ts";
 import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
+import type { FranchiseRepository } from "../franchise/franchise.repository.ts";
+import type { LeagueClockRepository } from "../league-clock/league-clock.repository.ts";
 
 const TX_MARKER = { __tx: true };
+const FOUNDING_TEAM_COUNT = 8;
 
 function createMockTxRunner(): TransactionRunner {
   return {
@@ -28,8 +31,8 @@ function createMockLeague(overrides: Partial<League> = {}): League {
     id: "1",
     name: "Test",
     userTeamId: null,
-    numberOfTeams: 32,
-    seasonLength: 17,
+    numberOfTeams: 8,
+    seasonLength: 10,
     salaryCap: 255_000_000,
     capFloorPercent: 89,
     capGrowthRate: 5,
@@ -38,6 +41,19 @@ function createMockLeague(overrides: Partial<League> = {}): League {
     createdAt: new Date(),
     updatedAt: new Date(),
     lastPlayedAt: null,
+    ...overrides,
+  };
+}
+
+function createMockFranchise(
+  overrides: Partial<Franchise> = {},
+): Franchise {
+  return {
+    id: "f-1",
+    leagueId: "1",
+    teamId: "team-1",
+    createdAt: new Date(),
+    updatedAt: new Date(),
     ...overrides,
   };
 }
@@ -80,25 +96,24 @@ function createMockSeasonService(
 function createMockTeamService(
   overrides: Partial<TeamService> = {},
 ): TeamService {
+  const teams = Array.from({ length: FOUNDING_TEAM_COUNT }, (_, i) => ({
+    id: `team-${i + 1}`,
+    name: `Team ${i + 1}`,
+    cityId: `city-${i + 1}`,
+    city: `City ${i + 1}`,
+    state: "NY",
+    abbreviation: `T${i + 1}`,
+    primaryColor: "#000",
+    secondaryColor: "#FFF",
+    accentColor: "#F00",
+    conference: i < 4 ? "AFC" : "NFC",
+    division: i < 4 ? "AFC East" : "NFC East",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }));
+
   return {
-    getAll: () =>
-      Promise.resolve([
-        {
-          id: "team-1",
-          name: "Team A",
-          cityId: "city-1",
-          city: "City A",
-          state: "NY",
-          abbreviation: "TA",
-          primaryColor: "#000",
-          secondaryColor: "#FFF",
-          accentColor: "#F00",
-          conference: "AFC",
-          division: "AFC East",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ]),
+    getAll: () => Promise.resolve(teams),
     getById: () => Promise.reject(new DomainError("NOT_FOUND", "not used")),
     ...overrides,
   };
@@ -130,6 +145,48 @@ function createMockScheduleService(
   };
 }
 
+function createMockFranchiseRepo(
+  overrides: Partial<FranchiseRepository> = {},
+): FranchiseRepository {
+  return {
+    createMany: (rows) =>
+      Promise.resolve(
+        rows.map((r, i) =>
+          createMockFranchise({
+            id: `f-${i}`,
+            leagueId: r.leagueId,
+            teamId: r.teamId,
+          })
+        ),
+      ),
+    getByLeagueId: () => Promise.resolve([]),
+    ...overrides,
+  };
+}
+
+function createMockLeagueClockRepo(
+  overrides: Partial<LeagueClockRepository> = {},
+): LeagueClockRepository {
+  return {
+    getByLeagueId: () => Promise.resolve(undefined),
+    upsert: (row) =>
+      Promise.resolve({
+        leagueId: row.leagueId,
+        seasonYear: row.seasonYear,
+        phase: row.phase,
+        stepIndex: row.stepIndex,
+        advancedAt: new Date(),
+        advancedByUserId: row.advancedByUserId,
+        overrideReason: row.overrideReason ?? null,
+        overrideBlockers: row.overrideBlockers ?? null,
+        hasCompletedGenesis: row.hasCompletedGenesis ?? false,
+      }),
+    castVote: () => Promise.reject(new Error("not used")),
+    getVotesForStep: () => Promise.resolve([]),
+    ...overrides,
+  };
+}
+
 function createService(overrides: {
   txRunner?: TransactionRunner;
   leagueRepo?: Partial<LeagueRepository>;
@@ -137,6 +194,8 @@ function createService(overrides: {
   teamService?: Partial<TeamService>;
   personnelService?: Partial<PersonnelService>;
   scheduleService?: Partial<ScheduleService>;
+  franchiseRepo?: Partial<FranchiseRepository>;
+  leagueClockRepo?: Partial<LeagueClockRepository>;
 } = {}) {
   return createLeagueService({
     txRunner: overrides.txRunner ?? createMockTxRunner(),
@@ -145,6 +204,8 @@ function createService(overrides: {
     teamService: createMockTeamService(overrides.teamService),
     personnelService: createMockPersonnelService(overrides.personnelService),
     scheduleService: createMockScheduleService(overrides.scheduleService),
+    franchiseRepo: createMockFranchiseRepo(overrides.franchiseRepo),
+    leagueClockRepo: createMockLeagueClockRepo(overrides.leagueClockRepo),
     log: createTestLogger(),
   });
 }
@@ -329,133 +390,97 @@ Deno.test("league.service", async (t) => {
     );
   });
 
-  await t.step("create orchestrates league world generation", async () => {
-    let seasonCreated = false;
-    let personnelCalled = false;
-    let scheduleCalled = false;
-    const derivedLength = deriveDefaultSeasonLength(1);
-
-    const service = createService({
-      leagueRepo: {
-        create: (input) =>
-          Promise.resolve(
-            createMockLeague({
-              id: "new-id",
-              seasonLength: input.seasonLength ?? 17,
-            }),
-          ),
-      },
-      seasonService: {
-        create: (input) => {
-          seasonCreated = true;
-          assertEquals(input.leagueId, "new-id");
-          return Promise.resolve({
-            id: "season-1",
-            leagueId: "new-id",
-            year: 1,
-            phase: "preseason" as const,
-            offseasonStage: null,
-            week: 1,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
-        },
-      },
-      personnelService: {
-        generate: (input) => {
-          personnelCalled = true;
-          assertEquals(input.leagueId, "new-id");
-          assertEquals(input.seasonId, "season-1");
-          assertEquals(input.rosterSize, 53);
-          assertEquals(input.salaryCap, 255_000_000);
-          return Promise.resolve({
-            playerCount: 1,
-            coachCount: 0,
-            scoutCount: 0,
-            frontOfficeCount: 0,
-            draftProspectCount: 0,
-            contractCount: 1,
-          });
-        },
-      },
-      scheduleService: {
-        generate: (input) => {
-          scheduleCalled = true;
-          assertEquals(input.seasonId, "season-1");
-          assertEquals(input.seasonLength, derivedLength);
-          return Promise.resolve({ gameCount: 0 });
-        },
-      },
-    });
-
-    const result = await service.create({ name: "New League" });
-    assertEquals(result.id, "new-id");
-    assertEquals(seasonCreated, true);
-    assertEquals(personnelCalled, true);
-    assertEquals(scheduleCalled, true);
-  });
+  // === create (league shell + franchises only) ===
 
   await t.step(
-    "create derives seasonLength from franchise count when not overridden",
+    "create creates league shell and 8 franchises without generating personnel",
     async () => {
-      let repoReceivedLength: number | undefined;
-      let scheduleReceivedLength: number | undefined;
+      let personnelCalled = false;
+      let scheduleCalled = false;
+      let franchisesCreated: { leagueId: string; teamId: string }[] = [];
 
       const service = createService({
         leagueRepo: {
-          create: (input) => {
-            repoReceivedLength = input.seasonLength;
+          create: (input) =>
+            Promise.resolve(
+              createMockLeague({ id: "new-id", name: input.name }),
+            ),
+        },
+        franchiseRepo: {
+          createMany: (rows) => {
+            franchisesCreated = rows;
             return Promise.resolve(
-              createMockLeague({
-                id: "new-id",
-                seasonLength: input.seasonLength ?? 17,
-              }),
+              rows.map((r, i) =>
+                createMockFranchise({
+                  id: `f-${i}`,
+                  leagueId: r.leagueId,
+                  teamId: r.teamId,
+                })
+              ),
             );
           },
         },
+        personnelService: {
+          generate: () => {
+            personnelCalled = true;
+            return Promise.resolve({
+              playerCount: 0,
+              coachCount: 0,
+              scoutCount: 0,
+              frontOfficeCount: 0,
+              draftProspectCount: 0,
+              contractCount: 0,
+            });
+          },
+        },
         scheduleService: {
-          generate: (input) => {
-            scheduleReceivedLength = input.seasonLength;
+          generate: () => {
+            scheduleCalled = true;
             return Promise.resolve({ gameCount: 0 });
           },
         },
       });
 
-      await service.create({ name: "Derived Season" });
-      assertEquals(repoReceivedLength, deriveDefaultSeasonLength(1));
-      assertEquals(scheduleReceivedLength, deriveDefaultSeasonLength(1));
+      const result = await service.create({ name: "New League" });
+      assertEquals(result.league.id, "new-id");
+      assertEquals(result.franchises.length, FOUNDING_TEAM_COUNT);
+      assertEquals(franchisesCreated.length, FOUNDING_TEAM_COUNT);
+      assertEquals(franchisesCreated[0].leagueId, "new-id");
+      assertEquals(personnelCalled, false);
+      assertEquals(scheduleCalled, false);
     },
   );
 
   await t.step(
-    "create respects an explicit seasonLength override",
+    "create persists the first 8 teams as franchises",
     async () => {
-      let repoReceivedLength: number | undefined;
-      let scheduleReceivedLength: number | undefined;
+      let receivedTeamIds: string[] = [];
 
       const service = createService({
         leagueRepo: {
-          create: (input) => {
-            repoReceivedLength = input.seasonLength;
-            return Promise.resolve(
-              createMockLeague({
-                id: "new-id",
-                seasonLength: input.seasonLength ?? 17,
-              }),
-            );
-          },
+          create: () => Promise.resolve(createMockLeague({ id: "new-id" })),
         },
-        scheduleService: {
-          generate: (input) => {
-            scheduleReceivedLength = input.seasonLength;
-            return Promise.resolve({ gameCount: 0 });
+        franchiseRepo: {
+          createMany: (rows) => {
+            receivedTeamIds = rows.map((r) => r.teamId);
+            return Promise.resolve(
+              rows.map((r, i) =>
+                createMockFranchise({
+                  id: `f-${i}`,
+                  leagueId: r.leagueId,
+                  teamId: r.teamId,
+                })
+              ),
+            );
           },
         },
       });
 
-      await service.create({ name: "Custom Season", seasonLength: 14 });
-      assertEquals(repoReceivedLength, 14);
-      assertEquals(scheduleReceivedLength, 14);
+      await service.create({ name: "Test" });
+      assertEquals(receivedTeamIds.length, FOUNDING_TEAM_COUNT);
+      for (let i = 0; i < FOUNDING_TEAM_COUNT; i++) {
+        assertEquals(receivedTeamIds[i], `team-${i + 1}`);
+      }
     },
   );
 
@@ -475,7 +500,7 @@ Deno.test("league.service", async (t) => {
   );
 
   await t.step(
-    "create threads the transaction tx into every write service",
+    "create threads the transaction tx into league repo and franchise repo",
     async () => {
       const received: Record<string, unknown> = {};
       const service = createService({
@@ -485,12 +510,203 @@ Deno.test("league.service", async (t) => {
             return Promise.resolve(createMockLeague({ id: "new-id" }));
           },
         },
+        franchiseRepo: {
+          createMany: (_rows, tx) => {
+            received.franchise = tx;
+            return Promise.resolve([]);
+          },
+        },
+      });
+
+      await service.create({ name: "New League" });
+
+      assertEquals(received.league, TX_MARKER);
+      assertEquals(received.franchise, TX_MARKER);
+    },
+  );
+
+  // === found (generation endpoint) ===
+
+  await t.step(
+    "found generates personnel, schedule, season, and initializes league_clock",
+    async () => {
+      let seasonCreated = false;
+      let personnelCalled = false;
+      let scheduleCalled = false;
+      let clockUpserted = false;
+      const leagueId = "lg-1";
+
+      const mockFranchises = Array.from(
+        { length: FOUNDING_TEAM_COUNT },
+        (_, i) =>
+          createMockFranchise({
+            id: `f-${i}`,
+            leagueId,
+            teamId: `team-${i + 1}`,
+          }),
+      );
+
+      const service = createService({
+        leagueRepo: {
+          getById: () => Promise.resolve(createMockLeague({ id: leagueId })),
+        },
+        franchiseRepo: {
+          getByLeagueId: () => Promise.resolve(mockFranchises),
+        },
+        seasonService: {
+          create: (input) => {
+            seasonCreated = true;
+            assertEquals(input.leagueId, leagueId);
+            return Promise.resolve({
+              id: "season-1",
+              leagueId,
+              year: 1,
+              phase: "preseason" as const,
+              offseasonStage: null,
+              week: 1,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          },
+        },
+        personnelService: {
+          generate: (input) => {
+            personnelCalled = true;
+            assertEquals(input.leagueId, leagueId);
+            assertEquals(input.seasonId, "season-1");
+            assertEquals(input.teamIds.length, FOUNDING_TEAM_COUNT);
+            return Promise.resolve({
+              playerCount: 50,
+              coachCount: 10,
+              scoutCount: 5,
+              frontOfficeCount: 0,
+              draftProspectCount: 0,
+              contractCount: 0,
+            });
+          },
+        },
+        scheduleService: {
+          generate: (input) => {
+            scheduleCalled = true;
+            assertEquals(input.seasonId, "season-1");
+            return Promise.resolve({ gameCount: 56 });
+          },
+        },
+        leagueClockRepo: {
+          getByLeagueId: () => Promise.resolve(undefined),
+          upsert: (row) => {
+            clockUpserted = true;
+            assertEquals(row.leagueId, leagueId);
+            assertEquals(row.phase, "genesis_staff_hiring");
+            assertEquals(row.seasonYear, 1);
+            assertEquals(row.stepIndex, 0);
+            return Promise.resolve({
+              leagueId: row.leagueId,
+              seasonYear: row.seasonYear,
+              phase: row.phase,
+              stepIndex: row.stepIndex,
+              advancedAt: new Date(),
+              advancedByUserId: null,
+              overrideReason: null,
+              overrideBlockers: null,
+              hasCompletedGenesis: false,
+            });
+          },
+        },
+      });
+
+      const result = await service.found(leagueId);
+      assertEquals(result.leagueId, leagueId);
+      assertEquals(result.seasonId, "season-1");
+      assertEquals(result.playerCount, 50);
+      assertEquals(result.coachCount, 10);
+      assertEquals(result.scoutCount, 5);
+      assertEquals(seasonCreated, true);
+      assertEquals(personnelCalled, true);
+      assertEquals(scheduleCalled, true);
+      assertEquals(clockUpserted, true);
+    },
+  );
+
+  await t.step(
+    "found throws NOT_FOUND when league does not exist",
+    async () => {
+      const service = createService({
+        leagueRepo: { getById: () => Promise.resolve(undefined) },
+      });
+
+      await assertRejects(
+        () => service.found("missing"),
+        DomainError,
+        "not found",
+      );
+    },
+  );
+
+  await t.step(
+    "found rejects when league_clock already exists (idempotent guard)",
+    async () => {
+      const service = createService({
+        leagueRepo: {
+          getById: () => Promise.resolve(createMockLeague({ id: "lg-1" })),
+        },
+        franchiseRepo: {
+          getByLeagueId: () =>
+            Promise.resolve([createMockFranchise({ leagueId: "lg-1" })]),
+        },
+        leagueClockRepo: {
+          getByLeagueId: () =>
+            Promise.resolve({
+              leagueId: "lg-1",
+              seasonYear: 1,
+              phase: "genesis_staff_hiring",
+              stepIndex: 0,
+              advancedAt: new Date(),
+              advancedByUserId: null,
+              overrideReason: null,
+              overrideBlockers: null,
+              hasCompletedGenesis: false,
+            }),
+        },
+      });
+
+      await assertRejects(
+        () => service.found("lg-1"),
+        DomainError,
+        "already been founded",
+      );
+    },
+  );
+
+  await t.step(
+    "found threads the transaction tx into all write services",
+    async () => {
+      const received: Record<string, unknown> = {};
+      const leagueId = "lg-1";
+
+      const mockFranchises = Array.from(
+        { length: FOUNDING_TEAM_COUNT },
+        (_, i) =>
+          createMockFranchise({
+            id: `f-${i}`,
+            leagueId,
+            teamId: `team-${i + 1}`,
+          }),
+      );
+
+      const service = createService({
+        leagueRepo: {
+          getById: () => Promise.resolve(createMockLeague({ id: leagueId })),
+        },
+        franchiseRepo: {
+          getByLeagueId: () => Promise.resolve(mockFranchises),
+        },
         seasonService: {
           create: (_input, tx) => {
             received.season = tx;
             return Promise.resolve({
               id: "season-1",
-              leagueId: "new-id",
+              leagueId,
               year: 1,
               phase: "preseason" as const,
               offseasonStage: null,
@@ -519,34 +735,54 @@ Deno.test("league.service", async (t) => {
             return Promise.resolve({ gameCount: 0 });
           },
         },
+        leagueClockRepo: {
+          getByLeagueId: () => Promise.resolve(undefined),
+          upsert: (row, tx) => {
+            received.clock = tx;
+            return Promise.resolve({
+              leagueId: row.leagueId,
+              seasonYear: row.seasonYear,
+              phase: row.phase,
+              stepIndex: row.stepIndex,
+              advancedAt: new Date(),
+              advancedByUserId: null,
+              overrideReason: null,
+              overrideBlockers: null,
+              hasCompletedGenesis: false,
+            });
+          },
+        },
       });
 
-      await service.create({ name: "New League" });
+      await service.found(leagueId);
 
-      assertEquals(received.league, TX_MARKER);
       assertEquals(received.season, TX_MARKER);
       assertEquals(received.personnel, TX_MARKER);
       assertEquals(received.schedule, TX_MARKER);
+      assertEquals(received.clock, TX_MARKER);
     },
   );
 
   await t.step(
-    "create rejects and rolls back when a downstream service fails",
+    "found rolls back when a downstream service fails",
     async () => {
-      let personnelCalled = false;
+      const leagueId = "lg-1";
+      const mockFranchises = Array.from(
+        { length: FOUNDING_TEAM_COUNT },
+        (_, i) =>
+          createMockFranchise({
+            id: `f-${i}`,
+            leagueId,
+            teamId: `team-${i + 1}`,
+          }),
+      );
+
       const service = createService({
-        personnelService: {
-          generate: () => {
-            personnelCalled = true;
-            return Promise.resolve({
-              playerCount: 1,
-              coachCount: 0,
-              scoutCount: 0,
-              frontOfficeCount: 0,
-              draftProspectCount: 0,
-              contractCount: 0,
-            });
-          },
+        leagueRepo: {
+          getById: () => Promise.resolve(createMockLeague({ id: leagueId })),
+        },
+        franchiseRepo: {
+          getByLeagueId: () => Promise.resolve(mockFranchises),
         },
         scheduleService: {
           generate: () => Promise.reject(new Error("schedule boom")),
@@ -554,20 +790,14 @@ Deno.test("league.service", async (t) => {
       });
 
       await assertRejects(
-        () => service.create({ name: "New League" }),
+        () => service.found(leagueId),
         Error,
         "schedule boom",
       );
-      assertEquals(personnelCalled, true);
     },
   );
 
-  await t.step("create returns the league", async () => {
-    const service = createService();
-    const result = await service.create({ name: "New League" });
-    assertEquals(result.id, "new-id");
-    assertEquals(result.name, "Test");
-  });
+  // === assignUserTeam ===
 
   await t.step(
     "assignUserTeam validates team exists then updates the league",
