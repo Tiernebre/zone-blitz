@@ -4,12 +4,16 @@ export type {
   DriveSummary,
   GameResult,
   InjuryEntry,
+  InjurySeverity,
   OffensiveCall,
   PlayEvent,
   PlayOutcome,
   PlayParticipant,
   PlayTag,
 } from "./events.ts";
+
+export { simulateGame } from "./simulate-game.ts";
+export type { SimulateGameInput } from "./simulate-game.ts";
 
 export {
   createRng,

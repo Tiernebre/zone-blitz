@@ -31,6 +31,15 @@ export type PlayOutcome =
   | "kneel"
   | "spike";
 
+export type InjurySeverity =
+  | "shake_off"
+  | "miss_drive"
+  | "miss_quarter"
+  | "miss_game"
+  | "miss_weeks"
+  | "miss_season"
+  | "career_ending";
+
 export type PlayTag =
   | "first_down"
   | "turnover"
@@ -67,7 +76,13 @@ export type BoxScore = Record<string, unknown>;
 
 export type DriveSummary = Record<string, unknown>;
 
-export type InjuryEntry = Record<string, unknown>;
+export type InjuryEntry = {
+  playerId: string;
+  severity: InjurySeverity;
+  playIndex: number;
+  driveIndex: number;
+  quarter: 1 | 2 | 3 | 4 | "OT";
+};
 
 export type GameResult = {
   gameId: string;
