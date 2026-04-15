@@ -14,6 +14,8 @@ import type {
 } from "./resolve-play.ts";
 import type { SchemeFingerprint } from "@zone-blitz/shared";
 import { resolvePlay } from "./resolve-play.ts";
+import { resolveKickoff } from "./resolve-kickoff.ts";
+import type { KickoffContext } from "./resolve-kickoff.ts";
 import {
   deriveBoxScore,
   deriveDriveLog,
@@ -142,7 +144,8 @@ function shouldClockStop(event: PlayEvent): boolean {
     event.tags.includes("turnover") ||
     event.outcome === "touchdown" ||
     event.outcome === "field_goal" ||
-    event.outcome === "punt"
+    event.outcome === "punt" ||
+    event.outcome === "kickoff"
   );
 }
 
@@ -165,14 +168,14 @@ export function simulateGame(input: SimulationInput): GameResult {
     clock: QUARTER_SECONDS,
     homeScore: 0,
     awayScore: 0,
-    possession: "away",
-    yardLine: 25,
+    possession: "home",
+    yardLine: 35,
     down: 1,
     distance: 10,
     driveIndex: 0,
     playIndex: 0,
     globalPlayIndex: 0,
-    driveStartYardLine: 25,
+    driveStartYardLine: 35,
     drivePlays: 0,
     driveYards: 0,
   };
@@ -198,6 +201,98 @@ export function simulateGame(input: SimulationInput): GameResult {
 
   function switchPossession(): void {
     state.possession = state.possession === "home" ? "away" : "home";
+  }
+
+  function findKicker(side: "home" | "away"): PlayerRuntime {
+    const team = side === "home" ? input.home : input.away;
+    const active = side === "home" ? rosters.homeActive : rosters.awayActive;
+    const available = active.filter(
+      (p) => !rosters.injuredPlayerIds.has(p.playerId),
+    );
+    return (
+      available.find((p) => p.neutralBucket === "K") ??
+        team.starters.find((p) => p.neutralBucket === "K") ??
+        team.starters[0]
+    );
+  }
+
+  function findReturner(side: "home" | "away"): PlayerRuntime | undefined {
+    const active = side === "home" ? rosters.homeActive : rosters.awayActive;
+    const available = active.filter(
+      (p) => !rosters.injuredPlayerIds.has(p.playerId),
+    );
+    return (
+      available.find((p) => p.neutralBucket === "WR") ??
+        available.find((p) => p.neutralBucket === "RB")
+    );
+  }
+
+  function findCoverageUnit(side: "home" | "away"): PlayerRuntime[] {
+    const active = side === "home" ? rosters.homeActive : rosters.awayActive;
+    return active
+      .filter((p) => !rosters.injuredPlayerIds.has(p.playerId))
+      .filter(
+        (p) =>
+          p.neutralBucket === "LB" ||
+          p.neutralBucket === "S" ||
+          p.neutralBucket === "CB",
+      )
+      .slice(0, 4);
+  }
+
+  function performKickoff(kickingSide: "home" | "away"): void {
+    const receivingSide = kickingSide === "home" ? "away" : "home";
+    const kickingTeamId = kickingSide === "home"
+      ? input.home.teamId
+      : input.away.teamId;
+    const receivingTeamId = receivingSide === "home"
+      ? input.home.teamId
+      : input.away.teamId;
+
+    const kickerScore = kickingSide === "home"
+      ? state.homeScore
+      : state.awayScore;
+    const receiverScore = receivingSide === "home"
+      ? state.homeScore
+      : state.awayScore;
+
+    const ctx: KickoffContext = {
+      gameId,
+      driveIndex: state.driveIndex,
+      playIndex: state.playIndex,
+      quarter: state.quarter,
+      clock: formatClock(state.clock),
+      kickingTeamId,
+      receivingTeamId,
+      kicker: findKicker(kickingSide),
+      returner: findReturner(receivingSide),
+      coverageUnit: findCoverageUnit(kickingSide),
+      scoreDifferential: receiverScore - kickerScore,
+    };
+
+    const result = resolveKickoff(ctx, rng);
+    events.push(result.event);
+    state.globalPlayIndex++;
+
+    if (result.isReturnTouchdown) {
+      const isReceiverHome = receivingSide === "home";
+      if (isReceiverHome) state.homeScore += 7;
+      else state.awayScore += 7;
+
+      state.possession = kickingSide;
+      startNewDrive(25);
+      performKickoff(receivingSide);
+      return;
+    }
+
+    if (result.isOnsideRecovery) {
+      state.possession = kickingSide;
+      startNewDrive(result.startingYardLine);
+      return;
+    }
+
+    state.possession = receivingSide;
+    startNewDrive(result.startingYardLine);
   }
 
   function buildGameState(): GameState {
@@ -268,8 +363,8 @@ export function simulateGame(input: SimulationInput): GameResult {
       if (isHome) state.homeScore += 7;
       else state.awayScore += 7;
 
-      switchPossession();
-      startNewDrive(25);
+      const scoringSide: "home" | "away" = isHome ? "home" : "away";
+      performKickoff(scoringSide);
       return true;
     }
 
@@ -278,8 +373,8 @@ export function simulateGame(input: SimulationInput): GameResult {
       if (isHome) state.awayScore += 2;
       else state.homeScore += 2;
 
-      switchPossession();
-      startNewDrive(25);
+      const concedingSide: "home" | "away" = isHome ? "home" : "away";
+      performKickoff(concedingSide);
       return true;
     }
 
@@ -348,8 +443,8 @@ export function simulateGame(input: SimulationInput): GameResult {
         state.drivePlays++;
         state.globalPlayIndex++;
         state.playIndex++;
-        switchPossession();
-        startNewDrive(25);
+        const kickingSide: "home" | "away" = isHome ? "home" : "away";
+        performKickoff(kickingSide);
       } else {
         fgEvent.outcome = "pass_incomplete" as typeof fgEvent.outcome;
         fgEvent.tags.push("penalty");
@@ -468,6 +563,8 @@ export function simulateGame(input: SimulationInput): GameResult {
     return false;
   }
 
+  performKickoff("home");
+
   for (
     let q = 1 as 1 | 2 | 3 | 4;
     q <= 4;
@@ -477,10 +574,10 @@ export function simulateGame(input: SimulationInput): GameResult {
     state.clock = QUARTER_SECONDS;
 
     if (q === 3) {
-      switchPossession();
-      const secondHalfReceiver = state.possession;
-      state.possession = secondHalfReceiver;
-      startNewDrive(25);
+      const secondHalfKicker: "home" | "away" = state.possession === "home"
+        ? "home"
+        : "away";
+      performKickoff(secondHalfKicker);
     }
 
     while (state.clock > 0) {

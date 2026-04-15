@@ -29,7 +29,8 @@ export type PlayOutcome =
   | "punt"
   | "penalty"
   | "kneel"
-  | "spike";
+  | "spike"
+  | "kickoff";
 
 export type InjurySeverity =
   | "shake_off"
@@ -60,7 +61,8 @@ export type PlayTag =
   | "injury_miss_game"
   | "injury_miss_weeks"
   | "injury_miss_season"
-  | "injury_career_ending";
+  | "injury_career_ending"
+  | "onside";
 
 export type PlayEvent = {
   gameId: string;
