@@ -224,6 +224,7 @@ describe("LeagueClockDisplay", () => {
           kind: "event",
           flavorDate: "Apr 24",
           advancedAt: "2026-01-01T00:00:00Z",
+          hasCompletedGenesis: true,
         }),
     });
 
@@ -232,5 +233,86 @@ describe("LeagueClockDisplay", () => {
     await waitFor(() => {
       expect(screen.getByText("2026")).toBeDefined();
     });
+  });
+
+  it("renders 'No preseason (inaugural year)' note in Year 1", async () => {
+    mockGetClock.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 1,
+          phase: "regular_season",
+          stepIndex: 0,
+          slug: "week_1",
+          kind: "week",
+          flavorDate: "Sep 7",
+          advancedAt: "2026-01-01T00:00:00Z",
+          hasCompletedGenesis: false,
+        }),
+    });
+
+    renderWithProviders({ leagueId: "lg-1", isCommissioner: false });
+
+    await waitFor(() => {
+      expect(screen.getByText("Week 1")).toBeDefined();
+    });
+    expect(
+      screen.getByText("No preseason (inaugural year)"),
+    ).toBeDefined();
+  });
+
+  it("does not render inaugural year note when hasCompletedGenesis is true", async () => {
+    mockGetClock.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2,
+          phase: "preseason",
+          stepIndex: 0,
+          slug: "preseason_week_1",
+          kind: "week",
+          flavorDate: "Aug 10",
+          advancedAt: "2026-01-01T00:00:00Z",
+          hasCompletedGenesis: true,
+        }),
+    });
+
+    renderWithProviders({ leagueId: "lg-1", isCommissioner: false });
+
+    await waitFor(() => {
+      expect(screen.getByText("Preseason Week 1")).toBeDefined();
+    });
+    expect(
+      screen.queryByText("No preseason (inaugural year)"),
+    ).toBeNull();
+  });
+
+  it("does not render inaugural year note during genesis phases", async () => {
+    mockGetClock.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 1,
+          phase: "genesis_kickoff",
+          stepIndex: 0,
+          slug: "kickoff",
+          kind: "event",
+          flavorDate: null,
+          advancedAt: "2026-01-01T00:00:00Z",
+          hasCompletedGenesis: false,
+        }),
+    });
+
+    renderWithProviders({ leagueId: "lg-1", isCommissioner: false });
+
+    await waitFor(() => {
+      expect(screen.getByText("Kickoff")).toBeDefined();
+    });
+    expect(
+      screen.queryByText("No preseason (inaugural year)"),
+    ).toBeNull();
   });
 });

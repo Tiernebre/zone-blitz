@@ -1052,6 +1052,48 @@ Deno.test("league-clock.service", async (t) => {
       assertEquals(state.kind, "week");
       assertEquals(state.flavorDate, "Sep 7");
     });
+
+    await t.step(
+      "includes hasCompletedGenesis false for Year 1 league",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "regular_season",
+                  stepIndex: 0,
+                  hasCompletedGenesis: false,
+                }),
+              ),
+          },
+        });
+
+        const state = await service.getClockState("league-1");
+        assertEquals(state.hasCompletedGenesis, false);
+      },
+    );
+
+    await t.step(
+      "includes hasCompletedGenesis true for Year 2+ league",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "preseason",
+                  stepIndex: 0,
+                  hasCompletedGenesis: true,
+                }),
+              ),
+          },
+        });
+
+        const state = await service.getClockState("league-1");
+        assertEquals(state.hasCompletedGenesis, true);
+      },
+    );
   });
 
   await t.step("castVote", async (t) => {
