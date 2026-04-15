@@ -1,0 +1,337 @@
+{
+  "generated_at": "2026-04-15T18:02:54Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season plays only. 4th-down go-for-it: play_type in {pass, run} on down == 4, excluding kneels, spikes, and two-point conversions; denominator includes punt and field_goal plays. Field zones: own_deep (yardline_100 > 60), own_40_to_50 (51-60), opp_40_to_50 (41-50), opp_30_to_40 (31-40), opp_red_zone_outer (21-30), opp_red_zone_inner (1-20). Distance buckets: short (1-2), medium (3-5), long (6+). 2-point attempts: extra_point_attempt or two_point_attempt plays bucketed by score_differential at the time of the PAT. Onside kicks: kickoffs with kick_distance < 25 or own_kickoff_recovery == 1; situation split by last 5 min of 4th quarter and score differential.",
+  "bands": {
+    "fourth_down_go_rate": {
+      "overall": {
+        "n": 19001,
+        "go_for_it": 3741,
+        "rate": 0.1969
+      },
+      "by_field_zone_and_distance": {
+        "opp_30_to_40": {
+          "long_6_plus": {
+            "n": 1031,
+            "go_for_it": 146,
+            "rate": 0.1416
+          },
+          "medium_3_5": {
+            "n": 490,
+            "go_for_it": 211,
+            "rate": 0.4306
+          },
+          "short_1_2": {
+            "n": 441,
+            "go_for_it": 355,
+            "rate": 0.805
+          }
+        },
+        "opp_40_to_50": {
+          "long_6_plus": {
+            "n": 1209,
+            "go_for_it": 143,
+            "rate": 0.1183
+          },
+          "medium_3_5": {
+            "n": 442,
+            "go_for_it": 159,
+            "rate": 0.3597
+          },
+          "short_1_2": {
+            "n": 420,
+            "go_for_it": 335,
+            "rate": 0.7976
+          }
+        },
+        "opp_red_zone_inner": {
+          "long_6_plus": {
+            "n": 1394,
+            "go_for_it": 106,
+            "rate": 0.076
+          },
+          "medium_3_5": {
+            "n": 990,
+            "go_for_it": 189,
+            "rate": 0.1909
+          },
+          "short_1_2": {
+            "n": 898,
+            "go_for_it": 630,
+            "rate": 0.7016
+          }
+        },
+        "opp_red_zone_outer": {
+          "long_6_plus": {
+            "n": 996,
+            "go_for_it": 97,
+            "rate": 0.0974
+          },
+          "medium_3_5": {
+            "n": 405,
+            "go_for_it": 79,
+            "rate": 0.1951
+          },
+          "short_1_2": {
+            "n": 392,
+            "go_for_it": 247,
+            "rate": 0.6301
+          }
+        },
+        "own_40_to_50": {
+          "long_6_plus": {
+            "n": 1436,
+            "go_for_it": 124,
+            "rate": 0.0864
+          },
+          "medium_3_5": {
+            "n": 562,
+            "go_for_it": 69,
+            "rate": 0.1228
+          },
+          "short_1_2": {
+            "n": 449,
+            "go_for_it": 223,
+            "rate": 0.4967
+          }
+        },
+        "own_deep": {
+          "long_6_plus": {
+            "n": 4842,
+            "go_for_it": 233,
+            "rate": 0.0481
+          },
+          "medium_3_5": {
+            "n": 1472,
+            "go_for_it": 109,
+            "rate": 0.074
+          },
+          "short_1_2": {
+            "n": 1132,
+            "go_for_it": 286,
+            "rate": 0.2527
+          }
+        }
+      }
+    },
+    "fourth_down_conversion_rate": {
+      "overall": {
+        "n": 3741,
+        "converted": 2003,
+        "rate": 0.5354
+      },
+      "by_field_zone_and_distance": {
+        "opp_30_to_40": {
+          "long_6_plus": {
+            "n": 146,
+            "converted": 39,
+            "rate": 0.2671
+          },
+          "medium_3_5": {
+            "n": 211,
+            "converted": 103,
+            "rate": 0.4882
+          },
+          "short_1_2": {
+            "n": 355,
+            "converted": 230,
+            "rate": 0.6479
+          }
+        },
+        "opp_40_to_50": {
+          "long_6_plus": {
+            "n": 143,
+            "converted": 52,
+            "rate": 0.3636
+          },
+          "medium_3_5": {
+            "n": 159,
+            "converted": 81,
+            "rate": 0.5094
+          },
+          "short_1_2": {
+            "n": 335,
+            "converted": 239,
+            "rate": 0.7134
+          }
+        },
+        "opp_red_zone_inner": {
+          "long_6_plus": {
+            "n": 106,
+            "converted": 30,
+            "rate": 0.283
+          },
+          "medium_3_5": {
+            "n": 189,
+            "converted": 83,
+            "rate": 0.4392
+          },
+          "short_1_2": {
+            "n": 630,
+            "converted": 388,
+            "rate": 0.6159
+          }
+        },
+        "opp_red_zone_outer": {
+          "long_6_plus": {
+            "n": 97,
+            "converted": 28,
+            "rate": 0.2887
+          },
+          "medium_3_5": {
+            "n": 79,
+            "converted": 42,
+            "rate": 0.5316
+          },
+          "short_1_2": {
+            "n": 247,
+            "converted": 165,
+            "rate": 0.668
+          }
+        },
+        "own_40_to_50": {
+          "long_6_plus": {
+            "n": 124,
+            "converted": 33,
+            "rate": 0.2661
+          },
+          "medium_3_5": {
+            "n": 69,
+            "converted": 39,
+            "rate": 0.5652
+          },
+          "short_1_2": {
+            "n": 223,
+            "converted": 140,
+            "rate": 0.6278
+          }
+        },
+        "own_deep": {
+          "long_6_plus": {
+            "n": 233,
+            "converted": 68,
+            "rate": 0.2918
+          },
+          "medium_3_5": {
+            "n": 109,
+            "converted": 54,
+            "rate": 0.4954
+          },
+          "short_1_2": {
+            "n": 286,
+            "converted": 189,
+            "rate": 0.6608
+          }
+        }
+      }
+    },
+    "two_point_attempt_rate": {
+      "overall": {
+        "n": 6858,
+        "two_point_attempts": 666,
+        "rate": 0.0971
+      },
+      "by_score_differential": {
+        "down_11_to_14": {
+          "n": 242,
+          "two_point_attempts": 47,
+          "rate": 0.1942
+        },
+        "down_15_plus": {
+          "n": 264,
+          "two_point_attempts": 83,
+          "rate": 0.3144
+        },
+        "down_1_to_3": {
+          "n": 718,
+          "two_point_attempts": 101,
+          "rate": 0.1407
+        },
+        "down_4_to_7": {
+          "n": 547,
+          "two_point_attempts": 82,
+          "rate": 0.1499
+        },
+        "down_8_to_10": {
+          "n": 302,
+          "two_point_attempts": 88,
+          "rate": 0.2914
+        },
+        "tied": {
+          "n": 137,
+          "two_point_attempts": 1,
+          "rate": 0.0073
+        },
+        "up_11_to_14": {
+          "n": 668,
+          "two_point_attempts": 43,
+          "rate": 0.0644
+        },
+        "up_15_plus": {
+          "n": 1006,
+          "two_point_attempts": 35,
+          "rate": 0.0348
+        },
+        "up_1_to_3": {
+          "n": 769,
+          "two_point_attempts": 69,
+          "rate": 0.0897
+        },
+        "up_4_to_7": {
+          "n": 1549,
+          "two_point_attempts": 101,
+          "rate": 0.0652
+        },
+        "up_8_to_10": {
+          "n": 656,
+          "two_point_attempts": 16,
+          "rate": 0.0244
+        }
+      }
+    },
+    "two_point_success_rate": {
+      "n": 666,
+      "successes": 319,
+      "rate": 0.479
+    },
+    "onside_kick_attempt_rate": {
+      "overall": {
+        "n": 13748,
+        "onside_attempts": 281,
+        "rate": 0.0205
+      },
+      "by_situation": {
+        "late_4q_leading": {
+          "n": 776,
+          "onside_attempts": 2,
+          "rate": 0.0026
+        },
+        "late_4q_tied": {
+          "n": 106,
+          "onside_attempts": 0,
+          "rate": 0
+        },
+        "late_4q_trailing_1_to_8": {
+          "n": 265,
+          "onside_attempts": 125,
+          "rate": 0.4753
+        },
+        "late_4q_trailing_9_plus": {
+          "n": 154,
+          "onside_attempts": 103,
+          "rate": 0.6732
+        },
+        "other": {
+          "n": 12447,
+          "onside_attempts": 51,
+          "rate": 0.0041
+        }
+      }
+    },
+    "onside_kick_recovery_rate": {
+      "n": 281,
+      "recoveries": 21,
+      "rate": 0.0747
+    }
+  }
+}

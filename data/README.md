@@ -16,6 +16,9 @@ data/
     lib.R             # shared helpers (season windows, JSON writer)
     bands/
       team-game.R     # per-team-per-game distributions (first-cut)
+      passing-plays.R # per-dropback outcome tree and yardage distributions
+      rushing-plays.R # per-rush yardage and outcome distributions
+      situational.R   # 4th-down, 2-point, and onside kick decision rates
   bands/              # generated JSON artifacts — checked in
   cache/              # nflreadr disk cache — gitignored
 ```
@@ -66,6 +69,12 @@ without depending on network or R at test time. Regenerate them when:
   red_zone_outer / red_zone_inner), plus stuff rate, gain-threshold rates
   (5+/10+/20+/40+), touchdown rate, and fumble rates. Direct calibration source
   for the rush branch of the sim's play synthesizer.
+- **`situational.json`** — situational decision rates for game-management AI
+  calibration. Covers 4th-down go-for-it rate and conversion rate by field zone
+  and distance bucket, 2-point conversion attempt rate by score differential and
+  success rate, onside kick attempt rate by late-game situation (trailing
+  margin, last 5 min of Q4) and recovery rate. All metrics are aggregate rates
+  with sample counts.
 
 ## Planned bands (follow-up work)
 
@@ -73,8 +82,6 @@ These map to
 [`docs/product/north-star/game-simulation.md`](../docs/product/north-star/game-simulation.md#calibration)
 and are tracked as GitHub issues labeled `ready-for-agent`:
 
-- **Situational rates** (#246) — 4th-down go-for-it by field zone, 2-point
-  attempts by score diff, onside kick attempt/recovery rates
 - **Special-teams outcomes** (#247) — FG success by distance bucket, punt net
   yards distribution, kickoff return distribution, return-TD rate
 - **Position stat concentration** (#248) — RB1/RB2/RB3 carry share, WR1/WR2/slot
