@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { Executor } from "../../db/connection.ts";
 import type { Database } from "../../db/connection.ts";
-import { leagueClock } from "./league-clock.schema.ts";
+import { leagueAdvanceVote, leagueClock } from "./league-clock.schema.ts";
 import type { Blocker } from "./gates.ts";
 import type pino from "pino";
 
@@ -14,6 +14,14 @@ export interface LeagueClockRow {
   advancedByUserId: string | null;
   overrideReason: string | null;
   overrideBlockers: unknown;
+}
+
+export interface LeagueAdvanceVoteRow {
+  leagueId: string;
+  teamId: string;
+  phase: string;
+  stepIndex: number;
+  readyAt: Date;
 }
 
 export interface LeagueClockRepository {
@@ -34,6 +42,23 @@ export interface LeagueClockRepository {
     },
     tx?: Executor,
   ): Promise<LeagueClockRow>;
+
+  castVote(
+    vote: {
+      leagueId: string;
+      teamId: string;
+      phase: string;
+      stepIndex: number;
+    },
+    tx?: Executor,
+  ): Promise<LeagueAdvanceVoteRow>;
+
+  getVotesForStep(
+    leagueId: string,
+    phase: string,
+    stepIndex: number,
+    tx?: Executor,
+  ): Promise<LeagueAdvanceVoteRow[]>;
 }
 
 export function createLeagueClockRepository(deps: {
@@ -51,6 +76,56 @@ export function createLeagueClockRepository(deps: {
         .where(eq(leagueClock.leagueId, leagueId))
         .limit(1);
       return row ?? undefined;
+    },
+
+    async castVote(vote, tx) {
+      log.debug(
+        {
+          leagueId: vote.leagueId,
+          teamId: vote.teamId,
+          phase: vote.phase,
+          stepIndex: vote.stepIndex,
+        },
+        "casting advance vote",
+      );
+      const values = {
+        leagueId: vote.leagueId,
+        teamId: vote.teamId,
+        phase: vote.phase as typeof leagueAdvanceVote.$inferInsert.phase,
+        stepIndex: vote.stepIndex,
+        readyAt: new Date(),
+      };
+      const [result] = await (tx ?? deps.db)
+        .insert(leagueAdvanceVote)
+        .values(values)
+        .onConflictDoUpdate({
+          target: [
+            leagueAdvanceVote.leagueId,
+            leagueAdvanceVote.teamId,
+            leagueAdvanceVote.phase,
+            leagueAdvanceVote.stepIndex,
+          ],
+          set: { readyAt: values.readyAt },
+        })
+        .returning();
+      return result;
+    },
+
+    async getVotesForStep(leagueId, phase, stepIndex, tx) {
+      log.debug({ leagueId, phase, stepIndex }, "fetching votes for step");
+      return await (tx ?? deps.db)
+        .select()
+        .from(leagueAdvanceVote)
+        .where(
+          and(
+            eq(leagueAdvanceVote.leagueId, leagueId),
+            eq(
+              leagueAdvanceVote.phase,
+              phase as typeof leagueAdvanceVote.$inferInsert.phase,
+            ),
+            eq(leagueAdvanceVote.stepIndex, stepIndex),
+          ),
+        );
     },
 
     async upsert(row, tx) {

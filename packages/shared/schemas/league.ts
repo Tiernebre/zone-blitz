@@ -9,3 +9,8 @@ export const assignUserTeamSchema: ZodObject<{ userTeamId: ZodString }> = z
   .object({
     userTeamId: z.string().uuid(),
   });
+
+export const castAdvanceVoteSchema: ZodObject<{ teamId: ZodString }> = z
+  .object({
+    teamId: z.string().uuid(),
+  });

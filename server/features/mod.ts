@@ -53,6 +53,11 @@ import {
   createScheduleService,
   createStubScheduleGenerator,
 } from "./schedule/mod.ts";
+import {
+  createLeagueClockRepository,
+  createLeagueClockRouter,
+  createLeagueClockService,
+} from "./league-clock/mod.ts";
 import { createTransactionRunner } from "../db/transaction-runner.ts";
 
 export function createFeatureRouters(
@@ -148,6 +153,15 @@ export function createFeatureRouters(
     log,
   });
 
+  // League Clock
+  const leagueClockRepo = createLeagueClockRepository({ db, log });
+  const leagueClockService = createLeagueClockService({
+    txRunner,
+    leagueClockRepo,
+    log,
+  });
+  const leagueClockRouter = createLeagueClockRouter(leagueClockService);
+
   // Routers
   const leagueRouter = createLeagueRouter(leagueService);
   const userRouter = createUserRouter(userService);
@@ -163,6 +177,7 @@ export function createFeatureRouters(
     authRouter,
     healthRouter,
     leagueRouter,
+    leagueClockRouter,
     userRouter,
     teamRouter,
     coachesRouter,

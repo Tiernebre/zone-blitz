@@ -225,6 +225,13 @@
       "when": 1776257462862,
       "tag": "0031_mysterious_red_ghost",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1776258798899,
+      "tag": "0032_magenta_dark_phoenix",
+      "breakpoints": true
     }
   ]
 }

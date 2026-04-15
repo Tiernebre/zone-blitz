@@ -34,6 +34,7 @@ function createMockLeague(overrides: Partial<League> = {}): League {
     capFloorPercent: 89,
     capGrowthRate: 5,
     rosterSize: 53,
+    advancePolicy: "commissioner",
     createdAt: new Date(),
     updatedAt: new Date(),
     lastPlayedAt: null,
