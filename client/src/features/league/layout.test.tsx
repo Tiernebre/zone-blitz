@@ -295,9 +295,66 @@ describe("LeagueLayout", () => {
     });
 
     expect(screen.getByRole("link", { name: "Owner" })).toBeDefined();
+    expect(screen.getByRole("link", { name: "Charter" })).toBeDefined();
     expect(screen.queryByRole("link", { name: "Roster" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Draft" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Standings" })).toBeNull();
+  });
+
+  it("shows genesis-only items only in their respective phases", async () => {
+    mockPhase = "genesis_staff_hiring";
+    renderWithProviders();
+
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: "Staff Hiring" })).toBeDefined();
+    });
+
+    expect(screen.queryByRole("link", { name: "Charter" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Founding Pool" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Allocation Draft" })).toBeNull();
+  });
+
+  it("shows Founding Pool only during genesis_founding_pool", async () => {
+    mockPhase = "genesis_founding_pool";
+    renderWithProviders();
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("link", { name: "Founding Pool" }),
+      ).toBeDefined();
+    });
+
+    expect(screen.queryByRole("link", { name: "Charter" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
+  });
+
+  it("shows Allocation Draft only during genesis_allocation_draft", async () => {
+    mockPhase = "genesis_allocation_draft";
+    renderWithProviders();
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("link", { name: "Allocation Draft" }),
+      ).toBeDefined();
+    });
+
+    expect(screen.queryByRole("link", { name: "Charter" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Founding Pool" })).toBeNull();
+  });
+
+  it("hides all genesis-only items in regular_season", async () => {
+    mockPhase = "regular_season";
+    renderWithProviders();
+
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: "Roster" })).toBeDefined();
+    });
+
+    expect(screen.queryByRole("link", { name: "Charter" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Founding Pool" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Allocation Draft" })).toBeNull();
   });
 
   it("shows all nav items when phase is loading", () => {
