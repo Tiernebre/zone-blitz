@@ -61,7 +61,10 @@ export { depthChartEntries } from "../features/players/depth-chart.schema.ts";
 export { playerAttributes } from "../features/players/attributes.schema.ts";
 export { playerDraftProfile } from "../features/players/player-draft-profile.schema.ts";
 export { playerSeasonRatings } from "../features/players/player-season-ratings.schema.ts";
-export { contracts } from "../features/contracts/contract.schema.ts";
+export {
+  contracts,
+  contractTypeEnum,
+} from "../features/contracts/contract.schema.ts";
 export {
   contractHistory,
   contractTerminationReasonEnum,

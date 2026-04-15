@@ -117,6 +117,134 @@ const draftedPlayer = {
       endedInYear: null,
     },
   ],
+  contractLedger: [
+    {
+      id: "cl-current",
+      team: {
+        id: "t2",
+        name: "Bengals",
+        city: "Cincinnati",
+        abbreviation: "CIN",
+      },
+      contractType: "rookie_scale",
+      signedInYear: 2024,
+      totalYears: 4,
+      totalValue: 80_000_000,
+      guaranteedAtSigning: 40_000_000,
+      signingBonus: 10_000_000,
+      years: [
+        {
+          yearNumber: 1,
+          baseSalary: 17_500_000,
+          signingBonusProration: 2_500_000,
+          rosterBonus: 0,
+          workoutBonus: 0,
+          capHit: 20_000_000,
+          deadCap: 10_000_000,
+          cashPaid: 27_500_000,
+          isVoid: false,
+        },
+        {
+          yearNumber: 2,
+          baseSalary: 17_500_000,
+          signingBonusProration: 2_500_000,
+          rosterBonus: 0,
+          workoutBonus: 0,
+          capHit: 20_000_000,
+          deadCap: 7_500_000,
+          cashPaid: 17_500_000,
+          isVoid: false,
+        },
+        {
+          yearNumber: 3,
+          baseSalary: 17_500_000,
+          signingBonusProration: 2_500_000,
+          rosterBonus: 0,
+          workoutBonus: 0,
+          capHit: 20_000_000,
+          deadCap: 5_000_000,
+          cashPaid: 17_500_000,
+          isVoid: false,
+        },
+        {
+          yearNumber: 4,
+          baseSalary: 17_500_000,
+          signingBonusProration: 2_500_000,
+          rosterBonus: 0,
+          workoutBonus: 0,
+          capHit: 20_000_000,
+          deadCap: 2_500_000,
+          cashPaid: 17_500_000,
+          isVoid: false,
+        },
+      ],
+      isCurrent: true,
+    },
+    {
+      id: "cl-prior",
+      team: {
+        id: "t2",
+        name: "Bengals",
+        city: "Cincinnati",
+        abbreviation: "CIN",
+      },
+      contractType: "veteran",
+      signedInYear: 2020,
+      totalYears: 4,
+      totalValue: 16_000_000,
+      guaranteedAtSigning: 8_000_000,
+      signingBonus: 2_000_000,
+      years: [
+        {
+          yearNumber: 1,
+          baseSalary: 3_500_000,
+          signingBonusProration: 500_000,
+          rosterBonus: 0,
+          workoutBonus: 0,
+          capHit: 4_000_000,
+          deadCap: 2_000_000,
+          cashPaid: 5_500_000,
+          isVoid: false,
+        },
+        {
+          yearNumber: 2,
+          baseSalary: 3_500_000,
+          signingBonusProration: 500_000,
+          rosterBonus: 0,
+          workoutBonus: 0,
+          capHit: 4_000_000,
+          deadCap: 1_500_000,
+          cashPaid: 3_500_000,
+          isVoid: false,
+        },
+        {
+          yearNumber: 3,
+          baseSalary: 3_500_000,
+          signingBonusProration: 500_000,
+          rosterBonus: 0,
+          workoutBonus: 0,
+          capHit: 4_000_000,
+          deadCap: 1_000_000,
+          cashPaid: 3_500_000,
+          isVoid: false,
+        },
+        {
+          yearNumber: 4,
+          baseSalary: 3_500_000,
+          signingBonusProration: 500_000,
+          rosterBonus: 0,
+          workoutBonus: 0,
+          capHit: 4_000_000,
+          deadCap: 500_000,
+          cashPaid: 3_500_000,
+          isVoid: false,
+        },
+      ],
+      isCurrent: false,
+      terminationReason: "expired",
+      endedInYear: 2024,
+    },
+  ],
   transactions: [
     {
       id: "tx1",
@@ -415,32 +543,88 @@ describe("PlayerDetail — biography header", () => {
   });
 });
 
-describe("PlayerDetail — sections", () => {
-  it("renders the current contract card with years, cap hit, total, and guaranteed", () => {
+describe("PlayerDetail — contract ledger", () => {
+  it("renders the current contract block with year-by-year rows", () => {
     renderDetail();
     const card = screen.getByTestId("player-current-contract");
-    expect(card.textContent).toContain("3/4");
-    expect(card.textContent).toContain("$20,000,000");
-    expect(card.textContent).toContain("$80,000,000");
-    expect(card.textContent).toContain("$40,000,000");
+    expect(card.textContent).toContain("Rookie Scale");
+    expect(card.textContent).toContain("4 years");
+    expect(card.textContent).toContain("Signed 2024");
+    expect(card.textContent).toContain("Cincinnati Bengals");
+    expect(screen.getByTestId("player-current-contract-year-1")).toBeDefined();
+    expect(screen.getByTestId("player-current-contract-year-4")).toBeDefined();
   });
 
-  it("renders every contract history row with signed year and outcome", () => {
+  it("renders per-year cap hit and dead cap values", () => {
     renderDetail();
-    expect(screen.getByTestId("player-contract-history-row-h1").textContent)
-      .toContain("Expired");
-    expect(screen.getByTestId("player-contract-history-row-h1").textContent)
-      .toContain("2024");
-    expect(screen.getByTestId("player-contract-history-row-h2").textContent)
-      .toContain("Active");
+    const y1 = screen.getByTestId("player-current-contract-year-1");
+    expect(y1.textContent).toContain("$17,500,000");
+    expect(y1.textContent).toContain("$2,500,000");
+    expect(y1.textContent).toContain("$20,000,000");
+    expect(y1.textContent).toContain("$10,000,000");
   });
 
-  it("shows 'Not under contract' when the player has no current deal", () => {
+  it("renders totals row with total value, guaranteed, and cash to date", () => {
+    renderDetail();
+    const totals = screen.getByTestId("player-current-contract-totals");
+    expect(totals.textContent).toContain("$80,000,000");
+    expect(totals.textContent).toContain("$40,000,000");
+  });
+
+  it("renders the rookie-scale label on rookie contracts", () => {
+    renderDetail();
+    expect(
+      screen.getByTestId("player-current-contract-rookie-label"),
+    ).toBeDefined();
+  });
+
+  it("renders prior contracts collapsed by default", () => {
+    renderDetail();
+    expect(screen.getByTestId("player-prior-contracts")).toBeDefined();
+    expect(
+      screen.getByTestId("player-prior-contract-trigger-cl-prior"),
+    ).toBeDefined();
+  });
+
+  it("renders void years flagged as void", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        contractLedger: [
+          {
+            ...draftedPlayer.contractLedger[0],
+            years: [
+              ...draftedPlayer.contractLedger[0].years,
+              {
+                yearNumber: 5,
+                baseSalary: 0,
+                signingBonusProration: 2_000_000,
+                rosterBonus: 0,
+                workoutBonus: 0,
+                capHit: 2_000_000,
+                deadCap: 2_000_000,
+                cashPaid: 0,
+                isVoid: true,
+              },
+            ],
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    const voidRow = screen.getByTestId("player-current-contract-void-5");
+    expect(voidRow.textContent).toContain("Void");
+  });
+
+  it("shows 'Not under contract' when the player has no deals", () => {
     mockUsePlayerDetail.mockReturnValue({
       data: {
         ...draftedPlayer,
         currentContract: null,
         contractHistory: [],
+        contractLedger: [],
         transactions: [],
         seasonStats: [],
         accolades: [],
@@ -450,7 +634,6 @@ describe("PlayerDetail — sections", () => {
     });
     renderDetail();
     expect(screen.getByTestId("player-no-current-contract")).toBeDefined();
-    expect(screen.getByTestId("player-contract-history-empty")).toBeDefined();
     expect(screen.getByTestId("player-transactions-empty")).toBeDefined();
     expect(screen.getByTestId("player-career-log-empty")).toBeDefined();
     expect(screen.getByText("Statistics")).toBeDefined();

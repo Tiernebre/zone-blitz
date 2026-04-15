@@ -1,7 +1,9 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import type pino from "pino";
 import {
+  buildContractYears,
   type ContractHistoryEntry,
+  type ContractLedgerEntry,
   type CurrentContractSummary,
   type DraftEligiblePlayer,
   neutralBucket,
@@ -235,15 +237,23 @@ export function createPlayersRepository(deps: {
 
       const [currentContractRow] = await deps.db
         .select({
+          id: contracts.id,
           teamId: contracts.teamId,
+          teamName: currentTeams.name,
+          teamCity: currentCities.name,
+          teamAbbreviation: currentTeams.abbreviation,
+          contractType: contracts.contractType,
           totalYears: contracts.totalYears,
           currentYear: contracts.currentYear,
           annualSalary: contracts.annualSalary,
           totalSalary: contracts.totalSalary,
           guaranteedMoney: contracts.guaranteedMoney,
           signingBonus: contracts.signingBonus,
+          signedInYear: contracts.signedInYear,
         })
         .from(contracts)
+        .innerJoin(currentTeams, eq(currentTeams.id, contracts.teamId))
+        .innerJoin(currentCities, eq(currentCities.id, currentTeams.cityId))
         .where(eq(contracts.playerId, playerId))
         .limit(1);
 
@@ -271,10 +281,12 @@ export function createPlayersRepository(deps: {
           teamName: teams.name,
           teamCity: cities.name,
           teamAbbreviation: teams.abbreviation,
+          contractType: contractHistory.contractType,
           signedInYear: contractHistory.signedInYear,
           totalYears: contractHistory.totalYears,
           totalSalary: contractHistory.totalSalary,
           guaranteedMoney: contractHistory.guaranteedMoney,
+          signingBonus: contractHistory.signingBonus,
           terminationReason: contractHistory.terminationReason,
           endedInYear: contractHistory.endedInYear,
         })
@@ -301,6 +313,71 @@ export function createPlayersRepository(deps: {
           endedInYear: row.endedInYear,
         }),
       );
+
+      const contractLedger: ContractLedgerEntry[] = [];
+      if (currentContractRow) {
+        contractLedger.push({
+          id: currentContractRow.id,
+          team: {
+            id: currentContractRow.teamId,
+            name: currentContractRow.teamName,
+            city: currentContractRow.teamCity,
+            abbreviation: currentContractRow.teamAbbreviation,
+          },
+          contractType: currentContractRow.contractType,
+          signedInYear: currentContractRow.signedInYear,
+          totalYears: currentContractRow.totalYears,
+          totalValue: currentContractRow.totalSalary,
+          guaranteedAtSigning: currentContractRow.guaranteedMoney,
+          signingBonus: currentContractRow.signingBonus,
+          years: buildContractYears({
+            totalYears: currentContractRow.totalYears,
+            annualSalary: currentContractRow.annualSalary,
+            signingBonus: currentContractRow.signingBonus,
+            guaranteedMoney: currentContractRow.guaranteedMoney,
+            currentYear: currentContractRow.currentYear,
+          }),
+          isCurrent: true,
+        });
+      }
+      for (const row of historyRows) {
+        if (
+          currentContractRow &&
+          row.signedInYear === currentContractRow.signedInYear &&
+          row.totalSalary === currentContractRow.totalSalary &&
+          row.terminationReason === "active"
+        ) {
+          continue;
+        }
+        const annualSalary = row.totalYears > 0
+          ? Math.floor(row.totalSalary / row.totalYears)
+          : 0;
+        contractLedger.push({
+          id: row.id,
+          team: {
+            id: row.teamId,
+            name: row.teamName,
+            city: row.teamCity,
+            abbreviation: row.teamAbbreviation,
+          },
+          contractType: row.contractType,
+          signedInYear: row.signedInYear,
+          totalYears: row.totalYears,
+          totalValue: row.totalSalary,
+          guaranteedAtSigning: row.guaranteedMoney,
+          signingBonus: row.signingBonus,
+          years: buildContractYears({
+            totalYears: row.totalYears,
+            annualSalary,
+            signingBonus: row.signingBonus,
+            guaranteedMoney: row.guaranteedMoney,
+            currentYear: row.totalYears,
+          }),
+          isCurrent: false,
+          terminationReason: row.terminationReason,
+          endedInYear: row.endedInYear,
+        });
+      }
 
       const detail: PlayerDetail = {
         id: row.id,
@@ -341,6 +418,7 @@ export function createPlayersRepository(deps: {
         },
         currentContract,
         contractHistory: contractHistoryEntries,
+        contractLedger,
         transactions: await loadTransactions(playerId),
         seasonStats: await loadSeasonStats(playerId),
         accolades: await loadAccolades(playerId),
