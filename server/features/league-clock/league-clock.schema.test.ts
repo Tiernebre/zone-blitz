@@ -42,6 +42,8 @@ Deno.test("league_clock table has expected columns", () => {
   assertEquals(columns.includes("stepIndex"), true);
   assertEquals(columns.includes("advancedAt"), true);
   assertEquals(columns.includes("advancedByUserId"), true);
+  assertEquals(columns.includes("overrideReason"), true);
+  assertEquals(columns.includes("overrideBlockers"), true);
 });
 
 Deno.test("league_phase_step table has expected columns", () => {
