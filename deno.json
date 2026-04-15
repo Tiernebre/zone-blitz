@@ -1,8 +1,6 @@
 {
   "workspace": [
     "./packages/shared",
-    "./packages/simulation",
-    "./packages/ai",
     "./server",
     "./client",
     "./e2e"
@@ -31,7 +29,7 @@
     "db:studio": "cd server && deno run --env=../.env -A npm:drizzle-kit studio",
     "test": "deno task test:server && deno task test:packages && deno task test:client",
     "test:server": "deno test server/ --env=.env --allow-env --allow-net --allow-read --allow-sys --coverage",
-    "test:packages": "deno test packages/shared/ packages/simulation/ packages/ai/ --coverage",
+    "test:packages": "deno test packages/shared/ --coverage",
     "test:client": "cd client && npm exec -- vitest run --coverage",
     "test:coverage": "./bin/check-coverage",
     "test:e2e": "./bin/test-e2e",

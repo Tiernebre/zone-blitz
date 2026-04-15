@@ -1,8 +1,7 @@
 # Backend Architecture
 
 This document defines the conventions, patterns, and structure for the server
-package and its relationship to the pure domain packages (`simulation`, `ai`).
-It is prescriptive — follow these patterns for all new backend work.
+package. It is prescriptive — follow these patterns for all new backend work.
 
 For the overall stack choices and monorepo structure, see
 [architecture.md](./architecture.md).
@@ -183,8 +182,8 @@ export interface DraftService {
 }
 ```
 
-The server implements these. Tests mock them. The simulation and AI packages
-depend on them without ever touching the server.
+The server implements these. Tests mock them. Simulation and AI modules inside
+the server depend on the interfaces rather than concrete services.
 
 ---
 
@@ -779,77 +778,6 @@ server/features/salary-cap/
 ```
 
 These are domain concepts with names — not utilities.
-
----
-
-## Simulation and AI Packages
-
-The `simulation` and `ai` packages are separate Deno workspace members. They are
-**pure** — no I/O, no database, no HTTP. They implement interfaces defined in
-`@zone-blitz/shared`.
-
-### Package structure
-
-```
-packages/
-  shared/              # Interfaces, domain types, Zod schemas (no deps)
-  simulation/          # Game engine — implements GameSimulator, etc.
-  ai/                  # NPC decision-making — implements GMStrategy, etc.
-```
-
-### Dependency rules (hard constraints)
-
-```
-shared       → (no internal dependencies)
-simulation   → shared only
-ai           → shared only
-server       → shared, simulation, ai
-```
-
-`simulation` and `ai` **never** depend on `server`. They have no knowledge of
-databases, HTTP, or any I/O.
-
-### Integration through DI
-
-The server imports concrete implementations from `simulation` and `ai` at the
-composition root and injects them where needed.
-
-```typescript
-// server/features/mod.ts
-import { createGameSimulator } from "@zone-blitz/simulation";
-import { createGMStrategy } from "@zone-blitz/ai";
-
-export function createFeatureRouters(db: Database) {
-  const log = logger;
-
-  // ... repositories and services ...
-
-  const gameSimulator = createGameSimulator();
-  const gmStrategy = createGMStrategy();
-
-  const seasonService = createSeasonService({
-    gameSimulator,
-    gmStrategy,
-    leagueRepo,
-    rosterRepo,
-    log,
-  });
-
-  // ... routers ...
-
-  return {/* ... */};
-}
-```
-
-### Future extraction path
-
-When `simulation` or `ai` need to be extracted to Go/Rust:
-
-1. The interfaces in `shared` become gRPC/HTTP service contracts.
-2. The factory call in the composition root is replaced with an HTTP/gRPC client
-   that implements the same interface.
-3. Nothing else changes — the server still depends on the interface, not the
-   implementation.
 
 ---
 

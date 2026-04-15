@@ -1,8 +1,0 @@
-{
-  "name": "@zone-blitz/simulation",
-  "version": "0.0.1",
-  "exports": "./mod.ts",
-  "imports": {
-    "@std/assert": "jsr:@std/assert@^1"
-  }
-}
