@@ -10,6 +10,12 @@ function visibleLabels(phase: LeaguePhase): string[] {
     .map((item) => item.label);
 }
 
+function visibleGroupLabels(phase: LeaguePhase): string[] {
+  return navGroups
+    .filter((g) => g.items.some((item) => item.visibleInPhases(phase)))
+    .map((g) => g.label);
+}
+
 describe("navGroups", () => {
   it("every nav item has a visibleInPhases function", () => {
     for (const group of navGroups) {
@@ -156,5 +162,120 @@ describe("navGroups", () => {
         expect(visibleInAny, `${item.label} is never visible`).toBe(true);
       }
     }
+  });
+
+  describe("exact visible set per representative phase", () => {
+    it.each<[LeaguePhase, string[]]>([
+      ["genesis_charter", ["Home", "Charter", "Owner"]],
+      [
+        "genesis_staff_hiring",
+        ["Home", "Coaches", "Scouts", "Staff Hiring", "Media", "Owner"],
+      ],
+      [
+        "genesis_allocation_draft",
+        [
+          "Home",
+          "Roster",
+          "Coaches",
+          "Scouts",
+          "Draft",
+          "Allocation Draft",
+          "Salary Cap",
+          "Media",
+          "Owner",
+        ],
+      ],
+      [
+        "genesis_free_agency",
+        [
+          "Home",
+          "Roster",
+          "Coaches",
+          "Scouts",
+          "Free Agency",
+          "Salary Cap",
+          "Media",
+          "Owner",
+        ],
+      ],
+      [
+        "preseason",
+        [
+          "Home",
+          "Roster",
+          "Coaches",
+          "Scouts",
+          "Trades",
+          "Salary Cap",
+          "Schedule",
+          "Opponents",
+          "Media",
+          "Owner",
+        ],
+      ],
+      [
+        "regular_season",
+        [
+          "Home",
+          "Roster",
+          "Coaches",
+          "Scouts",
+          "Trades",
+          "Free Agency",
+          "Salary Cap",
+          "Standings",
+          "Schedule",
+          "Opponents",
+          "Media",
+          "Owner",
+        ],
+      ],
+      [
+        "offseason_review",
+        [
+          "Home",
+          "Roster",
+          "Coaches",
+          "Scouts",
+          "Salary Cap",
+          "Media",
+          "Owner",
+        ],
+      ],
+    ])(
+      "shows exactly the expected nav items in %s",
+      (phase, expectedLabels) => {
+        expect(visibleLabels(phase)).toEqual(expectedLabels);
+      },
+    );
+  });
+
+  describe("NavGroup visibility per phase", () => {
+    it("hides Team Building group in genesis_charter", () => {
+      expect(visibleGroupLabels("genesis_charter")).toEqual(["Team", "League"]);
+    });
+
+    it("hides Team Building group in genesis_staff_hiring", () => {
+      expect(visibleGroupLabels("genesis_staff_hiring")).toEqual([
+        "Team",
+        "League",
+      ]);
+    });
+
+    it("shows all groups in genesis_allocation_draft", () => {
+      expect(visibleGroupLabels("genesis_allocation_draft")).toEqual([
+        "Team",
+        "Team Building",
+        "League",
+      ]);
+    });
+
+    it("shows all groups in regular_season", () => {
+      expect(visibleGroupLabels("regular_season")).toEqual([
+        "Team",
+        "Team Building",
+        "League",
+      ]);
+    });
   });
 });
