@@ -37,6 +37,7 @@ export function createSeasonRepository(deps: {
           leagueId: input.leagueId,
           year: input.year,
           phase: input.phase,
+          offseasonStage: input.offseasonStage,
           week: input.week,
         })
         .returning();

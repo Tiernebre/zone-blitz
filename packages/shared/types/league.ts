@@ -1,4 +1,4 @@
-import type { SeasonPhase } from "./season.ts";
+import type { OffseasonStage, SeasonPhase } from "./season.ts";
 
 export interface League {
   id: string;
@@ -18,6 +18,7 @@ export interface League {
 export interface LeagueSeasonSummary {
   year: number;
   phase: SeasonPhase;
+  offseasonStage: OffseasonStage | null;
   week: number;
 }
 

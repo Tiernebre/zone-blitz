@@ -40,7 +40,12 @@ Deno.test("league.router", async (t) => {
     const leagues: LeagueListItem[] = [
       {
         ...createMockLeague({ id: "1", name: "League One" }),
-        currentSeason: { year: 1, phase: "preseason", week: 1 },
+        currentSeason: {
+          year: 1,
+          phase: "preseason",
+          offseasonStage: null,
+          week: 1,
+        },
         userTeam: null,
       },
       {
@@ -62,6 +67,7 @@ Deno.test("league.router", async (t) => {
     assertEquals(body[0].currentSeason, {
       year: 1,
       phase: "preseason",
+      offseasonStage: null,
       week: 1,
     });
     assertEquals(body[1].currentSeason, null);

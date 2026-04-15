@@ -67,6 +67,7 @@ function createMockSeasonService(
         leagueId: "new-id",
         year: 1,
         phase: "preseason" as const,
+        offseasonStage: null,
         week: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -165,6 +166,7 @@ Deno.test("league.service", async (t) => {
                 leagueId,
                 year: 1,
                 phase: "preseason" as const,
+                offseasonStage: null,
                 week: 1,
                 createdAt: new Date(),
                 updatedAt: new Date(),
@@ -174,6 +176,7 @@ Deno.test("league.service", async (t) => {
                 leagueId,
                 year: 2,
                 phase: "regular_season" as const,
+                offseasonStage: null,
                 week: 5,
                 createdAt: new Date(),
                 updatedAt: new Date(),
@@ -188,7 +191,43 @@ Deno.test("league.service", async (t) => {
       assertEquals(result[0].currentSeason, {
         year: 2,
         phase: "regular_season",
+        offseasonStage: null,
         week: 5,
+      });
+    },
+  );
+
+  await t.step(
+    "getAll includes offseasonStage in currentSeason when set",
+    async () => {
+      const service = createService({
+        leagueRepo: {
+          getAll: () =>
+            Promise.resolve([createMockLeague({ id: "1", name: "League" })]),
+        },
+        seasonService: {
+          getByLeagueId: (leagueId) =>
+            Promise.resolve([
+              {
+                id: `${leagueId}-s1`,
+                leagueId,
+                year: 1,
+                phase: "offseason" as const,
+                offseasonStage: "draft" as const,
+                week: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
+            ]),
+        },
+      });
+
+      const result = await service.getAll();
+      assertEquals(result[0].currentSeason, {
+        year: 1,
+        phase: "offseason",
+        offseasonStage: "draft",
+        week: 1,
       });
     },
   );
@@ -304,6 +343,7 @@ Deno.test("league.service", async (t) => {
             leagueId: "new-id",
             year: 1,
             phase: "preseason" as const,
+            offseasonStage: null,
             week: 1,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -402,6 +442,7 @@ Deno.test("league.service", async (t) => {
               leagueId: "new-id",
               year: 1,
               phase: "preseason" as const,
+              offseasonStage: null,
               week: 1,
               createdAt: new Date(),
               updatedAt: new Date(),

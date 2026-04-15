@@ -127,14 +127,24 @@ describe("LeagueSelect", () => {
               name: "NFL League",
               userTeam: null,
               createdAt: "2026-01-15T00:00:00Z",
-              currentSeason: { year: 1, phase: "preseason", week: 1 },
+              currentSeason: {
+                year: 1,
+                phase: "preseason",
+                offseasonStage: null,
+                week: 1,
+              },
             },
             {
               id: 2,
               name: "XFL League",
               userTeam: null,
               createdAt: "2026-02-20T00:00:00Z",
-              currentSeason: { year: 3, phase: "regular_season", week: 5 },
+              currentSeason: {
+                year: 3,
+                phase: "regular_season",
+                offseasonStage: null,
+                week: 5,
+              },
             },
           ]),
       }),
@@ -174,7 +184,12 @@ describe("LeagueSelect", () => {
                 primaryColor: "#A71930",
               },
               createdAt: "2026-01-15T00:00:00Z",
-              currentSeason: { year: 1, phase: "preseason", week: 1 },
+              currentSeason: {
+                year: 1,
+                phase: "preseason",
+                offseasonStage: null,
+                week: 1,
+              },
             },
           ]),
       }),
@@ -198,7 +213,12 @@ describe("LeagueSelect", () => {
               name: "Teamless League",
               userTeam: null,
               createdAt: "2026-01-15T00:00:00Z",
-              currentSeason: { year: 1, phase: "preseason", week: 1 },
+              currentSeason: {
+                year: 1,
+                phase: "preseason",
+                offseasonStage: null,
+                week: 1,
+              },
             },
           ]),
       }),
@@ -249,7 +269,7 @@ describe("LeagueSelect", () => {
               name: "League",
               userTeam: null,
               createdAt: "2026-01-15T00:00:00Z",
-              currentSeason: { year: 2, phase, week: 1 },
+              currentSeason: { year: 2, phase, offseasonStage: null, week: 1 },
             },
           ]),
       }),
@@ -257,6 +277,59 @@ describe("LeagueSelect", () => {
     renderWithProviders();
     await waitFor(() => {
       expect(screen.getByText(new RegExp(label))).toBeDefined();
+    });
+  });
+
+  it("renders offseason sub-stage label when offseasonStage is set", async () => {
+    mockGet.mockReturnValue(
+      Promise.resolve({
+        json: () =>
+          Promise.resolve([
+            {
+              id: 1,
+              name: "League",
+              userTeam: null,
+              createdAt: "2026-01-15T00:00:00Z",
+              currentSeason: {
+                year: 2,
+                phase: "offseason",
+                offseasonStage: "draft",
+                week: 1,
+              },
+            },
+          ]),
+      }),
+    );
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText(/Draft/)).toBeDefined();
+    });
+    expect(screen.queryByText(/Offseason/)).toBeNull();
+  });
+
+  it("renders Offseason label when offseasonStage is null", async () => {
+    mockGet.mockReturnValue(
+      Promise.resolve({
+        json: () =>
+          Promise.resolve([
+            {
+              id: 1,
+              name: "League",
+              userTeam: null,
+              createdAt: "2026-01-15T00:00:00Z",
+              currentSeason: {
+                year: 2,
+                phase: "offseason",
+                offseasonStage: null,
+                week: 1,
+              },
+            },
+          ]),
+      }),
+    );
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText(/Offseason/)).toBeDefined();
     });
   });
 
@@ -270,7 +343,12 @@ describe("LeagueSelect", () => {
               name: "My League",
               userTeam: null,
               createdAt: "2026-01-15T00:00:00Z",
-              currentSeason: { year: 1, phase: "preseason", week: 1 },
+              currentSeason: {
+                year: 1,
+                phase: "preseason",
+                offseasonStage: null,
+                week: 1,
+              },
             },
           ]),
       }),
@@ -297,7 +375,12 @@ describe("LeagueSelect", () => {
               name: "League",
               userTeam: null,
               createdAt: "2026-01-15T00:00:00Z",
-              currentSeason: { year: 1, phase: "preseason", week: 1 },
+              currentSeason: {
+                year: 1,
+                phase: "preseason",
+                offseasonStage: null,
+                week: 1,
+              },
             },
           ]),
       }),
@@ -349,7 +432,12 @@ describe("LeagueSelect", () => {
                 name: "Doomed League",
                 userTeam: null,
                 createdAt: "2026-01-15T00:00:00Z",
-                currentSeason: { year: 1, phase: "preseason", week: 1 },
+                currentSeason: {
+                  year: 1,
+                  phase: "preseason",
+                  offseasonStage: null,
+                  week: 1,
+                },
               },
             ]),
         }),
@@ -390,7 +478,12 @@ describe("LeagueSelect", () => {
                 name: "Safe League",
                 userTeam: null,
                 createdAt: "2026-01-15T00:00:00Z",
-                currentSeason: { year: 1, phase: "preseason", week: 1 },
+                currentSeason: {
+                  year: 1,
+                  phase: "preseason",
+                  offseasonStage: null,
+                  week: 1,
+                },
               },
             ]),
         }),
