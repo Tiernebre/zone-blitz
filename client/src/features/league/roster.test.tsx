@@ -598,6 +598,22 @@ describe("Roster — depth chart tab", () => {
     ).toBe("Special Teams");
   });
 
+  it("renders empty depth chart meta when lastUpdatedAt and lastUpdatedBy are null", () => {
+    mockUseDepthChart.mockReturnValue({
+      data: {
+        ...baseDepthChart,
+        lastUpdatedAt: null,
+        lastUpdatedBy: null,
+      },
+      isLoading: false,
+      isError: false,
+    });
+    renderRoster();
+    activateDepthChartTab();
+    const meta = screen.getByTestId("depth-chart-meta");
+    expect(meta.textContent).toBe("");
+  });
+
   it("shows an empty state when the coach has not published a chart", () => {
     mockUseDepthChart.mockReturnValue({
       data: {
