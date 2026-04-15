@@ -44,10 +44,12 @@ The simulation workload is **bursty, not sustained** — game sims run when the
 season advances, not continuously. Deno handles this fine. The real payoff is a
 single language across the entire stack with shared types and validation.
 
-The compute-heavy modules (simulation engine, NPC AI) are designed as pure,
-extractable packages. If we outgrow Deno's performance ceiling — realistically,
-when play-by-play simulation with thousands of play resolutions per game becomes
-sluggish — we extract those packages to Go or Rust behind the same interfaces.
+The compute-heavy modules (simulation engine, NPC AI) live inside the server as
+pure feature slices (`server/features/simulation`, decision logic colocated with
+the features that need it). They are written as pure functions behind interfaces
+in `@zone-blitz/shared`, so if we outgrow Deno's performance ceiling —
+realistically, when play-by-play simulation with thousands of play resolutions
+per game becomes sluggish — they can be lifted out behind the same contracts.
 The API layer, multiplayer coordination, and database access stay in TypeScript
 where shared types and Zod schemas pay dividends.
 
@@ -114,10 +116,9 @@ Configuration:
 ```
 packages/
   shared/         # Domain types, Zod schemas, interfaces
-  simulation/     # Pure game simulation engine
-  ai/             # NPC AI decision-making
-  server/         # API, database, multiplayer coordination
-  ui/             # React SPA
+server/           # API, database, multiplayer coordination, simulation + AI features
+client/           # React SPA
+e2e/              # Playwright E2E tests
 ```
 
 ### Dependency rules
@@ -126,16 +127,9 @@ These are hard constraints, not guidelines. The build should fail if violated.
 
 ```
 shared       → (no internal dependencies)
-simulation   → shared
-ai           → shared
-server       → shared, simulation, ai
-ui           → shared
+server       → shared
+client       → shared
 ```
-
-The critical invariant: **`simulation` and `ai` never depend on `server`.** They
-have no knowledge of databases, HTTP, WebSockets, or any I/O. They are pure
-logic packages that take domain types in and produce domain types out. This is
-what makes them extractable.
 
 ### Package responsibilities
 
@@ -143,54 +137,43 @@ what makes them extractable.
 
 - Domain entity types (Player, Team, Contract, Coach, Scout, DraftPick, etc.)
 - Zod validation schemas shared between client and server
-- Interface definitions that other packages implement
+- Interface definitions that the server implements
 - Enums and constants (positions, personality axes, contract types)
 - No logic, no side effects, no runtime dependencies beyond Zod
 
-**`simulation`** — The game engine.
-
-- Game simulation (box score → drive-level → play-by-play, progressively)
-- Season simulation (progression, regression, retirement, injuries)
-- Player performance model (attribute resolution in game context)
-- Procedural generation (draft classes, coaches, scouts, media personalities)
-- Pure functions only — takes game state in, produces results out
-
-**`ai`** — NPC decision-making.
-
-- GM strategy implementations (Win Now, Developer, Moneyball, Old School,
-  Gambler)
-- Draft board construction and pick logic
-- Trade evaluation and initiation
-- Free agency bidding strategy
-- Coaching hire/fire decisions
-- Owner behavior and patience system
-- Pure functions only — takes team state and personality in, produces decisions
-  out
-
-**`server`** — The orchestrator.
+**`server`** — The orchestrator and the domain engine.
 
 - Hono API routes
 - Drizzle schema definitions and database access
 - WebSocket server for realtime multiplayer
-- Season advancement orchestration (calls into simulation and ai packages)
+- Game simulation (`server/features/simulation`): box score → drive →
+  play-by-play
+- NPC decision-making (GM strategies, draft boards, trade evaluation) colocated
+  with the features that use them
+- Season advancement orchestration
 - Authentication and league/user management
 - Repository implementations that fulfill shared interfaces
 
-**`ui`** — The frontend.
+Simulation and AI modules inside the server are still written as pure functions
+against interfaces defined in `@zone-blitz/shared` — no DB, HTTP, or I/O — so
+they remain testable and extractable, they just ship inside the server package
+today.
+
+**`client`** — The frontend.
 
 - React SPA (see [UI Architecture](./ui-architecture.md))
 - Hono RPC client consuming server API
 - WebSocket client for realtime events
-- Imports types from `shared` only — never from `server`, `simulation`, or `ai`
+- Imports types from `shared` only — never from `server`
 
 ---
 
 ## Interface-Driven Design
 
-Interfaces are the primary tool for decoupling. The domain logic in `simulation`
-and `ai` depends on abstractions defined in `shared`. The `server` package
-provides concrete implementations. This enables testing, substitution, and
-future extraction.
+Interfaces are the primary tool for decoupling. Simulation and NPC decision
+logic inside the server depend on abstractions defined in `shared`. Feature
+factories provide the concrete implementations. This enables testing,
+substitution, and future extraction.
 
 ### Design pattern strategy
 
@@ -212,9 +195,10 @@ interface IGMStrategy {
 ```
 
 Individual strategy implementations (WinNowStrategy, DeveloperStrategy, etc.)
-live in the `ai` package. A GM's personality axes determine which strategy — or
-weighted blend of strategies — drives their decisions. This is not a rigid
-one-archetype-per-GM mapping; the axes create a continuous space of behavior.
+live alongside the features that consume them in the server. A GM's personality
+axes determine which strategy — or weighted blend of strategies — drives their
+decisions. This is not a rigid one-archetype-per-GM mapping; the axes create a
+continuous space of behavior.
 
 **Repository — Data access abstraction**
 
@@ -275,8 +259,8 @@ modifying the trade execution code.
 **Factory — Procedural generation**
 
 Draft classes, coaches, scouts, and media personalities are procedurally
-generated. Factory interfaces define the contract; implementations in
-`simulation` contain the generation logic.
+generated. Factory interfaces define the contract; implementations live inside
+the relevant server features.
 
 ```typescript
 // shared/src/generation/draft-class-factory.ts
@@ -294,8 +278,9 @@ swappable (different generation strategies for different league configurations).
 
 ### Interface placement
 
-All interfaces live in `shared`. This is non-negotiable — it's what allows
-`simulation` and `ai` to depend on abstractions without depending on `server`.
+All cross-cutting domain interfaces live in `shared`. This is non-negotiable —
+it's what lets simulation and AI logic be extracted later without rewiring
+consumers.
 
 ```
 shared/src/
@@ -409,7 +394,7 @@ Trade executes
 **Season advancement:**
 
 - Commissioner or ready-check triggers advancement
-- Server runs simulation (calls into `simulation` package)
+- Server runs simulation (via `server/features/simulation`)
 - Results are pushed to all clients as they're produced
 - Clients can watch game results, transaction activity, and news unfold
 
@@ -417,17 +402,17 @@ Trade executes
 
 ## Future Extraction Path
 
-The architecture is designed so that the `simulation` and `ai` packages can be
-extracted from the Deno monorepo into standalone services without rewriting the
-rest of the system.
+The simulation and AI modules inside the server are written as pure functions
+behind `@zone-blitz/shared` interfaces so that, if needed, they can be lifted
+out into standalone services without rewriting the rest of the system.
 
 ### What extraction looks like
 
 **Today (TypeScript monorepo):**
 
 ```
-server → imports simulation package → calls simulate(gameState)
-server → imports ai package → calls evaluateTrade(context)
+server → imports sim module → calls simulate(gameState)
+server → imports AI module → calls evaluateTrade(context)
 ```
 
 Direct function calls. Fast, simple, no serialization overhead.
@@ -445,9 +430,9 @@ schema.
 
 ### What makes this possible
 
-1. **No I/O in simulation or ai.** They don't touch databases, file systems, or
-   networks. Pure in, pure out. A Go rewrite implements the same logic without
-   untangling I/O dependencies.
+1. **No I/O in simulation or AI modules.** They don't touch databases, file
+   systems, or networks. Pure in, pure out. A Go rewrite implements the same
+   logic without untangling I/O dependencies.
 
 2. **Interfaces defined in shared.** The contracts are already explicit. They
    translate directly to service API definitions.
@@ -456,9 +441,9 @@ schema.
    a plain data structure — no class instances, no circular references, no
    database connection objects. They serialize to JSON or Protobuf trivially.
 
-4. **The server is the only orchestrator.** It decides when to call the sim
-   engine, what state to pass, and what to do with the results. Extraction
-   changes _how_ it calls, not _what_ it calls or _when_.
+4. **The server features are the only orchestrators.** They decide when to call
+   the sim engine, what state to pass, and what to do with the results.
+   Extraction changes _how_ they call, not _what_ they call or _when_.
 
 ### When to extract
 

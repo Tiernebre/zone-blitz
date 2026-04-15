@@ -7,8 +7,6 @@ COPY deno.json deno.lock ./
 COPY server/deno.json ./server/
 COPY client/deno.json client/package.json ./client/
 COPY packages/shared/deno.json ./packages/shared/
-COPY packages/simulation/deno.json ./packages/simulation/
-COPY packages/ai/deno.json ./packages/ai/
 COPY e2e/deno.json ./e2e/
 RUN deno install
 
