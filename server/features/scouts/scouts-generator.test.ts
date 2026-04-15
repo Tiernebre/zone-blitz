@@ -180,13 +180,16 @@ Deno.test("contract salaries fall within sane per-role bounds", () => {
 });
 
 Deno.test("seeded generator is deterministic", () => {
+  const fixedNow = () => new Date("2026-01-01T00:00:00Z");
   const a = createScoutsGenerator({
     random: seededRandom(42),
     nameGenerator: fixedNameGenerator(),
+    now: fixedNow,
   }).generate(INPUT);
   const b = createScoutsGenerator({
     random: seededRandom(42),
     nameGenerator: fixedNameGenerator(),
+    now: fixedNow,
   }).generate(INPUT);
   assertEquals(a.length, b.length);
   for (let i = 0; i < a.length; i++) {
