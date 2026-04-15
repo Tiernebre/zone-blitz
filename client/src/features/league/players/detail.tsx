@@ -79,6 +79,11 @@ const transactionLabels: Record<PlayerTransactionType, string> = {
   traded: "Traded",
   extended: "Extended",
   franchise_tagged: "Franchise tagged",
+  claimed_on_waivers: "Claimed on waivers",
+  placed_on_ir: "Placed on IR",
+  activated: "Activated",
+  suspended: "Suspended",
+  retired: "Retired",
 };
 
 const accoladeLabels: Record<PlayerAccoladeType, string> = {
@@ -696,6 +701,20 @@ function TransactionRow(
               className="underline-offset-2 hover:underline"
             >
               {entry.counterpartyTeam.abbreviation}
+            </Link>
+          </>
+        )}
+        {entry.counterpartyPlayer && (
+          <>
+            {" · "}
+            <Link
+              to="/leagues/$leagueId/players/$playerId"
+              params={{ leagueId, playerId: entry.counterpartyPlayer.id }}
+              className="underline-offset-2 hover:underline"
+              data-testid={`trade-link-${entry.counterpartyPlayer.id}`}
+            >
+              {entry.counterpartyPlayer.firstName}{" "}
+              {entry.counterpartyPlayer.lastName}
             </Link>
           </>
         )}
