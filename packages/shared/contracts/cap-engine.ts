@@ -96,6 +96,36 @@ export function computeDeadCap(
   return acceleratedBonus + remainingGuaranteedBase;
 }
 
+export function restructureContract(
+  contract: CapContractInput,
+  year: number,
+  amount: number,
+): CapContractInput {
+  const lastLeagueYear = Math.max(...contract.years.map((y) => y.leagueYear));
+  const remainingYears = lastLeagueYear - year + 1;
+  const prorationYears = Math.min(5, remainingYears);
+
+  const newYears = contract.years.map((y) => {
+    if (y.leagueYear === year) {
+      return { ...y, base: y.base - amount };
+    }
+    return { ...y };
+  });
+
+  const restructureProration: CapBonusProration = {
+    amount,
+    firstYear: year,
+    years: prorationYears,
+    source: "restructure",
+  };
+
+  return {
+    ...contract,
+    years: newYears,
+    bonusProrations: [...contract.bonusProrations, restructureProration],
+  };
+}
+
 export function computeHeadlineValue(contract: CapContractInput): number {
   const yearTotals = contract.years.reduce(
     (sum, y) =>
