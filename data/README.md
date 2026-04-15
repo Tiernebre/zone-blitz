@@ -18,6 +18,7 @@ data/
       team-game.R              # per-team-per-game distributions (first-cut)
       passing-plays.R          # per-dropback outcome tree + yardage
       rushing-plays.R          # per-rush yardage + gain thresholds
+      special-teams.R          # FG/punt/kickoff/return-TD distributions
       situational.R            # 4th-down, 2-point, and onside kick decision rates
       position-concentration.R # top-k share by position group
       injuries.R               # injury rates by position, severity, and category
@@ -71,6 +72,12 @@ without depending on network or R at test time. Regenerate them when:
   red_zone_outer / red_zone_inner), plus stuff rate, gain-threshold rates
   (5+/10+/20+/40+), touchdown rate, and fumble rates. Direct calibration source
   for the rush branch of the sim's play synthesizer.
+- **`special-teams.json`** — field goal success rate by distance bucket (<30,
+  30-39, 40-49, 50+), punt outcome distributions (gross yards, touchback/fair
+  catch/inside-20/blocked rates, return yards), kickoff outcome distributions
+  (touchback rate, return yards, return TD rate, out-of-bounds rate), extra
+  point success and blocked rates, blocked kick rates across all kick types, and
+  return TD rates per team per season (punt and kickoff).
 - **`situational.json`** — situational decision rates for game-management AI
   calibration. Covers 4th-down go-for-it rate and conversion rate by field zone
   and distance bucket, 2-point conversion attempt rate by score differential and
@@ -102,8 +109,6 @@ These map to
 [`docs/product/north-star/game-simulation.md`](../docs/product/north-star/game-simulation.md#calibration)
 and are tracked as GitHub issues labeled `ready-for-agent`:
 
-- **Special-teams outcomes** (#247) — FG success by distance bucket, punt net
-  yards distribution, kickoff return distribution, return-TD rate
 - **Position stat concentration** (#248) — RB1/RB2/RB3 carry share, WR1/WR2/slot
   target share, CB1 coverage share
 
