@@ -99,12 +99,13 @@ const rosterColumns: ColumnDef<RosterPlayer>[] = [
     ),
   },
   {
-    accessorKey: "neutralBucket",
+    accessorKey: "depthChartSlot",
     header: ({ column }) => (
       <SortableHeader column={column}>
         Pos
       </SortableHeader>
     ),
+    cell: ({ row }) => row.original.depthChartSlot ?? "—",
   },
   {
     accessorKey: "neutralBucketGroup",

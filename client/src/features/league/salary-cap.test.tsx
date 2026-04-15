@@ -41,6 +41,7 @@ const baseRoster = {
       injuryStatus: "healthy",
       schemeFit: "ideal",
       schemeArchetype: null,
+      depthChartSlot: null,
     },
     {
       id: "p2",
@@ -54,6 +55,7 @@ const baseRoster = {
       injuryStatus: "questionable",
       schemeFit: "poor",
       schemeArchetype: null,
+      depthChartSlot: null,
     },
     {
       id: "p3",
@@ -67,6 +69,7 @@ const baseRoster = {
       injuryStatus: "out",
       schemeFit: null,
       schemeArchetype: null,
+      depthChartSlot: null,
     },
     {
       id: "p4",
@@ -80,6 +83,7 @@ const baseRoster = {
       injuryStatus: "healthy",
       schemeFit: "fits",
       schemeArchetype: null,
+      depthChartSlot: null,
     },
   ],
   positionGroups: [

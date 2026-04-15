@@ -57,6 +57,7 @@ const baseRoster = {
       injuryStatus: "healthy",
       schemeFit: "ideal",
       schemeArchetype: "pocket passer",
+      depthChartSlot: "QB1",
     },
     {
       id: "p2",
@@ -70,6 +71,7 @@ const baseRoster = {
       injuryStatus: "questionable",
       schemeFit: "miscast",
       schemeArchetype: "zone RB",
+      depthChartSlot: "RB2",
     },
     {
       id: "p3",
@@ -83,6 +85,7 @@ const baseRoster = {
       injuryStatus: "out",
       schemeFit: "fits",
       schemeArchetype: "speed DE",
+      depthChartSlot: "EDGE1",
     },
     {
       id: "p4",
@@ -96,6 +99,7 @@ const baseRoster = {
       injuryStatus: "healthy",
       schemeFit: null,
       schemeArchetype: null,
+      depthChartSlot: null,
     },
   ],
   positionGroups: [
@@ -275,10 +279,25 @@ describe("Roster — active roster tab (default)", () => {
     renderRoster();
     const row = screen.getByTestId("roster-row-p1");
     expect(within(row).getByText("Patrick Quarterback")).toBeDefined();
-    expect(within(row).getByText("QB")).toBeDefined();
+    expect(within(row).getByText("QB1")).toBeDefined();
     expect(within(row).getByText("Offense")).toBeDefined();
     expect(within(row).getByText("28")).toBeDefined();
     expect(within(row).getByText(/healthy/i)).toBeDefined();
+  });
+
+  it("renders the Pos column from the coach-authored depth chart slot (ADR 0006)", () => {
+    renderRoster();
+    expect(
+      within(screen.getByTestId("roster-row-p2")).getByText("RB2"),
+    ).toBeDefined();
+    expect(
+      within(screen.getByTestId("roster-row-p3")).getByText("EDGE1"),
+    ).toBeDefined();
+    // Unslotted player falls back to em-dash — no position to fabricate.
+    // Both the Pos cell and the scheme-fit badge render "—", so assert ≥ 2.
+    expect(
+      within(screen.getByTestId("roster-row-p4")).getAllByText("—").length,
+    ).toBeGreaterThanOrEqual(2);
   });
 
   it("renders scheme fit as a qualitative badge (ADR 0005)", () => {

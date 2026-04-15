@@ -69,6 +69,7 @@ const roster = {
       injuryStatus: "healthy",
       schemeFit: "fits",
       schemeArchetype: null,
+      depthChartSlot: null,
     },
     {
       id: "p2",
@@ -82,6 +83,7 @@ const roster = {
       injuryStatus: "out",
       schemeFit: null,
       schemeArchetype: null,
+      depthChartSlot: null,
     },
     {
       id: "p3",
@@ -95,6 +97,7 @@ const roster = {
       injuryStatus: "questionable",
       schemeFit: "miscast",
       schemeArchetype: null,
+      depthChartSlot: null,
     },
   ],
   positionGroups: [

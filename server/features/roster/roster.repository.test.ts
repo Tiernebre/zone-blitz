@@ -368,6 +368,111 @@ Deno.test({
 
 Deno.test({
   name:
+    "rosterRepository.getActiveRoster: attaches depthChartSlot from the authored depth chart",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const repo = createRosterRepository({
+      db,
+      log: createTestLogger(),
+      now: () => new Date("2030-06-15T00:00:00Z"),
+    });
+    const playersCreated: string[] = [];
+    const teamsCreated: string[] = [];
+    const leaguesCreated: string[] = [];
+    const citiesCreated: string[] = [];
+    const statesCreated: string[] = [];
+    const coachesCreated: string[] = [];
+
+    try {
+      const { league, team, state, city } = await setupFixtures(db);
+      leaguesCreated.push(league.id);
+      teamsCreated.push(team.id);
+      citiesCreated.push(city.id);
+      statesCreated.push(state.id);
+
+      const slottedId = crypto.randomUUID();
+      const unslottedId = crypto.randomUUID();
+      await db.insert(players).values([
+        {
+          id: slottedId,
+          leagueId: league.id,
+          teamId: team.id,
+          firstName: "Sam",
+          lastName: "Slotted",
+          injuryStatus: "healthy",
+          ...sizeFor("QB"),
+          birthDate: "2000-01-01",
+        },
+        {
+          id: unslottedId,
+          leagueId: league.id,
+          teamId: team.id,
+          firstName: "Una",
+          lastName: "Unslotted",
+          injuryStatus: "healthy",
+          ...sizeFor("RB"),
+          birthDate: "2001-01-01",
+        },
+      ]);
+      playersCreated.push(slottedId, unslottedId);
+
+      await db.insert(playerAttributes).values([
+        { playerId: slottedId, ...stubAttributeColumns("QB") },
+        { playerId: unslottedId, ...stubAttributeColumns("RB") },
+      ]);
+
+      const coachId = crypto.randomUUID();
+      await db.insert(coaches).values({
+        id: coachId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Hank",
+        lastName: "Coach",
+        role: "HC",
+        age: 50,
+        hiredAt: new Date("2028-01-01T00:00:00Z"),
+        contractYears: 3,
+        contractSalary: 1,
+        contractBuyout: 1,
+      });
+      coachesCreated.push(coachId);
+
+      await db.insert(depthChartEntries).values({
+        teamId: team.id,
+        playerId: slottedId,
+        slotCode: "QB1",
+        slotOrdinal: 1,
+        isInactive: false,
+        publishedByCoachId: coachId,
+      });
+
+      const roster = await repo.getActiveRoster(league.id, team.id);
+
+      const slotted = roster.players.find((p) => p.id === slottedId);
+      assertEquals(slotted?.depthChartSlot, "QB1");
+
+      const unslotted = roster.players.find((p) => p.id === unslottedId);
+      assertEquals(unslotted?.depthChartSlot, null);
+    } finally {
+      if (coachesCreated.length) {
+        await db.delete(coaches).where(inArray(coaches.id, coachesCreated));
+      }
+      await cleanup(db, {
+        players: playersCreated,
+        teams: teamsCreated,
+        cities: citiesCreated,
+        states: statesCreated,
+        leagues: leaguesCreated,
+      });
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
     "rosterRepository.getDepthChart: returns slots, inactives, and latest publisher",
   sanitizeResources: false,
   sanitizeOps: false,

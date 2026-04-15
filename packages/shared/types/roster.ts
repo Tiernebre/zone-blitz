@@ -37,6 +37,7 @@ export interface RosterPlayer {
   injuryStatus: PlayerInjuryStatus;
   schemeFit: SchemeFitLabel | null;
   schemeArchetype: SchemeArchetype | null;
+  depthChartSlot: string | null;
 }
 
 export interface RosterPositionGroupSummary {
