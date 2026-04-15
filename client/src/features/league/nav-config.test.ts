@@ -112,6 +112,43 @@ describe("navGroups", () => {
     expect(visibleLabels("regular_season")).toContain("Opponents");
   });
 
+  it("shows Charter only in genesis_charter", () => {
+    expect(visibleLabels("genesis_charter")).toContain("Charter");
+    expect(visibleLabels("genesis_franchise_establishment")).not.toContain(
+      "Charter",
+    );
+    expect(visibleLabels("regular_season")).not.toContain("Charter");
+  });
+
+  it("shows Staff Hiring only in genesis_staff_hiring", () => {
+    expect(visibleLabels("genesis_staff_hiring")).toContain("Staff Hiring");
+    expect(visibleLabels("genesis_charter")).not.toContain("Staff Hiring");
+    expect(visibleLabels("genesis_founding_pool")).not.toContain(
+      "Staff Hiring",
+    );
+    expect(visibleLabels("regular_season")).not.toContain("Staff Hiring");
+  });
+
+  it("shows Founding Pool only in genesis_founding_pool", () => {
+    expect(visibleLabels("genesis_founding_pool")).toContain("Founding Pool");
+    expect(visibleLabels("genesis_charter")).not.toContain("Founding Pool");
+    expect(visibleLabels("genesis_allocation_draft")).not.toContain(
+      "Founding Pool",
+    );
+    expect(visibleLabels("regular_season")).not.toContain("Founding Pool");
+  });
+
+  it("shows Allocation Draft only in genesis_allocation_draft", () => {
+    expect(visibleLabels("genesis_allocation_draft")).toContain(
+      "Allocation Draft",
+    );
+    expect(visibleLabels("genesis_charter")).not.toContain("Allocation Draft");
+    expect(visibleLabels("genesis_free_agency")).not.toContain(
+      "Allocation Draft",
+    );
+    expect(visibleLabels("regular_season")).not.toContain("Allocation Draft");
+  });
+
   it("every item is visible in at least one phase", () => {
     for (const group of navGroups) {
       for (const item of group.items) {

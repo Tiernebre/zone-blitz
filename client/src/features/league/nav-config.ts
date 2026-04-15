@@ -1,12 +1,16 @@
 import {
   ArrowLeftRightIcon,
+  BriefcaseIcon,
   CalendarIcon,
   ClipboardListIcon,
   CrownIcon,
   DollarSignIcon,
+  GavelIcon,
   HomeIcon,
+  LayersIcon,
   ListOrderedIcon,
   NewspaperIcon,
+  ScrollTextIcon,
   SearchIcon,
   TrophyIcon,
   UserPlusIcon,
@@ -68,6 +72,11 @@ const freeAgencyPhases = inPhases(
   "regular_season",
 );
 
+const genesisCharter = inPhases("genesis_charter");
+const genesisStaffHiring = inPhases("genesis_staff_hiring");
+const genesisFoundingPool = inPhases("genesis_founding_pool");
+const genesisAllocationDraft = inPhases("genesis_allocation_draft");
+
 export const navGroups: NavGroup[] = [
   {
     label: "Team",
@@ -91,6 +100,12 @@ export const navGroups: NavGroup[] = [
         Icon: SearchIcon,
         visibleInPhases: fromStaffHiring,
       },
+      {
+        label: "Staff Hiring",
+        path: "staff-hiring",
+        Icon: BriefcaseIcon,
+        visibleInPhases: genesisStaffHiring,
+      },
     ],
   },
   {
@@ -101,6 +116,18 @@ export const navGroups: NavGroup[] = [
         path: "draft",
         Icon: ListOrderedIcon,
         visibleInPhases: draftPhases,
+      },
+      {
+        label: "Allocation Draft",
+        path: "allocation-draft",
+        Icon: GavelIcon,
+        visibleInPhases: genesisAllocationDraft,
+      },
+      {
+        label: "Founding Pool",
+        path: "founding-pool",
+        Icon: LayersIcon,
+        visibleInPhases: genesisFoundingPool,
       },
       {
         label: "Trades",
@@ -125,6 +152,12 @@ export const navGroups: NavGroup[] = [
   {
     label: "League",
     items: [
+      {
+        label: "Charter",
+        path: "charter",
+        Icon: ScrollTextIcon,
+        visibleInPhases: genesisCharter,
+      },
       {
         label: "Standings",
         path: "standings",
