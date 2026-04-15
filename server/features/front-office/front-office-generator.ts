@@ -14,8 +14,8 @@ const FRONT_OFFICE_PER_TEAM = 2;
 // `front_office_staff` schema currently exposes only `firstName` and
 // `lastName` beyond the league/team identifiers — there's no role, title,
 // philosophy, salary, or contract column to vary per generated staff
-// member. Until the schema grows (see the backlog entry for adding GM /
-// President of Football Ops / Capologist titles), the only meaningful
+// member. Until the schema grows to add GM / President of Football Ops /
+// Capologist titles, the only meaningful
 // variance to inject here is the name pool itself, which is now wired
 // through the shared `NameGenerator` dependency just like the players,
 // coaches, and scouts generators.
