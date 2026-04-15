@@ -22,15 +22,16 @@ ADR 0018.
 
 ## Decision
 
-**The MVP league creation wizard is a four-step linear flow that ends in the
+**The MVP league creation wizard is a three-step linear flow that ends in the
 dashboard:**
 
-1. **League name** — a single required text input.
-2. **League settings preview** — all settings shown as inputs but read-only (see
-   ADR 0028). No configuration in v1.
-3. **Team select** — the founder picks one of the generated founding franchises
+1. **League identity & settings** — a single page with the required league-name
+   input at the top and the full league settings preview below it as disabled
+   inputs (see ADR 0028). The founder names the league and reviews everything
+   else it implies in one screen, then advances with a single Continue.
+2. **Team select** — the founder picks one of the generated founding franchises
    by its branding. No identity overrides in the wizard.
-4. **Generation** — a synchronous loading step that creates coaches, scouts, the
+3. **Generation** — a synchronous loading step that creates coaches, scouts, the
    founding player pool, and the NPC franchises inline (see ADR 0030), then
    lands the founder on the dashboard already in the first in-dashboard genesis
    phase (see ADR 0031).
@@ -52,11 +53,16 @@ described in the north-star.
 - **Ship only league name + team select, no settings preview.** Slightly
   shorter, but hides from the founder what they're agreeing to (schedule length,
   cap rules, roster limits). Transparency at creation time is cheap and the
-  settings screen doubles as a preview of what the league _is_.
-- **Ship a two-pane wizard (settings + team picker together).** Compresses the
-  flow but conflates two distinct decisions. A linear four-step flow is easier
-  to reason about, easier to gate on validation, and easier to extend later when
-  settings become configurable and team identity becomes editable.
+  settings preview doubles as a description of what the league _is_.
+- **Split league name and settings preview into two separate pages.** Earlier
+  draft of this ADR. Rejected: the settings screen is read-only, so it's a
+  review surface, not a decision surface — pairing it with the one real input on
+  that step (the name) keeps the wizard one beat shorter without losing any of
+  the transparency the preview provides.
+- **Ship a wizard with settings and team picker on the same page.** Compresses
+  the flow further but conflates two genuinely different decisions: declaring
+  what the league is vs. choosing which franchise inside it is yours. The
+  team-select grid also wants the full page width that combining would steal.
 - **Generate the league lazily on first dashboard interaction.** Avoids the
   loading step. Rejected because downstream systems (coach rosters, founding
   pool, NPC franchises) need to exist before any dashboard view can render, and
@@ -64,8 +70,8 @@ described in the north-star.
 
 ## Consequences
 
-- **Makes easier:** shipping a playable league-creation path quickly. Four
-  inputs, one POST, one redirect.
+- **Makes easier:** shipping a playable league-creation path quickly. Three
+  steps, one POST, one redirect.
 - **Makes easier:** iterating on the in-dashboard genesis phases independently
   of the wizard. The wizard hands off to the phase state machine at a known
   point, so phase UI work doesn't block creation work and vice versa.

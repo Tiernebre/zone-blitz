@@ -80,7 +80,7 @@ as superseded.
   returns, overtime, penalty mechanics, defensive scores, 4th-down decisioning,
   clock management, and assignment-based matchups as in-scope (Accepted)
 - [0027 — MVP league creation wizard scope](./0027-mvp-league-creation-wizard.md)
-  — four-step wizard (name → readonly settings → team select → generation →
+  — three-step wizard (name + readonly settings → team select → generation →
   dashboard); defers the rich founder journey into the in-dashboard phase state
   machine (Accepted)
 - [0028 — Readonly league settings in MVP creation wizard](./0028-readonly-league-settings-mvp.md)

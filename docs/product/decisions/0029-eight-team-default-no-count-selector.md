@@ -15,7 +15,7 @@ readonly for the MVP.
 This ADR exists to pin down the specific case of franchise count, because it
 shapes more than any other single setting:
 
-- The team-select screen (ADR 0027 step 3) needs a concrete list of founding
+- The team-select screen (ADR 0027 step 2) needs a concrete list of founding
   franchises to present.
 - The founding player pool needs to be sized for a specific number of rosters.
 - The generation step (ADR 0030) needs to know how many NPC franchises and their
@@ -62,7 +62,7 @@ ADR forecloses it.
 
 - **Makes easier:** every downstream system that currently parameterizes on
   franchise count. For the MVP they can take 8 as a constant.
-- **Makes easier:** generating a plausible team-select screen (ADR 0027 step 3).
+- **Makes easier:** generating a plausible team-select screen (ADR 0027 step 2).
   The pool of founding franchises surfaced to the founder is exactly 8 branded
   teams, one of which they'll claim and seven of which become NPC franchises.
 - **Makes easier:** calibrating the founding player pool size, the schedule

@@ -7,7 +7,7 @@
 
 ## Context
 
-After the founder submits the team-select step (ADR 0027 step 3), the system
+After the founder submits the team-select step (ADR 0027 step 2), the system
 needs to create a substantial amount of per-league content before the dashboard
 can render:
 
@@ -35,7 +35,7 @@ server responds and the client redirects straight into the dashboard.**
 
 There is no background job, no polling endpoint, no resumability, and no
 partial-success state in v1. If generation fails, the league is not created and
-the founder sees an error state they can retry from step 3.
+the founder sees an error state they can retry from the team-select step.
 
 The loading UI may surface a small number of named progress milestones —
 "creating coaches", "assembling the founding player pool", "founding the league"
