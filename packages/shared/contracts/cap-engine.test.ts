@@ -4,6 +4,7 @@ import {
   computeCapHit,
   computeDeadCap,
   computeHeadlineValue,
+  restructureContract,
 } from "./cap-engine.ts";
 
 function makeContract(
@@ -605,3 +606,191 @@ function makeTaysomHillContract(): CapContractInput {
     ],
   };
 }
+
+// ---------- restructureContract ----------
+
+function makeYear(
+  leagueYear: number,
+  base: number,
+  overrides: Partial<CapContractInput["years"][number]> = {},
+): CapContractInput["years"][number] {
+  return {
+    leagueYear,
+    base,
+    rosterBonus: 0,
+    workoutBonus: 0,
+    perGameRosterBonus: 0,
+    guaranteeType: "none",
+    isVoid: false,
+    ...overrides,
+  };
+}
+
+Deno.test("restructureContract: reduces base in target year by amount", () => {
+  const contract = makeContract({
+    years: [
+      makeYear(2024, 15_000_000),
+      makeYear(2025, 15_000_000),
+      makeYear(2026, 15_000_000),
+    ],
+    bonusProrations: [
+      { amount: 10_000_000, firstYear: 2024, years: 3, source: "signing" },
+    ],
+  });
+
+  const result = restructureContract(contract, 2025, 10_000_000);
+  const year2025 = result.years.find((y) => y.leagueYear === 2025)!;
+  assertEquals(year2025.base, 5_000_000);
+});
+
+Deno.test("restructureContract: adds a restructure proration row", () => {
+  const contract = makeContract({
+    years: [
+      makeYear(2024, 15_000_000),
+      makeYear(2025, 15_000_000),
+      makeYear(2026, 15_000_000),
+    ],
+    bonusProrations: [
+      { amount: 10_000_000, firstYear: 2024, years: 3, source: "signing" },
+    ],
+  });
+
+  const result = restructureContract(contract, 2025, 10_000_000);
+  const restructureSlice = result.bonusProrations.find(
+    (p) => p.source === "restructure",
+  );
+  assertEquals(restructureSlice !== undefined, true);
+  assertEquals(restructureSlice!.amount, 10_000_000);
+  assertEquals(restructureSlice!.firstYear, 2025);
+  assertEquals(restructureSlice!.years, 2);
+});
+
+Deno.test("restructureContract: proration years capped at 5", () => {
+  const years = [];
+  for (let y = 2024; y <= 2031; y++) {
+    years.push(makeYear(y, 10_000_000));
+  }
+  const contract = makeContract({ years });
+
+  const result = restructureContract(contract, 2024, 5_000_000);
+  const restructureSlice = result.bonusProrations.find(
+    (p) => p.source === "restructure",
+  );
+  assertEquals(restructureSlice!.years, 5);
+});
+
+Deno.test("restructureContract: does not mutate the original contract", () => {
+  const contract = makeContract({
+    years: [makeYear(2024, 15_000_000), makeYear(2025, 15_000_000)],
+    bonusProrations: [
+      { amount: 10_000_000, firstYear: 2024, years: 2, source: "signing" },
+    ],
+  });
+
+  restructureContract(contract, 2025, 5_000_000);
+  assertEquals(contract.years[1].base, 15_000_000);
+  assertEquals(contract.bonusProrations.length, 1);
+});
+
+Deno.test("restructureContract: does not mutate the original signing bonus proration", () => {
+  const contract = makeContract({
+    years: [makeYear(2024, 15_000_000), makeYear(2025, 15_000_000)],
+    bonusProrations: [
+      { amount: 10_000_000, firstYear: 2024, years: 2, source: "signing" },
+    ],
+  });
+
+  const result = restructureContract(contract, 2025, 5_000_000);
+  const signingSlice = result.bonusProrations.find(
+    (p) => p.source === "signing",
+  );
+  assertEquals(signingSlice!.amount, 10_000_000);
+});
+
+Deno.test("restructureContract: cap-hit total is invariant before and after", () => {
+  const contract = makeContract({
+    years: [
+      makeYear(2024, 15_000_000),
+      makeYear(2025, 15_000_000),
+      makeYear(2026, 12_000_000),
+      makeYear(2027, 10_000_000),
+    ],
+    bonusProrations: [
+      { amount: 20_000_000, firstYear: 2024, years: 4, source: "signing" },
+    ],
+  });
+
+  const allYears = [2024, 2025, 2026, 2027];
+  const totalBefore = allYears.reduce(
+    (sum, y) => sum + computeCapHit(contract, y),
+    0,
+  );
+
+  const result = restructureContract(contract, 2025, 10_000_000);
+  const totalAfter = allYears.reduce(
+    (sum, y) => sum + computeCapHit(result, y),
+    0,
+  );
+
+  assertEquals(totalBefore, totalAfter);
+});
+
+Deno.test("restructureContract: cap hit shifts from restructure year to proration window", () => {
+  const contract = makeContract({
+    years: [
+      makeYear(2024, 15_000_000),
+      makeYear(2025, 15_000_000),
+      makeYear(2026, 15_000_000),
+      makeYear(2027, 15_000_000),
+    ],
+  });
+
+  const result = restructureContract(contract, 2025, 12_000_000);
+
+  // Year 2025 base drops by 12M: 15M -> 3M
+  // New proration: 12M over min(5, 3 remaining from 2025) = 3 years
+  // 12M / 3 = 4M per year in 2025, 2026, 2027
+  assertEquals(computeCapHit(result, 2024), 15_000_000);
+  assertEquals(computeCapHit(result, 2025), 3_000_000 + 4_000_000);
+  assertEquals(computeCapHit(result, 2026), 15_000_000 + 4_000_000);
+  assertEquals(computeCapHit(result, 2027), 15_000_000 + 4_000_000);
+});
+
+Deno.test("restructureContract: dead cap reflects restructure proration", () => {
+  const contract = makeContract({
+    years: [
+      makeYear(2024, 10_000_000),
+      makeYear(2025, 10_000_000),
+      makeYear(2026, 10_000_000),
+    ],
+    bonusProrations: [
+      { amount: 9_000_000, firstYear: 2024, years: 3, source: "signing" },
+    ],
+  });
+
+  const result = restructureContract(contract, 2025, 6_000_000);
+
+  // Cut in 2026:
+  // Signing: 9M/3 = 3M/yr, remaining from 2026 = 1 year, accel = 3M
+  // Restructure: 6M/2 = 3M/yr, remaining from 2026 = 1 year, accel = 3M
+  // Total dead cap = 6M
+  assertEquals(computeDeadCap(result, 2026), 6_000_000);
+});
+
+Deno.test("restructureContract: preserves optionBonuses unchanged", () => {
+  const contract = makeContract({
+    years: [makeYear(2024, 10_000_000), makeYear(2025, 10_000_000)],
+    optionBonuses: [
+      {
+        amount: 50_000_000,
+        exerciseYear: 2025,
+        prorationYears: 5,
+        exercisedAt: null,
+      },
+    ],
+  });
+
+  const result = restructureContract(contract, 2025, 5_000_000);
+  assertEquals(result.optionBonuses.length, 1);
+  assertEquals(result.optionBonuses[0].amount, 50_000_000);
+});

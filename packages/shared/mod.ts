@@ -104,6 +104,7 @@ export {
   computeCapHit,
   computeDeadCap,
   computeHeadlineValue,
+  restructureContract,
 } from "./contracts/cap-engine.ts";
 export type {
   Contract,
