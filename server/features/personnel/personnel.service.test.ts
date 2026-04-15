@@ -38,6 +38,7 @@ function createMockCoachesService(
 ): CoachesService {
   return {
     generate: () => Promise.resolve({ coachCount: 0 }),
+    generatePool: () => Promise.resolve({ coachCount: 0 }),
     getStaffTree: () => Promise.resolve([]),
     getCoachDetail: () =>
       Promise.reject(new Error("getCoachDetail not stubbed")),
@@ -231,6 +232,48 @@ Deno.test("personnel.service", async (t) => {
       assertEquals(received.coaches, marker);
       assertEquals(received.scouts, marker);
       assertEquals(received.frontOffice, marker);
+    },
+  );
+
+  await t.step(
+    "generate calls generatePool before team-assigned generation",
+    async () => {
+      const callOrder: string[] = [];
+      let poolInput:
+        | { leagueId: string; numberOfTeams: number }
+        | undefined;
+      const coachesService = createMockCoachesService({
+        generatePool: (input) => {
+          callOrder.push("pool");
+          poolInput = input;
+          return Promise.resolve({ coachCount: 10 });
+        },
+        generate: () => {
+          callOrder.push("generate");
+          return Promise.resolve({ coachCount: 5 });
+        },
+      });
+
+      const service = createPersonnelService({
+        playersService: createMockPlayersService(),
+        coachesService,
+        scoutsService: createMockScoutsService(),
+        frontOfficeService: createMockFrontOfficeService(),
+        depthChartPublisher: createMockDepthChartPublisher(),
+        log: createTestLogger(),
+      });
+
+      await service.generate({
+        leagueId: "l1",
+        seasonId: "s1",
+        teamIds: ["t1", "t2"],
+        rosterSize: 2,
+        salaryCap: 255_000_000,
+      });
+
+      assertEquals(callOrder, ["pool", "generate"]);
+      assertEquals(poolInput?.leagueId, "l1");
+      assertEquals(poolInput?.numberOfTeams, 2);
     },
   );
 

@@ -51,6 +51,38 @@ export function createCoachesService(deps: {
       return { coachCount: generated.length };
     },
 
+    async generatePool(input, tx) {
+      log.info({ leagueId: input.leagueId }, "generating coaching pool");
+
+      const generated = deps.generator.generatePool({
+        leagueId: input.leagueId,
+        numberOfTeams: input.numberOfTeams,
+      });
+
+      if (generated.length === 0) {
+        return { coachCount: 0 };
+      }
+
+      const coachRows = generated.map(({ tendencies: _t, ...row }) => row);
+      await chunkedInsert(tx ?? deps.db, coaches, coachRows);
+
+      for (const coach of generated) {
+        if (!coach.tendencies) continue;
+        await deps.tendenciesRepo.upsert({
+          coachId: coach.id,
+          ...coach.tendencies.offense,
+          ...coach.tendencies.defense,
+        }, tx);
+      }
+
+      log.info(
+        { leagueId: input.leagueId, coaches: generated.length },
+        "persisted coaching pool",
+      );
+
+      return { coachCount: generated.length };
+    },
+
     async getStaffTree(leagueId, teamId) {
       log.debug({ leagueId, teamId }, "fetching staff tree");
       return await deps.repo.getStaffTreeByTeam(leagueId, teamId);

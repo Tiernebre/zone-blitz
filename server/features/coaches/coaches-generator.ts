@@ -6,6 +6,7 @@ import {
 import type {
   CoachesGenerator,
   CoachesGeneratorInput,
+  CoachesPoolInput,
   GeneratedCoach,
   GeneratedCoachTendencies,
 } from "./coaches.generator.interface.ts";
@@ -207,6 +208,115 @@ function intInRange(random: () => number, min: number, max: number): number {
   return Math.floor(random() * (max - min + 1)) + min;
 }
 
+const POOL_MULTIPLIER = 1.5;
+
+const COORDINATOR_ROLES = new Set<CoachRole>(["OC", "DC", "STC"]);
+
+function generateCoach(
+  spec: RoleSpec,
+  leagueId: string,
+  teamId: string | null,
+  reportsToId: string | null,
+  random: () => number,
+  nameGenerator: NameGenerator,
+  anchor: Date,
+  collegeIds: string[],
+  collegeIndex: { value: number },
+): GeneratedCoach {
+  const { firstName, lastName } = nameGenerator.next();
+  const id = crypto.randomUUID();
+  const band = TIER_BANDS[spec.tier];
+  const salaryOverride = ROLE_SALARY_OVERRIDES[spec.role];
+  const salaryMin = salaryOverride?.salaryMin ?? band.salaryMin;
+  const salaryMax = salaryOverride?.salaryMax ?? band.salaryMax;
+
+  const age = intInRange(random, band.ageMin, band.ageMax);
+  const contractYears = intInRange(random, band.yearsMin, band.yearsMax);
+  const salarySteps = Math.max(
+    1,
+    Math.floor((salaryMax - salaryMin) / 50_000),
+  );
+  const contractSalary = salaryMin +
+    intInRange(random, 0, salarySteps) * 50_000;
+  const buyoutYears = intInRange(
+    random,
+    band.buyoutYearsMin,
+    band.buyoutYearsMax,
+  );
+  const contractBuyout = contractSalary * buyoutYears;
+
+  const tenureYears = intInRange(random, band.tenureMin, band.tenureMax);
+  const hiredAt = new Date(anchor);
+  hiredAt.setUTCFullYear(hiredAt.getUTCFullYear() - tenureYears);
+
+  const collegeId = collegeIds.length > 0
+    ? collegeIds[collegeIndex.value++ % collegeIds.length]
+    : null;
+
+  const tendencies = buildTendencies(spec.role, id);
+
+  return {
+    id,
+    leagueId,
+    teamId,
+    firstName,
+    lastName,
+    role: spec.role,
+    reportsToId,
+    playCaller: spec.role === "HC" ? "offense" : null,
+    age,
+    hiredAt,
+    contractYears,
+    contractSalary,
+    contractBuyout,
+    collegeId,
+    specialty: spec.specialty,
+    isVacancy: false,
+    mentorCoachId: null,
+    ...(tendencies ? { tendencies } : {}),
+  };
+}
+
+const TIER_ORDER: Record<string, number> = {
+  HC: 0,
+  COORDINATOR: 1,
+  POSITION: 2,
+};
+
+function tierForRole(role: CoachRole): number {
+  if (role === "HC") return TIER_ORDER.HC;
+  if (COORDINATOR_ROLES.has(role)) return TIER_ORDER.COORDINATOR;
+  return TIER_ORDER.POSITION;
+}
+
+function sortMentorsFirst(coaches: GeneratedCoach[]): void {
+  coaches.sort((a, b) => tierForRole(a.role) - tierForRole(b.role));
+}
+
+function wireMentors(
+  coaches: GeneratedCoach[],
+  random: () => number,
+): void {
+  const hcIds = coaches.filter((c) => c.role === "HC").map((c) => c.id);
+  const coordinatorIds = coaches
+    .filter((c) => COORDINATOR_ROLES.has(c.role))
+    .map((c) => c.id);
+
+  if (hcIds.length === 0 && coordinatorIds.length === 0) return;
+
+  for (const coach of coaches) {
+    if (coach.role === "HC") continue;
+    if (random() < 0.5) continue;
+
+    if (COORDINATOR_ROLES.has(coach.role) && hcIds.length > 0) {
+      coach.mentorCoachId = hcIds[intInRange(random, 0, hcIds.length - 1)];
+    } else if (coordinatorIds.length > 0) {
+      coach.mentorCoachId =
+        coordinatorIds[intInRange(random, 0, coordinatorIds.length - 1)];
+    }
+  }
+}
+
 export function createCoachesGenerator(
   options: CoachesGeneratorOptions = {},
 ): CoachesGenerator {
@@ -218,84 +328,84 @@ export function createCoachesGenerator(
     generate(input: CoachesGeneratorInput): GeneratedCoach[] {
       const coaches: GeneratedCoach[] = [];
       const anchor = now();
-      let collegeIndex = 0;
-      const pool = input.collegeIds ?? [];
+      const collegeIndex = { value: 0 };
+      const collegeIds = input.collegeIds ?? [];
 
       for (const teamId of input.teamIds) {
         const idsByRole = new Map<CoachRole, string>();
-        for (const spec of STAFF_BLUEPRINT) {
-          idsByRole.set(spec.role, crypto.randomUUID());
-        }
+        const teamCoaches: GeneratedCoach[] = [];
 
         for (const spec of STAFF_BLUEPRINT) {
-          const { firstName, lastName } = nameGenerator.next();
-          const id = idsByRole.get(spec.role)!;
           const reportsToId = spec.reportsTo === null
             ? null
-            : idsByRole.get(spec.reportsTo)!;
+            : idsByRole.get(spec.reportsTo) ?? null;
 
-          const band = TIER_BANDS[spec.tier];
-          const salaryOverride = ROLE_SALARY_OVERRIDES[spec.role];
-          const salaryMin = salaryOverride?.salaryMin ?? band.salaryMin;
-          const salaryMax = salaryOverride?.salaryMax ?? band.salaryMax;
-
-          const age = intInRange(random, band.ageMin, band.ageMax);
-          const contractYears = intInRange(
-            random,
-            band.yearsMin,
-            band.yearsMax,
-          );
-          // Salary is rolled in 50k steps so output is legible ("$3,250,000"
-          // rather than an arbitrary 6-digit number).
-          const salarySteps = Math.max(
-            1,
-            Math.floor((salaryMax - salaryMin) / 50_000),
-          );
-          const contractSalary = salaryMin +
-            intInRange(random, 0, salarySteps) * 50_000;
-          const buyoutYears = intInRange(
-            random,
-            band.buyoutYearsMin,
-            band.buyoutYearsMax,
-          );
-          const contractBuyout = contractSalary * buyoutYears;
-
-          const tenureYears = intInRange(
-            random,
-            band.tenureMin,
-            band.tenureMax,
-          );
-          const hiredAt = new Date(anchor);
-          hiredAt.setUTCFullYear(hiredAt.getUTCFullYear() - tenureYears);
-
-          const collegeId = pool.length > 0
-            ? pool[collegeIndex++ % pool.length]
-            : null;
-
-          const tendencies = buildTendencies(spec.role, id);
-
-          coaches.push({
-            id,
-            leagueId: input.leagueId,
+          const coach = generateCoach(
+            spec,
+            input.leagueId,
             teamId,
-            firstName,
-            lastName,
-            role: spec.role,
             reportsToId,
-            playCaller: spec.role === "HC" ? "offense" : null,
-            age,
-            hiredAt,
-            contractYears,
-            contractSalary,
-            contractBuyout,
-            collegeId,
-            specialty: spec.specialty,
-            isVacancy: false,
-            mentorCoachId: null,
-            ...(tendencies ? { tendencies } : {}),
-          });
+            random,
+            nameGenerator,
+            anchor,
+            collegeIds,
+            collegeIndex,
+          );
+
+          idsByRole.set(spec.role, coach.id);
+          teamCoaches.push(coach);
+        }
+
+        // Fix up reportsToId: we generate HC first, so coordinators can
+        // reference it, but we need a second pass to assign reportsToId
+        // for roles whose parent was generated later in the blueprint.
+        for (const coach of teamCoaches) {
+          const spec = STAFF_BLUEPRINT.find((s) => s.role === coach.role)!;
+          if (spec.reportsTo !== null) {
+            coach.reportsToId = idsByRole.get(spec.reportsTo) ?? null;
+          }
+        }
+
+        coaches.push(...teamCoaches);
+      }
+
+      wireMentors(coaches, random);
+      sortMentorsFirst(coaches);
+
+      return coaches;
+    },
+
+    generatePool(input: CoachesPoolInput): GeneratedCoach[] {
+      if (input.numberOfTeams === 0) return [];
+
+      const coaches: GeneratedCoach[] = [];
+      const anchor = now();
+      const collegeIndex = { value: 0 };
+      const collegeIds = input.collegeIds ?? [];
+
+      const countPerRole = Math.ceil(
+        input.numberOfTeams * POOL_MULTIPLIER,
+      );
+
+      for (const spec of STAFF_BLUEPRINT) {
+        for (let i = 0; i < countPerRole; i++) {
+          const coach = generateCoach(
+            spec,
+            input.leagueId,
+            null,
+            null,
+            random,
+            nameGenerator,
+            anchor,
+            collegeIds,
+            collegeIndex,
+          );
+          coaches.push(coach);
         }
       }
+
+      wireMentors(coaches, random);
+      sortMentorsFirst(coaches);
 
       return coaches;
     },

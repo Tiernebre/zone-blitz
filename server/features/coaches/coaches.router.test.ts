@@ -9,6 +9,7 @@ function createMockService(
 ): CoachesService {
   return {
     generate: () => Promise.resolve({ coachCount: 0 }),
+    generatePool: () => Promise.resolve({ coachCount: 0 }),
     getStaffTree: () => Promise.resolve([]),
     getCoachDetail: () =>
       Promise.reject(new DomainError("NOT_FOUND", "Coach missing not found")),

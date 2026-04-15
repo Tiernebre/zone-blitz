@@ -10,6 +10,11 @@ export interface CoachesGenerateInput {
   teamIds: string[];
 }
 
+export interface CoachesPoolGenerateInput {
+  leagueId: string;
+  numberOfTeams: number;
+}
+
 export interface CoachesGenerateResult {
   coachCount: number;
 }
@@ -17,6 +22,11 @@ export interface CoachesGenerateResult {
 export interface CoachesService {
   generate(
     input: CoachesGenerateInput,
+    tx?: Executor,
+  ): Promise<CoachesGenerateResult>;
+
+  generatePool(
+    input: CoachesPoolGenerateInput,
     tx?: Executor,
   ): Promise<CoachesGenerateResult>;
 

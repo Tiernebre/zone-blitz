@@ -121,7 +121,7 @@ export interface CoachConnection {
 export interface CoachDetail {
   id: string;
   leagueId: string;
-  teamId: string;
+  teamId: string | null;
   firstName: string;
   lastName: string;
   role: CoachRole;
@@ -147,7 +147,7 @@ export interface CoachDetail {
 export interface Coach {
   id: string;
   leagueId: string;
-  teamId: string;
+  teamId: string | null;
   firstName: string;
   lastName: string;
   role: CoachRole;
