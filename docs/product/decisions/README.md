@@ -66,3 +66,7 @@ as superseded.
 - [0021 — Deprecate established mode; genesis is the only creation flow](./0021-deprecate-established-mode.md)
   — removes the established-mode escape hatch; every league begins at genesis
   (Accepted, supersedes 0017)
+- [0023 — Sim football completeness: close the gap to real football](./0023-sim-football-completeness.md)
+  — retires ADR 0015's v1 deferral list; commits XP/2PT, real kickoffs and
+  returns, overtime, penalty mechanics, defensive scores, 4th-down decisioning,
+  clock management, and assignment-based matchups as in-scope (Proposed)
