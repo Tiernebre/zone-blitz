@@ -587,7 +587,11 @@ function makeTeam(prefix: string): SimTeam {
     starters: makeStarters(prefix),
     bench: makeBench(prefix),
     fingerprint: makeFingerprint(),
-    coachingMods: { schemeFitBonus: 2, situationalBonus: 1 } as CoachingMods,
+    coachingMods: {
+      schemeFitBonus: 2,
+      situationalBonus: 1,
+      aggressiveness: 50,
+    } as CoachingMods,
   };
 }
 

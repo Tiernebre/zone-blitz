@@ -14,6 +14,7 @@ Deno.test("seedSweep reports mean and stddev across seeds", () => {
   assertGreater(result.yardsPerAttempt.mean, 0);
   assertGreater(result.yardsPerCarry.mean, 0);
   assertGreater(result.averageElapsedMs, 0);
+  assertGreater(result.fourthDownGoRate.mean, 0);
 });
 
 Deno.test("seedSweep runs across all requested seeds", () => {

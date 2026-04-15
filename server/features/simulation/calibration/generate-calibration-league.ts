@@ -169,6 +169,7 @@ function generateCoachingMods(rng: Rng): CoachingMods {
   return {
     schemeFitBonus: rng.int(0, 5),
     situationalBonus: rng.int(0, 3),
+    aggressiveness: rng.int(30, 70),
   };
 }
 

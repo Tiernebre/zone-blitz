@@ -29,6 +29,7 @@ import {
 } from "./scoring.ts";
 import { resolvePunt } from "./resolve-punt.ts";
 import { resolveFieldGoal } from "./resolve-field-goal.ts";
+import { resolveFourthDown } from "./resolve-fourth-down.ts";
 
 export interface SimTeam {
   teamId: string;
@@ -297,8 +298,10 @@ export function simulateGame(input: SimulationInput): GameResult {
 
     if (result.isReturnTouchdown) {
       const isReceiverHome = receivingSide === "home";
-      if (isReceiverHome) state.homeScore += 7;
-      else state.awayScore += 7;
+      if (isReceiverHome) state.homeScore += 6;
+      else state.awayScore += 6;
+
+      resolveConversion(receivingTeamId);
 
       state.possession = kickingSide;
       startNewDrive(25);
@@ -516,84 +519,75 @@ export function simulateGame(input: SimulationInput): GameResult {
     return true;
   }
 
-  function handleFourthDown(): boolean {
-    if (state.down !== 4) return false;
+  function attemptFieldGoal(): void {
+    const kicker = findKicker(state.possession);
+    const fgResult = resolveFieldGoal({
+      kicker,
+      yardLine: state.yardLine,
+      rng,
+    });
 
-    const yardsToEndzone = 100 - state.yardLine;
-    const fgDistance = yardsToEndzone + 17;
+    const participants: PlayEvent["participants"] = [{
+      role: "kicker",
+      playerId: kicker.playerId,
+      tags: [],
+    }];
 
-    if (yardsToEndzone <= 2) {
-      return false;
-    }
-
-    if (fgDistance <= 55 && state.yardLine >= 45) {
-      const kicker = findKicker(state.possession);
-      const fgResult = resolveFieldGoal({
-        kicker,
+    const fgEvent: PlayEvent = {
+      gameId,
+      driveIndex: state.driveIndex,
+      playIndex: state.playIndex,
+      quarter: state.quarter,
+      clock: formatClock(state.clock),
+      situation: {
+        down: state.down,
+        distance: state.distance,
         yardLine: state.yardLine,
-        rng,
-      });
+      },
+      offenseTeamId: currentOffenseTeamId(),
+      defenseTeamId: currentDefenseTeamId(),
+      call: {
+        concept: "field_goal",
+        personnel: "special_teams",
+        formation: "field_goal",
+        motion: "none",
+      },
+      coverage: {
+        front: "field_goal_block",
+        coverage: "none",
+        pressure: "none",
+      },
+      participants,
+      outcome: fgResult.outcome === "made" ? "field_goal" : "missed_field_goal",
+      yardage: 0,
+      tags: [],
+    };
 
-      const participants: PlayEvent["participants"] = [{
-        role: "kicker",
-        playerId: kicker.playerId,
-        tags: [],
-      }];
-
-      const fgEvent: PlayEvent = {
-        gameId,
-        driveIndex: state.driveIndex,
-        playIndex: state.playIndex,
-        quarter: state.quarter,
-        clock: formatClock(state.clock),
-        situation: {
-          down: state.down,
-          distance: state.distance,
-          yardLine: state.yardLine,
-        },
-        offenseTeamId: currentOffenseTeamId(),
-        defenseTeamId: currentDefenseTeamId(),
-        call: {
-          concept: "field_goal",
-          personnel: "special_teams",
-          formation: "field_goal",
-          motion: "none",
-        },
-        coverage: {
-          front: "field_goal_block",
-          coverage: "none",
-          pressure: "none",
-        },
-        participants,
-        outcome: fgResult.outcome === "made"
-          ? "field_goal"
-          : "missed_field_goal",
-        yardage: 0,
-        tags: [],
-      };
-
-      if (fgResult.blocked) {
-        fgEvent.tags.push("blocked_kick");
-      }
-
-      events.push(fgEvent);
-      state.drivePlays++;
-      state.globalPlayIndex++;
-      state.playIndex++;
-
-      if (fgResult.outcome === "made") {
-        const isHome = currentOffenseTeamId() === input.home.teamId;
-        if (isHome) state.homeScore += 3;
-        else state.awayScore += 3;
-        const kickingSide: "home" | "away" = isHome ? "home" : "away";
-        performKickoff(kickingSide);
-      } else {
-        switchPossession();
-        startNewDrive(fgResult.defenseYardLine);
-      }
-      return true;
+    if (fgResult.blocked) {
+      fgEvent.tags.push("blocked_kick");
+    }
+    if (fgResult.outcome !== "made") {
+      fgEvent.tags.push("missed_fg");
     }
 
+    events.push(fgEvent);
+    state.drivePlays++;
+    state.globalPlayIndex++;
+    state.playIndex++;
+
+    if (fgResult.outcome === "made") {
+      const isHome = currentOffenseTeamId() === input.home.teamId;
+      if (isHome) state.homeScore += 3;
+      else state.awayScore += 3;
+      const kickingSide: "home" | "away" = isHome ? "home" : "away";
+      performKickoff(kickingSide);
+    } else {
+      switchPossession();
+      startNewDrive(fgResult.defenseYardLine);
+    }
+  }
+
+  function attemptPunt(): void {
     const punterPlayer = findPlayerByBucket(state.possession, "P") ??
       findKicker(state.possession);
     const defenseSide: "home" | "away" = state.possession === "home"
@@ -680,6 +674,39 @@ export function simulateGame(input: SimulationInput): GameResult {
       switchPossession();
       startNewDrive(100 - puntResult.landingYardLine);
     }
+  }
+
+  function handleFourthDown(): boolean {
+    if (state.down !== 4) return false;
+
+    const yardsToEndzone = 100 - state.yardLine;
+    const offenseTeam = state.possession === "home" ? input.home : input.away;
+    const offenseScore = state.possession === "home"
+      ? state.homeScore
+      : state.awayScore;
+    const defenseScore = state.possession === "home"
+      ? state.awayScore
+      : state.homeScore;
+
+    const decision = resolveFourthDown({
+      yardsToEndzone,
+      distance: state.distance,
+      scoreDifferential: offenseScore - defenseScore,
+      quarter: state.quarter,
+      clockSeconds: state.clock,
+      aggressiveness: offenseTeam.coachingMods.aggressiveness,
+    }, rng);
+
+    if (decision === "go") {
+      return false;
+    }
+
+    if (decision === "fg") {
+      attemptFieldGoal();
+      return true;
+    }
+
+    attemptPunt();
     return true;
   }
 
@@ -842,6 +869,10 @@ export function simulateGame(input: SimulationInput): GameResult {
       return false;
     }
 
+    if (handleFourthDown()) return true;
+
+    const isFourthDownAttempt = state.down === 4;
+
     const offenseTeam = state.possession === "home" ? input.home : input.away;
     const defenseTeam = state.possession === "home" ? input.away : input.home;
 
@@ -855,6 +886,10 @@ export function simulateGame(input: SimulationInput): GameResult {
     const gameState = buildGameState();
     const twoMinute = isTwoMinuteDrill(state.quarter, formatClock(state.clock));
     const event = resolvePlay(gameState, offense, defense, rng, { twoMinute });
+
+    if (isFourthDownAttempt) {
+      event.tags.push("fourth_down_attempt");
+    }
 
     if (twoMinute) {
       const usedTimeout = trySpendTimeout();
@@ -876,9 +911,8 @@ export function simulateGame(input: SimulationInput): GameResult {
       state.clock -= rng.int(5, 15);
     }
 
-    if (event.penalty?.accepted) {
+    if (event.penalty?.accepted && !event.tags.includes("return_td")) {
       applyAcceptedPenalty(event);
-      if (handleFourthDown()) return true;
       return false;
     }
 
@@ -887,7 +921,16 @@ export function simulateGame(input: SimulationInput): GameResult {
 
     advanceDowns(event.yardage);
 
-    if (handleFourthDown()) return true;
+    // Turnover on downs: 4th-down go-for-it failed to convert
+    if (isFourthDownAttempt && state.down !== 1) {
+      const turnoverYardLine = Math.max(
+        1,
+        Math.min(99, state.yardLine),
+      );
+      switchPossession();
+      startNewDrive(100 - turnoverYardLine);
+      return true;
+    }
 
     return false;
   }

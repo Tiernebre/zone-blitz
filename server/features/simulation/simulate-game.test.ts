@@ -73,7 +73,7 @@ function makePlayer(
 }
 
 function makeCoachingMods(): CoachingMods {
-  return { schemeFitBonus: 2, situationalBonus: 1 };
+  return { schemeFitBonus: 2, situationalBonus: 1, aggressiveness: 50 };
 }
 
 function makeStarters(prefix: string): PlayerRuntime[] {
@@ -1668,6 +1668,90 @@ Deno.test("simulateGame", async (t) => {
           `Too many second-half timeouts: home=${homeSecondHalf} away=${awaySecondHalf}`,
         );
       }
+    },
+  );
+
+  await t.step(
+    "fourth-down go-for-it plays occur across games",
+    () => {
+      let foundGoForIt = false;
+      for (let seed = 1; seed <= 50 && !foundGoForIt; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+        });
+        const fourthDownPlays = result.events.filter((e) =>
+          e.tags.includes("fourth_down_attempt")
+        );
+        if (fourthDownPlays.length > 0) {
+          foundGoForIt = true;
+        }
+      }
+      assertEquals(
+        foundGoForIt,
+        true,
+        "Should find fourth-down go-for-it plays",
+      );
+    },
+  );
+
+  await t.step(
+    "4th-and-goal produces well-defined outcomes",
+    () => {
+      for (let seed = 1; seed <= 50; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+        });
+        for (const event of result.events) {
+          if (event.tags.includes("fourth_down_attempt")) {
+            const validOutcome = [
+              "rush",
+              "pass_complete",
+              "pass_incomplete",
+              "sack",
+              "interception",
+              "fumble",
+              "touchdown",
+              "safety",
+            ].includes(
+              event.outcome,
+            );
+            assertEquals(
+              validOutcome,
+              true,
+              `Fourth-down go-for-it produced unexpected outcome: ${event.outcome}`,
+            );
+          }
+        }
+      }
+    },
+  );
+
+  await t.step(
+    "turnover on downs occurs on failed 4th-down conversion",
+    () => {
+      let foundTurnoverOnDowns = false;
+      for (let seed = 1; seed <= 200 && !foundTurnoverOnDowns; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+        });
+        for (const drive of result.driveLog) {
+          if (drive.result === "turnover_on_downs") {
+            foundTurnoverOnDowns = true;
+            break;
+          }
+        }
+      }
+      assertEquals(
+        foundTurnoverOnDowns,
+        true,
+        "Should find turnover on downs in drive log",
+      );
     },
   );
 

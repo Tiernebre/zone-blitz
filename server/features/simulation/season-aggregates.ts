@@ -9,6 +9,7 @@ export interface SeasonAggregates {
   yardsPerCarry: number;
   sacksPerTeamPerGame: number;
   turnoversPerTeamPerGame: number;
+  fourthDownGoRate: number;
   totalGames: number;
 }
 
@@ -25,6 +26,7 @@ export function computeSeasonAggregates(
       yardsPerCarry: 0,
       sacksPerTeamPerGame: 0,
       turnoversPerTeamPerGame: 0,
+      fourthDownGoRate: 0,
       totalGames: 0,
     };
   }
@@ -37,6 +39,8 @@ export function computeSeasonAggregates(
   let rushYards = 0;
   let sacks = 0;
   let turnovers = 0;
+  let fourthDownAttempts = 0;
+  let fourthDownGo = 0;
 
   for (const result of results) {
     for (const event of result.events) {
@@ -95,6 +99,18 @@ export function computeSeasonAggregates(
       if (event.tags.includes("turnover")) {
         turnovers++;
       }
+
+      if (event.situation.down === 4) {
+        if (event.tags.includes("fourth_down_attempt")) {
+          fourthDownGo++;
+          fourthDownAttempts++;
+        } else if (
+          event.outcome === "punt" || event.outcome === "field_goal" ||
+          event.outcome === "missed_field_goal"
+        ) {
+          fourthDownAttempts++;
+        }
+      }
     }
   }
 
@@ -116,6 +132,9 @@ export function computeSeasonAggregates(
     yardsPerCarry: rushPlays > 0 ? rushYards / rushPlays : 0,
     sacksPerTeamPerGame: sacks / (games * 2),
     turnoversPerTeamPerGame: turnovers / (games * 2),
+    fourthDownGoRate: fourthDownAttempts > 0
+      ? (fourthDownGo / fourthDownAttempts) * 100
+      : 0,
     totalGames: games,
   };
 }

@@ -103,6 +103,12 @@ function inferDriveResult(lastEvent: PlayEvent): DriveResult {
   }
   if (lastEvent.outcome === "punt") return "punt";
   if (lastEvent.outcome === "kneel") return "end_of_half";
+  if (
+    lastEvent.tags.includes("fourth_down_attempt") &&
+    !lastEvent.tags.includes("first_down")
+  ) {
+    return "turnover_on_downs";
+  }
   return "end_of_half";
 }
 
