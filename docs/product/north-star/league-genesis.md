@@ -809,3 +809,4 @@ season coverage patterns. See [Media](./media.md).
 - [0023 — Contested staff hiring market](../decisions/0023-contested-staff-hiring-market.md)
 - [0024 — Allocation draft as Year 1's only draft](../decisions/0024-allocation-draft-as-year-one-only-draft.md)
 - [0025 — Expansion by ownership vote](../decisions/0025-expansion-by-ownership-vote.md)
+- [0026 — Founding player pool composition and attribute normalization](../decisions/0026-founding-pool-composition-and-attribute-normalization.md)
