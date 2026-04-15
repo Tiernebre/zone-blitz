@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CreateLeague } from "./index.tsx";
 import { CREATION_STAGES, STAGE_INTERVAL_MS } from "./stages.ts";
+import { LEAGUE_SETTINGS_DEFAULTS } from "./league-settings-defaults.ts";
 
 const mockPost = vi.fn();
 const mockNavigate = vi.fn();
@@ -130,6 +131,78 @@ describe("CreateLeague", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Failed to create league")).toBeDefined();
+    });
+  });
+
+  describe("league settings preview", () => {
+    it("renders disabled inputs prefilled with MVP defaults", () => {
+      renderWithProviders();
+      const seasonLength = screen.getByLabelText(
+        "Regular season games",
+      ) as HTMLInputElement;
+      expect(seasonLength.disabled).toBe(true);
+      expect(seasonLength.value).toBe(
+        String(LEAGUE_SETTINGS_DEFAULTS.seasonLength),
+      );
+
+      const conferences = screen.getByLabelText(
+        "Conferences",
+      ) as HTMLInputElement;
+      expect(conferences.disabled).toBe(true);
+      expect(conferences.value).toBe(
+        String(LEAGUE_SETTINGS_DEFAULTS.conferences),
+      );
+
+      const divisions = screen.getByLabelText(
+        "Divisions per conference",
+      ) as HTMLInputElement;
+      expect(divisions.disabled).toBe(true);
+      expect(divisions.value).toBe(
+        String(LEAGUE_SETTINGS_DEFAULTS.divisionsPerConference),
+      );
+
+      const rosterSize = screen.getByLabelText(
+        "Roster size",
+      ) as HTMLInputElement;
+      expect(rosterSize.disabled).toBe(true);
+      expect(rosterSize.value).toBe(
+        String(LEAGUE_SETTINGS_DEFAULTS.rosterSize),
+      );
+
+      const salaryCap = screen.getByLabelText(
+        "Salary cap",
+      ) as HTMLInputElement;
+      expect(salaryCap.disabled).toBe(true);
+      expect(salaryCap.value).toBe("$255,000,000");
+
+      const salaryFloor = screen.getByLabelText(
+        "Salary floor",
+      ) as HTMLInputElement;
+      expect(salaryFloor.disabled).toBe(true);
+      expect(salaryFloor.value).toBe("$226,950,000");
+
+      const draftRounds = screen.getByLabelText(
+        "Draft rounds",
+      ) as HTMLInputElement;
+      expect(draftRounds.disabled).toBe(true);
+      expect(draftRounds.value).toBe(
+        String(LEAGUE_SETTINGS_DEFAULTS.draftRounds),
+      );
+    });
+
+    it("does not render a founding franchise count input", () => {
+      renderWithProviders();
+      expect(screen.queryByLabelText(/franchise count/i)).toBeNull();
+      expect(screen.queryByLabelText(/number of teams/i)).toBeNull();
+      expect(screen.queryByLabelText(/founding franchises/i)).toBeNull();
+    });
+
+    it("renders the league name input as editable above the settings", () => {
+      renderWithProviders();
+      const nameInput = screen.getByLabelText(
+        "League name",
+      ) as HTMLInputElement;
+      expect(nameInput.disabled).toBe(false);
     });
   });
 
