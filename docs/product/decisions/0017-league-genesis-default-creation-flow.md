@@ -1,7 +1,8 @@
 # 0017 — League genesis as the default creation flow
 
 - **Date:** 2026-04-15
-- **Status:** Accepted
+- **Status:** Superseded by
+  [0021 — Deprecate established mode; genesis is the only creation flow](./0021-deprecate-established-mode.md)
 - **Area:** [League Genesis](../north-star/league-genesis.md),
   [League Management](../north-star/league-management.md)
 

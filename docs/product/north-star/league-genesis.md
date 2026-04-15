@@ -80,18 +80,19 @@ is the design, not a gap to fill later.
 
 ### Genesis is about declaration, not management
 
-In an established league, you inherit: a roster, a cap situation, a fan base
-with expectations. During genesis, you _found_: name the stadium, pick the
+Later-league GMs manage what they already have: a roster, a cap situation, a fan
+base with expectations. During genesis, you _found_: name the stadium, pick the
 colors, choose a build philosophy, select the franchise cornerstone. The tone of
 decision-making is different, and the UI should reflect that — genesis screens
 are about declaration, not management.
 
-### Established mode still exists
+### Genesis is the only way a league begins
 
-Some players will want to skip genesis and jump into a mature league with
-fictional history. That mode is supported too (see
-[League Management](./league-management.md)), but it is the secondary path.
-Genesis is the default and the canonical experience.
+There is no alternate creation flow. Zone Blitz does not offer a "jump into a
+mature league with fictional history" mode. Every league — single-player or
+multiplayer — begins at genesis and earns its history one season at a time. See
+[0021 — Deprecate established mode](../decisions/0021-deprecate-established-mode.md)
+for the decision that retired the old dual-path framing.
 
 ---
 
@@ -544,8 +545,8 @@ As the league grows, previously-locked structural features unlock:
 - **16 teams**: four-division conference structure; a full wild-card playoff
   round
 - **24 teams**: dual-conference structure with full inter-conference play
-- **32 teams**: the canonical "mature league" size — the structure most
-  established-mode leagues ship with
+- **32 teams**: the canonical "mature league" size — the structure most other
+  franchise sims ship with at creation time
 - **Beyond 32**: expansion can continue for leagues that want a larger
   footprint, though returns diminish and scheduling complexity grows
 
@@ -569,13 +570,6 @@ Expansion is not a quiet administrative event. It's a league moment:
 
 A league that expands from 8 to 16 over twenty seasons has a richer history than
 a league that was 16 the whole time. The growth itself is part of the record.
-
-### Interaction with established mode
-
-Players who skip genesis and start in established mode pick their final league
-size up front — no expansion arc, no founding-era history. That mode remains
-available, but it trades away one of the things that makes the genesis path
-distinctive.
 
 ---
 
@@ -677,8 +671,8 @@ kickoff occurs, the commissioner role settles into its standard shape.
 Genesis is where franchise identity is first declared. Everything in
 [Teams & Branding](./teams-and-branding.md) applies from the moment a franchise
 is established — colors theme the dashboard, market tier shapes appeal and
-pressure, stadium name anchors lore. Relocation remains an established-league
-event; it does not occur during genesis.
+pressure, stadium name anchors lore. Relocation is a later-league event; it does
+not occur during genesis.
 
 ### Drafting
 
@@ -807,5 +801,7 @@ season coverage patterns. See [Media](./media.md).
 ## Related decisions
 
 - [0017 — League genesis as the default creation flow](../decisions/0017-league-genesis-default-creation-flow.md)
+  (superseded by 0021)
 - [0018 — Genesis phase state machine](../decisions/0018-genesis-phase-state-machine.md)
 - [0019 — Inaugural Year 1 calendar (no preseason)](../decisions/0019-inaugural-year-one-calendar.md)
+- [0021 — Deprecate established mode; genesis is the only creation flow](../decisions/0021-deprecate-established-mode.md)

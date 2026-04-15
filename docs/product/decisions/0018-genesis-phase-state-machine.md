@@ -64,6 +64,6 @@ genesis phases from re-entering after the first transition into Year 2.
     the phase can advance — e.g., all franchises established, all staff hired,
     allocation draft complete)
   - Wire the `has_completed_genesis` guard into the phase-advance handler so
-    Year 2+ can never re-enter a genesis phase
-  - Seed existing established-mode leagues (if any are created) with a
-    post-genesis clock state to skip the sequence cleanly
+    Year 2+ can never re-enter a genesis phase. The flag is set only by the
+    `GENESIS_KICKOFF → PRESEASON` transition; per ADR 0021, no alternate seed
+    path exists.
