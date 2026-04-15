@@ -62,3 +62,11 @@ as superseded.
   size; Year 2+ uses the recurring calendar (Accepted)
 - [0020 — Phase-gated sidebar navigation](./0020-phase-gated-sidebar-navigation.md)
   — UI sidebar surfaces are gated by the active league phase (Proposed)
+- [0021 — Sim calibration harness: NFL bands as the sim's contract](./0021-sim-calibration-harness.md)
+  — seed-sweep harness asserts sim aggregates against `data/bands/*.json`;
+  three-gate tolerance (mean / spread / tails); CI fails the PR on drift
+  (Proposed)
+- [0022 — Sim football completeness: close the gap to real football](./0022-sim-football-completeness.md)
+  — retires ADR 0015's v1 deferral list; commits XP/2PT, real kickoffs and
+  returns, overtime, penalty mechanics, defensive scores, 4th-down decisioning,
+  clock management, and assignment-based matchups as in-scope (Proposed)

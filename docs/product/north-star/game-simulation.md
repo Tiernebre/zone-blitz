@@ -498,3 +498,5 @@ implications:
 ## Related decisions
 
 - [0015 — Simulation resolution model: play-by-play core with fast-mode parity](../decisions/0015-simulation-resolution-model.md)
+- [0021 — Sim calibration harness: NFL bands as the sim's contract](../decisions/0021-sim-calibration-harness.md)
+- [0022 — Sim football completeness: close the gap to real football](../decisions/0022-sim-football-completeness.md)
