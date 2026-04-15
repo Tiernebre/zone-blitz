@@ -218,6 +218,13 @@
       "when": 1776257254069,
       "tag": "0030_neat_pet_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1776257462862,
+      "tag": "0031_mysterious_red_ghost",
+      "breakpoints": true
     }
   ]
 }
