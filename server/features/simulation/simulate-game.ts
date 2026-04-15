@@ -224,6 +224,13 @@ function resolveFieldGoal(
   };
 }
 
+function isGameOver(
+  quarter: 1 | 2 | 3 | 4 | "OT",
+  clockSeconds: number,
+): boolean {
+  return (quarter === 4 || quarter === "OT") && clockSeconds <= 0;
+}
+
 export function simulateGame(input: SimulateGameInput): GameResult {
   const rng = createSeededRng(input.seed);
   const events: PlayEvent[] = [];
@@ -397,9 +404,7 @@ export function simulateGame(input: SimulateGameInput): GameResult {
   while (safetyCounter < MAX_PLAYS) {
     safetyCounter++;
 
-    if (quarter === 4 && clockSeconds <= 0) break;
-    if (quarter === "OT" && clockSeconds <= 0) break;
-    if (typeof quarter === "number" && quarter > 4) break;
+    if (isGameOver(quarter, clockSeconds)) break;
 
     const offenseTeam = getOffenseTeam();
     const defenseTeam = getDefenseTeam();
