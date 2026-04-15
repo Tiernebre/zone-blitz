@@ -27,6 +27,8 @@ import {
   resolveExtraPoint,
   resolveTwoPointConversion,
 } from "./scoring.ts";
+import { resolvePunt } from "./resolve-punt.ts";
+import { resolveFieldGoal } from "./resolve-field-goal.ts";
 
 export interface SimTeam {
   teamId: string;
@@ -91,18 +93,6 @@ function pickInjurySeverity(rng: SeededRng): InjurySeverity {
   return "shake_off";
 }
 
-function getFieldGoalProbability(yardLine: number): number {
-  const distance = 100 - yardLine + 17;
-  if (distance < 30) return 0.95;
-  if (distance < 40) return 0.85;
-  if (distance < 50) return 0.75;
-  return 0.55;
-}
-
-function getPuntDistance(rng: SeededRng): number {
-  return rng.int(35, 55);
-}
-
 function formatClock(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
@@ -150,6 +140,7 @@ function shouldClockStop(event: PlayEvent): boolean {
     event.tags.includes("turnover") ||
     event.outcome === "touchdown" ||
     event.outcome === "field_goal" ||
+    event.outcome === "missed_field_goal" ||
     event.outcome === "punt" ||
     event.outcome === "kickoff" ||
     event.outcome === "safety" ||
@@ -187,6 +178,17 @@ export function simulateGame(input: SimulationInput): GameResult {
     drivePlays: 0,
     driveYards: 0,
   };
+
+  function findPlayerByBucket(
+    side: "home" | "away",
+    bucket: PlayerRuntime["neutralBucket"],
+  ): PlayerRuntime | undefined {
+    const active = side === "home" ? rosters.homeActive : rosters.awayActive;
+    return active.find(
+      (p) =>
+        p.neutralBucket === bucket && !rosters.injuredPlayerIds.has(p.playerId),
+    );
+  }
 
   function currentOffenseTeamId(): string {
     return state.possession === "home" ? input.home.teamId : input.away.teamId;
@@ -514,7 +516,19 @@ export function simulateGame(input: SimulationInput): GameResult {
     }
 
     if (fgDistance <= 55 && state.yardLine >= 45) {
-      const prob = getFieldGoalProbability(state.yardLine);
+      const kicker = findKicker(state.possession);
+      const fgResult = resolveFieldGoal({
+        kicker,
+        yardLine: state.yardLine,
+        rng,
+      });
+
+      const participants: PlayEvent["participants"] = [{
+        role: "kicker",
+        playerId: kicker.playerId,
+        tags: [],
+      }];
+
       const fgEvent: PlayEvent = {
         gameId,
         driveIndex: state.driveIndex,
@@ -539,40 +553,76 @@ export function simulateGame(input: SimulationInput): GameResult {
           coverage: "none",
           pressure: "none",
         },
-        participants: [],
-        outcome: "field_goal",
+        participants,
+        outcome: fgResult.outcome === "made"
+          ? "field_goal"
+          : "missed_field_goal",
         yardage: 0,
         tags: [],
       };
 
-      if (rng.next() < prob) {
+      if (fgResult.blocked) {
+        fgEvent.tags.push("blocked_kick");
+      }
+
+      events.push(fgEvent);
+      state.drivePlays++;
+      state.globalPlayIndex++;
+      state.playIndex++;
+
+      if (fgResult.outcome === "made") {
         const isHome = currentOffenseTeamId() === input.home.teamId;
         if (isHome) state.homeScore += 3;
         else state.awayScore += 3;
-        events.push(fgEvent);
-        state.drivePlays++;
-        state.globalPlayIndex++;
-        state.playIndex++;
         const kickingSide: "home" | "away" = isHome ? "home" : "away";
         performKickoff(kickingSide);
       } else {
-        fgEvent.outcome = "pass_incomplete" as typeof fgEvent.outcome;
-        fgEvent.tags.push("penalty");
-        events.push(fgEvent);
-        state.drivePlays++;
-        state.globalPlayIndex++;
-        state.playIndex++;
         switchPossession();
-        startNewDrive(100 - state.yardLine);
+        startNewDrive(fgResult.defenseYardLine);
       }
       return true;
     }
 
-    const puntDistance = getPuntDistance(rng);
-    let landingSpot = state.yardLine + puntDistance;
-    if (landingSpot >= 100) {
-      landingSpot = 80;
+    const punterPlayer = findPlayerByBucket(state.possession, "P") ??
+      findKicker(state.possession);
+    const defenseSide: "home" | "away" = state.possession === "home"
+      ? "away"
+      : "home";
+    const returner = findReturner(defenseSide);
+    const coverageUnit = findCoverageUnit(state.possession);
+
+    const puntResult = resolvePunt({
+      punter: punterPlayer,
+      returner: returner ?? {
+        playerId: "unknown-ret",
+        neutralBucket: "WR",
+        attributes: {} as PlayerRuntime["attributes"],
+      },
+      coverageUnit,
+      yardLine: state.yardLine,
+      rng,
+    });
+
+    const puntParticipants: PlayEvent["participants"] = [{
+      role: "punter",
+      playerId: punterPlayer.playerId,
+      tags: [],
+    }];
+    if (
+      returner &&
+      (puntResult.outcome === "return" || puntResult.outcome === "fair_catch" ||
+        puntResult.outcome === "muffed_punt")
+    ) {
+      puntParticipants.push({
+        role: "returner",
+        playerId: returner.playerId,
+        tags: [],
+      });
     }
+
+    const puntTags: PlayTag[] = [];
+    if (puntResult.outcome === "muffed_punt") puntTags.push("muff");
+    if (puntResult.outcome === "blocked_punt") puntTags.push("blocked_kick");
 
     const puntEvent: PlayEvent = {
       gameId,
@@ -598,10 +648,10 @@ export function simulateGame(input: SimulationInput): GameResult {
         coverage: "none",
         pressure: "none",
       },
-      participants: [],
+      participants: puntParticipants,
       outcome: "punt",
-      yardage: puntDistance,
-      tags: [],
+      yardage: puntResult.netYards,
+      tags: puntTags,
     };
 
     events.push(puntEvent);
@@ -609,8 +659,16 @@ export function simulateGame(input: SimulationInput): GameResult {
     state.globalPlayIndex++;
     state.playIndex++;
 
-    switchPossession();
-    startNewDrive(100 - landingSpot);
+    if (puntResult.outcome === "blocked_punt") {
+      switchPossession();
+      startNewDrive(100 - state.yardLine);
+    } else if (puntResult.outcome === "muffed_punt") {
+      switchPossession();
+      startNewDrive(100 - puntResult.landingYardLine);
+    } else {
+      switchPossession();
+      startNewDrive(100 - puntResult.landingYardLine);
+    }
     return true;
   }
 

@@ -89,7 +89,7 @@ function makeStarters(prefix: string): PlayerRuntime[] {
     makePlayer(`${prefix}-s1`, "S"),
     makePlayer(`${prefix}-s2`, "S"),
     makePlayer(`${prefix}-k`, "K"),
-    makePlayer(`${prefix}-p`, "K"),
+    makePlayer(`${prefix}-p`, "P"),
   ];
 }
 
@@ -360,6 +360,130 @@ Deno.test("simulateGame", async (t) => {
       }
     },
   );
+
+  await t.step("punt events include participant roles", () => {
+    let foundPuntWithParticipants = false;
+    for (let seed = 1; seed <= 20 && !foundPuntWithParticipants; seed++) {
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+      });
+      const puntEvents = result.events.filter((e) => e.outcome === "punt");
+      for (const punt of puntEvents) {
+        if (punt.participants.length > 0) {
+          foundPuntWithParticipants = true;
+          const punter = punt.participants.find((p) => p.role === "punter");
+          assertExists(punter);
+        }
+      }
+    }
+    assertEquals(foundPuntWithParticipants, true);
+  });
+
+  await t.step(
+    "missed field goals use missed_field_goal outcome, not pass_incomplete hack",
+    () => {
+      let foundMissedFG = false;
+      for (let seed = 1; seed <= 100 && !foundMissedFG; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+        });
+        const missedFGEvents = result.events.filter(
+          (e) => e.outcome === "missed_field_goal",
+        );
+        if (missedFGEvents.length > 0) {
+          foundMissedFG = true;
+          for (const fg of missedFGEvents) {
+            assertEquals(fg.call.concept, "field_goal");
+            assertEquals(fg.tags.includes("penalty"), false);
+          }
+        }
+      }
+      assertEquals(foundMissedFG, true);
+    },
+  );
+
+  await t.step(
+    "no pass_incomplete events with field_goal concept exist (hack removed)",
+    () => {
+      for (let seed = 1; seed <= 50; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+        });
+        const hackedEvents = result.events.filter(
+          (e) =>
+            e.outcome === "pass_incomplete" && e.call.concept === "field_goal",
+        );
+        assertEquals(hackedEvents.length, 0);
+      }
+    },
+  );
+
+  await t.step("field goal events include kicker participant", () => {
+    let foundFGWithKicker = false;
+    for (let seed = 1; seed <= 50 && !foundFGWithKicker; seed++) {
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+      });
+      const fgEvents = result.events.filter(
+        (e) => e.outcome === "field_goal" || e.outcome === "missed_field_goal",
+      );
+      for (const fg of fgEvents) {
+        if (fg.participants.length > 0) {
+          foundFGWithKicker = true;
+          const kicker = fg.participants.find((p) => p.role === "kicker");
+          assertExists(kicker);
+        }
+      }
+    }
+    assertEquals(foundFGWithKicker, true);
+  });
+
+  await t.step("blocked kick tag appears on some punt or FG events", () => {
+    let foundBlocked = false;
+    for (let seed = 1; seed <= 2000 && !foundBlocked; seed++) {
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+      });
+      const blockedEvents = result.events.filter(
+        (e) => e.tags.includes("blocked_kick"),
+      );
+      if (blockedEvents.length > 0) {
+        foundBlocked = true;
+      }
+    }
+    assertEquals(foundBlocked, true);
+  });
+
+  await t.step("muff tag appears on some punt events", () => {
+    let foundMuff = false;
+    for (let seed = 1; seed <= 2000 && !foundMuff; seed++) {
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+      });
+      const muffEvents = result.events.filter(
+        (e) => e.tags.includes("muff"),
+      );
+      if (muffEvents.length > 0) {
+        foundMuff = true;
+        for (const muff of muffEvents) {
+          assertEquals(muff.outcome, "punt");
+        }
+      }
+    }
+    assertEquals(foundMuff, true);
+  });
 
   await t.step("penalties emitted as event tags", () => {
     let foundPenalty = false;
