@@ -38,11 +38,11 @@ function parseClockSeconds(clock: string): number {
 
 function shouldElectOnside(
   scoreDifferential: number,
-  quarter: number,
+  quarter: 1 | 2 | 3 | 4 | "OT",
   clock: string,
 ): boolean {
   if (scoreDifferential >= 0) return false;
-  if (quarter < 4) return false;
+  if (quarter !== 4 && quarter !== "OT") return false;
   return parseClockSeconds(clock) <= ONSIDE_ELECTION_THRESHOLD_SECONDS;
 }
 
