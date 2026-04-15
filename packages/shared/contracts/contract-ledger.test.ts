@@ -2,7 +2,6 @@ import { assertEquals } from "@std/assert";
 import {
   buildContractYears,
   type ContractYearInput,
-  type ContractYearRow,
 } from "./contract-ledger.ts";
 
 Deno.test("buildContractYears: distributes signing bonus proration evenly", () => {
