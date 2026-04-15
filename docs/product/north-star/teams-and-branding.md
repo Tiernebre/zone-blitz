@@ -26,9 +26,9 @@ feature, not a limitation. Fictional teams mean:
 A team's brand isn't a skin layered on top of the game. It's woven into the
 experience. Your team's colors theme your dashboard. Your rival's colors show up
 on scouting reports and matchup screens. The city you're in determines your
-market size, which determines media pressure, free agent appeal, and owner
-expectations. Branding creates the _feeling_ of being the GM of the Portland
-Riverhawks, not just "Team 14."
+market size, which determines media pressure, free agent appeal, and fan
+expectations. Branding creates the _feeling_ of running the Portland Riverhawks,
+not just "Team 14."
 
 ### Customization is a first-class feature
 
@@ -141,20 +141,21 @@ meaningful ways.
 Each city/market falls into a tier:
 
 - **Large market**: Major metropolitan areas. High media scrutiny, strong free
-  agent appeal, demanding fan bases, and owners who expect to compete. The GM of
-  a large-market team operates under a spotlight — every move is analyzed, every
-  loss is a crisis, and patience is harder to come by. But the advantages are
-  real: top free agents _want_ to play here, national media covers your games,
-  and a winning team in a big market becomes a cultural force.
+  agent appeal, demanding fan bases, and league peers who expect you to compete.
+  Running a large-market franchise means operating under a spotlight — every
+  move is analyzed, every loss is a crisis, and the margin for rebuilding is
+  thinner. But the advantages are real: top free agents _want_ to play here,
+  national media covers your games, and a winning team in a big market becomes a
+  cultural force.
 - **Mid market**: Solid regional cities. Moderate media attention, reasonable
   free agent appeal, and fan bases that are passionate but not overwhelming. The
-  sweet spot for many GMs — enough resources and appeal to compete, without the
-  pressure cooker of a major market. Mid-market teams have to work harder to
-  attract marquee free agents but aren't at a structural disadvantage in the
-  draft or through the cap.
+  sweet spot for many operators — enough resources and appeal to compete,
+  without the pressure cooker of a major market. Mid-market teams have to work
+  harder to attract marquee free agents but aren't at a structural disadvantage
+  in the draft or through the cap.
 - **Small market**: Smaller cities and regions. Lower media scrutiny, weaker
-  free agent appeal, but often the most loyal and passionate fan bases. The GM
-  of a small-market team has more patience from the owner and media, but fewer
+  free agent appeal, but often the most loyal and passionate fan bases. A
+  small-market franchise has more runway from fans and media, but fewer
   structural advantages. Top free agents rarely choose small markets without
   overpaying. Building through the draft isn't just a strategy here — it's a
   necessity.
