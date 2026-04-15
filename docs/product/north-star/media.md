@@ -366,18 +366,25 @@ Media coverage shapes how free agents perceive your organization:
   guru" can be a draw. A coach the media calls a "dead man walking" is a
   deterrent.
 
-### Owner patience
+### Fan and league-peer sentiment
 
-Media coverage affects the owner's patience with your performance. The full
-owner system is not yet designed — see [Owners](./owners.md) for the open
-questions and planned scope. The key interaction with media:
+Zone Blitz has no opaque owner layer pressuring you from above — every franchise
+is run by a fused owner/GM (see [League Genesis](./league-genesis.md)). Media
+coverage instead shapes **fan and league-peer sentiment**: the pressure you feel
+from the base you answer to (fans, city, sponsors) and from the other owner/GMs
+you share the league with.
 
-- Sustained negative media coverage — losing seasons, criticized transactions,
-  public narratives about dysfunction — erodes the owner's patience over time
-- Positive coverage — praised moves, playoff runs, "franchise turnaround"
-  narratives — builds goodwill and runway
-- The owner reads the same media you do. When every analyst is saying your team
-  needs to fire the coach, the owner starts thinking the same thing.
+- Sustained negative coverage — losing seasons, criticized transactions,
+  "dysfunction" narratives — erodes fan engagement and your standing among
+  peers. It doesn't get you fired (you can't fire yourself), but it affects free
+  agent appeal, expansion-vote influence, and the willingness of coaches and
+  scouts to join you
+- Positive coverage — praised moves, playoff runs, "turnaround" narratives —
+  builds the opposite: fan loyalty, peer respect, and recruiting gravity
+- Coverage is read by everyone at the table. When every analyst says the coach
+  needs to be fired, every other owner/GM in the league sees it too, and that
+  shapes how they negotiate with you, vote alongside you, and pursue hires
+  against you.
 
 ### Draft and trade leverage
 
