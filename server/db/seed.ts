@@ -2,11 +2,12 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
 import postgres from "postgres";
 import pino from "pino";
-import { cities, colleges, states, teams } from "./schema.ts";
+import { cities, colleges, leaguePhaseStep, states, teams } from "./schema.ts";
 import { DEFAULT_STATES } from "../features/states/default-states.ts";
 import { DEFAULT_CITIES } from "../features/cities/default-cities.ts";
 import { DEFAULT_TEAMS } from "../features/team/default-teams.ts";
 import { DEFAULT_COLLEGES } from "../features/colleges/default-colleges.ts";
+import { DEFAULT_PHASE_STEPS } from "../features/league-clock/default-phase-steps.ts";
 
 const log = pino({
   transport: { target: "pino-pretty" },
@@ -117,5 +118,20 @@ await db
     },
   });
 log.info({ count: DEFAULT_COLLEGES.length }, "Default colleges seeded.");
+
+log.info("Seeding league phase steps...");
+await db
+  .insert(leaguePhaseStep)
+  .values(
+    DEFAULT_PHASE_STEPS.map((s) => ({
+      phase: s.phase,
+      stepIndex: s.stepIndex,
+      slug: s.slug,
+      kind: s.kind,
+      flavorDate: s.flavorDate ?? null,
+    })),
+  )
+  .onConflictDoNothing();
+log.info({ count: DEFAULT_PHASE_STEPS.length }, "League phase steps seeded.");
 
 await client.end();
