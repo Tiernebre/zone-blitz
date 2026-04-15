@@ -39,6 +39,7 @@ function createMockClock(
     advancedByUserId: null,
     overrideReason: null,
     overrideBlockers: null,
+    hasCompletedGenesis: false,
     ...overrides,
   };
 }
@@ -745,6 +746,209 @@ Deno.test("league-clock.service", async (t) => {
 
         assertEquals(result.phase, "offseason_review");
         assertEquals(result.stepIndex, 1);
+      },
+    );
+
+    await t.step(
+      "Year 1 league advances through genesis phases normally",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "genesis_charter",
+                  stepIndex: 0,
+                  hasCompletedGenesis: false,
+                }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+        );
+        assertEquals(result.phase, "genesis_franchise_establishment");
+        assertEquals(result.stepIndex, 0);
+      },
+    );
+
+    await t.step(
+      "rejects advance into genesis phase when hasCompletedGenesis is true",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "genesis_charter",
+                  stepIndex: 0,
+                  hasCompletedGenesis: true,
+                }),
+              ),
+          },
+        });
+
+        await assertRejects(
+          () =>
+            service.advance(
+              "league-1",
+              createActor(),
+              createGateState(),
+            ),
+          DomainError,
+          "Cannot re-enter genesis phases",
+        );
+      },
+    );
+
+    await t.step(
+      "rejects commissioner override into genesis phase when hasCompletedGenesis is true",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "genesis_charter",
+                  stepIndex: 0,
+                  hasCompletedGenesis: true,
+                }),
+              ),
+          },
+        });
+
+        await assertRejects(
+          () =>
+            service.advance(
+              "league-1",
+              createActor({
+                isCommissioner: true,
+                overrideReason: "Trying to force genesis",
+              }),
+              createGateState(),
+            ),
+          DomainError,
+          "Cannot re-enter genesis phases",
+        );
+      },
+    );
+
+    await t.step(
+      "rejects ready_check advance into genesis phase when hasCompletedGenesis is true",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "genesis_charter",
+                  stepIndex: 0,
+                  hasCompletedGenesis: true,
+                }),
+              ),
+          },
+        });
+
+        await assertRejects(
+          () =>
+            service.advance(
+              "league-1",
+              createActor(),
+              createGateState(),
+              {
+                policy: "ready_check",
+                votedTeamIds: ["team-1"],
+                activeHumanTeamIds: ["team-1"],
+              },
+            ),
+          DomainError,
+          "Cannot re-enter genesis phases",
+        );
+      },
+    );
+
+    await t.step(
+      "transition out of genesis_kickoff sets hasCompletedGenesis atomically",
+      async () => {
+        let upsertedRow:
+          | Parameters<LeagueClockRepository["upsert"]>[0]
+          | undefined;
+
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "genesis_kickoff",
+                  stepIndex: 0,
+                  hasCompletedGenesis: false,
+                }),
+              ),
+            upsert: (row) => {
+              upsertedRow = row;
+              return Promise.resolve(
+                createMockClock({
+                  phase: row.phase,
+                  stepIndex: row.stepIndex,
+                  hasCompletedGenesis: row.hasCompletedGenesis ?? false,
+                }),
+              );
+            },
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+        );
+
+        assertEquals(result.phase, "offseason_review");
+        assertEquals(result.stepIndex, 0);
+        assertEquals(upsertedRow?.hasCompletedGenesis, true);
+      },
+    );
+
+    await t.step(
+      "non-genesis transition does not flip hasCompletedGenesis",
+      async () => {
+        let upsertedRow:
+          | Parameters<LeagueClockRepository["upsert"]>[0]
+          | undefined;
+
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "offseason_review",
+                  stepIndex: 0,
+                  hasCompletedGenesis: true,
+                }),
+              ),
+            upsert: (row) => {
+              upsertedRow = row;
+              return Promise.resolve(
+                createMockClock({
+                  phase: row.phase,
+                  stepIndex: row.stepIndex,
+                  hasCompletedGenesis: row.hasCompletedGenesis ?? false,
+                }),
+              );
+            },
+          },
+        });
+
+        await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+        );
+
+        assertEquals(upsertedRow?.hasCompletedGenesis, undefined);
       },
     );
 
