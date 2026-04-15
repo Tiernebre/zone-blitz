@@ -107,6 +107,16 @@ export {
   restructureContract,
 } from "./contracts/cap-engine.ts";
 export type {
+  TagContract,
+  TagContractBundle,
+  TagContractInput,
+  TagContractYear,
+} from "./contracts/franchise-tag.ts";
+export {
+  computeTagSalary,
+  createTagContract,
+} from "./contracts/franchise-tag.ts";
+export type {
   CapArchetype,
   Contract,
   ContractBonusSource,
