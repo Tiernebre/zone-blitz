@@ -8,7 +8,12 @@ export type {
   NewLeague,
 } from "./types/league.ts";
 export type { Team } from "./types/team.ts";
-export type { NewSeason, Season, SeasonPhase } from "./types/season.ts";
+export type {
+  NewSeason,
+  OffseasonStage,
+  Season,
+  SeasonPhase,
+} from "./types/season.ts";
 export type { FrontOfficeStaff } from "./types/front-office.ts";
 export type {
   Coach,

@@ -12,7 +12,11 @@ export { states } from "../features/states/state.schema.ts";
 export { cities } from "../features/cities/city.schema.ts";
 export { teams } from "../features/team/team.schema.ts";
 export { colleges } from "../features/colleges/college.schema.ts";
-export { seasonPhaseEnum, seasons } from "../features/season/season.schema.ts";
+export {
+  offseasonStageEnum,
+  seasonPhaseEnum,
+  seasons,
+} from "../features/season/season.schema.ts";
 export { frontOfficeStaff } from "../features/front-office/front-office.schema.ts";
 export {
   coaches,

@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { PlusIcon, Trash2Icon } from "lucide-react";
-import type { SeasonPhase } from "@zone-blitz/shared";
+import type { OffseasonStage, SeasonPhase } from "@zone-blitz/shared";
 import { useDeleteLeague, useLeagues } from "../../hooks/use-leagues.ts";
 import { UserMenu } from "../../components/user-menu.tsx";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,16 @@ const PHASE_LABELS: Record<SeasonPhase, string> = {
   regular_season: "Regular Season",
   playoffs: "Playoffs",
   offseason: "Offseason",
+};
+
+const OFFSEASON_STAGE_LABELS: Record<OffseasonStage, string> = {
+  awards_and_review: "Awards & Review",
+  coaching_carousel: "Coaching Carousel",
+  combine: "Combine",
+  free_agency: "Free Agency",
+  draft: "Draft",
+  udfa_signing: "UDFA Signing",
+  minicamp: "Minicamp",
 };
 
 const PHASE_DOT_CLASSES: Record<SeasonPhase, string> = {
@@ -138,6 +148,7 @@ export function LeagueSelect() {
               <TableBody>
                 {leagues.map((league) => {
                   const phase = league.currentSeason?.phase;
+                  const offseasonStage = league.currentSeason?.offseasonStage;
                   const year = league.currentSeason?.year;
                   return (
                     <TableRow
@@ -194,7 +205,10 @@ export function LeagueSelect() {
                                 }`}
                               />
                               <span>
-                                Season {year} · {PHASE_LABELS[phase]}
+                                Season {year} ·{" "}
+                                {phase === "offseason" && offseasonStage
+                                  ? OFFSEASON_STAGE_LABELS[offseasonStage]
+                                  : PHASE_LABELS[phase]}
                               </span>
                             </span>
                           )

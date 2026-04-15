@@ -19,6 +19,7 @@ function createMockSeason(overrides: Partial<Season> = {}): Season {
     leagueId: "league-1",
     year: 1,
     phase: "preseason" as const,
+    offseasonStage: null,
     week: 1,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -113,6 +114,35 @@ Deno.test("season.service", async (t) => {
     assertEquals(
       (createdInput as { leagueId: string }).leagueId,
       "league-1",
+    );
+  });
+
+  await t.step("create passes offseasonStage to repository", async () => {
+    let createdInput: unknown;
+    const created = createMockSeason({
+      id: "offseason-season",
+      phase: "offseason",
+      offseasonStage: "draft",
+    });
+    const service = createSeasonService({
+      seasonRepo: createMockSeasonRepo({
+        create: (input) => {
+          createdInput = input;
+          return Promise.resolve(created);
+        },
+      }),
+      log: createTestLogger(),
+    });
+
+    const result = await service.create({
+      leagueId: "league-1",
+      phase: "offseason",
+      offseasonStage: "draft",
+    });
+    assertEquals(result.offseasonStage, "draft");
+    assertEquals(
+      (createdInput as { offseasonStage: string }).offseasonStage,
+      "draft",
     );
   });
 

@@ -57,14 +57,6 @@ entry when it's resolved or superseded.
   attribute insert, narrow the attribute row shape, or build the SQL
   iteratively. Split attribute rows into columns-per-table is overkill; chunked
   inserts are the cheapest fix.
-- **2026-04-13 — Finer-grained league phase sub-states.** The `season.phase`
-  enum only tracks `preseason | regular_season | playoffs | offseason`. Product
-  docs (`docs/product/league-management.md`) describe sub-steps during the
-  offseason (cut-down, draft, free agency, waiver periods). Decide whether to
-  expand the enum, add a separate `offseasonStage` field, or model these as
-  scheduled events. Surfaced while adding a league status column to the home
-  page — today we can only show "Offseason" rather than "Drafting" or "Free
-  Agency".
 - **2026-04-14 — Front office staff schema needs role/title columns.** The
   `front_office_staff` table (and the `FrontOfficeStaff` shared type) only
   carries `firstName` / `lastName` beyond identifiers, which is why the
@@ -76,3 +68,10 @@ entry when it's resolved or superseded.
   scouts now use. Until then the generator is rename- only — code is in place to
   consume an injected `nameGenerator`, so the expansion will be a localized
   edit.
+- **2026-04-14 — Multi-user leagues would need a `user_leagues` join table.**
+  The `last_played_at` column added in PR #105 lives directly on `leagues`,
+  matching today's single-user-per-league assumption (each league has one
+  `user_team_id`). If leagues ever become shared between multiple users, we'd
+  need to move `last_played_at` (and anything else that's actually per-user)
+  onto a `user_leagues` junction table keyed by `(user_id, league_id)` and join
+  it into the list query.

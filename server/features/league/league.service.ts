@@ -37,7 +37,12 @@ export function createLeagueService(deps: {
           return {
             ...league,
             currentSeason: current
-              ? { year: current.year, phase: current.phase, week: current.week }
+              ? {
+                year: current.year,
+                phase: current.phase,
+                offseasonStage: current.offseasonStage,
+                week: current.week,
+              }
               : null,
             userTeam: userTeam
               ? {
