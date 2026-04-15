@@ -1,0 +1,293 @@
+{
+  "generated_at": "2026-04-15T17:16:16Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season dropbacks only (qb_dropback == 1), excluding kneels, spikes, and two-point conversions. Outcome is a mutually-exclusive classification per dropback: sack > interception > scramble > complete > incomplete. down_distance_bucket splits 2nd/3rd downs into short (<=3), medium (4-6), long (>=7). Yardage distributions are conditional on the outcome (e.g., completion_yards is only over completed passes).",
+  "bands": {
+    "outcome_mix": {
+      "complete": {
+        "n": 58919,
+        "rate": 0.5791
+      },
+      "incomplete": {
+        "n": 29586,
+        "rate": 0.2908
+      },
+      "interception": {
+        "n": 2070,
+        "rate": 0.0203
+      },
+      "sack": {
+        "n": 6400,
+        "rate": 0.0629
+      },
+      "scramble": {
+        "n": 4775,
+        "rate": 0.0469
+      }
+    },
+    "outcome_mix_by_down_distance": {
+      "1st": {
+        "complete": {
+          "n": 22900,
+          "rate": 0.6122
+        },
+        "incomplete": {
+          "n": 10440,
+          "rate": 0.2791
+        },
+        "interception": {
+          "n": 681,
+          "rate": 0.0182
+        },
+        "sack": {
+          "n": 1834,
+          "rate": 0.049
+        },
+        "scramble": {
+          "n": 1550,
+          "rate": 0.0414
+        }
+      },
+      "2nd_long": {
+        "complete": {
+          "n": 14550,
+          "rate": 0.6074
+        },
+        "incomplete": {
+          "n": 6544,
+          "rate": 0.2732
+        },
+        "interception": {
+          "n": 462,
+          "rate": 0.0193
+        },
+        "sack": {
+          "n": 1330,
+          "rate": 0.0555
+        },
+        "scramble": {
+          "n": 1068,
+          "rate": 0.0446
+        }
+      },
+      "2nd_medium": {
+        "complete": {
+          "n": 4228,
+          "rate": 0.5995
+        },
+        "incomplete": {
+          "n": 2061,
+          "rate": 0.2922
+        },
+        "interception": {
+          "n": 112,
+          "rate": 0.0159
+        },
+        "sack": {
+          "n": 334,
+          "rate": 0.0474
+        },
+        "scramble": {
+          "n": 318,
+          "rate": 0.0451
+        }
+      },
+      "2nd_short": {
+        "complete": {
+          "n": 2076,
+          "rate": 0.6133
+        },
+        "incomplete": {
+          "n": 984,
+          "rate": 0.2907
+        },
+        "interception": {
+          "n": 46,
+          "rate": 0.0136
+        },
+        "sack": {
+          "n": 150,
+          "rate": 0.0443
+        },
+        "scramble": {
+          "n": 129,
+          "rate": 0.0381
+        }
+      },
+      "3rd_long": {
+        "complete": {
+          "n": 7309,
+          "rate": 0.5018
+        },
+        "incomplete": {
+          "n": 4523,
+          "rate": 0.3105
+        },
+        "interception": {
+          "n": 383,
+          "rate": 0.0263
+        },
+        "sack": {
+          "n": 1500,
+          "rate": 0.103
+        },
+        "scramble": {
+          "n": 850,
+          "rate": 0.0584
+        }
+      },
+      "3rd_medium": {
+        "complete": {
+          "n": 3885,
+          "rate": 0.499
+        },
+        "incomplete": {
+          "n": 2537,
+          "rate": 0.3258
+        },
+        "interception": {
+          "n": 194,
+          "rate": 0.0249
+        },
+        "sack": {
+          "n": 723,
+          "rate": 0.0929
+        },
+        "scramble": {
+          "n": 447,
+          "rate": 0.0574
+        }
+      },
+      "3rd_short": {
+        "complete": {
+          "n": 2820,
+          "rate": 0.5456
+        },
+        "incomplete": {
+          "n": 1613,
+          "rate": 0.3121
+        },
+        "interception": {
+          "n": 100,
+          "rate": 0.0193
+        },
+        "sack": {
+          "n": 355,
+          "rate": 0.0687
+        },
+        "scramble": {
+          "n": 281,
+          "rate": 0.0544
+        }
+      },
+      "4th": {
+        "complete": {
+          "n": 1151,
+          "rate": 0.4731
+        },
+        "incomplete": {
+          "n": 884,
+          "rate": 0.3633
+        },
+        "interception": {
+          "n": 92,
+          "rate": 0.0378
+        },
+        "sack": {
+          "n": 174,
+          "rate": 0.0715
+        },
+        "scramble": {
+          "n": 132,
+          "rate": 0.0543
+        }
+      }
+    },
+    "yardage": {
+      "completion_yards": {
+        "n": 58919,
+        "mean": 10.9629,
+        "sd": 9.8643,
+        "min": -24,
+        "p10": 2,
+        "p25": 5,
+        "p50": 8,
+        "p75": 14,
+        "p90": 22,
+        "max": 98
+      },
+      "sack_yards": {
+        "n": 6400,
+        "mean": -6.6952,
+        "sd": 3.6667,
+        "min": -30,
+        "p10": -11,
+        "p25": -9,
+        "p50": -7,
+        "p75": -4,
+        "p90": -1,
+        "max": 0
+      },
+      "scramble_yards": {
+        "n": 4775,
+        "mean": 7.4197,
+        "sd": 5.9958,
+        "min": -1,
+        "p10": 2,
+        "p25": 3,
+        "p50": 6,
+        "p75": 10,
+        "p90": 14,
+        "max": 61
+      },
+      "air_yards_all_targeted": {
+        "n": 90566,
+        "mean": 7.7893,
+        "sd": 10.1285,
+        "min": -20,
+        "p10": -3,
+        "p25": 1,
+        "p50": 5,
+        "p75": 12,
+        "p90": 21,
+        "max": 65
+      },
+      "air_yards_completions": {
+        "n": 58918,
+        "mean": 5.7771,
+        "sd": 8.4193,
+        "min": -14,
+        "p10": -3,
+        "p25": 0,
+        "p50": 4,
+        "p75": 9,
+        "p90": 17,
+        "max": 62
+      },
+      "yac_completions": {
+        "n": 58917,
+        "mean": 5.179,
+        "sd": 6.6566,
+        "min": -11,
+        "p10": 0,
+        "p25": 1,
+        "p50": 3,
+        "p75": 7,
+        "p90": 13,
+        "max": 87
+      }
+    },
+    "big_play_rate": {
+      "twenty_plus_per_completion": {
+        "completions": 58919,
+        "big_plays": 8050,
+        "rate": 0.1366
+      },
+      "forty_plus_per_completion": {
+        "completions": 58919,
+        "big_plays": 1319,
+        "rate": 0.0224
+      }
+    }
+  }
+}

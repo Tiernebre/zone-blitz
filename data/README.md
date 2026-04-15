@@ -54,19 +54,33 @@ without depending on network or R at test time. Regenerate them when:
   split, completion %, YPA, YPC, sacks, turnovers, penalties, points). Each
   metric carries mean, standard deviation, and percentile breakpoints
   (p10/p25/p50/p75/p90) plus min/max, across all team-games in the window.
+- **`passing-plays.json`** — per-dropback outcome tree and yardage
+  distributions. Captures the rate at which a pass attempt resolves to
+  complete/incomplete/sack/interception/scramble (overall and broken out by
+  down/distance bucket), plus conditional yardage distributions (completion
+  yards, sack yards, scramble yards, air yards, YAC), plus big-play rates (20+
+  and 40+ yard completions). This is the direct calibration source for the pass
+  branch of the sim's play synthesizer.
+- **`rushing-plays.json`** — per-rush yardage distribution overall, by
+  down/distance bucket, and by field zone (own_deep / own_side / opp_side /
+  red_zone_outer / red_zone_inner), plus stuff rate, gain-threshold rates
+  (5+/10+/20+/40+), touchdown rate, and fumble rates. Direct calibration source
+  for the rush branch of the sim's play synthesizer.
 
 ## Planned bands (follow-up work)
 
 These map to
-[`docs/product/north-star/game-simulation.md`](../docs/product/north-star/game-simulation.md#calibration):
+[`docs/product/north-star/game-simulation.md`](../docs/product/north-star/game-simulation.md#calibration)
+and are tracked as GitHub issues labeled `ready-for-agent`:
 
-- Situational rates (4th-down go-for-it by field zone, 2-point attempts by score
-  diff, onside kick attempt/recovery rates)
-- Special-teams outcomes (FG success by distance bucket, punt net yards
-  distribution, kickoff return distribution, return-TD rate)
-- Position stat concentration (RB1/RB2/RB3 carry share, WR1/WR2/slot target
-  share, CB1 coverage share)
-- Injury rates by position (separate source — `nflverse` injury tables)
+- **Situational rates** (#246) — 4th-down go-for-it by field zone, 2-point
+  attempts by score diff, onside kick attempt/recovery rates
+- **Special-teams outcomes** (#247) — FG success by distance bucket, punt net
+  yards distribution, kickoff return distribution, return-TD rate
+- **Position stat concentration** (#248) — RB1/RB2/RB3 carry share, WR1/WR2/slot
+  target share, CB1 coverage share
+- **Injury rates by position** (#249) — separate source (`nflverse` injury
+  tables)
 
 ## Why R
 
