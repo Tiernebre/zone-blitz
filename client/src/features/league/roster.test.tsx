@@ -13,6 +13,7 @@ const mockUseParams = vi.fn();
 const mockUseLeague = vi.fn();
 const mockUseActiveRoster = vi.fn();
 const mockUseDepthChart = vi.fn();
+const mockUseSchemeFingerprint = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   useParams: (...args: unknown[]) => mockUseParams(...args),
@@ -28,6 +29,11 @@ vi.mock("../../hooks/use-active-roster.ts", () => ({
 
 vi.mock("../../hooks/use-depth-chart.ts", () => ({
   useDepthChart: (...args: unknown[]) => mockUseDepthChart(...args),
+}));
+
+vi.mock("../../hooks/use-scheme-fingerprint.ts", () => ({
+  useSchemeFingerprint: (...args: unknown[]) =>
+    mockUseSchemeFingerprint(...args),
 }));
 
 function renderRoster() {
@@ -119,6 +125,7 @@ const baseDepthChart = {
     { code: "QB", label: "Quarterback", group: "offense" },
     { code: "RB", label: "Running Back", group: "offense" },
     { code: "EDGE", label: "Edge Rusher", group: "defense" },
+    { code: "K", label: "Kicker", group: "special_teams" },
   ],
   slots: [
     {
@@ -169,6 +176,14 @@ const baseDepthChart = {
       slotOrdinal: 11,
       injuryStatus: "healthy",
     },
+    {
+      playerId: "p8",
+      firstName: "Kyle",
+      lastName: "Kicker",
+      slotCode: "K",
+      slotOrdinal: 1,
+      injuryStatus: "healthy",
+    },
   ],
   inactives: [
     {
@@ -205,6 +220,11 @@ beforeEach(() => {
   });
   mockUseDepthChart.mockReturnValue({
     data: baseDepthChart,
+    isLoading: false,
+    isError: false,
+  });
+  mockUseSchemeFingerprint.mockReturnValue({
+    data: undefined,
     isLoading: false,
     isError: false,
   });
@@ -451,6 +471,131 @@ describe("Roster — depth chart tab", () => {
     const meta = screen.getByTestId("depth-chart-meta");
     expect(within(meta).getByText(/andy coach/i)).toBeDefined();
     expect(within(meta).getByText(/2026/)).toBeDefined();
+  });
+
+  it("renders fallback group headers when no fingerprint is available", () => {
+    renderRoster();
+    activateDepthChartTab();
+    expect(screen.getByTestId("depth-chart-section-offense").textContent).toBe(
+      "Offense",
+    );
+    expect(screen.getByTestId("depth-chart-section-defense").textContent).toBe(
+      "Defense",
+    );
+    expect(
+      screen.getByTestId("depth-chart-section-special_teams").textContent,
+    ).toBe("Special Teams");
+  });
+
+  it("renders Base 3-4 defense header for a 3-4 DC", () => {
+    mockUseSchemeFingerprint.mockReturnValue({
+      data: {
+        offense: null,
+        defense: {
+          frontOddEven: 60,
+          gapResponsibility: 50,
+          subPackageLean: 40,
+          coverageManZone: 50,
+          coverageShell: 50,
+          cornerPressOff: 50,
+          pressureRate: 50,
+          disguiseRate: 50,
+        },
+        overrides: {},
+      },
+      isLoading: false,
+      isError: false,
+    });
+    renderRoster();
+    activateDepthChartTab();
+    expect(screen.getByTestId("depth-chart-section-defense").textContent).toBe(
+      "Base 3-4",
+    );
+  });
+
+  it("renders Base 4-3 defense header for a 4-3 DC", () => {
+    mockUseSchemeFingerprint.mockReturnValue({
+      data: {
+        offense: null,
+        defense: {
+          frontOddEven: 40,
+          gapResponsibility: 50,
+          subPackageLean: 40,
+          coverageManZone: 50,
+          coverageShell: 50,
+          cornerPressOff: 50,
+          pressureRate: 50,
+          disguiseRate: 50,
+        },
+        overrides: {},
+      },
+      isLoading: false,
+      isError: false,
+    });
+    renderRoster();
+    activateDepthChartTab();
+    expect(screen.getByTestId("depth-chart-section-defense").textContent).toBe(
+      "Base 4-3",
+    );
+  });
+
+  it("renders Base 3-4 · Nickel defense header for a 3-4 nickel DC", () => {
+    mockUseSchemeFingerprint.mockReturnValue({
+      data: {
+        offense: null,
+        defense: {
+          frontOddEven: 60,
+          gapResponsibility: 50,
+          subPackageLean: 60,
+          coverageManZone: 50,
+          coverageShell: 50,
+          cornerPressOff: 50,
+          pressureRate: 50,
+          disguiseRate: 50,
+        },
+        overrides: {},
+      },
+      isLoading: false,
+      isError: false,
+    });
+    renderRoster();
+    activateDepthChartTab();
+    expect(screen.getByTestId("depth-chart-section-defense").textContent).toBe(
+      "Base 3-4 · Nickel",
+    );
+  });
+
+  it("renders 21 Personnel offense header for a heavy-personnel OC", () => {
+    mockUseSchemeFingerprint.mockReturnValue({
+      data: {
+        offense: {
+          runPassLean: 50,
+          tempo: 50,
+          personnelWeight: 70,
+          formationUnderCenterShotgun: 50,
+          preSnapMotionRate: 50,
+          passingStyle: 50,
+          passingDepth: 50,
+          runGameBlocking: 50,
+          rpoIntegration: 50,
+        },
+        defense: null,
+        overrides: {},
+      },
+      isLoading: false,
+      isError: false,
+    });
+    renderRoster();
+    activateDepthChartTab();
+    expect(screen.getByTestId("depth-chart-section-offense").textContent).toBe(
+      "21 Personnel",
+    );
+    expect(screen.getByTestId("depth-chart-section-defense").textContent).toBe(
+      "Defense",
+    );
+    expect(
+      screen.getByTestId("depth-chart-section-special_teams").textContent,
+    ).toBe("Special Teams");
   });
 
   it("shows an empty state when the coach has not published a chart", () => {

@@ -29,9 +29,15 @@ import type {
   RosterPlayer,
 } from "@zone-blitz/shared/types/roster.ts";
 import type { PlayerInjuryStatus } from "@zone-blitz/shared/types/player.ts";
+import {
+  type DepthChartSectionLabels,
+  depthChartSectionLabels,
+  type DepthChartSlotGroup,
+} from "@zone-blitz/shared";
 import { useLeague } from "../../hooks/use-league.ts";
 import { useActiveRoster } from "../../hooks/use-active-roster.ts";
 import { useDepthChart } from "../../hooks/use-depth-chart.ts";
+import { useSchemeFingerprint } from "../../hooks/use-scheme-fingerprint.ts";
 
 const groupLabels: Record<NeutralBucketGroup, string> = {
   offense: "Offense",
@@ -290,10 +296,30 @@ function ActiveRosterContent({ roster }: { roster: ActiveRoster }) {
   );
 }
 
+const FALLBACK_SECTION_LABELS: DepthChartSectionLabels = {
+  offense: "Offense",
+  defense: "Defense",
+  specialTeams: "Special Teams",
+};
+
+const SECTION_LABEL_KEY: Record<
+  DepthChartSlotGroup,
+  keyof DepthChartSectionLabels
+> = {
+  offense: "offense",
+  defense: "defense",
+  special_teams: "specialTeams",
+};
+
 function DepthChartView(
   { leagueId, teamId }: { leagueId: string; teamId: string },
 ) {
   const { data: chart, isLoading, isError } = useDepthChart(leagueId, teamId);
+  const { data: fingerprint } = useSchemeFingerprint(leagueId, teamId);
+
+  const sectionLabels = fingerprint
+    ? depthChartSectionLabels(fingerprint)
+    : FALLBACK_SECTION_LABELS;
 
   if (isLoading) {
     return (
@@ -310,10 +336,15 @@ function DepthChartView(
       </p>
     );
   }
-  return <DepthChartContent chart={chart} />;
+  return <DepthChartContent chart={chart} sectionLabels={sectionLabels} />;
 }
 
-function DepthChartContent({ chart }: { chart: DepthChart }) {
+function DepthChartContent(
+  { chart, sectionLabels }: {
+    chart: DepthChart;
+    sectionLabels: DepthChartSectionLabels;
+  },
+) {
   if (chart.slots.length === 0 && chart.inactives.length === 0) {
     return (
       <Card>
@@ -335,7 +366,17 @@ function DepthChartContent({ chart }: { chart: DepthChart }) {
     bySlotCode.set(slot.slotCode, existing);
   }
 
-  const vocabCodes = chart.vocabulary;
+  const groupOrder: DepthChartSlotGroup[] = [
+    "offense",
+    "defense",
+    "special_teams",
+  ];
+  const vocabByGroup = new Map<DepthChartSlotGroup, typeof chart.vocabulary>();
+  for (const def of chart.vocabulary) {
+    const existing = vocabByGroup.get(def.group) ?? [];
+    existing.push(def);
+    vocabByGroup.set(def.group, existing);
+  }
 
   return (
     <>
@@ -344,48 +385,66 @@ function DepthChartContent({ chart }: { chart: DepthChart }) {
         lastUpdatedBy={chart.lastUpdatedBy}
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {vocabCodes.map((def) => {
-          const slots = [...(bySlotCode.get(def.code) ?? [])].sort(
-            (a, b) => a.slotOrdinal - b.slotOrdinal,
-          );
-          if (slots.length === 0 && !bySlotCode.has(def.code)) return null;
-          return (
-            <Card
-              key={def.code}
-              data-testid={`depth-chart-position-${def.code}`}
+      {groupOrder.map((group) => {
+        const defs = vocabByGroup.get(group);
+        if (!defs || defs.length === 0) return null;
+        return (
+          <div key={group} className="flex flex-col gap-4">
+            <h3
+              data-testid={`depth-chart-section-${group}`}
+              className="text-lg font-semibold tracking-tight"
             >
-              <CardHeader>
-                <CardTitle>{def.code}</CardTitle>
-                {def.label !== def.code && (
-                  <CardDescription>{def.label}</CardDescription>
-                )}
-              </CardHeader>
-              <CardContent className="flex flex-col gap-2">
-                {slots.map((slot) => (
-                  <div
-                    key={slot.playerId}
-                    data-testid={`depth-chart-slot-${slot.playerId}`}
-                    className="flex items-center justify-between gap-3 rounded-md border px-3 py-2"
+              {sectionLabels[SECTION_LABEL_KEY[group]]}
+            </h3>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {defs.map((def) => {
+                const slots = [...(bySlotCode.get(def.code) ?? [])].sort(
+                  (a, b) => a.slotOrdinal - b.slotOrdinal,
+                );
+                if (slots.length === 0 && !bySlotCode.has(def.code)) {
+                  return null;
+                }
+                return (
+                  <Card
+                    key={def.code}
+                    data-testid={`depth-chart-position-${def.code}`}
                   >
-                    <div className="flex items-baseline gap-3">
-                      <span className="w-8 text-sm font-semibold text-muted-foreground">
-                        {ordinal(slot.slotOrdinal)}
-                      </span>
-                      <span className="font-medium">
-                        {slot.firstName} {slot.lastName}
-                      </span>
-                    </div>
-                    <Badge variant={injuryBadgeVariant(slot.injuryStatus)}>
-                      {formatInjury(slot.injuryStatus)}
-                    </Badge>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                    <CardHeader>
+                      <CardTitle>{def.code}</CardTitle>
+                      {def.label !== def.code && (
+                        <CardDescription>{def.label}</CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-2">
+                      {slots.map((slot) => (
+                        <div
+                          key={slot.playerId}
+                          data-testid={`depth-chart-slot-${slot.playerId}`}
+                          className="flex items-center justify-between gap-3 rounded-md border px-3 py-2"
+                        >
+                          <div className="flex items-baseline gap-3">
+                            <span className="w-8 text-sm font-semibold text-muted-foreground">
+                              {ordinal(slot.slotOrdinal)}
+                            </span>
+                            <span className="font-medium">
+                              {slot.firstName} {slot.lastName}
+                            </span>
+                          </div>
+                          <Badge
+                            variant={injuryBadgeVariant(slot.injuryStatus)}
+                          >
+                            {formatInjury(slot.injuryStatus)}
+                          </Badge>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
 
       {chart.inactives.length > 0 && (
         <Card data-testid="depth-chart-inactives">
