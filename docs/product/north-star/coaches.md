@@ -866,3 +866,7 @@ agonizing decisions in the game:
 The deepest satisfaction comes from building a coaching staff that develops
 players, wins games, and sustains excellence over years — and from the hard
 calls you make when it stops working.
+
+## Related decisions
+
+- [0023 — Contested staff hiring market](../decisions/0023-contested-staff-hiring-market.md)
