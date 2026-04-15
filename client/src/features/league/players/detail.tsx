@@ -79,6 +79,11 @@ const transactionLabels: Record<PlayerTransactionType, string> = {
   traded: "Traded",
   extended: "Extended",
   franchise_tagged: "Franchise tagged",
+  claimed_on_waivers: "Claimed on waivers",
+  placed_on_ir: "Placed on IR",
+  activated: "Activated",
+  suspended: "Suspended",
+  retired: "Retired",
 };
 
 const accoladeLabels: Record<PlayerAccoladeType, string> = {
@@ -642,10 +647,10 @@ function TransactionsSection(
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Year</TableHead>
+                    <TableHead>Date</TableHead>
                     <TableHead>Event</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead>Detail</TableHead>
+                    <TableHead>Parties</TableHead>
+                    <TableHead>Terms</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -665,6 +670,14 @@ function TransactionsSection(
   );
 }
 
+function formatTransactionDate(iso: string): string {
+  const d = new Date(iso);
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  const year = d.getUTCFullYear();
+  return `${month}/${day}/${year}`;
+}
+
 function TransactionRow(
   { entry, leagueId }: {
     entry: PlayerTransactionEntry;
@@ -673,7 +686,7 @@ function TransactionRow(
 ) {
   return (
     <TableRow data-testid={`player-transaction-row-${entry.id}`}>
-      <TableCell>{entry.seasonYear}</TableCell>
+      <TableCell>{formatTransactionDate(entry.occurredAt)}</TableCell>
       <TableCell>{transactionLabels[entry.type]}</TableCell>
       <TableCell>
         {entry.team
@@ -696,6 +709,20 @@ function TransactionRow(
               className="underline-offset-2 hover:underline"
             >
               {entry.counterpartyTeam.abbreviation}
+            </Link>
+          </>
+        )}
+        {entry.counterpartyPlayer && (
+          <>
+            {" · "}
+            <Link
+              to="/leagues/$leagueId/players/$playerId"
+              params={{ leagueId, playerId: entry.counterpartyPlayer.id }}
+              className="underline-offset-2 hover:underline"
+              data-testid={`player-trade-link-${entry.id}`}
+            >
+              {entry.counterpartyPlayer.firstName}{" "}
+              {entry.counterpartyPlayer.lastName}
             </Link>
           </>
         )}

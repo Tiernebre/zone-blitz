@@ -123,6 +123,11 @@ export const PLAYER_TRANSACTION_TYPES = [
   "traded",
   "extended",
   "franchise_tagged",
+  "claimed_on_waivers",
+  "placed_on_ir",
+  "activated",
+  "suspended",
+  "retired",
 ] as const;
 
 export type PlayerTransactionType = (typeof PLAYER_TRANSACTION_TYPES)[number];
@@ -143,6 +148,11 @@ export interface PlayerTransactionEntry {
     name: string;
     city: string;
     abbreviation: string;
+  } | null;
+  counterpartyPlayer: {
+    id: string;
+    firstName: string;
+    lastName: string;
   } | null;
   detail: string | null;
 }

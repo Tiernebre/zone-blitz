@@ -24,6 +24,10 @@ export const playerTransactions = pgTable("player_transactions", {
   counterpartyTeamId: uuid("counterparty_team_id").references(() => teams.id, {
     onDelete: "set null",
   }),
+  counterpartyPlayerId: uuid("counterparty_player_id").references(
+    () => players.id,
+    { onDelete: "set null" },
+  ),
   type: playerTransactionTypeEnum("type").notNull(),
   seasonYear: integer("season_year").notNull(),
   occurredAt: timestamp("occurred_at").defaultNow().notNull(),

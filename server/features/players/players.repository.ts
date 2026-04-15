@@ -59,6 +59,7 @@ export function createPlayersRepository(deps: {
   const txCities = alias(cities, "tx_city");
   const txCounterTeams = alias(teams, "tx_counter_team");
   const txCounterCities = alias(cities, "tx_counter_city");
+  const txCounterPlayers = alias(players, "tx_counter_player");
 
   async function loadTransactions(
     playerId: string,
@@ -78,6 +79,9 @@ export function createPlayersRepository(deps: {
         counterpartyTeamName: txCounterTeams.name,
         counterpartyTeamCity: txCounterCities.name,
         counterpartyTeamAbbreviation: txCounterTeams.abbreviation,
+        counterpartyPlayerId: txCounterPlayers.id,
+        counterpartyPlayerFirstName: txCounterPlayers.firstName,
+        counterpartyPlayerLastName: txCounterPlayers.lastName,
       })
       .from(playerTransactions)
       .leftJoin(txTeams, eq(txTeams.id, playerTransactions.teamId))
@@ -87,8 +91,12 @@ export function createPlayersRepository(deps: {
         eq(txCounterTeams.id, playerTransactions.counterpartyTeamId),
       )
       .leftJoin(txCounterCities, eq(txCounterCities.id, txCounterTeams.cityId))
+      .leftJoin(
+        txCounterPlayers,
+        eq(txCounterPlayers.id, playerTransactions.counterpartyPlayerId),
+      )
       .where(eq(playerTransactions.playerId, playerId))
-      .orderBy(asc(playerTransactions.occurredAt));
+      .orderBy(sql`${playerTransactions.occurredAt} DESC`);
 
     return rows.map((row) => ({
       id: row.id,
@@ -110,6 +118,13 @@ export function createPlayersRepository(deps: {
           name: row.counterpartyTeamName!,
           city: row.counterpartyTeamCity!,
           abbreviation: row.counterpartyTeamAbbreviation!,
+        }
+        : null,
+      counterpartyPlayer: row.counterpartyPlayerId
+        ? {
+          id: row.counterpartyPlayerId,
+          firstName: row.counterpartyPlayerFirstName!,
+          lastName: row.counterpartyPlayerLastName!,
         }
         : null,
     }));

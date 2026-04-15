@@ -487,7 +487,7 @@ Deno.test({
 
 Deno.test({
   name:
-    "playersRepository.getDetailById: surfaces the chronological transaction log",
+    "playersRepository.getDetailById: surfaces the reverse-chronological transaction log",
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
@@ -539,6 +539,7 @@ Deno.test({
           teamId: team.id,
           type: "drafted",
           seasonYear: 2022,
+          occurredAt: new Date("2022-04-25T12:00:00Z"),
           detail: "Round 1, pick 3 overall",
         },
         {
@@ -546,19 +547,21 @@ Deno.test({
           teamId: team.id,
           type: "extended",
           seasonYear: 2025,
+          occurredAt: new Date("2025-08-01T12:00:00Z"),
           detail: "4-year extension",
         },
       ]);
 
       const detail = await repo.getDetailById(playerId);
       assertEquals(detail?.transactions.length, 2);
-      assertEquals(detail?.transactions[0].type, "drafted");
+      assertEquals(detail?.transactions[0].type, "extended");
       assertEquals(
         detail?.transactions[0].team?.abbreviation,
         team.abbreviation,
       );
-      assertEquals(detail?.transactions[1].type, "extended");
-      assertEquals(detail?.transactions[1].counterpartyTeam, null);
+      assertEquals(detail?.transactions[0].counterpartyTeam, null);
+      assertEquals(detail?.transactions[0].counterpartyPlayer, null);
+      assertEquals(detail?.transactions[1].type, "drafted");
     } finally {
       await cleanup(db, {
         players: playersCreated,
@@ -994,6 +997,242 @@ Deno.test({
       for (const id of seasonsCreated) {
         await db.delete(seasons).where(eq(seasons.id, id));
       }
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "playersRepository.getDetailById: two-sided trade links both players to each other",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const repo = createPlayersRepository({
+      db,
+      log: createTestLogger(),
+      now: () => new Date("2026-06-15T00:00:00Z"),
+    });
+    const playersCreated: string[] = [];
+    const leaguesCreated: string[] = [];
+    const citiesCreated: string[] = [];
+    const statesCreated: string[] = [];
+    const teamsCreated: string[] = [];
+
+    try {
+      const { league, team, city, state } = await setupFixtures(db);
+      leaguesCreated.push(league.id);
+      citiesCreated.push(city.id);
+      statesCreated.push(state.id);
+      teamsCreated.push(team.id);
+
+      const [state2] = await db
+        .insert(states)
+        .values({
+          code: `t-${crypto.randomUUID().slice(0, 6)}`,
+          name: `TestState2-${crypto.randomUUID()}`,
+          region: "East",
+        })
+        .returning();
+      statesCreated.push(state2.id);
+      const [city2] = await db
+        .insert(cities)
+        .values({
+          name: `TestCity2-${crypto.randomUUID()}`,
+          stateId: state2.id,
+        })
+        .returning();
+      citiesCreated.push(city2.id);
+      const [team2] = await db
+        .insert(teams)
+        .values({
+          name: "Eagles",
+          cityId: city2.id,
+          abbreviation: `E${crypto.randomUUID().slice(0, 2).toUpperCase()}`,
+          primaryColor: "#004C54",
+          secondaryColor: "#A5ACAF",
+          accentColor: "#000000",
+          conference: "NFC",
+          division: "NFC East",
+        })
+        .returning();
+      teamsCreated.push(team2.id);
+
+      const playerAId = crypto.randomUUID();
+      const playerBId = crypto.randomUUID();
+      await db.insert(players).values([
+        {
+          id: playerAId,
+          leagueId: league.id,
+          teamId: team2.id,
+          firstName: "Alpha",
+          lastName: "Adams",
+          injuryStatus: "healthy",
+          ...sizeFor("QB"),
+          birthDate: "2000-01-01",
+        },
+        {
+          id: playerBId,
+          leagueId: league.id,
+          teamId: team.id,
+          firstName: "Beta",
+          lastName: "Baker",
+          injuryStatus: "healthy",
+          ...sizeFor("WR"),
+          birthDate: "2001-05-15",
+        },
+      ]);
+      playersCreated.push(playerAId, playerBId);
+      await db.insert(playerAttributes).values([
+        { playerId: playerAId, ...attributesForBucket("QB") },
+        { playerId: playerBId, ...attributesForBucket("WR") },
+      ]);
+
+      await db.insert(playerTransactions).values([
+        {
+          playerId: playerAId,
+          teamId: team.id,
+          counterpartyTeamId: team2.id,
+          counterpartyPlayerId: playerBId,
+          type: "traded",
+          seasonYear: 2025,
+          detail: "Traded for Beta Baker + 2026 2nd",
+        },
+        {
+          playerId: playerBId,
+          teamId: team2.id,
+          counterpartyTeamId: team.id,
+          counterpartyPlayerId: playerAId,
+          type: "traded",
+          seasonYear: 2025,
+          detail: "Traded for Alpha Adams + 2026 2nd",
+        },
+      ]);
+
+      const detailA = await repo.getDetailById(playerAId);
+      assertEquals(detailA?.transactions.length, 1);
+      assertEquals(detailA?.transactions[0].type, "traded");
+      assertEquals(
+        detailA?.transactions[0].counterpartyPlayer?.id,
+        playerBId,
+      );
+      assertEquals(
+        detailA?.transactions[0].counterpartyPlayer?.firstName,
+        "Beta",
+      );
+      assertEquals(
+        detailA?.transactions[0].counterpartyPlayer?.lastName,
+        "Baker",
+      );
+      assertEquals(
+        detailA?.transactions[0].counterpartyTeam?.name,
+        "Eagles",
+      );
+
+      const detailB = await repo.getDetailById(playerBId);
+      assertEquals(detailB?.transactions.length, 1);
+      assertEquals(detailB?.transactions[0].type, "traded");
+      assertEquals(
+        detailB?.transactions[0].counterpartyPlayer?.id,
+        playerAId,
+      );
+      assertEquals(
+        detailB?.transactions[0].counterpartyPlayer?.firstName,
+        "Alpha",
+      );
+      assertEquals(
+        detailB?.transactions[0].counterpartyPlayer?.lastName,
+        "Adams",
+      );
+    } finally {
+      await cleanup(db, {
+        players: playersCreated,
+        teams: teamsCreated,
+        cities: citiesCreated,
+        states: statesCreated,
+        leagues: leaguesCreated,
+      });
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "playersRepository.getDetailById: supports new transaction types (claimed_on_waivers, placed_on_ir, activated, suspended, retired)",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const repo = createPlayersRepository({
+      db,
+      log: createTestLogger(),
+      now: () => new Date("2026-06-15T00:00:00Z"),
+    });
+    const playersCreated: string[] = [];
+    const leaguesCreated: string[] = [];
+    const citiesCreated: string[] = [];
+    const statesCreated: string[] = [];
+    const teamsCreated: string[] = [];
+
+    try {
+      const { league, team, city, state } = await setupFixtures(db);
+      leaguesCreated.push(league.id);
+      citiesCreated.push(city.id);
+      statesCreated.push(state.id);
+      teamsCreated.push(team.id);
+
+      const playerId = crypto.randomUUID();
+      await db.insert(players).values({
+        id: playerId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Sam",
+        lastName: "Stone",
+        injuryStatus: "healthy",
+        ...sizeFor("QB"),
+        birthDate: "2000-03-10",
+      });
+      playersCreated.push(playerId);
+      await db.insert(playerAttributes).values({
+        playerId,
+        ...attributesForBucket("QB"),
+      });
+
+      const newTypes = [
+        "claimed_on_waivers",
+        "placed_on_ir",
+        "activated",
+        "suspended",
+        "retired",
+      ] as const;
+
+      await db.insert(playerTransactions).values(
+        newTypes.map((type, i) => ({
+          playerId,
+          teamId: team.id,
+          type,
+          seasonYear: 2025,
+          occurredAt: new Date(`2025-0${i + 1}-15T12:00:00Z`),
+          detail: `${type} event`,
+        })),
+      );
+
+      const detail = await repo.getDetailById(playerId);
+      assertEquals(detail?.transactions.length, 5);
+      const types = detail?.transactions.map((t) => t.type);
+      for (const expected of newTypes) {
+        assertEquals(types?.includes(expected), true);
+      }
+    } finally {
+      await cleanup(db, {
+        players: playersCreated,
+        teams: teamsCreated,
+        cities: citiesCreated,
+        states: statesCreated,
+        leagues: leaguesCreated,
+      });
       await client.end();
     }
   },

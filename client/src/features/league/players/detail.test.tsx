@@ -258,6 +258,7 @@ const draftedPlayer = {
         abbreviation: "CIN",
       },
       counterpartyTeam: null,
+      counterpartyPlayer: null,
       detail: "Round 1, pick 3 overall",
     },
     {
@@ -272,6 +273,7 @@ const draftedPlayer = {
         abbreviation: "CIN",
       },
       counterpartyTeam: null,
+      counterpartyPlayer: null,
       detail: null,
     },
   ],
@@ -663,7 +665,7 @@ describe("PlayerDetail — contract ledger", () => {
     );
   });
 
-  it("renders a trade transaction with both teams and a missing-team row", () => {
+  it("renders a trade transaction with both teams, counterparty player link, and a missing-team row", () => {
     mockUsePlayerDetail.mockReturnValue({
       data: {
         ...draftedPlayer,
@@ -685,6 +687,11 @@ describe("PlayerDetail — contract ledger", () => {
               city: "Dallas",
               abbreviation: "DAL",
             },
+            counterpartyPlayer: {
+              id: "p-other",
+              firstName: "Mike",
+              lastName: "Jones",
+            },
             detail: "Traded for two picks",
           },
           {
@@ -694,6 +701,7 @@ describe("PlayerDetail — contract ledger", () => {
             occurredAt: "2024-03-01T12:00:00.000Z",
             team: null,
             counterpartyTeam: null,
+            counterpartyPlayer: null,
             detail: null,
           },
         ],
@@ -705,18 +713,115 @@ describe("PlayerDetail — contract ledger", () => {
     const trade = screen.getByTestId("player-transaction-row-tx-trade");
     expect(trade.textContent).toContain("PHI");
     expect(trade.textContent).toContain("DAL");
+    expect(trade.textContent).toContain("Mike Jones");
+    const tradeLink = screen.getByTestId("player-trade-link-tx-trade");
+    expect(tradeLink.getAttribute("href")).toContain("/players/p-other");
     const released = screen.getByTestId("player-transaction-row-tx-released");
     expect(released.textContent).toContain("Released");
   });
 
-  it("renders a transactions table with labelled events", () => {
+  it("renders a transactions table with labelled events and formatted dates", () => {
     renderDetail();
     const drafted = screen.getByTestId("player-transaction-row-tx1");
     expect(drafted.textContent).toContain("Drafted");
-    expect(drafted.textContent).toContain("2020");
+    expect(drafted.textContent).toContain("04/25/2020");
     expect(drafted.textContent).toContain("Round 1, pick 3 overall");
     const extended = screen.getByTestId("player-transaction-row-tx2");
     expect(extended.textContent).toContain("Extended");
+    expect(extended.textContent).toContain("08/01/2024");
+  });
+
+  it("renders all supported transaction types with correct labels", () => {
+    const allTypes = [
+      { type: "drafted", label: "Drafted" },
+      { type: "signed", label: "Signed" },
+      { type: "released", label: "Released" },
+      { type: "traded", label: "Traded" },
+      { type: "extended", label: "Extended" },
+      { type: "franchise_tagged", label: "Franchise tagged" },
+      { type: "claimed_on_waivers", label: "Claimed on waivers" },
+      { type: "placed_on_ir", label: "Placed on IR" },
+      { type: "activated", label: "Activated" },
+      { type: "suspended", label: "Suspended" },
+      { type: "retired", label: "Retired" },
+    ] as const;
+
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        transactions: allTypes.map((t, i) => ({
+          id: `tx-type-${i}`,
+          type: t.type,
+          seasonYear: 2024,
+          occurredAt: "2024-01-01T00:00:00.000Z",
+          team: {
+            id: "t2",
+            name: "Bengals",
+            city: "Cincinnati",
+            abbreviation: "CIN",
+          },
+          counterpartyTeam: null,
+          counterpartyPlayer: null,
+          detail: null,
+        })),
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+
+    for (const { type, label } of allTypes) {
+      const row = screen.getByTestId(
+        `player-transaction-row-tx-type-${
+          allTypes.findIndex((t) => t.type === type)
+        }`,
+      );
+      expect(row.textContent).toContain(label);
+    }
+  });
+
+  it("renders two-sided trade linking — both directions resolve to the same record", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        transactions: [
+          {
+            id: "tx-trade-a",
+            type: "traded",
+            seasonYear: 2024,
+            occurredAt: "2024-03-15T12:00:00.000Z",
+            team: {
+              id: "t2",
+              name: "Bengals",
+              city: "Cincinnati",
+              abbreviation: "CIN",
+            },
+            counterpartyTeam: {
+              id: "t5",
+              name: "Ravens",
+              city: "Baltimore",
+              abbreviation: "BAL",
+            },
+            counterpartyPlayer: {
+              id: "p-b",
+              firstName: "Jake",
+              lastName: "Smith",
+            },
+            detail: "2025 1st + 2026 3rd",
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    const tradeRow = screen.getByTestId("player-transaction-row-tx-trade-a");
+    expect(tradeRow.textContent).toContain("CIN");
+    expect(tradeRow.textContent).toContain("BAL");
+    expect(tradeRow.textContent).toContain("Jake Smith");
+    expect(tradeRow.textContent).toContain("2025 1st + 2026 3rd");
+    const playerLink = screen.getByTestId("player-trade-link-tx-trade-a");
+    expect(playerLink.getAttribute("href")).toContain("/players/p-b");
   });
 
   it("renders the pre-draft evaluation when present", () => {
