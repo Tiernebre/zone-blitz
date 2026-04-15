@@ -59,6 +59,7 @@ Deno.test("players.router", async (t) => {
       },
       currentContract: null,
       contractHistory: [],
+      contractLedger: [],
       transactions: [],
       seasonStats: [],
       accolades: [],

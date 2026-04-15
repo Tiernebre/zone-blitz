@@ -1,4 +1,4 @@
-export { contracts } from "./contract.schema.ts";
+export { contracts, contractTypeEnum } from "./contract.schema.ts";
 export {
   contractHistory,
   contractTerminationReasonEnum,

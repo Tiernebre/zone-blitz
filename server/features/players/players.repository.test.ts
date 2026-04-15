@@ -367,6 +367,126 @@ Deno.test({
 
 Deno.test({
   name:
+    "playersRepository.getDetailById: builds a contract ledger with year-by-year breakdown",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const repo = createPlayersRepository({
+      db,
+      log: createTestLogger(),
+      now: () => new Date("2026-06-15T00:00:00Z"),
+    });
+    const playersCreated: string[] = [];
+    const leaguesCreated: string[] = [];
+    const citiesCreated: string[] = [];
+    const statesCreated: string[] = [];
+    const teamsCreated: string[] = [];
+
+    try {
+      const { league, team, city, state } = await setupFixtures(db);
+      leaguesCreated.push(league.id);
+      citiesCreated.push(city.id);
+      statesCreated.push(state.id);
+      teamsCreated.push(team.id);
+
+      const playerId = crypto.randomUUID();
+      await db.insert(players).values({
+        id: playerId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Sam",
+        lastName: "Stone",
+        injuryStatus: "healthy",
+        ...sizeFor("QB"),
+        birthDate: "2000-03-10",
+        draftYear: 2022,
+        draftRound: 1,
+        draftPick: 3,
+        draftingTeamId: team.id,
+      });
+      playersCreated.push(playerId);
+      await db.insert(playerAttributes).values({
+        playerId,
+        ...attributesForBucket("QB"),
+      });
+
+      await db.insert(contracts).values({
+        playerId,
+        teamId: team.id,
+        contractType: "rookie_scale",
+        totalYears: 4,
+        currentYear: 2,
+        totalSalary: 20_000_000,
+        annualSalary: 5_000_000,
+        guaranteedMoney: 12_000_000,
+        signingBonus: 4_000_000,
+        signedInYear: 2025,
+      });
+
+      await db.insert(contractHistory).values({
+        playerId,
+        teamId: team.id,
+        contractType: "rookie_scale",
+        signedInYear: 2022,
+        totalYears: 3,
+        totalSalary: 6_000_000,
+        guaranteedMoney: 3_000_000,
+        signingBonus: 1_500_000,
+        terminationReason: "expired",
+        endedInYear: 2024,
+      });
+
+      const detail = await repo.getDetailById(playerId);
+      const ledger = detail?.contractLedger;
+      assertEquals(ledger?.length, 2);
+
+      const current = ledger![0];
+      assertEquals(current.isCurrent, true);
+      assertEquals(current.contractType, "rookie_scale");
+      assertEquals(current.signedInYear, 2025);
+      assertEquals(current.totalYears, 4);
+      assertEquals(current.totalValue, 20_000_000);
+      assertEquals(current.guaranteedAtSigning, 12_000_000);
+      assertEquals(current.signingBonus, 4_000_000);
+      assertEquals(current.team.name, "Bengals");
+      assertEquals(current.years.length, 4);
+
+      const y1 = current.years[0];
+      assertEquals(y1.yearNumber, 1);
+      assertEquals(y1.signingBonusProration, 1_000_000);
+      assertEquals(y1.baseSalary, 4_000_000);
+      assertEquals(y1.capHit, 5_000_000);
+      assertEquals(y1.deadCap, 4_000_000);
+      assertEquals(y1.cashPaid, 4_000_000 + 4_000_000);
+      assertEquals(y1.isVoid, false);
+
+      const y4 = current.years[3];
+      assertEquals(y4.deadCap, 1_000_000);
+      assertEquals(y4.cashPaid, 4_000_000);
+
+      const prior = ledger![1];
+      assertEquals(prior.isCurrent, false);
+      assertEquals(prior.contractType, "rookie_scale");
+      assertEquals(prior.signedInYear, 2022);
+      assertEquals(prior.totalYears, 3);
+      assertEquals(prior.years.length, 3);
+      assertEquals(prior.terminationReason, "expired");
+    } finally {
+      await cleanup(db, {
+        players: playersCreated,
+        teams: teamsCreated,
+        cities: citiesCreated,
+        states: statesCreated,
+        leagues: leaguesCreated,
+      });
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
     "playersRepository.getDetailById: surfaces the chronological transaction log",
   sanitizeResources: false,
   sanitizeOps: false,

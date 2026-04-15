@@ -165,6 +165,7 @@ Deno.test("players.service — getDetail", async (t) => {
         },
         currentContract: null,
         contractHistory: [],
+        contractLedger: [],
         transactions: [],
         seasonStats: [],
         accolades: [],

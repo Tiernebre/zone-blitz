@@ -84,6 +84,16 @@ export type {
 } from "./types/roster.ts";
 export { NEUTRAL_BUCKET_GROUPS, neutralBucketGroupOf } from "./types/roster.ts";
 export type {
+  ContractLedgerEntry,
+  ContractType,
+  ContractYearInput,
+  ContractYearRow,
+} from "./contracts/contract-ledger.ts";
+export {
+  buildContractYears,
+  CONTRACT_TYPES,
+} from "./contracts/contract-ledger.ts";
+export type {
   Contract,
   ContractHistoryEntry,
   ContractTerminationReason,

@@ -1,6 +1,9 @@
-import { integer, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import { CONTRACT_TYPES } from "@zone-blitz/shared";
 import { players } from "../players/player.schema.ts";
 import { teams } from "../team/team.schema.ts";
+
+export const contractTypeEnum = pgEnum("contract_type", CONTRACT_TYPES);
 
 export const contracts = pgTable("contracts", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -10,12 +13,14 @@ export const contracts = pgTable("contracts", {
   teamId: uuid("team_id")
     .notNull()
     .references(() => teams.id, { onDelete: "cascade" }),
+  contractType: contractTypeEnum("contract_type").notNull().default("veteran"),
   totalYears: integer("total_years").notNull(),
   currentYear: integer("current_year").notNull().default(1),
   totalSalary: integer("total_salary").notNull(),
   annualSalary: integer("annual_salary").notNull(),
   guaranteedMoney: integer("guaranteed_money").notNull().default(0),
   signingBonus: integer("signing_bonus").notNull().default(0),
+  signedInYear: integer("signed_in_year"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

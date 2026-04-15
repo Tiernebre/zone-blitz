@@ -1,4 +1,5 @@
 import type { NeutralBucket } from "../archetypes/neutral-bucket.ts";
+import type { ContractLedgerEntry } from "../contracts/contract-ledger.ts";
 import type { SchemeArchetype } from "./scheme-lens.ts";
 
 /**
@@ -175,6 +176,7 @@ export interface PlayerDetail {
   origin: PlayerOrigin;
   currentContract: CurrentContractSummary | null;
   contractHistory: ContractHistoryEntry[];
+  contractLedger: ContractLedgerEntry[];
   transactions: PlayerTransactionEntry[];
   seasonStats: PlayerSeasonStatRow[];
   accolades: PlayerAccoladeEntry[];
@@ -237,6 +239,8 @@ export interface ContractHistoryEntry {
   terminationReason: ContractTerminationReason;
   endedInYear: number | null;
 }
+
+export type { ContractLedgerEntry } from "../contracts/contract-ledger.ts";
 
 export interface CurrentContractSummary {
   teamId: string;
