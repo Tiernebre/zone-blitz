@@ -48,3 +48,7 @@ as superseded.
 - [0015 — Simulation resolution model: play-by-play core with fast-mode parity](./0015-simulation-resolution-model.md)
   — single play-by-play engine; fast mode is the same engine headless; seeded
   RNG; per-play event stream is canonical output (Proposed)
+- [0016 — Contract structure: per-year breakdown with prorated signing bonus](./0016-contract-structure.md)
+  — parent `contracts` + `contract_years` + `contract_bonus_prorations`; pure
+  `computeCapHit` / `computeDeadCap`; void years in, post-June-1 and incentives
+  deferred (Proposed)
