@@ -8,10 +8,13 @@
 #
 # Trade-off vs bin/backlog-loop-parallel: source of truth is GitHub Issues
 # with the `ready-for-agent` label (filed by /file-adr-tickets from an
-# Accepted ADR). Dependencies between issues (`Depends on #N`) are NOT
-# respected — the `blocked` label is used to keep dependent issues out of
-# the pool, but if you flip a blocked issue to `ready-for-agent` while its
-# blocker is still open, a worker will try to ship it and fail.
+# Accepted ADR). Dependencies (`Depends on #N`) are honored via the
+# `blocked` label: the dispatcher only picks up `ready-for-agent` issues,
+# and after a worker merges its PR it sweeps for open issues that depend
+# on the one it just closed, flipping `blocked` → `ready-for-agent` when
+# all their blockers are resolved. Manually flipping `blocked` →
+# `ready-for-agent` while a blocker is still open will still cause a
+# worker to fail — the sweep is the safe path.
 
 set -euo pipefail
 
@@ -58,13 +61,25 @@ Execute end-to-end without asking for confirmation:
    so the issue auto-closes on merge. Summary section only, no test plan.
 6. \`gh pr merge --auto --squash\`, then \`gh pr checks --watch\`. If checks
    fail, fix on the same branch and push again.
-7. When the PR is merged, exit the worktree and end the session. The issue
-   closes automatically via the \`Closes\` ref.
+7. When the PR is merged, the issue auto-closes via the \`Closes\` ref.
+   Before exiting, unblock dependents: search for other open issues whose
+   body contains \`Depends on #$issue_number\`, e.g.
+   \`gh issue list --search "Depends on #$issue_number in:body" --state open --json number,body,labels\`.
+   For each hit, confirm the dependency line really references this issue
+   (not a substring match), then check its *other* \`Depends on #M\` refs —
+   if every other M is closed, remove the \`blocked\` label and add
+   \`ready-for-agent\` (\`gh issue edit <n> --remove-label blocked --add-label ready-for-agent\`)
+   and leave a short comment noting the unblock. If other blockers remain
+   open, leave the labels alone.
+8. Exit the worktree and end the session.
 
 If investigation shows the issue is obsolete, superseded, or infeasible,
 close the issue with a comment explaining why. Do NOT open an empty PR.
+Still run the dependent-unblock sweep in step 7 before exiting, since
+a closed-as-obsolete issue also unblocks anything that depended on it.
 
-Do NOT stop until your PR is merged (or the issue is closed as obsolete).
+Do NOT stop until your PR is merged (or the issue is closed as obsolete)
+AND the dependent-unblock sweep has run.
 PROMPT
 )
 
