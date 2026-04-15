@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "coaches_league_name_unique" ON "coaches" USING btree ("league_id","first_name","last_name");

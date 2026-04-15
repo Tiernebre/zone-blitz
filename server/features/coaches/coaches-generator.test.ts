@@ -312,6 +312,68 @@ Deno.test("contract salaries fall within sane bounds per tier", () => {
   }
 });
 
+Deno.test("no two coaches share the same full name within a league", () => {
+  const result = makeGenerator().generate({
+    leagueId: "league-1",
+    teamIds: Array.from({ length: 8 }, (_, i) => `team-${i}`),
+  });
+
+  const names = new Set<string>();
+  for (const coach of result) {
+    const fullName = `${coach.firstName}|${coach.lastName}`;
+    assertEquals(names.has(fullName), false, `duplicate name: ${fullName}`);
+    names.add(fullName);
+  }
+});
+
+Deno.test("deduplicates names when the generator would produce collisions", () => {
+  let callCount = 0;
+  const collidingNameGenerator: NameGenerator = {
+    next() {
+      callCount++;
+      if (callCount <= 3) {
+        return { firstName: "John", lastName: "Smith" };
+      }
+      return { firstName: `First${callCount}`, lastName: `Last${callCount}` };
+    },
+  };
+
+  const generator = createCoachesGenerator({
+    random: seededRandom(12345),
+    nameGenerator: collidingNameGenerator,
+  });
+
+  const result = generator.generate({
+    leagueId: "league-1",
+    teamIds: ["team-1"],
+  });
+
+  const names = result.map((c) => `${c.firstName}|${c.lastName}`);
+  const uniqueNames = new Set(names);
+  assertEquals(uniqueNames.size, names.length);
+});
+
+Deno.test("mentorCoachId references only coaches within the same league", () => {
+  const result = makeGenerator().generate(INPUT);
+  const coachIds = new Set(result.map((c) => c.id));
+  for (const coach of result) {
+    if (coach.mentorCoachId !== null) {
+      assertEquals(
+        coachIds.has(coach.mentorCoachId),
+        true,
+        `mentor ${coach.mentorCoachId} not in league`,
+      );
+    }
+  }
+});
+
+Deno.test("every coach is tagged with the input leagueId", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const coach of result) {
+    assertEquals(coach.leagueId, INPUT.leagueId);
+  }
+});
+
 Deno.test("seeded generator is deterministic", () => {
   const fixedNow = () => new Date("2026-01-01T00:00:00Z");
   const a = createCoachesGenerator({

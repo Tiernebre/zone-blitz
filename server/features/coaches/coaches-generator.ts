@@ -220,6 +220,7 @@ export function createCoachesGenerator(
       const anchor = now();
       let collegeIndex = 0;
       const pool = input.collegeIds ?? [];
+      const usedNames = new Set<string>();
 
       for (const teamId of input.teamIds) {
         const idsByRole = new Map<CoachRole, string>();
@@ -228,7 +229,16 @@ export function createCoachesGenerator(
         }
 
         for (const spec of STAFF_BLUEPRINT) {
-          const { firstName, lastName } = nameGenerator.next();
+          let firstName: string;
+          let lastName: string;
+          let key: string;
+          do {
+            const name = nameGenerator.next();
+            firstName = name.firstName;
+            lastName = name.lastName;
+            key = `${firstName}|${lastName}`;
+          } while (usedNames.has(key));
+          usedNames.add(key);
           const id = idsByRole.get(spec.role)!;
           const reportsToId = spec.reportsTo === null
             ? null

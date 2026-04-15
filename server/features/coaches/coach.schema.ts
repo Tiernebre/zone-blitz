@@ -6,6 +6,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { leagues } from "../league/league.schema.ts";
@@ -81,4 +82,10 @@ export const coaches = pgTable("coaches", {
   ),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => [
+  uniqueIndex("coaches_league_name_unique").on(
+    table.leagueId,
+    table.firstName,
+    table.lastName,
+  ),
+]);
