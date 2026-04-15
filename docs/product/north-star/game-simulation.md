@@ -112,6 +112,140 @@ reflecting reality. A great QB elevates the whole team. A bad QB drags it down.
 But a great QB behind a terrible offensive line still struggles. Positional
 interdependence matters.
 
+## Football Completeness
+
+"NFL-realistic" isn't only a statistical claim — it's a claim that the sim plays
+real football. A box score that hits league-average passing yards is still wrong
+if every touchdown is worth exactly 7 points, every drive starts at the 25, and
+no team ever goes for it on 4th down. The rules and situations below are not
+stretch goals; they are the floor for what counts as a game of football in this
+league.
+
+### Scoring and conversions
+
+- **Extra points** — after every touchdown, the scoring team attempts an XP
+  (17-yard placekick) or a 2-point conversion (single offensive play from the
+  2-yard line). XP success is a function of kicker attributes and weather;
+  2-point success is a full matchup resolution. Kickers who miss XPs exist.
+- **2-point decisions** — driven by score differential, time remaining, and
+  coach aggressiveness. A team down 14 mid-fourth-quarter should consider going
+  for 2; a team up by 7 in the first quarter should not.
+- **Safeties** — must actually fire. Offense tackled in its own end zone, OL
+  holding in the end zone, intentional grounding in the end zone, or a botched
+  snap out the back — each is a two-point defensive score followed by a free
+  kick from the offense's 20.
+- **Defensive touchdowns** — pick-6, fumble-6, blocked-kick return, safety
+  free-kick return. These have to exist and accrue to individual defensive stat
+  lines.
+
+### Special teams
+
+- **Kickoffs** — every scoring play and the start of each half kicks off. Return
+  outcomes depend on kicker leg strength, return-man attributes, and coverage
+  unit. Touchbacks, returns, squib kicks, and onside kicks are all valid
+  options; field position is a _distribution_, not the hardcoded 25-yard line.
+- **Onside kicks** — trailing teams in the final minutes elect to onside at
+  realistic rates and recover at realistic rates (roughly 10–15% league-wide).
+- **Punts** — distance, hang time, coverage, returns, fair catches, touchbacks,
+  punts downed inside the 10, and blocked punts. Shanked punts happen.
+- **Field goals** — distance-dependent success curve, kicker leg strength and
+  accuracy attributes, weather and altitude modifiers, blocked field goals with
+  possible return for a defensive TD. Long misses return to the spot of the
+  kick, not the line of scrimmage.
+- **Special teams personnel** — gunners, upbacks, long snappers, returners.
+  Special teams is its own depth chart layer, not an afterthought.
+
+### 4th-down and game-management decisions
+
+- **Go-for-it logic** — tied to field position, down/distance, score
+  differential, time remaining, and coach aggressiveness. Teams on the
+  opponent's 40 on 4th-and-1 in the fourth quarter should go for it sometimes;
+  conservative coaches punt; aggressive coaches don't.
+- **Punting vs. field goal vs. go-for-it** is a decision, not a lookup table.
+  The coach's decision-making attributes and situational context drive it, and
+  those decisions must be visible in the event stream for second-guessing.
+- **Two-minute drill** — offenses change tempo inside two minutes of a half:
+  hurry-up, spiking the ball, sideline-running routes to stop the clock.
+- **Kneel-downs and victory formation** — leading teams with possession and
+  enough time on the clock end the game without running real plays.
+- **Clock management** — timeouts are a finite resource used strategically;
+  defenses deliberately tackle in-bounds to bleed clock; offenses trailing use
+  timeouts at the right moment. Bad clock-managing coaches waste timeouts; good
+  ones don't.
+
+### Overtime
+
+- Regular-season OT follows current NFL rules (10-minute period, both teams get
+  a possession unless the first team scores a TD, ties possible).
+- Playoff OT plays to a winner — no ties in the postseason.
+- The event stream, clock, and state machine must represent OT explicitly; it is
+  not a fifth quarter with a different label.
+
+### Penalties
+
+- Pre-snap (false start, offside, delay of game, illegal formation) and
+  post-snap (holding, pass interference, roughing, facemask, personal fouls,
+  illegal block in the back). Each has its own yardage, down impact, and
+  automatic-first-down behavior per real rules.
+- Declined penalties exist. Offsetting penalties exist. Penalties that negate
+  long plays exist and must be reflected in the event stream (the play happened,
+  the yards didn't count, the individual stats don't accrue).
+- Per-team penalty counts must land inside NFL bands (~5–8 penalties per team
+  per game); individual players accrue flags at position-appropriate rates.
+
+### Field position and drive starts
+
+- Drive starting field position is a **distribution**, driven by the outcome of
+  the previous possession: a punt pinning the offense at its own 6 is different
+  from a kickoff return to the 32 is different from a turnover at midfield.
+  Hardcoded "start at the 25" is a bug.
+- Return TDs, muffed punts, and kickoff-out-of-bounds penalties all feed into
+  starting field position realism.
+
+### Matchup and assignment realism
+
+- Individual matchups are driven by **alignment and assignment**, not by array
+  order. A shutdown CB traveling with the opposing WR1 produces a different stat
+  sheet than the same CB playing a fixed side of the field. Slot matchups,
+  double teams, chip blocks, bracket coverage, and safety help over the top must
+  all exist as concepts the sim can model.
+- Individual stat concentration must reflect real usage: RB1 gets the bulk of
+  carries, WR1/WR2/TE soak most targets, CB1 draws the opposing WR1 on enough
+  snaps to matter. A league where targets are uniformly distributed across every
+  receiver is statistically wrong even if the team totals look right.
+
+## Calibration
+
+Statistical realism is not an aspiration — it's a tested, enforced property of
+the engine. "NFL-accurate" means nothing without a mechanism that catches drift.
+
+- **Calibration harness** — the engine ships with a reproducible batch-sim
+  harness that runs many full seasons on league-average synthetic rosters and
+  produces aggregate reports: plays per game, pass/run split, completion %, YPA,
+  YPC, sack rate, turnover rate, penalty counts, injury counts and severity
+  distribution, points per game, punt rate, 4th-down go-for-it rate, XP success,
+  FG success by distance, return-TD rate, and per-position stat concentration
+  (top-1/top-3/top-5 share of team targets, carries, tackles).
+- **NFL target bands** — each of the above has a documented target range pulled
+  from recent NFL seasons. The harness compares sim aggregates to bands and
+  fails loudly when any number drifts outside its band.
+- **CI enforcement** — the calibration harness runs as part of CI. A PR that
+  bumps scoring 15% higher should fail calibration, not merge quietly. Speed
+  matters; the harness is allowed to be a slower job than unit tests.
+- **Tuning is data-driven** — when the harness fails, the fix is to tune the
+  offending mechanism against the target band, not to loosen the band. Bands
+  move only when the real NFL moves (rule changes, era shifts) and that move is
+  documented.
+- **Both sim modes calibrated together** — single-game fast mode and
+  play-by-play mode must each independently produce aggregates inside the target
+  bands, and their distributions must match each other within tolerance. A
+  fast-mode sim is not allowed to drift from play-by-play just because it's
+  faster.
+- **Distributions, not just means** — passing for 250 yards/game on average with
+  a variance of 10 is wrong even if the mean is right. The harness checks
+  distribution shape (variance, tail behavior, upset frequency) against NFL
+  reference distributions, not only central tendency.
+
 ## Player Performance Model
 
 Player attributes are the engine of the simulation. For the full attribute
