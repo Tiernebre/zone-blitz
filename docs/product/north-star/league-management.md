@@ -40,10 +40,6 @@ Multiple human owner/GMs, with NPC franchises filling remaining slots:
 
 When creating a league, the commissioner (or single-player founder) configures:
 
-- **Creation mode**: **Genesis** (the default — brand-new startup league with a
-  founding sequence; see [League Genesis](./league-genesis.md)) or
-  **Established** (jump into a mature league with fictional history; secondary
-  path)
 - **Founding franchise count**: genesis default is **8**, configurable. The
   league grows from there via expansion over many seasons — see
   [Expansion](#expansion) below
