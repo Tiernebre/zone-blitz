@@ -38,3 +38,6 @@ as superseded.
 - [0012 — Depth chart section labels surface the scheme](./0012-depth-chart-scheme-section-labels.md)
   — group headers show "Base 3-4 · Nickel" / "11 Personnel" etc., derived from
   the fingerprint; row labels unchanged
+- [0013 — Player detail page: biography, contract, and transaction history](./0013-player-detail-page.md)
+  — one canonical `/players/:playerId` route; breadcrumb + browser back, no
+  generic "← Back" link
