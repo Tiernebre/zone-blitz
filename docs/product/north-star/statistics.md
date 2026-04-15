@@ -94,3 +94,8 @@ players carry their stats.
   stats are its exhaust.
 - **[Media](./media.md):** narratives, grades, and awards draw on stats but are
   not stats themselves.
+- **[League Genesis](./league-genesis.md):** Year 1 of a genesis league runs a
+  shorter regular season and no preseason, so stat distributions for the
+  inaugural year will look different than Year 2+. The league's first
+  statistical leaders are the first ever — every leaderboard entry in a genesis
+  league's record book was written by a human or NPC operator at this table.

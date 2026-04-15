@@ -232,3 +232,31 @@ you're not the only one trying to sign the top corner.
   sign-and-trade deals
 - League chat blows up during the free agency frenzy — trash talk, gloating over
   steals, lamenting missed targets
+
+## League Genesis
+
+This document describes free agency in a mature Zone Blitz league — a recurring
+annual cycle with established market tiers, comparable deals, and historical
+precedent setting expectations.
+
+A genesis league's first "free agency" is structurally different. See
+[League Genesis](./league-genesis.md); the FA-specific points:
+
+- **Founding free agency is the mop-up after the allocation draft.** Everyone
+  unsigned from the founding player pool — including rookie-age talent that
+  would be undrafted rookies in a mature league — becomes a free agent at once.
+  There is no distinction between veteran and UDFA pools yet because the league
+  has never distinguished them.
+- **Economics are compressed.** Contracts are short, guaranteed money is modest,
+  and the market has no precedent to anchor against. See
+  [Salary Cap — League Genesis](./salary-cap.md#league-genesis) for the full
+  early-league economic arc.
+- **Year 2 is the first normal free agency.** Once Year 1 ends and the first
+  offseason begins, free agency runs the standard cycle described here —
+  tampering window, frenzy, second wave, comp pick accrual. The stars of Year 1
+  become the league's first real free agents with leverage.
+- **Staff hiring is its own contested market.** Genesis also introduces
+  competitive hiring for coaches and scouts — a shared candidate pool contested
+  across all franchises. See
+  [League Genesis — Staff Hiring](./league-genesis.md#phase-3-staff-hiring) and
+  [Coaches](./coaches.md) for the bidding mechanics.

@@ -518,6 +518,34 @@ authentic.
 
 ---
 
+## League Genesis
+
+The cap and contract structure described above applies to a mature Zone Blitz
+league. A brand-new genesis league operates under a deliberately compressed
+economic regime that evolves as the league proves itself. See
+[League Genesis](./league-genesis.md) for the full vision; the cap-specific
+points:
+
+- **Early-league economics are flat.** For the first several seasons, contracts
+  are short, guaranteed money is modest, and no class of mega-deals distorts the
+  market. A young league has no television contract funding record-setting cap
+  growth, players are taking bets on an unproven institution, and no one has
+  accumulated the leverage that produces franchise-defining deals.
+- **The starting cap is level.** Every franchise enters Year 1 with the same cap
+  space. The allocation draft and founding free agency are the only moment in
+  league history when the financial playing field is perfectly even.
+- **The cap curve bends upward as the league matures.** Free-agency cycles
+  produce stars with real leverage. Expansion and media interest grow league
+  revenue. The cap itself grows with them, and a generation of football in
+  produces the league's first genuinely franchise-defining contracts — moments
+  that matter precisely because the player's career was built entirely inside
+  this league's record.
+- **Non-cap spending still applies.** Facilities, scouting department size,
+  analytics infrastructure — all of it is funded outside the cap and differs by
+  market and operator choice, exactly as in a mature league.
+
+---
+
 ## What Makes Cap Management Fun
 
 Cap management is fun when it creates **meaningful strategic choices with

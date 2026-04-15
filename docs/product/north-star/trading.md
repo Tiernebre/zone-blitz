@@ -182,3 +182,22 @@ In multiplayer, the system should discourage but not over-police:
 - Transparent trade history lets the league self-police
 - NPC teams never make lopsided trades, so the AI sets a baseline for
   "reasonable"
+
+## League Genesis
+
+Trading applies the same way in both genesis and established leagues — the
+mechanics are identical. A few genesis-specific notes worth flagging (see
+[League Genesis](./league-genesis.md) for full context):
+
+- **There are no trades during Year 1's allocation draft or founding free
+  agency.** Trade markets open once the regular season begins and operate
+  normally from there.
+- **Draft-pick trading for the Year 2 rookie draft is live during Year 1.** The
+  first real rookie draft is coming, and picks in it can be traded as soon as
+  the Year 1 regular season begins. Year 2 draft order is still unset until Year
+  1 standings resolve, which adds real uncertainty to valuing those picks
+  mid-season.
+- **Expansion drafts have their own protection/exposure rules** (see
+  [League Management — Expansion](./league-management.md#expansion)), not
+  standard trade mechanics. A franchise cannot trade its way out of exposing
+  players to an expansion draft.

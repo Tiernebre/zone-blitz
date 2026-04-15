@@ -336,6 +336,31 @@ For the season:
 - Power rankings (algorithmic, team strength estimate)
 - Strength of schedule impact
 
+## League Genesis
+
+Zone Blitz's canonical creation flow is a brand-new startup league. See
+[League Genesis](./league-genesis.md) for the full vision. Simulation- specific
+implications:
+
+- **Year 1 has no preseason.** A newly founded league does not have the
+  infrastructure for exhibition games — no prior-year schedule to reference, no
+  media apparatus for preseason coverage, no stadium warm-up tradition. The sim
+  skips the preseason phase entirely in Year 1 and opens with the regular
+  season. Starting in Year 2, preseason runs normally.
+- **Compressed Year 1 regular season.** An 8-team founding league plays a
+  shorter regular-season schedule (~10–12 games) than the standard 17-game
+  season. The sim should treat schedule length as a league parameter rather than
+  a hard-coded 17.
+- **Attributes are normalized per league.** The sim consumes player attributes
+  on their league-local scale — a 90+ rating in a genesis league is the league's
+  top tier, full stop, without reference to any external scale. See
+  [Player Attributes](./player-attributes.md).
+- **Founding-era talent has wider variance.** The founding player pool contains
+  unconventional archetypes with less established production history. Sim
+  outcomes in Year 1 should reflect that — more upside surprises, more
+  disappointing performances from highly-drafted allocation picks, more
+  practice-squad-to-star stories.
+
 ## Related decisions
 
 - [0015 — Simulation resolution model: play-by-play core with fast-mode parity](../decisions/0015-simulation-resolution-model.md)
