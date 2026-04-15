@@ -61,7 +61,7 @@ async function setupFixtures(db: ReturnType<typeof createTestDb>["db"]) {
     .returning();
   const [season] = await db
     .insert(seasons)
-    .values({ leagueId: league.id, year: 1, isCurrentSeason: true })
+    .values({ leagueId: league.id, year: 1 })
     .returning();
   const [state] = await db
     .insert(states)
