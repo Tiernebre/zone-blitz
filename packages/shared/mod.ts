@@ -95,6 +95,17 @@ export {
   CONTRACT_TYPES,
 } from "./contracts/contract-ledger.ts";
 export type {
+  CapBonusProration,
+  CapContractInput,
+  CapContractYear,
+  CapOptionBonus,
+} from "./contracts/cap-engine.ts";
+export {
+  computeCapHit,
+  computeDeadCap,
+  computeHeadlineValue,
+} from "./contracts/cap-engine.ts";
+export type {
   Contract,
   ContractBonusSource,
   ContractGuaranteeType,
