@@ -417,4 +417,4 @@ The best draft experiences:
 
 ## Related decisions
 
-- [0023 — Allocation draft as Year 1's only draft](../decisions/0023-allocation-draft-as-year-one-only-draft.md)
+- [0024 — Allocation draft as Year 1's only draft](../decisions/0024-allocation-draft-as-year-one-only-draft.md)

@@ -1,4 +1,4 @@
-# 0023 — Allocation draft as Year 1's only draft
+# 0024 — Allocation draft as Year 1's only draft
 
 - **Date:** 2026-04-15
 - **Status:** Accepted

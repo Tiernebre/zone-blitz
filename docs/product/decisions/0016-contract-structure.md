@@ -1,7 +1,7 @@
 # 0016 — Contract structure: per-year breakdown with prorated signing bonus
 
 - **Date:** 2026-04-15
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** salary cap, free agency — builds on
   [`../north-star/salary-cap.md`](../north-star/salary-cap.md) and
   [`../north-star/free-agency-and-contracts.md`](../north-star/free-agency-and-contracts.md);

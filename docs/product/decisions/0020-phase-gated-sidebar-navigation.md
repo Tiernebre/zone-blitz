@@ -1,7 +1,7 @@
 # 0020 — Phase-gated sidebar navigation
 
 - **Date:** 2026-04-15
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** UI — see
   [`../north-star/league-genesis.md`](../north-star/league-genesis.md) and
   [`../north-star/league-management.md`](../north-star/league-management.md);
