@@ -1,4 +1,13 @@
-export { contracts, contractTypeEnum } from "./contract.schema.ts";
+export {
+  contractBonusProrations,
+  contractBonusSourceEnum,
+  contractGuaranteeTypeEnum,
+  contractOptionBonuses,
+  contracts,
+  contractTagTypeEnum,
+  contractTypeEnum,
+  contractYears,
+} from "./contract.schema.ts";
 export {
   contractHistory,
   contractTerminationReasonEnum,

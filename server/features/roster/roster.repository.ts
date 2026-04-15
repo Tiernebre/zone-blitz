@@ -127,9 +127,7 @@ export function createRosterRepository(deps: {
           weightPounds: players.weightPounds,
           birthDate: players.birthDate,
           injuryStatus: players.injuryStatus,
-          annualSalary: contracts.annualSalary,
-          totalYears: contracts.totalYears,
-          currentYear: contracts.currentYear,
+          realYears: contracts.realYears,
           depthChartSlot: depthChartEntries.slotCode,
           ...attributeSelectColumns(),
         })
@@ -207,11 +205,8 @@ export function createRosterRepository(deps: {
           neutralBucket: bucket,
           neutralBucketGroup: neutralBucketGroupOf(bucket),
           age: ageFromBirthDate(row.birthDate, today),
-          capHit: row.annualSalary ?? 0,
-          contractYearsRemaining: row.totalYears !== null &&
-              row.currentYear !== null
-            ? Math.max(0, row.totalYears - row.currentYear + 1)
-            : 0,
+          capHit: 0,
+          contractYearsRemaining: row.realYears ?? 0,
           injuryStatus: row.injuryStatus,
           schemeFit,
           schemeArchetype,

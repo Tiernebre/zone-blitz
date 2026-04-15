@@ -96,7 +96,10 @@ export {
 } from "./contracts/contract-ledger.ts";
 export type {
   Contract,
+  ContractBonusSource,
+  ContractGuaranteeType,
   ContractHistoryEntry,
+  ContractTagType,
   ContractTerminationReason,
   CurrentContractSummary,
   DepthChartSlotCode,
@@ -114,6 +117,9 @@ export type {
   PreDraftEvaluation,
 } from "./types/player.ts";
 export {
+  CONTRACT_BONUS_SOURCES,
+  CONTRACT_GUARANTEE_TYPES,
+  CONTRACT_TAG_TYPES,
   CONTRACT_TERMINATION_REASONS,
   DEPTH_CHART_SLOT_CODES,
   PLAYER_ACCOLADE_TYPES,

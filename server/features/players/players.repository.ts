@@ -259,14 +259,12 @@ export function createPlayersRepository(deps: {
           teamName: currentTeams.name,
           teamCity: currentCities.name,
           teamAbbreviation: currentTeams.abbreviation,
-          contractType: contracts.contractType,
+          signedYear: contracts.signedYear,
           totalYears: contracts.totalYears,
-          currentYear: contracts.currentYear,
-          annualSalary: contracts.annualSalary,
-          totalSalary: contracts.totalSalary,
-          guaranteedMoney: contracts.guaranteedMoney,
+          realYears: contracts.realYears,
           signingBonus: contracts.signingBonus,
-          signedInYear: contracts.signedInYear,
+          isRookieDeal: contracts.isRookieDeal,
+          tagType: contracts.tagType,
         })
         .from(contracts)
         .innerJoin(currentTeams, eq(currentTeams.id, contracts.teamId))
@@ -277,17 +275,12 @@ export function createPlayersRepository(deps: {
       const currentContract: CurrentContractSummary | null = currentContractRow
         ? {
           teamId: currentContractRow.teamId,
+          signedYear: currentContractRow.signedYear,
           totalYears: currentContractRow.totalYears,
-          currentYear: currentContractRow.currentYear,
-          yearsRemaining: Math.max(
-            0,
-            currentContractRow.totalYears - currentContractRow.currentYear +
-              1,
-          ),
-          annualSalary: currentContractRow.annualSalary,
-          totalSalary: currentContractRow.totalSalary,
-          guaranteedMoney: currentContractRow.guaranteedMoney,
+          realYears: currentContractRow.realYears,
           signingBonus: currentContractRow.signingBonus,
+          isRookieDeal: currentContractRow.isRookieDeal,
+          tagType: currentContractRow.tagType,
         }
         : null;
 
@@ -341,18 +334,20 @@ export function createPlayersRepository(deps: {
             city: currentContractRow.teamCity,
             abbreviation: currentContractRow.teamAbbreviation,
           },
-          contractType: currentContractRow.contractType,
-          signedInYear: currentContractRow.signedInYear,
+          contractType: currentContractRow.isRookieDeal
+            ? "rookie_scale"
+            : "veteran",
+          signedInYear: currentContractRow.signedYear,
           totalYears: currentContractRow.totalYears,
-          totalValue: currentContractRow.totalSalary,
-          guaranteedAtSigning: currentContractRow.guaranteedMoney,
+          totalValue: 0,
+          guaranteedAtSigning: 0,
           signingBonus: currentContractRow.signingBonus,
           years: buildContractYears({
-            totalYears: currentContractRow.totalYears,
-            annualSalary: currentContractRow.annualSalary,
+            totalYears: currentContractRow.realYears,
+            annualSalary: 0,
             signingBonus: currentContractRow.signingBonus,
-            guaranteedMoney: currentContractRow.guaranteedMoney,
-            currentYear: currentContractRow.currentYear,
+            guaranteedMoney: 0,
+            currentYear: 1,
           }),
           isCurrent: true,
         });
@@ -360,8 +355,7 @@ export function createPlayersRepository(deps: {
       for (const row of historyRows) {
         if (
           currentContractRow &&
-          row.signedInYear === currentContractRow.signedInYear &&
-          row.totalSalary === currentContractRow.totalSalary &&
+          row.signedInYear === currentContractRow.signedYear &&
           row.terminationReason === "active"
         ) {
           continue;

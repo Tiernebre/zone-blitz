@@ -77,13 +77,12 @@ const draftedPlayer = {
   },
   currentContract: {
     teamId: "t2",
+    signedYear: 2024,
     totalYears: 4,
-    currentYear: 2,
-    yearsRemaining: 3,
-    annualSalary: 20_000_000,
-    totalSalary: 80_000_000,
-    guaranteedMoney: 40_000_000,
+    realYears: 4,
     signingBonus: 10_000_000,
+    isRookieDeal: false,
+    tagType: null,
   },
   contractHistory: [
     {

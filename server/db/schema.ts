@@ -65,8 +65,14 @@ export { playerAttributes } from "../features/players/attributes.schema.ts";
 export { playerDraftProfile } from "../features/players/player-draft-profile.schema.ts";
 export { playerSeasonRatings } from "../features/players/player-season-ratings.schema.ts";
 export {
+  contractBonusProrations,
+  contractBonusSourceEnum,
+  contractGuaranteeTypeEnum,
+  contractOptionBonuses,
   contracts,
+  contractTagTypeEnum,
   contractTypeEnum,
+  contractYears,
 } from "../features/contracts/contract.schema.ts";
 export {
   contractHistory,

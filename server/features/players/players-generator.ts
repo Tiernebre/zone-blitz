@@ -13,9 +13,13 @@ import {
 } from "../../shared/name-generator.ts";
 import { DEFAULT_COLLEGES } from "../colleges/default-colleges.ts";
 import { DEFAULT_CITIES } from "../cities/default-cities.ts";
+import type { ContractGuaranteeType } from "@zone-blitz/shared";
 import type {
   ContractGeneratorInput,
+  GeneratedBonusProration,
   GeneratedContract,
+  GeneratedContractBundle,
+  GeneratedContractYear,
   GeneratedPlayers,
   PlayersGenerator,
   PlayersGeneratorInput,
@@ -624,6 +628,13 @@ function rollOrigin(
   };
 }
 
+interface RolledContractBundle {
+  contract: GeneratedContract;
+  years: GeneratedContractYear[];
+  bonusProrations: GeneratedBonusProration[];
+  annualBase: number;
+}
+
 function rollContract(
   rng: Rng,
   args: {
@@ -632,21 +643,22 @@ function rollContract(
     bucket: NeutralBucket;
     quality: number;
     age: number;
+    signedYear: number;
   },
   multiplierFn: SalaryMultiplierFn,
-): GeneratedContract {
+): RolledContractBundle {
   const isRookie = args.age <= ROOKIE_SCALE_AGE_THRESHOLD;
   const mult = isRookie ? 1.0 : multiplierFn(args.bucket, args.quality);
   const excess = Math.max(0, args.quality - 50);
-  const base = SALARY_FLOOR + excess * SALARY_PER_QUALITY_POINT * mult;
+  const baseSalary = SALARY_FLOOR + excess * SALARY_PER_QUALITY_POINT * mult;
   const jitter = 0.9 + rng.next() * 0.2;
-  const annualSalary = Math.max(SALARY_FLOOR, Math.round(base * jitter));
+  const annualBase = Math.max(SALARY_FLOOR, Math.round(baseSalary * jitter));
   let totalYears: number;
   if (args.age >= 32) totalYears = rng.int(1, 2);
   else if (args.quality >= 80) totalYears = rng.int(3, 5);
   else if (args.quality >= 65) totalYears = rng.int(2, 4);
   else totalYears = rng.int(1, 3);
-  const totalSalary = annualSalary * totalYears;
+  const totalSalary = annualBase * totalYears;
   const guaranteedPct = args.quality >= 80
     ? 0.5 + rng.next() * 0.2
     : args.quality >= 65
@@ -654,15 +666,53 @@ function rollContract(
     : 0.05 + rng.next() * 0.1;
   const guaranteedMoney = Math.round(totalSalary * guaranteedPct);
   const signingBonus = Math.round(guaranteedMoney * (0.3 + rng.next() * 0.3));
+
+  const guaranteedYears = Math.max(
+    1,
+    Math.round((guaranteedMoney / totalSalary) * totalYears),
+  );
+
+  const years: GeneratedContractYear[] = [];
+  for (let i = 0; i < totalYears; i++) {
+    const guaranteeType: ContractGuaranteeType = i < guaranteedYears
+      ? "full"
+      : "none";
+    years.push({
+      leagueYear: args.signedYear + i,
+      base: annualBase,
+      rosterBonus: 0,
+      workoutBonus: 0,
+      perGameRosterBonus: 0,
+      guaranteeType,
+      isVoid: false,
+    });
+  }
+
+  const bonusProrations: GeneratedBonusProration[] = [];
+  if (signingBonus > 0) {
+    bonusProrations.push({
+      amount: signingBonus,
+      firstYear: args.signedYear,
+      years: Math.min(totalYears, 5),
+      source: "signing",
+    });
+  }
+
   return {
-    playerId: args.playerId,
-    teamId: args.teamId,
-    totalYears,
-    currentYear: 1,
-    totalSalary,
-    annualSalary,
-    guaranteedMoney,
-    signingBonus,
+    contract: {
+      playerId: args.playerId,
+      teamId: args.teamId,
+      signedYear: args.signedYear,
+      totalYears,
+      realYears: totalYears,
+      signingBonus,
+      isRookieDeal: isRookie,
+      rookieDraftPick: null,
+      tagType: null,
+    },
+    years,
+    bonusProrations,
+    annualBase,
   };
 }
 
@@ -826,7 +876,9 @@ export function createPlayersGenerator(
       return { players };
     },
 
-    generateContracts(input: ContractGeneratorInput): GeneratedContract[] {
+    generateContracts(
+      input: ContractGeneratorInput,
+    ): GeneratedContractBundle[] {
       const rostered = input.players.filter(
         (p): p is typeof p & { teamId: string } => p.teamId !== null,
       );
@@ -839,13 +891,9 @@ export function createPlayersGenerator(
         byTeam.set(p.teamId, list);
       }
 
-      const contracts: GeneratedContract[] = [];
+      const bundles: GeneratedContractBundle[] = [];
       for (const [teamId, teamPlayers] of byTeam) {
-        // The contract callsite only has ids + teamId, so we synthesize a
-        // plausible bucket/quality/age per seat so salaries vary across the
-        // roster. The per-team annual total is then scaled down uniformly if
-        // it would exceed the cap.
-        const rawContracts = teamPlayers.map((p, idx) => {
+        const rawBundles = teamPlayers.map((p, idx) => {
           const bucket = ROSTER_BUCKET_SLOTS[idx % ROSTER_BUCKET_SLOTS.length];
           const bucketCount = ROSTER_BUCKET_COMPOSITION.find((c) =>
             c.bucket === bucket
@@ -863,33 +911,39 @@ export function createPlayersGenerator(
             bucket,
             quality,
             age,
+            signedYear: currentYear,
           }, salaryMultiplier);
         });
-        const teamAnnualTotal = rawContracts.reduce(
-          (s, c) => s + c.annualSalary,
+        const teamAnnualTotal = rawBundles.reduce(
+          (s, b) => s + b.annualBase,
           0,
         );
         const scale = teamAnnualTotal > input.salaryCap
           ? input.salaryCap / teamAnnualTotal
           : 1;
-        for (const c of rawContracts) {
-          // Scale down without re-applying the per-player floor — the floor
-          // already applied during the raw roll, and clamping again after
-          // scaling would push the team total back over the cap.
-          const annualSalary = Math.max(
-            1,
-            Math.floor(c.annualSalary * scale),
+        for (const b of rawBundles) {
+          const scaledSigningBonus = Math.round(
+            b.contract.signingBonus * scale,
           );
-          contracts.push({
-            ...c,
-            annualSalary,
-            totalSalary: annualSalary * c.totalYears,
-            guaranteedMoney: Math.round(c.guaranteedMoney * scale),
-            signingBonus: Math.round(c.signingBonus * scale),
+          const scaledYears = b.years.map((y) => ({
+            ...y,
+            base: Math.max(1, Math.floor(y.base * scale)),
+          }));
+          const scaledProrations = b.bonusProrations.map((p) => ({
+            ...p,
+            amount: Math.round(p.amount * scale),
+          }));
+          bundles.push({
+            contract: {
+              ...b.contract,
+              signingBonus: scaledSigningBonus,
+            },
+            years: scaledYears,
+            bonusProrations: scaledProrations.filter((p) => p.amount > 0),
           });
         }
       }
-      return contracts;
+      return bundles;
     },
   };
 }

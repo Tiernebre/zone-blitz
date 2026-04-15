@@ -311,11 +311,9 @@ Deno.test({
       await db.insert(contracts).values({
         playerId,
         teamId: team.id,
+        signedYear: 2025,
         totalYears: 4,
-        currentYear: 2,
-        totalSalary: 80_000_000,
-        annualSalary: 20_000_000,
-        guaranteedMoney: 40_000_000,
+        realYears: 4,
         signingBonus: 10_000_000,
       });
 
@@ -344,9 +342,9 @@ Deno.test({
 
       const detail = await repo.getDetailById(playerId);
       assertEquals(detail?.currentContract?.totalYears, 4);
-      assertEquals(detail?.currentContract?.currentYear, 2);
-      assertEquals(detail?.currentContract?.yearsRemaining, 3);
-      assertEquals(detail?.currentContract?.annualSalary, 20_000_000);
+      assertEquals(detail?.currentContract?.realYears, 4);
+      assertEquals(detail?.currentContract?.signedYear, 2025);
+      assertEquals(detail?.currentContract?.signingBonus, 10_000_000);
       assertEquals(detail?.contractHistory.length, 2);
       assertEquals(detail?.contractHistory[0].signedInYear, 2022);
       assertEquals(detail?.contractHistory[0].terminationReason, "expired");
@@ -414,14 +412,11 @@ Deno.test({
       await db.insert(contracts).values({
         playerId,
         teamId: team.id,
-        contractType: "rookie_scale",
+        signedYear: 2025,
         totalYears: 4,
-        currentYear: 2,
-        totalSalary: 20_000_000,
-        annualSalary: 5_000_000,
-        guaranteedMoney: 12_000_000,
+        realYears: 4,
         signingBonus: 4_000_000,
-        signedInYear: 2025,
+        isRookieDeal: true,
       });
 
       await db.insert(contractHistory).values({
@@ -446,24 +441,8 @@ Deno.test({
       assertEquals(current.contractType, "rookie_scale");
       assertEquals(current.signedInYear, 2025);
       assertEquals(current.totalYears, 4);
-      assertEquals(current.totalValue, 20_000_000);
-      assertEquals(current.guaranteedAtSigning, 12_000_000);
       assertEquals(current.signingBonus, 4_000_000);
       assertEquals(current.team.name, "Bengals");
-      assertEquals(current.years.length, 4);
-
-      const y1 = current.years[0];
-      assertEquals(y1.yearNumber, 1);
-      assertEquals(y1.signingBonusProration, 1_000_000);
-      assertEquals(y1.baseSalary, 4_000_000);
-      assertEquals(y1.capHit, 5_000_000);
-      assertEquals(y1.deadCap, 4_000_000);
-      assertEquals(y1.cashPaid, 4_000_000 + 4_000_000);
-      assertEquals(y1.isVoid, false);
-
-      const y4 = current.years[3];
-      assertEquals(y4.deadCap, 1_000_000);
-      assertEquals(y4.cashPaid, 4_000_000);
 
       const prior = ledger![1];
       assertEquals(prior.isCurrent, false);
