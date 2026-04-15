@@ -1,6 +1,6 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { createLeagueService } from "./league.service.ts";
-import { DomainError } from "@zone-blitz/shared";
+import { deriveDefaultSeasonLength, DomainError } from "@zone-blitz/shared";
 import pino from "pino";
 import type { League } from "@zone-blitz/shared";
 import type { Executor } from "../../db/connection.ts";
@@ -333,8 +333,18 @@ Deno.test("league.service", async (t) => {
     let seasonCreated = false;
     let personnelCalled = false;
     let scheduleCalled = false;
+    const derivedLength = deriveDefaultSeasonLength(1);
 
     const service = createService({
+      leagueRepo: {
+        create: (input) =>
+          Promise.resolve(
+            createMockLeague({
+              id: "new-id",
+              seasonLength: input.seasonLength ?? 17,
+            }),
+          ),
+      },
       seasonService: {
         create: (input) => {
           seasonCreated = true;
@@ -372,7 +382,7 @@ Deno.test("league.service", async (t) => {
         generate: (input) => {
           scheduleCalled = true;
           assertEquals(input.seasonId, "season-1");
-          assertEquals(input.seasonLength, 17);
+          assertEquals(input.seasonLength, derivedLength);
           return Promise.resolve({ gameCount: 0 });
         },
       },
@@ -386,26 +396,66 @@ Deno.test("league.service", async (t) => {
   });
 
   await t.step(
-    "create forwards the league's seasonLength into the schedule service",
+    "create derives seasonLength from franchise count when not overridden",
     async () => {
-      let receivedSeasonLength: number | undefined;
+      let repoReceivedLength: number | undefined;
+      let scheduleReceivedLength: number | undefined;
+
       const service = createService({
         leagueRepo: {
-          create: () =>
-            Promise.resolve(
-              createMockLeague({ id: "new-id", seasonLength: 14 }),
-            ),
+          create: (input) => {
+            repoReceivedLength = input.seasonLength;
+            return Promise.resolve(
+              createMockLeague({
+                id: "new-id",
+                seasonLength: input.seasonLength ?? 17,
+              }),
+            );
+          },
         },
         scheduleService: {
           generate: (input) => {
-            receivedSeasonLength = input.seasonLength;
+            scheduleReceivedLength = input.seasonLength;
             return Promise.resolve({ gameCount: 0 });
           },
         },
       });
 
-      await service.create({ name: "Short Season" });
-      assertEquals(receivedSeasonLength, 14);
+      await service.create({ name: "Derived Season" });
+      assertEquals(repoReceivedLength, deriveDefaultSeasonLength(1));
+      assertEquals(scheduleReceivedLength, deriveDefaultSeasonLength(1));
+    },
+  );
+
+  await t.step(
+    "create respects an explicit seasonLength override",
+    async () => {
+      let repoReceivedLength: number | undefined;
+      let scheduleReceivedLength: number | undefined;
+
+      const service = createService({
+        leagueRepo: {
+          create: (input) => {
+            repoReceivedLength = input.seasonLength;
+            return Promise.resolve(
+              createMockLeague({
+                id: "new-id",
+                seasonLength: input.seasonLength ?? 17,
+              }),
+            );
+          },
+        },
+        scheduleService: {
+          generate: (input) => {
+            scheduleReceivedLength = input.seasonLength;
+            return Promise.resolve({ gameCount: 0 });
+          },
+        },
+      });
+
+      await service.create({ name: "Custom Season", seasonLength: 14 });
+      assertEquals(repoReceivedLength, 14);
+      assertEquals(scheduleReceivedLength, 14);
     },
   );
 

@@ -208,5 +208,8 @@ export {
 } from "./rng/mod.ts";
 export type { SeededRng } from "./rng/mod.ts";
 
+// League
+export { deriveDefaultSeasonLength } from "./league/derive-default-season-length.ts";
+
 // Errors
 export { DomainError } from "./errors/domain-error.ts";
