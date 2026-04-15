@@ -525,6 +525,231 @@ Deno.test("simulateGame", async (t) => {
   });
 
   await t.step(
+    "touchdowns followed by conversion events (xp or two_point)",
+    () => {
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed: 42,
+      });
+
+      const tdEvents = result.events.filter(
+        (e) => e.outcome === "touchdown",
+      );
+      assertGreater(tdEvents.length, 0, "Should have touchdowns");
+
+      for (const tdEvent of tdEvents) {
+        const tdIdx = result.events.indexOf(tdEvent);
+        const nextEvent = result.events[tdIdx + 1];
+        if (nextEvent) {
+          assertEquals(
+            nextEvent.outcome === "xp" || nextEvent.outcome === "two_point",
+            true,
+            `Event after TD should be xp or two_point, got ${nextEvent.outcome}`,
+          );
+        }
+      }
+    },
+  );
+
+  await t.step(
+    "scores are not multiples of 7 — missed XPs and 2PTs create variety",
+    () => {
+      let nonMultipleOf7 = false;
+      for (let seed = 1; seed <= 50 && !nonMultipleOf7; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+        });
+        if (
+          result.finalScore.home % 7 !== 0 ||
+          result.finalScore.away % 7 !== 0
+        ) {
+          nonMultipleOf7 = true;
+        }
+      }
+      assertEquals(
+        nonMultipleOf7,
+        true,
+        "Should see non-multiples-of-7 scores",
+      );
+    },
+  );
+
+  await t.step(
+    "XP events appear with outcome xp",
+    () => {
+      let foundXp = false;
+      for (let seed = 1; seed <= 20 && !foundXp; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+        });
+        const xpEvents = result.events.filter((e) => e.outcome === "xp");
+        if (xpEvents.length > 0) {
+          foundXp = true;
+        }
+      }
+      assertEquals(foundXp, true, "Should find XP events");
+    },
+  );
+
+  await t.step(
+    "safeties emit safety outcome and award 2 points to defense",
+    () => {
+      // Use a team with weak OL to increase sack rate and safety probability
+      const weakOlTeam: SimTeam = {
+        ...makeTeam("weak"),
+        starters: [
+          makePlayer("w-qb", "QB"),
+          makePlayer("w-rb", "RB"),
+          makePlayer("w-wr1", "WR"),
+          makePlayer("w-wr2", "WR"),
+          makePlayer("w-te", "TE"),
+          makePlayer("w-ot1", "OT", { passBlocking: 20, strength: 20 }),
+          makePlayer("w-ot2", "OT", { passBlocking: 20, strength: 20 }),
+          makePlayer("w-iol1", "IOL", { passBlocking: 20, strength: 20 }),
+          makePlayer("w-iol2", "IOL", { passBlocking: 20, strength: 20 }),
+          makePlayer("w-iol3", "IOL", { passBlocking: 20, strength: 20 }),
+          makePlayer("w-edge1", "EDGE"),
+          makePlayer("w-edge2", "EDGE"),
+          makePlayer("w-idl1", "IDL"),
+          makePlayer("w-idl2", "IDL"),
+          makePlayer("w-lb1", "LB"),
+          makePlayer("w-lb2", "LB"),
+          makePlayer("w-cb1", "CB"),
+          makePlayer("w-cb2", "CB"),
+          makePlayer("w-s1", "S"),
+          makePlayer("w-s2", "S"),
+          makePlayer("w-k", "K"),
+          makePlayer("w-p", "K"),
+        ],
+      };
+      const strongDlTeam: SimTeam = {
+        ...makeTeam("strong"),
+        starters: [
+          makePlayer("s-qb", "QB"),
+          makePlayer("s-rb", "RB"),
+          makePlayer("s-wr1", "WR"),
+          makePlayer("s-wr2", "WR"),
+          makePlayer("s-te", "TE"),
+          makePlayer("s-ot1", "OT"),
+          makePlayer("s-ot2", "OT"),
+          makePlayer("s-iol1", "IOL"),
+          makePlayer("s-iol2", "IOL"),
+          makePlayer("s-iol3", "IOL"),
+          makePlayer("s-edge1", "EDGE", {
+            passRushing: 90,
+            acceleration: 85,
+            strength: 85,
+          }),
+          makePlayer("s-edge2", "EDGE", {
+            passRushing: 90,
+            acceleration: 85,
+            strength: 85,
+          }),
+          makePlayer("s-idl1", "IDL", {
+            passRushing: 85,
+            strength: 85,
+          }),
+          makePlayer("s-idl2", "IDL", {
+            passRushing: 85,
+            strength: 85,
+          }),
+          makePlayer("s-lb1", "LB"),
+          makePlayer("s-lb2", "LB"),
+          makePlayer("s-cb1", "CB"),
+          makePlayer("s-cb2", "CB"),
+          makePlayer("s-s1", "S"),
+          makePlayer("s-s2", "S"),
+          makePlayer("s-k", "K"),
+          makePlayer("s-p", "K"),
+        ],
+      };
+
+      let safetyFound = false;
+      for (let seed = 1; seed <= 2000 && !safetyFound; seed++) {
+        const result = simulateGame({
+          home: weakOlTeam,
+          away: strongDlTeam,
+          seed,
+        });
+        const safetyEvents = result.events.filter(
+          (e) => e.outcome === "safety",
+        );
+        if (safetyEvents.length > 0) {
+          safetyFound = true;
+          assertEquals(result.finalScore.home >= 0, true);
+          assertEquals(result.finalScore.away >= 0, true);
+        }
+      }
+      assertEquals(
+        safetyFound,
+        true,
+        "Should find safety events across many seeds",
+      );
+    },
+  );
+
+  await t.step(
+    "return TDs produce return_td tagged events",
+    () => {
+      let returnTdFound = false;
+      for (let seed = 1; seed <= 500 && !returnTdFound; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+        });
+        const returnTdEvents = result.events.filter(
+          (e) => e.tags.includes("return_td"),
+        );
+        if (returnTdEvents.length > 0) {
+          returnTdFound = true;
+          for (const event of returnTdEvents) {
+            assertEquals(event.tags.includes("turnover"), true);
+            assertEquals(event.tags.includes("touchdown"), true);
+          }
+        }
+      }
+      assertEquals(
+        returnTdFound,
+        true,
+        "Should find return TD events across many seeds",
+      );
+    },
+  );
+
+  await t.step(
+    "return TDs followed by conversion events",
+    () => {
+      for (let seed = 1; seed <= 500; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+        });
+        const returnTdEvents = result.events.filter(
+          (e) => e.tags.includes("return_td"),
+        );
+        for (const rtd of returnTdEvents) {
+          const idx = result.events.indexOf(rtd);
+          const nextEvent = result.events[idx + 1];
+          if (nextEvent) {
+            assertEquals(
+              nextEvent.outcome === "xp" || nextEvent.outcome === "two_point",
+              true,
+              `Event after return TD should be xp or two_point, got ${nextEvent.outcome}`,
+            );
+          }
+        }
+      }
+    },
+  );
+
+  await t.step(
     "events have monotonically increasing play indices within drives",
     () => {
       const result = simulateGame({
@@ -574,16 +799,31 @@ Deno.test("simulateGame", async (t) => {
 
     for (let i = 0; i < result.events.length - 1; i++) {
       const event = result.events[i];
-      if (
-        event.outcome === "touchdown" ||
-        event.outcome === "field_goal"
-      ) {
+      if (event.outcome === "field_goal") {
         const nextEvent = result.events[i + 1];
         assertEquals(
           nextEvent.outcome,
           "kickoff",
-          `Expected kickoff after ${event.outcome} at event index ${i}`,
+          `Expected kickoff after field_goal at event index ${i}`,
         );
+      }
+      if (event.outcome === "touchdown") {
+        // TD → conversion (xp/two_point) → kickoff
+        const conversionEvent = result.events[i + 1];
+        assertEquals(
+          conversionEvent.outcome === "xp" ||
+            conversionEvent.outcome === "two_point",
+          true,
+          `Expected conversion after TD at event index ${i}, got ${conversionEvent?.outcome}`,
+        );
+        if (i + 2 < result.events.length) {
+          const kickoffEvent = result.events[i + 2];
+          assertEquals(
+            kickoffEvent.outcome,
+            "kickoff",
+            `Expected kickoff after conversion at event index ${i + 2}`,
+          );
+        }
       }
     }
   });

@@ -145,6 +145,9 @@ Deno.test("PlayEvent types", async (t) => {
       "penalty",
       "kneel",
       "spike",
+      "xp",
+      "two_point",
+      "safety",
     ];
     assertExists(outcomes);
   });
@@ -171,6 +174,7 @@ Deno.test("PlayEvent types", async (t) => {
       "injury_miss_weeks",
       "injury_miss_season",
       "injury_career_ending",
+      "return_td",
     ];
     assertExists(tags);
   });

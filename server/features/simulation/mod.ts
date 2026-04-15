@@ -56,5 +56,16 @@ export type { SeasonInput, SeasonResult } from "./simulate-season.ts";
 export { computeSeasonAggregates } from "./season-aggregates.ts";
 export type { SeasonAggregates } from "./season-aggregates.ts";
 
+export {
+  conversionDecision,
+  detectSafety,
+  findKicker,
+  findTurnoverDefender,
+  resolveExtraPoint,
+  resolveReturnTd,
+  resolveTwoPointConversion,
+} from "./scoring.ts";
+export type { ConversionChoice } from "./scoring.ts";
+
 export { seedSweep } from "./seed-sweep.ts";
 export type { BandStats, SweepResult } from "./seed-sweep.ts";

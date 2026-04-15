@@ -1,4 +1,4 @@
-import { assertEquals, assertNotEquals } from "@std/assert";
+import { assertEquals, assertExists, assertNotEquals } from "@std/assert";
 import {
   PLAYER_ATTRIBUTE_KEYS,
   type PlayerAttributes,
@@ -1339,6 +1339,163 @@ Deno.test("determinism: same roster + staff + seed produces byte-identical PlayE
       JSON.stringify(events2[i]),
       `Play ${i} diverged`,
     );
+  }
+});
+
+Deno.test("synthesizeOutcome emits safety when offense driven behind own goal line", () => {
+  const runCall: OffensiveCall = {
+    concept: "inside_zone",
+    personnel: "11",
+    formation: "shotgun",
+    motion: "none",
+  };
+  const coverageCall: DefensiveCall = {
+    front: "4-3",
+    coverage: "cover_3",
+    pressure: "four_man",
+  };
+  let safetyFound = false;
+  for (let seed = 0; seed < 500; seed++) {
+    const rng = makeRng(seed);
+    const state = makeGameState({
+      situation: makeSituation({ yardLine: 2 }),
+    });
+    const contribs: MatchupContribution[] = [
+      {
+        matchup: {
+          type: "run_block",
+          attacker: makePlayer("ot1", "OT"),
+          defender: makePlayer("idl1", "IDL"),
+        },
+        attackerFit: "neutral",
+        defenderFit: "neutral",
+        score: -25,
+      },
+    ];
+    const event = synthesizeOutcome(
+      runCall,
+      coverageCall,
+      contribs,
+      state,
+      rng,
+    );
+    if (event.outcome === "safety") {
+      assertEquals(event.tags.includes("safety"), true);
+      safetyFound = true;
+      break;
+    }
+  }
+  assertEquals(
+    safetyFound,
+    true,
+    "Should emit safety when offense tackled in own end zone",
+  );
+});
+
+Deno.test("synthesizeOutcome emits return_td on turnovers", () => {
+  const passCall: OffensiveCall = {
+    concept: "dropback",
+    personnel: "11",
+    formation: "shotgun",
+    motion: "none",
+  };
+  const coverageCall: DefensiveCall = {
+    front: "4-3",
+    coverage: "cover_3",
+    pressure: "four_man",
+  };
+  let returnTdFound = false;
+  for (let seed = 0; seed < 5000 && !returnTdFound; seed++) {
+    const rng = makeRng(seed);
+    const contribs: MatchupContribution[] = [
+      {
+        matchup: {
+          type: "pass_protection",
+          attacker: makePlayer("ot1", "OT"),
+          defender: makePlayer("edge1", "EDGE"),
+        },
+        attackerFit: "neutral",
+        defenderFit: "neutral",
+        score: 10,
+      },
+      {
+        matchup: {
+          type: "route_coverage",
+          attacker: makePlayer("wr1", "WR"),
+          defender: makePlayer("cb1", "CB", { speed: 90, acceleration: 88 }),
+        },
+        attackerFit: "neutral",
+        defenderFit: "neutral",
+        score: -20,
+      },
+    ];
+    const event = synthesizeOutcome(
+      passCall,
+      coverageCall,
+      contribs,
+      makeGameState(),
+      rng,
+    );
+    if (event.tags.includes("return_td")) {
+      assertEquals(event.tags.includes("turnover"), true);
+      assertEquals(event.tags.includes("touchdown"), true);
+      returnTdFound = true;
+    }
+  }
+  assertEquals(returnTdFound, true, "Should emit return_td on some turnovers");
+});
+
+Deno.test("synthesizeOutcome return_td tags defender with touchdown", () => {
+  const passCall: OffensiveCall = {
+    concept: "dropback",
+    personnel: "11",
+    formation: "shotgun",
+    motion: "none",
+  };
+  const coverageCall: DefensiveCall = {
+    front: "4-3",
+    coverage: "cover_3",
+    pressure: "four_man",
+  };
+  for (let seed = 0; seed < 5000; seed++) {
+    const rng = makeRng(seed);
+    const contribs: MatchupContribution[] = [
+      {
+        matchup: {
+          type: "pass_protection",
+          attacker: makePlayer("ot1", "OT"),
+          defender: makePlayer("edge1", "EDGE"),
+        },
+        attackerFit: "neutral",
+        defenderFit: "neutral",
+        score: 10,
+      },
+      {
+        matchup: {
+          type: "route_coverage",
+          attacker: makePlayer("wr1", "WR"),
+          defender: makePlayer("cb1", "CB", { speed: 90, acceleration: 88 }),
+        },
+        attackerFit: "neutral",
+        defenderFit: "neutral",
+        score: -20,
+      },
+    ];
+    const event = synthesizeOutcome(
+      passCall,
+      coverageCall,
+      contribs,
+      makeGameState(),
+      rng,
+    );
+    if (event.tags.includes("return_td")) {
+      const defenderParticipant = event.participants.find(
+        (p) => p.tags.includes("return_td"),
+      );
+      assertExists(defenderParticipant);
+      assertEquals(defenderParticipant!.tags.includes("touchdown"), true);
+      break;
+    }
   }
 });
 
