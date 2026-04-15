@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useParams } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   Card,
@@ -37,61 +37,68 @@ function formatCurrency(value: number) {
   return currency.format(value);
 }
 
-const capColumns: ColumnDef<RosterPlayer>[] = [
-  {
-    id: "player",
-    accessorFn: (p) => `${p.firstName} ${p.lastName}`,
-    header: ({ column }) => (
-      <SortableHeader column={column}>Player</SortableHeader>
-    ),
-    cell: ({ row }) => (
-      <span className="font-medium">
-        {row.original.firstName} {row.original.lastName}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "neutralBucket",
-    header: ({ column }) => (
-      <SortableHeader column={column}>
-        Pos
-      </SortableHeader>
-    ),
-  },
-  {
-    accessorKey: "neutralBucketGroup",
-    header: ({ column }) => (
-      <SortableHeader column={column}>Group</SortableHeader>
-    ),
-    cell: ({ row }) => groupLabels[row.original.neutralBucketGroup],
-  },
-  {
-    accessorKey: "schemeFit",
-    header: ({ column }) => (
-      <SortableHeader column={column}>Scheme Fit</SortableHeader>
-    ),
-    cell: ({ row }) => (
-      <SchemeFitBadge
-        fit={row.original.schemeFit}
-        testId={`salary-cap-scheme-fit-${row.original.id}`}
-      />
-    ),
-  },
-  {
-    accessorKey: "capHit",
-    header: ({ column }) => (
-      <SortableHeader column={column}>Cap Hit</SortableHeader>
-    ),
-    cell: ({ row }) => formatCurrency(row.original.capHit),
-  },
-  {
-    accessorKey: "contractYearsRemaining",
-    header: ({ column }) => (
-      <SortableHeader column={column}>Contract</SortableHeader>
-    ),
-    cell: ({ row }) => `${row.original.contractYearsRemaining} yrs`,
-  },
-];
+function createCapColumns(leagueId: string): ColumnDef<RosterPlayer>[] {
+  return [
+    {
+      id: "player",
+      accessorFn: (p) => `${p.firstName} ${p.lastName}`,
+      header: ({ column }) => (
+        <SortableHeader column={column}>Player</SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <Link
+          to="/leagues/$leagueId/players/$playerId"
+          params={{ leagueId, playerId: row.original.id }}
+          className="font-medium underline-offset-2 hover:underline"
+          data-testid={`salary-cap-player-link-${row.original.id}`}
+        >
+          {row.original.firstName} {row.original.lastName}
+        </Link>
+      ),
+    },
+    {
+      accessorKey: "neutralBucket",
+      header: ({ column }) => (
+        <SortableHeader column={column}>
+          Pos
+        </SortableHeader>
+      ),
+    },
+    {
+      accessorKey: "neutralBucketGroup",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Group</SortableHeader>
+      ),
+      cell: ({ row }) => groupLabels[row.original.neutralBucketGroup],
+    },
+    {
+      accessorKey: "schemeFit",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Scheme Fit</SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <SchemeFitBadge
+          fit={row.original.schemeFit}
+          testId={`salary-cap-scheme-fit-${row.original.id}`}
+        />
+      ),
+    },
+    {
+      accessorKey: "capHit",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Cap Hit</SortableHeader>
+      ),
+      cell: ({ row }) => formatCurrency(row.original.capHit),
+    },
+    {
+      accessorKey: "contractYearsRemaining",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Contract</SortableHeader>
+      ),
+      cell: ({ row }) => `${row.original.contractYearsRemaining} yrs`,
+    },
+  ];
+}
 
 export function SalaryCap() {
   const { leagueId } = useParams({ strict: false }) as { leagueId: string };
@@ -141,10 +148,12 @@ function SalaryCapView(
       </p>
     );
   }
-  return <SalaryCapContent roster={roster} />;
+  return <SalaryCapContent roster={roster} leagueId={leagueId} />;
 }
 
-function SalaryCapContent({ roster }: { roster: ActiveRoster }) {
+function SalaryCapContent(
+  { roster, leagueId }: { roster: ActiveRoster; leagueId: string },
+) {
   const sortedPlayers = useMemo(
     () => [...roster.players].sort((a, b) => b.capHit - a.capHit),
     [roster.players],
@@ -180,7 +189,7 @@ function SalaryCapContent({ roster }: { roster: ActiveRoster }) {
       <PositionGroupBreakdown groups={roster.positionGroups} />
 
       <DataTable
-        columns={capColumns}
+        columns={createCapColumns(leagueId)}
         data={sortedPlayers}
         getRowTestId={(player) => `salary-cap-row-${player.id}`}
         toolbar={(table) => (

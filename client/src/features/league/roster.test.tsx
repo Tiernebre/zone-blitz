@@ -17,6 +17,23 @@ const mockUseSchemeFingerprint = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   useParams: (...args: unknown[]) => mockUseParams(...args),
+  Link: (
+    { to, params, children, ...rest }: {
+      to: string;
+      params: Record<string, string>;
+      children: React.ReactNode;
+    } & Record<string, unknown>,
+  ) => {
+    let href = to;
+    for (const [k, v] of Object.entries(params ?? {})) {
+      href = href.replace(`$${k}`, v);
+    }
+    return (
+      <a href={href} {...rest}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 vi.mock("../../hooks/use-league.ts", () => ({
@@ -397,6 +414,15 @@ describe("Roster — active roster tab (default)", () => {
     expect(restructureBtn.hasAttribute("disabled")).toBe(true);
   });
 
+  it("links each player name to their detail page", () => {
+    renderRoster();
+    const link = screen.getByTestId(
+      "roster-player-link-p1",
+    ) as HTMLAnchorElement;
+    expect(link.getAttribute("href")).toBe("/leagues/L1/players/p1");
+    expect(link.textContent).toBe("Patrick Quarterback");
+  });
+
   it("renders action buttons for every player row", () => {
     renderRoster();
     for (const id of ["p1", "p2", "p3", "p4"]) {
@@ -457,12 +483,32 @@ describe("Roster — depth chart tab", () => {
     expect(within(rb).getByText("11th")).toBeDefined();
   });
 
+  it("links each depth chart slot player name to their detail page", () => {
+    renderRoster();
+    activateDepthChartTab();
+    const link = screen.getByTestId(
+      "depth-chart-player-link-p1",
+    ) as HTMLAnchorElement;
+    expect(link.getAttribute("href")).toBe("/leagues/L1/players/p1");
+    expect(link.textContent).toBe("Patrick Quarterback");
+  });
+
   it("renders inactives in their own list", () => {
     renderRoster();
     activateDepthChartTab();
     const inactives = screen.getByTestId("depth-chart-inactives");
     expect(within(inactives).getByText("Aaron Rusher")).toBeDefined();
     expect(within(inactives).getByText("EDGE")).toBeDefined();
+  });
+
+  it("links each inactive player name to their detail page", () => {
+    renderRoster();
+    activateDepthChartTab();
+    const link = screen.getByTestId(
+      "depth-chart-inactive-link-p3",
+    ) as HTMLAnchorElement;
+    expect(link.getAttribute("href")).toBe("/leagues/L1/players/p3");
+    expect(link.textContent).toBe("Aaron Rusher");
   });
 
   it("shows the last-updated timestamp and owning coach", () => {

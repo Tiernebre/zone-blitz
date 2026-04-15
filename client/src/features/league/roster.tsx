@@ -1,4 +1,4 @@
-import { useParams } from "@tanstack/react-router";
+import { Link, useParams } from "@tanstack/react-router";
 import type { ColumnDef, Row } from "@tanstack/react-table";
 import {
   Card,
@@ -91,87 +91,94 @@ function formatCoachRole(role: string) {
     .join(" ");
 }
 
-const rosterColumns: ColumnDef<RosterPlayer>[] = [
-  {
-    id: "player",
-    accessorFn: (p) => `${p.firstName} ${p.lastName}`,
-    header: ({ column }) => (
-      <SortableHeader column={column}>Player</SortableHeader>
-    ),
-    cell: ({ row }) => (
-      <span className="font-medium">
-        {row.original.firstName} {row.original.lastName}
-      </span>
-    ),
-  },
-  {
-    accessorKey: "depthChartSlot",
-    header: ({ column }) => (
-      <SortableHeader column={column}>
-        Pos
-      </SortableHeader>
-    ),
-    cell: ({ row }) => row.original.depthChartSlot ?? "—",
-  },
-  {
-    accessorKey: "neutralBucketGroup",
-    header: ({ column }) => (
-      <SortableHeader column={column}>Group</SortableHeader>
-    ),
-    cell: ({ row }) => groupLabels[row.original.neutralBucketGroup],
-    filterFn: (row: Row<RosterPlayer>, _id, value) =>
-      value === "all" || row.original.neutralBucketGroup === value,
-  },
-  {
-    accessorKey: "age",
-    header: ({ column }) => (
-      <SortableHeader column={column}>
-        Age
-      </SortableHeader>
-    ),
-  },
-  {
-    accessorKey: "schemeFit",
-    header: ({ column }) => (
-      <SortableHeader column={column}>Scheme Fit</SortableHeader>
-    ),
-    cell: ({ row }) => (
-      <SchemeFitBadge
-        fit={row.original.schemeFit}
-        testId={`roster-scheme-fit-${row.original.id}`}
-      />
-    ),
-  },
-  {
-    accessorKey: "injuryStatus",
-    header: ({ column }) => (
-      <SortableHeader column={column}>Status</SortableHeader>
-    ),
-    cell: ({ row }) => (
-      <Badge variant={injuryBadgeVariant(row.original.injuryStatus)}>
-        {formatInjury(row.original.injuryStatus)}
-      </Badge>
-    ),
-  },
-  {
-    id: "actions",
-    header: () => <span>Actions</span>,
-    cell: () => (
-      <div className="flex gap-1">
-        <Button variant="ghost" size="sm" disabled>
-          Release
-        </Button>
-        <Button variant="ghost" size="sm" disabled>
-          Trade
-        </Button>
-        <Button variant="ghost" size="sm" disabled>
-          Restructure
-        </Button>
-      </div>
-    ),
-    enableSorting: false,
-  },
-];
+function createRosterColumns(leagueId: string): ColumnDef<RosterPlayer>[] {
+  return [
+    {
+      id: "player",
+      accessorFn: (p) => `${p.firstName} ${p.lastName}`,
+      header: ({ column }) => (
+        <SortableHeader column={column}>Player</SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <Link
+          to="/leagues/$leagueId/players/$playerId"
+          params={{ leagueId, playerId: row.original.id }}
+          className="font-medium underline-offset-2 hover:underline"
+          data-testid={`roster-player-link-${row.original.id}`}
+        >
+          {row.original.firstName} {row.original.lastName}
+        </Link>
+      ),
+    },
+    {
+      accessorKey: "depthChartSlot",
+      header: ({ column }) => (
+        <SortableHeader column={column}>
+          Pos
+        </SortableHeader>
+      ),
+      cell: ({ row }) => row.original.depthChartSlot ?? "—",
+    },
+    {
+      accessorKey: "neutralBucketGroup",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Group</SortableHeader>
+      ),
+      cell: ({ row }) => groupLabels[row.original.neutralBucketGroup],
+      filterFn: (row: Row<RosterPlayer>, _id, value) =>
+        value === "all" || row.original.neutralBucketGroup === value,
+    },
+    {
+      accessorKey: "age",
+      header: ({ column }) => (
+        <SortableHeader column={column}>
+          Age
+        </SortableHeader>
+      ),
+    },
+    {
+      accessorKey: "schemeFit",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Scheme Fit</SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <SchemeFitBadge
+          fit={row.original.schemeFit}
+          testId={`roster-scheme-fit-${row.original.id}`}
+        />
+      ),
+    },
+    {
+      accessorKey: "injuryStatus",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Status</SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <Badge variant={injuryBadgeVariant(row.original.injuryStatus)}>
+          {formatInjury(row.original.injuryStatus)}
+        </Badge>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span>Actions</span>,
+      cell: () => (
+        <div className="flex gap-1">
+          <Button variant="ghost" size="sm" disabled>
+            Release
+          </Button>
+          <Button variant="ghost" size="sm" disabled>
+            Trade
+          </Button>
+          <Button variant="ghost" size="sm" disabled>
+            Restructure
+          </Button>
+        </div>
+      ),
+      enableSorting: false,
+    },
+  ];
+}
 
 export function Roster() {
   const { leagueId } = useParams({ strict: false }) as { leagueId: string };
@@ -235,14 +242,16 @@ function ActiveRosterView(
       </p>
     );
   }
-  return <ActiveRosterContent roster={roster} />;
+  return <ActiveRosterContent roster={roster} leagueId={leagueId} />;
 }
 
-function ActiveRosterContent({ roster }: { roster: ActiveRoster }) {
+function ActiveRosterContent(
+  { roster, leagueId }: { roster: ActiveRoster; leagueId: string },
+) {
   return (
     <>
       <DataTable
-        columns={rosterColumns}
+        columns={createRosterColumns(leagueId)}
         data={roster.players}
         getRowTestId={(player) => `roster-row-${player.id}`}
         toolbar={(table) => {
@@ -336,12 +345,19 @@ function DepthChartView(
       </p>
     );
   }
-  return <DepthChartContent chart={chart} sectionLabels={sectionLabels} />;
+  return (
+    <DepthChartContent
+      chart={chart}
+      leagueId={leagueId}
+      sectionLabels={sectionLabels}
+    />
+  );
 }
 
 function DepthChartContent(
-  { chart, sectionLabels }: {
+  { chart, leagueId, sectionLabels }: {
     chart: DepthChart;
+    leagueId: string;
     sectionLabels: DepthChartSectionLabels;
   },
 ) {
@@ -426,9 +442,14 @@ function DepthChartContent(
                             <span className="w-8 text-sm font-semibold text-muted-foreground">
                               {ordinal(slot.slotOrdinal)}
                             </span>
-                            <span className="font-medium">
+                            <Link
+                              to="/leagues/$leagueId/players/$playerId"
+                              params={{ leagueId, playerId: slot.playerId }}
+                              className="font-medium underline-offset-2 hover:underline"
+                              data-testid={`depth-chart-player-link-${slot.playerId}`}
+                            >
                               {slot.firstName} {slot.lastName}
-                            </span>
+                            </Link>
                           </div>
                           <Badge
                             variant={injuryBadgeVariant(slot.injuryStatus)}
@@ -467,7 +488,14 @@ function DepthChartContent(
                 {chart.inactives.map((player) => (
                   <TableRow key={player.playerId}>
                     <TableCell className="font-medium">
-                      {player.firstName} {player.lastName}
+                      <Link
+                        to="/leagues/$leagueId/players/$playerId"
+                        params={{ leagueId, playerId: player.playerId }}
+                        className="underline-offset-2 hover:underline"
+                        data-testid={`depth-chart-inactive-link-${player.playerId}`}
+                      >
+                        {player.firstName} {player.lastName}
+                      </Link>
                     </TableCell>
                     <TableCell>{player.slotCode}</TableCell>
                     <TableCell>

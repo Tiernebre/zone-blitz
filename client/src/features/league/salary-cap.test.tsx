@@ -15,6 +15,23 @@ const mockUseActiveRoster = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   useParams: (...args: unknown[]) => mockUseParams(...args),
+  Link: (
+    { to, params, children, ...rest }: {
+      to: string;
+      params: Record<string, string>;
+      children: React.ReactNode;
+    } & Record<string, unknown>,
+  ) => {
+    let href = to;
+    for (const [k, v] of Object.entries(params ?? {})) {
+      href = href.replace(`$${k}`, v);
+    }
+    return (
+      <a href={href} {...rest}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 vi.mock("../../hooks/use-league.ts", () => ({
@@ -230,6 +247,15 @@ describe("SalaryCap — page", () => {
     expect(
       within(row).getByTestId("salary-cap-scheme-fit-p3").textContent,
     ).toBe("—");
+  });
+
+  it("links each player name to their detail page", () => {
+    renderSalaryCap();
+    const link = screen.getByTestId(
+      "salary-cap-player-link-p1",
+    ) as HTMLAnchorElement;
+    expect(link.getAttribute("href")).toBe("/leagues/L1/players/p1");
+    expect(link.textContent).toBe("Patrick Quarterback");
   });
 
   it("filters rows by the global search input", () => {

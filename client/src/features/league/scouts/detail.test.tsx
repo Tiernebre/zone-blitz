@@ -7,23 +7,23 @@ const mockDetailGet = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   useParams: () => ({ scoutId: "s1", leagueId: "1" }),
-  Link: ({
-    children,
-    params,
-  }: {
-    children: React.ReactNode;
-    to?: string;
-    params?: { leagueId: string; scoutId: string };
-    className?: string;
-  }) => (
-    <a
-      href={params
-        ? `/leagues/${params.leagueId}/scouts/${params.scoutId}`
-        : "#"}
-    >
-      {children}
-    </a>
-  ),
+  Link: (
+    { to, params, children, ...rest }: {
+      to: string;
+      params: Record<string, string>;
+      children: React.ReactNode;
+    } & Record<string, unknown>,
+  ) => {
+    let href = to;
+    for (const [k, v] of Object.entries(params ?? {})) {
+      href = href.replace(`$${k}`, v);
+    }
+    return (
+      <a href={href} {...rest}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 vi.mock("../../../api.ts", () => ({
@@ -117,7 +117,7 @@ describe("ScoutDetail", () => {
           evaluations: [
             {
               id: "e1",
-              prospectId: null,
+              prospectId: "prospect-1",
               prospectName: "Rookie Back",
               draftYear: 2029,
               positionGroup: "RB",
@@ -179,7 +179,13 @@ describe("ScoutDetail", () => {
       expect(screen.getByText(/respected ACC evaluator/)).toBeDefined();
     });
     expect(screen.getByText(/Lions — Area Scout/)).toBeDefined();
-    expect(screen.getByText(/Rookie Back/)).toBeDefined();
+    const prospectLink = screen.getByTestId(
+      "scout-prospect-link-prospect-1",
+    ) as HTMLAnchorElement;
+    expect(prospectLink.getAttribute("href")).toBe(
+      "/leagues/1/players/prospect-1",
+    );
+    expect(prospectLink.textContent).toBe("Rookie Back");
     expect(screen.getByText(/late-round flyer/)).toBeDefined();
     expect(screen.getByText(/Peer Buddy/)).toBeDefined();
     expect(screen.getByText(/Lower confidence/)).toBeDefined();

@@ -67,7 +67,7 @@ export function ScoutDetail() {
       <Header detail={detail} />
       <Resume detail={detail} />
       <Reputation detail={detail} />
-      <TrackRecord detail={detail} />
+      <TrackRecord detail={detail} leagueId={leagueId} />
       <ExternalRecord detail={detail} />
       <Connections detail={detail} leagueId={leagueId} />
     </div>
@@ -162,10 +162,12 @@ function Reputation({ detail }: { detail: ScoutDetailData }) {
   );
 }
 
-function TrackRecord({ detail }: { detail: ScoutDetailData }) {
+function TrackRecord(
+  { detail, leagueId }: { detail: ScoutDetailData; leagueId: string },
+) {
   return (
     <Section title="Track record with this team">
-      <EvaluationsTable evaluations={detail.evaluations} />
+      <EvaluationsTable evaluations={detail.evaluations} leagueId={leagueId} />
       <CrossCheckList detail={detail} />
     </Section>
   );
@@ -173,8 +175,10 @@ function TrackRecord({ detail }: { detail: ScoutDetailData }) {
 
 function EvaluationsTable({
   evaluations,
+  leagueId,
 }: {
   evaluations: ScoutEvaluation[];
+  leagueId: string;
 }) {
   if (evaluations.length === 0) {
     return (
@@ -202,7 +206,20 @@ function EvaluationsTable({
             <TableCell>{e.draftYear}</TableCell>
             <TableCell>{e.positionGroup}</TableCell>
             <TableCell>{e.roundTier}</TableCell>
-            <TableCell>{e.prospectName}</TableCell>
+            <TableCell>
+              {e.prospectId
+                ? (
+                  <Link
+                    to="/leagues/$leagueId/players/$playerId"
+                    params={{ leagueId, playerId: e.prospectId }}
+                    className="underline-offset-2 hover:underline"
+                    data-testid={`scout-prospect-link-${e.prospectId}`}
+                  >
+                    {e.prospectName}
+                  </Link>
+                )
+                : e.prospectName}
+            </TableCell>
             <TableCell>{e.grade}</TableCell>
             <TableCell>{e.evaluationLevel}</TableCell>
             <TableCell>
