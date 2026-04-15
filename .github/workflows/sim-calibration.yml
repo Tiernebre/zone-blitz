@@ -1,0 +1,114 @@
+name: Sim Calibration
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  calibrate:
+    name: Run calibration harness
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.11
+
+      - run: deno install
+
+      - name: Run calibration
+        id: calibrate
+        run: |
+          set +e
+          output=$(deno task sim:calibrate 2>&1)
+          exit_code=$?
+          echo "$output"
+          {
+            echo "report<<CALIBRATION_EOF"
+            echo "$output"
+            echo "CALIBRATION_EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "passed=$( [ $exit_code -eq 0 ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Find last green commit
+        if: steps.calibrate.outputs.passed == 'false'
+        id: last-green
+        run: |
+          last_green=$(git log --format='%H' --since='30 days ago' -- . | head -1)
+          if [ -z "$last_green" ]; then
+            last_green=$(git rev-parse HEAD~10)
+          fi
+          echo "sha=$last_green" >> "$GITHUB_OUTPUT"
+
+      - name: Find existing drift issue
+        id: find-issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          issue_number=$(gh issue list \
+            --label "sim-calibration-drift" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+          echo "number=${issue_number}" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update drift issue
+        if: steps.calibrate.outputs.passed == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPORT: ${{ steps.calibrate.outputs.report }}
+          ISSUE_NUMBER: ${{ steps.find-issue.outputs.number }}
+          LAST_GREEN: ${{ steps.last-green.outputs.sha }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          sha_short=$(git rev-parse --short HEAD)
+          body=$(cat <<EOF
+          ## Sim calibration drift detected
+
+          **Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **HEAD:** ${sha_short} (\`${sha}\`)
+          **SHA range since last green:** \`${LAST_GREEN}..${sha}\`
+
+          ### Report
+
+          \`\`\`
+          ${REPORT}
+          \`\`\`
+
+          See [ADR 0021](docs/product/decisions/0021-sim-calibration-harness.md) for the failure contract.
+          EOF
+          )
+
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue comment "$ISSUE_NUMBER" --body "$body"
+            echo "Commented on existing issue #${ISSUE_NUMBER}"
+          else
+            gh issue create \
+              --title "Sim calibration drift: metrics out of band at ${sha_short}" \
+              --body "$body" \
+              --label "sim-calibration-drift"
+            echo "Created new drift issue"
+          fi
+
+      - name: Close drift issue on green run
+        if: steps.calibrate.outputs.passed == 'true' && steps.find-issue.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ steps.find-issue.outputs.number }}
+        run: |
+          sha_short=$(git rev-parse --short HEAD)
+          gh issue close "$ISSUE_NUMBER" \
+            --comment "Calibration passed at ${sha_short} — closing drift issue."
+
+      - name: Fail step if calibration drifted
+        if: steps.calibrate.outputs.passed == 'false'
+        run: exit 1
