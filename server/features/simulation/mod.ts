@@ -7,6 +7,9 @@ export type {
   InjuryEntry,
   InjurySeverity,
   OffensiveCall,
+  PenaltyInfo,
+  PenaltyPhase,
+  PenaltyType,
   PlayEvent,
   PlayOutcome,
   PlayParticipant,
@@ -79,3 +82,15 @@ export type { ConversionChoice } from "./scoring.ts";
 
 export { seedSweep } from "./seed-sweep.ts";
 export type { BandStats, SweepResult } from "./seed-sweep.ts";
+
+export {
+  decidePenaltyAcceptance,
+  PENALTY_CATALOG,
+  pickPenalty,
+  shouldPenaltyOccur,
+} from "./resolve-penalty.ts";
+export type {
+  AcceptanceContext,
+  PenaltyCandidate,
+  PenaltyContext,
+} from "./resolve-penalty.ts";

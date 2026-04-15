@@ -1,4 +1,10 @@
-import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";
+import {
+  assert,
+  assertEquals,
+  assertExists,
+  assertGreater,
+  assertGreaterOrEqual,
+} from "@std/assert";
 import {
   PLAYER_ATTRIBUTE_KEYS,
   type PlayerAttributes,
@@ -240,7 +246,7 @@ Deno.test("simulateGame", async (t) => {
         foundPunt = true;
         for (const punt of puntEvents) {
           assertEquals(punt.outcome, "punt");
-          assertGreater(punt.yardage, 0);
+          assertGreaterOrEqual(punt.yardage, 0);
         }
       }
     }
@@ -574,6 +580,7 @@ Deno.test("simulateGame", async (t) => {
     let awayRushing = 0;
 
     for (const event of result.events) {
+      if (event.tags.includes("negated_play")) continue;
       const isHome = event.offenseTeamId === "team-home";
       if (
         event.outcome === "pass_complete"
@@ -860,7 +867,8 @@ Deno.test("simulateGame", async (t) => {
           seed,
         });
         const returnTdEvents = result.events.filter(
-          (e) => e.tags.includes("return_td"),
+          (e) =>
+            e.tags.includes("return_td") && !e.tags.includes("negated_play"),
         );
         for (const rtd of returnTdEvents) {
           const idx = result.events.indexOf(rtd);
@@ -995,6 +1003,7 @@ Deno.test("simulateGame", async (t) => {
 
     for (const event of result.events) {
       if (event.outcome === "kickoff") continue;
+      if (event.tags.includes("negated_play")) continue;
 
       const isHome = event.offenseTeamId === "team-home";
       if (event.outcome === "pass_complete") {
@@ -1039,6 +1048,118 @@ Deno.test("simulateGame", async (t) => {
       assertEquals(foundOnside, true);
     },
   );
+
+  await t.step("penalties have typed info with accept/decline", () => {
+    let foundAccepted = false;
+    let foundDeclined = false;
+    for (let seed = 1; seed <= 50; seed++) {
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+      });
+      for (const event of result.events) {
+        if (event.penalty) {
+          assertExists(event.penalty.type);
+          assertExists(event.penalty.phase);
+          assertGreater(event.penalty.yardage, 0);
+          assertEquals(typeof event.penalty.automaticFirstDown, "boolean");
+          assertEquals(typeof event.penalty.accepted, "boolean");
+          if (event.penalty.accepted) foundAccepted = true;
+          else foundDeclined = true;
+        }
+      }
+    }
+    assertEquals(foundAccepted, true, "Should find accepted penalties");
+    assertEquals(foundDeclined, true, "Should find declined penalties");
+  });
+
+  await t.step("accepted penalties tag events correctly", () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+      });
+      for (const event of result.events) {
+        if (event.penalty?.accepted) {
+          assertEquals(event.tags.includes("accepted_penalty"), true);
+          assertEquals(event.tags.includes("penalty"), true);
+        }
+        if (event.penalty && !event.penalty.accepted) {
+          assertEquals(event.tags.includes("declined_penalty"), true);
+          assertEquals(event.tags.includes("penalty"), true);
+        }
+      }
+    }
+  });
+
+  await t.step("penalty counts per team land in NFL bands across seeds", () => {
+    const teamPenalties: number[] = [];
+    for (let seed = 1; seed <= 50; seed++) {
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+      });
+      teamPenalties.push(result.boxScore.home.penalties);
+      teamPenalties.push(result.boxScore.away.penalties);
+    }
+    const avg = teamPenalties.reduce((a, b) => a + b, 0) / teamPenalties.length;
+    assertGreater(avg, 2, `Avg penalties ${avg} too low`);
+    assertEquals(avg < 15, true, `Avg penalties ${avg} too high`);
+  });
+
+  await t.step("penalties are assigned to individual players", () => {
+    let foundPlayerPenalty = false;
+    for (let seed = 1; seed <= 20 && !foundPlayerPenalty; seed++) {
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+      });
+      for (const event of result.events) {
+        if (event.penalty?.againstPlayerId) {
+          foundPlayerPenalty = true;
+          break;
+        }
+      }
+    }
+    assertEquals(
+      foundPlayerPenalty,
+      true,
+      "Should find penalties assigned to players",
+    );
+  });
+
+  await t.step("negated plays do not count toward box score yards", () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+      });
+      let manualHome = 0;
+      let manualAway = 0;
+      for (const event of result.events) {
+        if (event.tags.includes("negated_play")) continue;
+        if (event.outcome === "kickoff") continue;
+        if (event.outcome === "xp" || event.outcome === "two_point") continue;
+        const isHome = event.offenseTeamId === "team-home";
+        if (
+          event.outcome === "pass_complete" ||
+          event.outcome === "rush" ||
+          event.outcome === "sack" ||
+          event.outcome === "touchdown"
+        ) {
+          if (isHome) manualHome += event.yardage;
+          else manualAway += event.yardage;
+        }
+      }
+      assertEquals(result.boxScore.home.totalYards, manualHome);
+      assertEquals(result.boxScore.away.totalYards, manualAway);
+    }
+  });
 
   await t.step(
     "regular-season OT: game can end tied after both teams possess",

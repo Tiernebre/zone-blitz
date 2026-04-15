@@ -54,26 +54,35 @@ export function deriveBoxScore(
       continue;
     }
 
-    if (event.outcome === "pass_complete") {
-      offenseBox.passingYards += event.yardage;
-      offenseBox.totalYards += event.yardage;
-    } else if (event.outcome === "rush") {
-      offenseBox.rushingYards += event.yardage;
-      offenseBox.totalYards += event.yardage;
-    } else if (event.outcome === "sack") {
-      offenseBox.passingYards += event.yardage;
-      offenseBox.totalYards += event.yardage;
-    } else if (event.outcome === "touchdown") {
-      offenseBox.totalYards += event.yardage;
+    const negated = event.tags.includes("negated_play");
+    if (!negated) {
+      if (event.outcome === "pass_complete") {
+        offenseBox.passingYards += event.yardage;
+        offenseBox.totalYards += event.yardage;
+      } else if (event.outcome === "rush") {
+        offenseBox.rushingYards += event.yardage;
+        offenseBox.totalYards += event.yardage;
+      } else if (event.outcome === "sack") {
+        offenseBox.passingYards += event.yardage;
+        offenseBox.totalYards += event.yardage;
+      } else if (event.outcome === "touchdown") {
+        offenseBox.totalYards += event.yardage;
+      }
     }
 
-    if (event.tags.includes("turnover")) {
+    if (event.tags.includes("turnover") && !negated) {
       offenseBox.turnovers++;
     }
-    if (event.tags.includes("sack")) {
+    if (event.tags.includes("sack") && !negated) {
       defenseBox.sacks++;
     }
-    if (event.tags.includes("penalty")) {
+    if (event.penalty) {
+      if (event.penalty.againstTeamId === (isHome ? homeTeamId : _awayTeamId)) {
+        offenseBox.penalties++;
+      } else {
+        defenseBox.penalties++;
+      }
+    } else if (event.tags.includes("penalty")) {
       offenseBox.penalties++;
     }
   }
