@@ -44,8 +44,10 @@ Build a **sim calibration harness** under
 `server/features/simulation/calibration/` that reads `data/bands/*.json` as the
 sim's behavioral contract, runs the play-by-play engine headless across a
 committed seed sweep, and asserts that the sim's emergent distributions match
-each band within a defined tolerance. The harness runs in CI on every PR that
-touches sim code and fails the build when any metric drifts out of band.
+each band within a defined tolerance. The harness runs on a **daily schedule**
+(not as a per-PR blocking gate) and opens a GitHub Issue when any metric drifts
+out of band. It is also runnable locally so authors can self-check before
+opening a PR.
 
 Bands are never imported as sim _inputs_ — they remain an external oracle. The
 sim reaches the bands by construction (attribute-driven play resolution, per ADR
@@ -104,15 +106,32 @@ the schema.
 
 ### CI integration
 
-- Separate CI job (`sim-calibration`), allowed to be slower than unit tests.
-  Runs only on PRs that touch `server/features/simulation/**`,
-  `server/features/player-generator/**`, or `data/bands/**` (paths-filter on the
-  workflow).
+The harness runs on a **daily schedule**, not on every PR. The seed sweep is a
+heavy job (thousands of full games) and the expected feedback latency makes it a
+poor fit for the per-PR critical path — a PR author waiting 10+ minutes on a
+calibration job will either be tempted to merge around it or stop iterating.
+Daily cadence still surfaces regressions within a business day of the merge that
+caused them, and keeps bisection cheap (one day's worth of merges is a small
+search space).
+
+- Separate scheduled workflow (`sim-calibration.yml`), triggered on a daily cron
+  plus `workflow_dispatch` for manual runs. Also runnable locally as
+  `deno task sim:calibrate` — authors touching sim internals are expected to run
+  it before opening a PR, the same way they run tests.
+- Does **not** block PR merges. Unit tests, typecheck, and lint remain the
+  blocking gates. Calibration is an overnight integration check, not a pre-merge
+  gate.
+- **Revisit if it gets fast.** If harness latency ever lands comfortably under
+  ~2 minutes end-to-end (sim + derivation + assertions), promote it to a per-PR
+  blocking job with a paths-filter on `server/features/simulation/**`,
+  `server/features/player-generator/**`, and `data/bands/**`. Per-PR is strictly
+  better feedback; cadence is a cost compromise, not a principle.
 - Coverage thresholds still apply to the harness code itself under the 85% Deno
   rule — the harness is real code, not just scripts.
-- On failure, the job posts the full failing-metrics report as a PR comment. The
-  PR does not merge until either (a) the sim is tuned back in-band, or (b) the
-  band itself is legitimately moved (see below).
+- On failure, the workflow opens a GitHub issue (or comments on an existing open
+  one) with the full failing-metrics report and the SHA range since the last
+  green run. The issue is the bisection target; the team treats it as a
+  broken-main signal and prioritizes accordingly.
 
 ### Failure contract
 
@@ -165,9 +184,13 @@ fast-mode and play-by-play to be statistically indistinguishable.
   tails (interceptions, fumbles_lost have means < 1.0 per team-game; tail
   behavior needs thousands of samples). Harness latency is a CI concern, not a
   correctness concern — optimize the sim, not the sample size.
-- **Run calibration only nightly, not per-PR** — rejected. Nightly runs decouple
-  the failure from the PR that caused it and make bisection painful. Per-PR is
-  the only point at which the author has full context; pay the latency.
+- **Per-PR blocking job from day one** — rejected for v1. A full seed sweep is
+  expected to take several minutes (2,688 games × ADR 0015's ~600 plays/sec
+  target + harness overhead). Blocking every PR on that latency pushes authors
+  to merge around the job or stop iterating. Daily cadence trades same-PR
+  feedback for a one-day bisection window — a cost the team can absorb. If the
+  harness ever lands comfortably under ~2 minutes, this alternative becomes the
+  right answer; see _CI integration — revisit if it gets fast_.
 - **Check bands at the league-season aggregate level only** (one sim season,
   compare totals) — rejected. A full season is ~544 team-games — smaller N than
   the sweep, and the aggregation hides which metric drifted. Team-game is the
@@ -180,16 +203,17 @@ fast-mode and play-by-play to be statistically indistinguishable.
 - **Front-loads sim-tuning cost.** The first calibration run is likely to fail
   on multiple metrics (by the user's own assessment). Each failure is a separate
   tuning investigation. This is the cost of having a real oracle.
-- **Creates a new CI job latency floor.** A 2,688-game seed sweep at ADR 0015's
-  600 plays/sec target is ~6 minutes of pure sim time; harness overhead
-  (derivation + assertions) adds more. Keep the job in its own workflow so it
-  doesn't block unit-test feedback.
+- **Accepts a bisection window in exchange for low-latency PR feedback.** Daily
+  cadence means a sim regression may land on `main` and not fail until the next
+  overnight run. The team accepts that tradeoff; the mitigation is that authors
+  touching sim internals are expected to run the harness locally
+  (`deno task sim:calibrate`) before opening a PR.
 - **Locks in the calibration-league fixture as versioned state.** Regenerating
   it is a decision the harness surfaces — drift in the fixture shows up as drift
   in the sim.
-- **Blocks merge on real regressions.** A PR that "just" rebalances a play
-  distribution will fail calibration if its rebalance is wrong. This is the
-  whole point.
+- **Surfaces regressions as tracked Issues, not as red PR checks.** A failing
+  scheduled run opens an Issue with the SHA range; fixing it is a first-class
+  piece of work, not a bystander comment on someone else's PR.
 - **Unblocks follow-up band ADRs.** The four open `sim calibration:` issues
   (#246, #247, #248, #249) produce new band JSON files; once the harness is in
   place, each new band plugs in without further architectural work.
