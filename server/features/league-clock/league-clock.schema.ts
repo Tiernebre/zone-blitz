@@ -1,4 +1,5 @@
 import {
+  boolean,
   integer,
   jsonb,
   pgEnum,
@@ -13,6 +14,13 @@ import { users } from "../auth/auth.schema.ts";
 import { teams } from "../team/team.schema.ts";
 
 export const leaguePhaseEnum = pgEnum("league_phase", [
+  "genesis_charter",
+  "genesis_franchise_establishment",
+  "genesis_staff_hiring",
+  "genesis_founding_pool",
+  "genesis_allocation_draft",
+  "genesis_free_agency",
+  "genesis_kickoff",
   "offseason_review",
   "coaching_carousel",
   "tag_window",
@@ -42,6 +50,9 @@ export const leagueClock = pgTable("league_clock", {
   advancedByUserId: text("advanced_by_user_id").references(() => users.id),
   overrideReason: text("override_reason"),
   overrideBlockers: jsonb("override_blockers"),
+  hasCompletedGenesis: boolean("has_completed_genesis").notNull().default(
+    false,
+  ),
 });
 
 export const leaguePhaseStep = pgTable("league_phase_step", {

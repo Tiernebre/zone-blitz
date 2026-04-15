@@ -7,6 +7,62 @@ export interface DefaultPhaseStep {
 }
 
 export const DEFAULT_PHASE_STEPS: DefaultPhaseStep[] = [
+  // genesis_charter
+  {
+    phase: "genesis_charter",
+    stepIndex: 0,
+    slug: "ratify_league_charter",
+    kind: "event",
+  },
+
+  // genesis_franchise_establishment
+  {
+    phase: "genesis_franchise_establishment",
+    stepIndex: 0,
+    slug: "establish_franchises",
+    kind: "event",
+  },
+
+  // genesis_staff_hiring
+  {
+    phase: "genesis_staff_hiring",
+    stepIndex: 0,
+    slug: "hire_initial_staff",
+    kind: "event",
+  },
+
+  // genesis_founding_pool
+  {
+    phase: "genesis_founding_pool",
+    stepIndex: 0,
+    slug: "generate_founding_player_pool",
+    kind: "event",
+  },
+
+  // genesis_allocation_draft
+  {
+    phase: "genesis_allocation_draft",
+    stepIndex: 0,
+    slug: "allocation_draft",
+    kind: "event",
+  },
+
+  // genesis_free_agency
+  {
+    phase: "genesis_free_agency",
+    stepIndex: 0,
+    slug: "genesis_fa_window",
+    kind: "window",
+  },
+
+  // genesis_kickoff
+  {
+    phase: "genesis_kickoff",
+    stepIndex: 0,
+    slug: "league_kickoff",
+    kind: "event",
+  },
+
   // offseason_review
   {
     phase: "offseason_review",
