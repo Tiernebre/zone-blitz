@@ -1,5 +1,7 @@
 import type { OffseasonStage, SeasonPhase } from "./season.ts";
 
+export type AdvancePolicy = "commissioner" | "ready_check";
+
 export interface League {
   id: string;
   name: string;
@@ -10,6 +12,7 @@ export interface League {
   capFloorPercent: number;
   capGrowthRate: number;
   rosterSize: number;
+  advancePolicy: AdvancePolicy;
   createdAt: Date;
   updatedAt: Date;
   lastPlayedAt: Date | null;

@@ -1,148 +1,140 @@
 import type {
   NeutralBucket,
-  PlayerAttributeKey,
   PlayerAttributes,
   SchemeFingerprint,
+  SchemeFitLabel,
 } from "@zone-blitz/shared";
-import { computeSchemeScore, type PlayerForFit } from "../schemes/fit.ts";
 import type {
   DefensiveCall,
   OffensiveCall,
   PlayEvent,
   PlayOutcome,
-  PlayParticipant,
   PlayTag,
 } from "./events.ts";
 import type { SeededRng } from "./rng.ts";
+import { computeSchemeFit } from "../schemes/fit.ts";
+import type { PlayerForFit } from "../schemes/fit.ts";
 
-// ─── Types ───
-
-export type Situation = {
+export interface Situation {
   down: 1 | 2 | 3 | 4;
   distance: number;
   yardLine: number;
-};
+}
 
-export type GameState = {
+export interface GameState {
   gameId: string;
-  quarter: 1 | 2 | 3 | 4 | "OT";
-  clock: string;
   driveIndex: number;
   playIndex: number;
+  quarter: 1 | 2 | 3 | 4 | "OT";
+  clock: string;
   situation: Situation;
   offenseTeamId: string;
   defenseTeamId: string;
-};
+}
 
-export type OnFieldPlayer = {
+export interface PlayerRuntime {
   playerId: string;
   neutralBucket: NeutralBucket;
   attributes: PlayerAttributes;
-};
+}
 
-export type CoachingMods = Record<string, never>;
-
-export type TeamRuntime = {
+export interface TeamRuntime {
   fingerprint: SchemeFingerprint;
-  onField: OnFieldPlayer[];
+  onField: PlayerRuntime[];
   coachingMods: CoachingMods;
-};
+}
+
+export interface CoachingMods {
+  schemeFitBonus: number;
+  situationalBonus: number;
+}
 
 export type MatchupType =
-  | "pass_pro_vs_pass_rush"
-  | "route_vs_coverage"
-  | "block_vs_shed"
-  | "ball_carrier_vs_tackle";
+  | "pass_protection"
+  | "pass_rush"
+  | "route_coverage"
+  | "run_block"
+  | "run_defense";
 
-export type Matchup = {
+export interface Matchup {
   type: MatchupType;
-  attacker: OnFieldPlayer;
-  defender: OnFieldPlayer;
-};
+  attacker: PlayerRuntime;
+  defender: PlayerRuntime;
+}
 
-export type MatchupContribution = {
+export interface MatchupContribution {
   matchup: Matchup;
+  attackerFit: SchemeFitLabel;
+  defenderFit: SchemeFitLabel;
   score: number;
-  tags: PlayTag[];
-};
+}
 
-export type RollMatchupInput = {
-  matchup: Matchup;
-  offenseFingerprint: SchemeFingerprint;
-  defenseFingerprint: SchemeFingerprint;
-  coachingMods: { offense: CoachingMods; defense: CoachingMods };
-  situation: Situation;
-  rng: SeededRng;
-};
+const FORMATIONS = [
+  "shotgun",
+  "under_center",
+  "pistol",
+  "singleback",
+  "i_form",
+] as const;
 
-// ─── Constants ───
+const DEFENSIVE_FRONTS = ["3-4", "4-3", "nickel", "dime"] as const;
+const COVERAGES = [
+  "cover_0",
+  "cover_1",
+  "cover_2",
+  "cover_3",
+  "cover_4",
+  "cover_6",
+] as const;
 
-const RUN_CONCEPTS = [
-  "inside_run",
-  "outside_run",
-  "power_run",
-  "counter_run",
+const RUN_CONCEPTS = new Set([
+  "inside_zone",
+  "outside_zone",
+  "power",
+  "counter",
   "draw",
-] as const;
-
-const PASS_CONCEPTS = [
-  "short_pass",
-  "medium_pass",
-  "deep_pass",
+]);
+const PASS_CONCEPTS = new Set([
   "screen",
+  "quick_pass",
   "play_action",
-] as const;
+  "dropback",
+  "deep_shot",
+]);
 
-const FORMATIONS = ["shotgun", "under_center", "pistol"] as const;
-
-const FRONTS = ["3-4", "4-3", "nickel", "dime"] as const;
-
-const MATCHUP_ATTRIBUTES: Record<
-  MatchupType,
-  {
-    attack: readonly PlayerAttributeKey[];
-    defend: readonly PlayerAttributeKey[];
-  }
-> = {
-  pass_pro_vs_pass_rush: {
-    attack: ["passBlocking", "strength", "agility"],
-    defend: ["passRushing", "acceleration", "strength"],
-  },
-  route_vs_coverage: {
-    attack: ["routeRunning", "catching", "speed"],
-    defend: ["manCoverage", "zoneCoverage", "anticipation"],
-  },
-  block_vs_shed: {
-    attack: ["runBlocking", "strength"],
-    defend: ["blockShedding", "runDefense", "strength"],
-  },
-  ball_carrier_vs_tackle: {
-    attack: ["elusiveness", "speed", "ballCarrying", "acceleration"],
-    defend: ["tackling", "speed", "anticipation"],
-  },
+const FIT_MODIFIER: Record<SchemeFitLabel, number> = {
+  ideal: 10,
+  fits: 5,
+  neutral: 0,
+  poor: -5,
+  miscast: -10,
 };
 
-const OFFENSIVE_LINEMEN: ReadonlySet<NeutralBucket> = new Set([
-  "OT",
-  "IOL",
-]);
-const PASS_RUSHERS: ReadonlySet<NeutralBucket> = new Set(["EDGE", "IDL"]);
-const RECEIVERS: ReadonlySet<NeutralBucket> = new Set(["WR", "TE"]);
-const COVERAGE_DEFENDERS: ReadonlySet<NeutralBucket> = new Set([
-  "CB",
-  "S",
-  "LB",
-]);
-const RUN_BLOCKERS: ReadonlySet<NeutralBucket> = new Set(["OT", "IOL", "TE"]);
-const RUN_DEFENDERS: ReadonlySet<NeutralBucket> = new Set([
-  "IDL",
-  "EDGE",
-  "LB",
-]);
-const BALL_CARRIERS: ReadonlySet<NeutralBucket> = new Set(["RB"]);
-const TACKLERS: ReadonlySet<NeutralBucket> = new Set(["LB", "S", "CB"]);
-
-// ─── drawOffensiveCall ───
+const MATCHUP_ATTR_KEYS: Record<MatchupType, {
+  attacker: readonly (keyof PlayerAttributes)[];
+  defender: readonly (keyof PlayerAttributes)[];
+}> = {
+  pass_protection: {
+    attacker: ["passBlocking", "strength", "agility"],
+    defender: ["passRushing", "acceleration", "strength"],
+  },
+  pass_rush: {
+    attacker: ["passRushing", "acceleration", "agility"],
+    defender: ["passBlocking", "strength", "agility"],
+  },
+  route_coverage: {
+    attacker: ["routeRunning", "speed", "catching"],
+    defender: ["manCoverage", "zoneCoverage", "speed"],
+  },
+  run_block: {
+    attacker: ["runBlocking", "strength", "acceleration"],
+    defender: ["blockShedding", "strength", "runDefense"],
+  },
+  run_defense: {
+    attacker: ["blockShedding", "tackling", "runDefense"],
+    defender: ["runBlocking", "strength", "acceleration"],
+  },
+};
 
 export function drawOffensiveCall(
   fingerprint: SchemeFingerprint,
@@ -151,73 +143,50 @@ export function drawOffensiveCall(
 ): OffensiveCall {
   const offense = fingerprint.offense;
   const runPassLean = offense?.runPassLean ?? 50;
-  const personnelWeight = offense?.personnelWeight ?? 50;
-  const formationLean = offense?.formationUnderCenterShotgun ?? 50;
-  const motionRate = offense?.preSnapMotionRate ?? 50;
-  const passingDepth = offense?.passingDepth ?? 50;
-  const runBlocking = offense?.runGameBlocking ?? 50;
 
-  let passProbability = 0.3 + (runPassLean / 100) * 0.4;
+  const isShortYardage = situation.down >= 3 && situation.distance <= 3;
+  const isLongYardage = situation.distance >= 7;
 
-  if (situation.down === 3 && situation.distance >= 7) {
-    passProbability += 0.25;
-  } else if (situation.down === 3 && situation.distance >= 4) {
-    passProbability += 0.15;
-  }
-  if (situation.yardLine <= 3) {
-    passProbability -= 0.2;
-  }
-  passProbability = Math.max(0.1, Math.min(0.9, passProbability));
+  let runProbability = (100 - runPassLean) / 100;
+  if (isShortYardage) runProbability += 0.2;
+  if (isLongYardage) runProbability -= 0.2;
+  runProbability = Math.max(0.1, Math.min(0.9, runProbability));
 
-  const isPass = rng.next() < passProbability;
+  const isRun = rng.next() < runProbability;
 
   let concept: string;
-  if (isPass) {
-    if (passingDepth < 35) {
-      concept = rng.pick(["short_pass", "screen"]);
-    } else if (passingDepth > 65) {
-      concept = rng.pick(["deep_pass", "play_action"]);
-    } else {
-      concept = rng.pick([...PASS_CONCEPTS]);
+  if (isRun) {
+    const runConcepts = [...RUN_CONCEPTS];
+    if ((offense?.rpoIntegration ?? 50) > 60) runConcepts.push("rpo");
+    concept = rng.pick(runConcepts);
+  } else {
+    const passConcepts = [...PASS_CONCEPTS];
+    if (isLongYardage && (offense?.passingDepth ?? 50) > 50) {
+      passConcepts.push("deep_shot");
     }
-  } else {
-    if (runBlocking < 40) {
-      concept = rng.pick(["inside_run", "outside_run"]);
-    } else if (runBlocking > 60) {
-      concept = rng.pick(["power_run", "counter_run"]);
-    } else {
-      concept = rng.pick([...RUN_CONCEPTS]);
-    }
+    concept = rng.pick(passConcepts);
   }
 
-  let personnel: string;
-  if (personnelWeight < 30) {
-    personnel = "11";
-  } else if (personnelWeight < 60) {
-    personnel = rng.pick(["11", "12"]);
-  } else if (personnelWeight < 80) {
-    personnel = rng.pick(["12", "21"]);
-  } else {
-    personnel = rng.pick(["21", "22"]);
-  }
+  const personnelWeight = offense?.personnelWeight ?? 50;
+  const heavyPersonnel = personnelWeight > 60;
+  const personnel = heavyPersonnel
+    ? rng.pick(["12", "21", "22"] as const)
+    : rng.pick(["11", "10"] as const);
 
-  let formation: string;
-  if (formationLean < 30) {
-    formation = "under_center";
-  } else if (formationLean > 70) {
-    formation = "shotgun";
-  } else {
-    formation = rng.pick([...FORMATIONS]);
-  }
+  const formationLean = offense?.formationUnderCenterShotgun ?? 50;
+  const formation = formationLean > 60
+    ? rng.pick(["shotgun", "pistol"] as const)
+    : formationLean < 40
+    ? rng.pick(["under_center", "singleback", "i_form"] as const)
+    : rng.pick(FORMATIONS);
 
-  const motion = rng.next() < motionRate / 100
-    ? rng.pick(["jet", "orbit", "shift"])
+  const motionRate = offense?.preSnapMotionRate ?? 50;
+  const motion = rng.next() * 100 < motionRate
+    ? rng.pick(["jet", "orbit", "shift"] as const)
     : "none";
 
   return { concept, personnel, formation, motion };
 }
-
-// ─── drawDefensiveCall ───
 
 export function drawDefensiveCall(
   fingerprint: SchemeFingerprint,
@@ -225,169 +194,225 @@ export function drawDefensiveCall(
   rng: SeededRng,
 ): DefensiveCall {
   const defense = fingerprint.defense;
-  const frontOddEven = defense?.frontOddEven ?? 50;
-  const subPackageLean = defense?.subPackageLean ?? 50;
-  const coverageManZone = defense?.coverageManZone ?? 50;
-  const coverageShell = defense?.coverageShell ?? 50;
-  const pressureRate = defense?.pressureRate ?? 50;
 
+  const frontLean = defense?.frontOddEven ?? 50;
+  const subPackage = defense?.subPackageLean ?? 50;
   let front: string;
-  if (subPackageLean > 70) {
-    front = rng.pick(["nickel", "dime"]);
-  } else if (frontOddEven < 40) {
+  if (subPackage > 65) {
+    front = rng.pick(["nickel", "dime"] as const);
+  } else if (frontLean < 40) {
     front = "3-4";
-  } else if (frontOddEven > 60) {
+  } else if (frontLean > 60) {
     front = "4-3";
   } else {
-    front = rng.pick([...FRONTS]);
+    front = rng.pick(DEFENSIVE_FRONTS);
   }
 
+  const manZone = defense?.coverageManZone ?? 50;
+  const shell = defense?.coverageShell ?? 50;
   let coverage: string;
-  const isMan = rng.next() < (1 - coverageManZone / 100);
-  if (isMan) {
-    coverage = coverageShell < 50 ? "cover_1" : "cover_0";
+  if (manZone < 35) {
+    coverage = shell < 50
+      ? rng.pick(["cover_0", "cover_1"] as const)
+      : "cover_1";
+  } else if (manZone > 65) {
+    coverage = shell > 60
+      ? rng.pick(["cover_2", "cover_4", "cover_6"] as const)
+      : "cover_3";
   } else {
-    if (coverageShell < 40) {
-      coverage = "cover_3";
-    } else if (coverageShell > 60) {
-      coverage = rng.pick(["cover_2", "cover_4"]);
-    } else {
-      coverage = rng.pick(["cover_2", "cover_3", "cover_4", "cover_6"]);
-    }
+    coverage = rng.pick(COVERAGES);
   }
 
-  let blitzProbability = 0.1 + (pressureRate / 100) * 0.5;
-  if (situation.down === 3 && situation.distance >= 5) {
-    blitzProbability += 0.1;
-  }
-  blitzProbability = Math.max(0.05, Math.min(0.8, blitzProbability));
+  const pressureRate = defense?.pressureRate ?? 50;
+  const isPassSituation = situation.down >= 3 && situation.distance >= 5;
+  let blitzProb = pressureRate / 100;
+  if (isPassSituation) blitzProb += 0.15;
+  blitzProb = Math.max(0.05, Math.min(0.8, blitzProb));
 
   let pressure: string;
-  const roll = rng.next();
-  if (roll < blitzProbability * 0.3) {
-    pressure = "zero_blitz";
-  } else if (roll < blitzProbability) {
-    pressure = "blitz";
+  if (rng.next() < blitzProb) {
+    pressure = manZone < 50
+      ? rng.pick(["man_blitz", "all_out"] as const)
+      : rng.pick(["zone_blitz", "man_blitz"] as const);
   } else {
-    pressure = "base";
+    pressure = "four_man";
   }
 
   return { front, coverage, pressure };
 }
 
-// ─── identifyMatchups ───
-
-function filterByBucket(
-  players: OnFieldPlayer[],
-  buckets: ReadonlySet<NeutralBucket>,
-): OnFieldPlayer[] {
-  return players.filter((p) => buckets.has(p.neutralBucket));
-}
-
-function zipPair(
-  attackers: OnFieldPlayer[],
-  defenders: OnFieldPlayer[],
-  type: MatchupType,
-): Matchup[] {
-  const count = Math.min(attackers.length, defenders.length);
-  const result: Matchup[] = [];
-  for (let i = 0; i < count; i++) {
-    result.push({ type, attacker: attackers[i], defender: defenders[i] });
-  }
-  return result;
-}
+const OFFENSIVE_POSITIONS = new Set<NeutralBucket>([
+  "QB",
+  "RB",
+  "WR",
+  "TE",
+  "OT",
+  "IOL",
+]);
+const DEFENSIVE_POSITIONS = new Set<NeutralBucket>([
+  "EDGE",
+  "IDL",
+  "LB",
+  "CB",
+  "S",
+]);
 
 export function identifyMatchups(
   call: OffensiveCall,
-  _coverage: DefensiveCall,
-  offenseOnField: OnFieldPlayer[],
-  defenseOnField: OnFieldPlayer[],
+  coverage: DefensiveCall,
+  offenseOnField: PlayerRuntime[],
+  defenseOnField: PlayerRuntime[],
 ): Matchup[] {
-  const isRun = call.concept.includes("run") || call.concept === "draw";
+  const matchups: Matchup[] = [];
 
-  if (isRun) {
-    const blockers = filterByBucket(offenseOnField, RUN_BLOCKERS);
-    const defenders = filterByBucket(defenseOnField, RUN_DEFENDERS);
-    const carriers = filterByBucket(offenseOnField, BALL_CARRIERS);
-    const tacklers = filterByBucket(defenseOnField, TACKLERS);
+  const offensivePlayers = offenseOnField.filter((p) =>
+    OFFENSIVE_POSITIONS.has(p.neutralBucket)
+  );
+  const defensivePlayers = defenseOnField.filter((p) =>
+    DEFENSIVE_POSITIONS.has(p.neutralBucket)
+  );
 
-    return [
-      ...zipPair(blockers, defenders, "block_vs_shed"),
-      ...zipPair(carriers, tacklers, "ball_carrier_vs_tackle"),
-    ];
+  const isRunPlay = RUN_CONCEPTS.has(call.concept);
+  const isBlitz = coverage.pressure !== "four_man";
+
+  const oLinemen = offensivePlayers.filter((p) =>
+    p.neutralBucket === "OT" || p.neutralBucket === "IOL"
+  );
+  const passRushers = defensivePlayers.filter((p) =>
+    p.neutralBucket === "EDGE" || p.neutralBucket === "IDL"
+  );
+  const receivers = offensivePlayers.filter((p) =>
+    p.neutralBucket === "WR" || p.neutralBucket === "TE"
+  );
+  const coveragePlayers = defensivePlayers.filter((p) =>
+    p.neutralBucket === "CB" || p.neutralBucket === "S" ||
+    p.neutralBucket === "LB"
+  );
+  const runBlockers = offensivePlayers.filter((p) =>
+    p.neutralBucket === "OT" || p.neutralBucket === "IOL" ||
+    p.neutralBucket === "TE" || p.neutralBucket === "RB"
+  );
+  const runDefenders = defensivePlayers.filter((p) =>
+    p.neutralBucket === "IDL" || p.neutralBucket === "EDGE" ||
+    p.neutralBucket === "LB"
+  );
+
+  if (isRunPlay) {
+    const pairCount = Math.min(runBlockers.length, runDefenders.length);
+    for (let i = 0; i < pairCount; i++) {
+      matchups.push({
+        type: "run_block",
+        attacker: runBlockers[i],
+        defender: runDefenders[i],
+      });
+    }
+  } else {
+    const protectionPairs = Math.min(oLinemen.length, passRushers.length);
+    for (let i = 0; i < protectionPairs; i++) {
+      matchups.push({
+        type: "pass_protection",
+        attacker: oLinemen[i],
+        defender: passRushers[i],
+      });
+    }
+
+    if (isBlitz) {
+      const blitzers = coveragePlayers.filter((p) => p.neutralBucket === "LB");
+      const extraBlockers = offensivePlayers.filter((p) =>
+        p.neutralBucket === "RB"
+      );
+      const blitzPairs = Math.min(blitzers.length, extraBlockers.length);
+      for (let i = 0; i < blitzPairs; i++) {
+        matchups.push({
+          type: "pass_rush",
+          attacker: blitzers[i],
+          defender: extraBlockers[i],
+        });
+      }
+    }
+
+    const coverDBs = coveragePlayers.filter((p) =>
+      p.neutralBucket === "CB" || p.neutralBucket === "S"
+    );
+    const routePairs = Math.min(receivers.length, coverDBs.length);
+    for (let i = 0; i < routePairs; i++) {
+      matchups.push({
+        type: "route_coverage",
+        attacker: receivers[i],
+        defender: coverDBs[i],
+      });
+    }
   }
 
-  const protectors = filterByBucket(offenseOnField, OFFENSIVE_LINEMEN);
-  const rushers = filterByBucket(defenseOnField, PASS_RUSHERS);
-  const receivers = filterByBucket(offenseOnField, RECEIVERS);
-  const coverageDefenders = filterByBucket(defenseOnField, COVERAGE_DEFENDERS);
-
-  return [
-    ...zipPair(protectors, rushers, "pass_pro_vs_pass_rush"),
-    ...zipPair(receivers, coverageDefenders, "route_vs_coverage"),
-  ];
+  return matchups;
 }
 
-// ─── rollMatchup ───
+export function rollMatchup(
+  input: {
+    attacker: PlayerRuntime;
+    defender: PlayerRuntime;
+    schemeFitAttacker: SchemeFitLabel;
+    schemeFitDefender: SchemeFitLabel;
+    coaching: { offense: CoachingMods; defense: CoachingMods };
+    situation: Situation;
+    matchupType: MatchupType;
+    rng: SeededRng;
+  },
+): MatchupContribution {
+  const keys = MATCHUP_ATTR_KEYS[input.matchupType];
 
-function attrAverage(
-  player: OnFieldPlayer,
-  keys: readonly PlayerAttributeKey[],
-): number {
-  let sum = 0;
-  for (const key of keys) {
-    sum += player.attributes[key] ?? 0;
+  let attackerScore = 0;
+  for (const attr of keys.attacker) {
+    attackerScore += input.attacker.attributes[attr] ?? 0;
   }
-  return sum / keys.length;
-}
+  attackerScore /= keys.attacker.length;
 
-function schemeFitModifier(
-  player: OnFieldPlayer,
-  fingerprint: SchemeFingerprint,
-): number {
-  const forFit: PlayerForFit = {
-    neutralBucket: player.neutralBucket,
-    attributes: player.attributes,
+  let defenderScore = 0;
+  for (const attr of keys.defender) {
+    defenderScore += input.defender.attributes[attr] ?? 0;
+  }
+  defenderScore /= keys.defender.length;
+
+  const fitModAttacker = FIT_MODIFIER[input.schemeFitAttacker];
+  const fitModDefender = FIT_MODIFIER[input.schemeFitDefender];
+
+  const coachingModAttacker = input.coaching.offense.schemeFitBonus +
+    input.coaching.offense.situationalBonus;
+  const coachingModDefender = input.coaching.defense.schemeFitBonus +
+    input.coaching.defense.situationalBonus;
+
+  let situationMod = 0;
+  if (input.situation.down === 3 && input.situation.distance >= 8) {
+    if (
+      input.matchupType === "pass_rush" ||
+      input.matchupType === "pass_protection"
+    ) {
+      situationMod = 3;
+    }
+  }
+  if (input.situation.yardLine <= 10) {
+    situationMod += 2;
+  }
+
+  const perturbation = input.rng.gaussian(0, 5, -15, 15);
+
+  const rawScore = (attackerScore + fitModAttacker + coachingModAttacker) -
+    (defenderScore + fitModDefender + coachingModDefender) +
+    situationMod + perturbation;
+
+  const score = Math.max(-50, Math.min(50, rawScore));
+
+  return {
+    matchup: {
+      type: input.matchupType,
+      attacker: input.attacker,
+      defender: input.defender,
+    },
+    attackerFit: input.schemeFitAttacker,
+    defenderFit: input.schemeFitDefender,
+    score,
   };
-  const score = computeSchemeScore(forFit, fingerprint);
-  return (score - 50) / 5;
 }
-
-function situationModifier(situation: Situation): number {
-  let mod = 0;
-  if (situation.down === 3 && situation.distance >= 7) mod -= 2;
-  if (situation.yardLine <= 5) mod += 2;
-  return mod;
-}
-
-export function rollMatchup(input: RollMatchupInput): MatchupContribution {
-  const { matchup, offenseFingerprint, defenseFingerprint, situation, rng } =
-    input;
-  const attrs = MATCHUP_ATTRIBUTES[matchup.type];
-
-  const attackScore = attrAverage(matchup.attacker, attrs.attack);
-  const defendScore = attrAverage(matchup.defender, attrs.defend);
-
-  const attackFit = schemeFitModifier(matchup.attacker, offenseFingerprint);
-  const defendFit = schemeFitModifier(matchup.defender, defenseFingerprint);
-
-  const sitMod = situationModifier(situation);
-  const noise = rng.gaussian(0, 8, -20, 20);
-
-  const score = (attackScore - defendScore) + (attackFit - defendFit) + sitMod +
-    noise;
-
-  const tags: PlayTag[] = [];
-  if (
-    matchup.type === "pass_pro_vs_pass_rush" && score < -15
-  ) {
-    tags.push("pressure");
-  }
-
-  return { matchup, score, tags };
-}
-
-// ─── synthesizeOutcome ───
 
 export function synthesizeOutcome(
   call: OffensiveCall,
@@ -396,30 +421,169 @@ export function synthesizeOutcome(
   state: GameState,
   rng: SeededRng,
 ): PlayEvent {
-  const isRun = call.concept.includes("run") || call.concept === "draw";
-  const participants = buildParticipants(contributions);
+  const isRunPlay = RUN_CONCEPTS.has(call.concept);
+  const avgScore = contributions.length > 0
+    ? contributions.reduce((sum, c) => sum + c.score, 0) / contributions.length
+    : 0;
 
+  const participants = contributions.map((c) => ({
+    role: c.matchup.type,
+    playerId: c.matchup.attacker.playerId,
+    tags: [] as string[],
+  }));
+
+  const tags: PlayTag[] = [];
   let outcome: PlayOutcome;
   let yardage: number;
-  const tags: PlayTag[] = [];
 
-  for (const c of contributions) {
-    tags.push(...c.tags);
-  }
+  if (isRunPlay) {
+    const blockingContribs = contributions.filter(
+      (c) => c.matchup.type === "run_block" || c.matchup.type === "run_defense",
+    );
+    const blockScore = blockingContribs.length > 0
+      ? blockingContribs.reduce((s, c) => s + c.score, 0) /
+        blockingContribs.length
+      : avgScore;
 
-  if (isRun) {
-    ({ outcome, yardage } = resolveRun(contributions, rng));
+    if (blockScore < -20) {
+      yardage = rng.int(-3, 0);
+    } else if (blockScore < -5) {
+      yardage = rng.int(0, 3);
+    } else if (blockScore > 15) {
+      yardage = rng.int(8, 25);
+      tags.push("big_play");
+    } else {
+      yardage = rng.int(2, 7);
+    }
+
+    if (rng.next() < 0.015) {
+      outcome = "fumble";
+      tags.push("fumble", "turnover");
+    } else {
+      outcome = "rush";
+    }
+
+    if (yardage >= state.situation.distance) {
+      tags.push("first_down");
+    }
+
+    const rb = contributions.find(
+      (c) => c.matchup.attacker.neutralBucket === "RB",
+    );
+    if (rb) {
+      const idx = participants.findIndex(
+        (p) => p.playerId === rb.matchup.attacker.playerId,
+      );
+      if (idx >= 0) participants[idx].tags.push("ball_carrier");
+    }
   } else {
-    ({ outcome, yardage } = resolvePass(contributions, call, rng));
+    const protectionContribs = contributions.filter(
+      (c) =>
+        c.matchup.type === "pass_protection" ||
+        c.matchup.type === "pass_rush",
+    );
+    const protectionScore = protectionContribs.length > 0
+      ? protectionContribs.reduce((s, c) => s + c.score, 0) /
+        protectionContribs.length
+      : avgScore;
+
+    if (protectionScore < -15) {
+      outcome = "sack";
+      yardage = rng.int(-10, -3);
+      tags.push("sack", "pressure");
+
+      const rusher = contributions.find((c) =>
+        c.matchup.type === "pass_rush" ||
+        (c.matchup.type === "pass_protection" &&
+          c.score < 0)
+      );
+      if (rusher) {
+        const idx = participants.findIndex(
+          (p) => p.playerId === rusher.matchup.defender.playerId,
+        );
+        if (idx >= 0) {
+          participants[idx].tags.push("sack");
+        } else {
+          participants.push({
+            role: "pass_rush",
+            playerId: rusher.matchup.defender.playerId,
+            tags: ["sack"],
+          });
+        }
+      }
+
+      if (rng.next() < 0.08) {
+        outcome = "fumble";
+        tags.push("fumble", "turnover");
+      }
+    } else {
+      if (protectionScore < -5) {
+        tags.push("pressure");
+      }
+
+      const routeContribs = contributions.filter(
+        (c) => c.matchup.type === "route_coverage",
+      );
+      const coverageScore = routeContribs.length > 0
+        ? routeContribs.reduce((s, c) => s + c.score, 0) /
+          routeContribs.length
+        : avgScore;
+
+      if (coverageScore > 10) {
+        outcome = "pass_complete";
+        yardage = rng.int(8, 30);
+        tags.push("big_play");
+        const target = routeContribs.find((c) => c.score > 0);
+        if (target) {
+          const idx = participants.findIndex(
+            (p) => p.playerId === target.matchup.attacker.playerId,
+          );
+          if (idx >= 0) participants[idx].tags.push("target", "reception");
+        }
+      } else if (coverageScore > -5) {
+        outcome = "pass_complete";
+        yardage = rng.int(3, 12);
+        const target = routeContribs[0];
+        if (target) {
+          const idx = participants.findIndex(
+            (p) => p.playerId === target.matchup.attacker.playerId,
+          );
+          if (idx >= 0) participants[idx].tags.push("target", "reception");
+        }
+      } else if (coverageScore < -15 && rng.next() < 0.15) {
+        outcome = "interception";
+        yardage = 0;
+        tags.push("interception", "turnover");
+
+        const interceptor = routeContribs.find((c) => c.score < -10);
+        if (interceptor) {
+          const idx = participants.findIndex(
+            (p) => p.playerId === interceptor.matchup.defender.playerId,
+          );
+          if (idx >= 0) {
+            participants[idx].tags.push("interception");
+          } else {
+            participants.push({
+              role: "route_coverage",
+              playerId: interceptor.matchup.defender.playerId,
+              tags: ["interception"],
+            });
+          }
+        }
+      } else {
+        outcome = "pass_incomplete";
+        yardage = 0;
+      }
+
+      if (
+        outcome === "pass_complete" && yardage >= state.situation.distance
+      ) {
+        tags.push("first_down");
+      }
+    }
   }
 
-  const fumbleRoll = rng.next();
-  if (fumbleRoll < 0.02 && outcome !== "sack" && outcome !== "interception") {
-    outcome = "fumble";
-    tags.push("fumble", "turnover");
-  }
-
-  if (rng.next() < 0.03) {
+  if (rng.next() < 0.05) {
     tags.push("penalty");
   }
 
@@ -427,15 +591,10 @@ export function synthesizeOutcome(
     tags.push("injury");
   }
 
-  if (yardage >= state.situation.distance) {
-    tags.push("first_down");
-  }
-  if (yardage >= 20) {
-    tags.push("big_play");
-  }
-  if (state.situation.yardLine + yardage >= 100) {
+  const yardsToEndzone = 100 - state.situation.yardLine;
+  if (yardage >= yardsToEndzone && !tags.includes("turnover")) {
     outcome = "touchdown";
-    yardage = 100 - state.situation.yardLine;
+    yardage = yardsToEndzone;
     tags.push("touchdown");
   }
 
@@ -451,132 +610,11 @@ export function synthesizeOutcome(
     call,
     coverage,
     participants,
-    outcome,
-    yardage,
+    outcome: outcome!,
+    yardage: yardage!,
     tags,
   };
 }
-
-function resolvePass(
-  contributions: MatchupContribution[],
-  call: OffensiveCall,
-  rng: SeededRng,
-): { outcome: PlayOutcome; yardage: number } {
-  const proContributions = contributions.filter(
-    (c) => c.matchup.type === "pass_pro_vs_pass_rush",
-  );
-  const routeContributions = contributions.filter(
-    (c) => c.matchup.type === "route_vs_coverage",
-  );
-
-  const avgProScore = proContributions.length > 0
-    ? proContributions.reduce((sum, c) => sum + c.score, 0) /
-      proContributions.length
-    : 0;
-
-  if (avgProScore < -15 && rng.next() < 0.6) {
-    return { outcome: "sack", yardage: -rng.int(3, 10) };
-  }
-
-  if (avgProScore < -5) {
-    if (rng.next() < 0.3) {
-      return { outcome: "sack", yardage: -rng.int(2, 8) };
-    }
-  }
-
-  const bestRoute = routeContributions.length > 0
-    ? routeContributions.reduce((best, c) => c.score > best.score ? c : best)
-    : null;
-
-  if (!bestRoute) {
-    return { outcome: "pass_incomplete", yardage: 0 };
-  }
-
-  if (bestRoute.score < -20 && rng.next() < 0.15) {
-    return { outcome: "interception", yardage: 0 };
-  }
-
-  const completionBase = 0.55 + bestRoute.score / 100;
-  const completionChance = Math.max(0.15, Math.min(0.9, completionBase));
-
-  if (rng.next() < completionChance) {
-    const depthBase = call.concept.includes("deep")
-      ? 25
-      : call.concept.includes("medium") || call.concept === "play_action"
-      ? 14
-      : call.concept === "screen"
-      ? 3
-      : 7;
-
-    const yardage = Math.max(
-      -2,
-      depthBase + rng.gaussian(0, 5, -10, 30) +
-        Math.round(bestRoute.score / 10),
-    );
-    return { outcome: "pass_complete", yardage };
-  }
-
-  return { outcome: "pass_incomplete", yardage: 0 };
-}
-
-function resolveRun(
-  contributions: MatchupContribution[],
-  rng: SeededRng,
-): { outcome: PlayOutcome; yardage: number } {
-  const blockContributions = contributions.filter(
-    (c) => c.matchup.type === "block_vs_shed",
-  );
-  const carrierContributions = contributions.filter(
-    (c) => c.matchup.type === "ball_carrier_vs_tackle",
-  );
-
-  const avgBlock = blockContributions.length > 0
-    ? blockContributions.reduce((sum, c) => sum + c.score, 0) /
-      blockContributions.length
-    : 0;
-
-  const avgCarrier = carrierContributions.length > 0
-    ? carrierContributions.reduce((sum, c) => sum + c.score, 0) /
-      carrierContributions.length
-    : 0;
-
-  const baseYardage = 3.5 + (avgBlock / 10) + (avgCarrier / 15);
-  const yardage = Math.round(
-    baseYardage + rng.gaussian(0, 3, -5, 15),
-  );
-
-  return { outcome: "rush", yardage: Math.max(-5, yardage) };
-}
-
-function buildParticipants(
-  contributions: MatchupContribution[],
-): PlayParticipant[] {
-  const seen = new Set<string>();
-  const participants: PlayParticipant[] = [];
-
-  for (const c of contributions) {
-    if (!seen.has(c.matchup.attacker.playerId)) {
-      seen.add(c.matchup.attacker.playerId);
-      participants.push({
-        role: c.matchup.type.split("_vs_")[0],
-        playerId: c.matchup.attacker.playerId,
-        tags: c.tags.filter((t) => t === "pressure"),
-      });
-    }
-    if (!seen.has(c.matchup.defender.playerId)) {
-      seen.add(c.matchup.defender.playerId);
-      participants.push({
-        role: c.matchup.type.split("_vs_")[1],
-        playerId: c.matchup.defender.playerId,
-        tags: [],
-      });
-    }
-  }
-
-  return participants;
-}
-
-// ─── resolvePlay ───
 
 export function resolvePlay(
   state: GameState,
@@ -593,19 +631,30 @@ export function resolvePlay(
     defense.onField,
   );
 
-  const contributions = matchups.map((matchup) =>
-    rollMatchup({
-      matchup,
-      offenseFingerprint: offense.fingerprint,
-      defenseFingerprint: defense.fingerprint,
-      coachingMods: {
+  const contributions = matchups.map((m) => {
+    const attackerForFit: PlayerForFit = {
+      neutralBucket: m.attacker.neutralBucket,
+      attributes: m.attacker.attributes,
+    };
+    const defenderForFit: PlayerForFit = {
+      neutralBucket: m.defender.neutralBucket,
+      attributes: m.defender.attributes,
+    };
+
+    return rollMatchup({
+      attacker: m.attacker,
+      defender: m.defender,
+      schemeFitAttacker: computeSchemeFit(attackerForFit, offense.fingerprint),
+      schemeFitDefender: computeSchemeFit(defenderForFit, defense.fingerprint),
+      coaching: {
         offense: offense.coachingMods,
         defense: defense.coachingMods,
       },
       situation: state.situation,
+      matchupType: m.type,
       rng,
-    })
-  );
+    });
+  });
 
   return synthesizeOutcome(call, coverage, contributions, state, rng);
 }

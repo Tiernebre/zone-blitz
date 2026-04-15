@@ -31,6 +31,15 @@ export type PlayOutcome =
   | "kneel"
   | "spike";
 
+export type InjurySeverity =
+  | "shake_off"
+  | "miss_drive"
+  | "miss_quarter"
+  | "miss_game"
+  | "miss_weeks"
+  | "miss_season"
+  | "career_ending";
+
 export type PlayTag =
   | "first_down"
   | "turnover"
@@ -44,7 +53,14 @@ export type PlayTag =
   | "pressure"
   | "interception"
   | "fumble"
-  | "fumble_recovery";
+  | "fumble_recovery"
+  | "injury_shake_off"
+  | "injury_miss_drive"
+  | "injury_miss_quarter"
+  | "injury_miss_game"
+  | "injury_miss_weeks"
+  | "injury_miss_season"
+  | "injury_career_ending";
 
 export type PlayEvent = {
   gameId: string;
@@ -63,11 +79,45 @@ export type PlayEvent = {
   tags: PlayTag[];
 };
 
-export type BoxScore = Record<string, unknown>;
+export type DriveResult =
+  | "touchdown"
+  | "field_goal"
+  | "punt"
+  | "turnover"
+  | "turnover_on_downs"
+  | "end_of_half"
+  | "safety";
 
-export type DriveSummary = Record<string, unknown>;
+export type DriveSummary = {
+  driveIndex: number;
+  offenseTeamId: string;
+  startYardLine: number;
+  plays: number;
+  yards: number;
+  result: DriveResult;
+};
 
-export type InjuryEntry = Record<string, unknown>;
+export type TeamBoxScore = {
+  totalYards: number;
+  passingYards: number;
+  rushingYards: number;
+  turnovers: number;
+  sacks: number;
+  penalties: number;
+};
+
+export type BoxScore = {
+  home: TeamBoxScore;
+  away: TeamBoxScore;
+};
+
+export type InjuryEntry = {
+  playerId: string;
+  playIndex: number;
+  driveIndex: number;
+  quarter: 1 | 2 | 3 | 4 | "OT";
+  severity: InjurySeverity;
+};
 
 export type GameResult = {
   gameId: string;

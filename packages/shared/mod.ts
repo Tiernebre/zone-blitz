@@ -1,6 +1,7 @@
 // Types
 export type { HealthStatus } from "./types/health.ts";
 export type {
+  AdvancePolicy,
   League,
   LeagueListItem,
   LeagueSeasonSummary,
@@ -182,7 +183,11 @@ export type {
 } from "./interfaces/ai/gm-strategy.ts";
 
 // Schemas
-export { assignUserTeamSchema, createLeagueSchema } from "./schemas/league.ts";
+export {
+  assignUserTeamSchema,
+  castAdvanceVoteSchema,
+  createLeagueSchema,
+} from "./schemas/league.ts";
 export {
   attributeRatingSchema,
   playerAttributesSchema,
@@ -193,6 +198,15 @@ export type { StatColumnDefinition } from "./statistics/position-stat-columns.ts
 export { statColumnsForBucket } from "./statistics/position-stat-columns.ts";
 export type { CareerTotalsResult } from "./statistics/career-totals.ts";
 export { computeCareerTotals } from "./statistics/career-totals.ts";
+
+// RNG
+export {
+  createRng,
+  createSeededRng,
+  deriveGameSeed,
+  mulberry32,
+} from "./rng/mod.ts";
+export type { SeededRng } from "./rng/mod.ts";
 
 // Errors
 export { DomainError } from "./errors/domain-error.ts";

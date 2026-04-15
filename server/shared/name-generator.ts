@@ -1,9 +1,12 @@
+import { createSeededRng, type SeededRng } from "@zone-blitz/shared";
+
 export interface NameGenerator {
   next(): { firstName: string; lastName: string };
 }
 
 export interface NameGeneratorOptions {
   seed?: number;
+  rng?: SeededRng;
   firstNames?: readonly string[];
   lastNames?: readonly string[];
 }
@@ -1308,32 +1311,19 @@ export const LAST_NAMES: readonly string[] = [
   "Zimmerman",
 ];
 
-// mulberry32 — small, fast, deterministic. A 32-bit seed is plenty for name
-// sampling; we are not using this for anything cryptographic.
-function mulberry32(seed: number): () => number {
-  let state = seed >>> 0;
-  return () => {
-    state = (state + 0x6D2B79F5) >>> 0;
-    let t = state;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 export function createNameGenerator(
   options: NameGeneratorOptions = {},
 ): NameGenerator {
   const firsts = options.firstNames ?? FIRST_NAMES;
   const lasts = options.lastNames ?? LAST_NAMES;
-  const seed = options.seed ?? ((Math.random() * 2 ** 32) >>> 0);
-  const rand = mulberry32(seed);
+  const rng = options.rng ??
+    createSeededRng(options.seed ?? ((Math.random() * 2 ** 32) >>> 0));
 
   return {
     next() {
       return {
-        firstName: firsts[Math.floor(rand() * firsts.length)],
-        lastName: lasts[Math.floor(rand() * lasts.length)],
+        firstName: rng.pick(firsts),
+        lastName: rng.pick(lasts),
       };
     },
   };
