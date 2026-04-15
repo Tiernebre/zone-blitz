@@ -350,13 +350,11 @@ Deno.test("simulateGame", async (t) => {
             const playerInPlay = event.participants.some(
               (p) => p.playerId === injury.playerId,
             );
-            if (playerInPlay && injury.severity !== "shake_off") {
-              assertEquals(
-                playerInPlay,
-                false,
-                `Injured player ${injury.playerId} (${injury.severity}) appeared after injury on play ${injury.playIndex}`,
-              );
-            }
+            assertEquals(
+              playerInPlay,
+              false,
+              `Injured player ${injury.playerId} (${injury.severity}) appeared after injury on play ${injury.playIndex}`,
+            );
           }
         }
       }
