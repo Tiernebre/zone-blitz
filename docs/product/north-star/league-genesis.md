@@ -806,3 +806,4 @@ season coverage patterns. See [Media](./media.md).
 - [0019 — Inaugural Year 1 calendar (no preseason)](../decisions/0019-inaugural-year-one-calendar.md)
 - [0021 — Deprecate established mode; genesis is the only creation flow](../decisions/0021-deprecate-established-mode.md)
 - [0022 — Fused owner/GM role as canonical](../decisions/0022-fused-owner-gm-role.md)
+- [0023 — Allocation draft as Year 1's only draft](../decisions/0023-allocation-draft-as-year-one-only-draft.md)
