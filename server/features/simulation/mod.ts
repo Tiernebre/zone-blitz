@@ -1,14 +1,17 @@
 export type {
   BoxScore,
   DefensiveCall,
+  DriveResult,
   DriveSummary,
   GameResult,
   InjuryEntry,
+  InjurySeverity,
   OffensiveCall,
   PlayEvent,
   PlayOutcome,
   PlayParticipant,
   PlayTag,
+  TeamBoxScore,
 } from "./events.ts";
 
 export {
@@ -20,6 +23,8 @@ export {
 export type { SeededRng } from "./rng.ts";
 
 export { resolvePlay } from "./resolve-play.ts";
+export { simulateGame } from "./simulate-game.ts";
+export type { SimTeam, SimulationInput } from "./simulate-game.ts";
 export {
   drawDefensiveCall,
   drawOffensiveCall,
