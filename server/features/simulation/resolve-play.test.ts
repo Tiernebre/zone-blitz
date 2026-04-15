@@ -12,7 +12,6 @@ import {
   drawDefensiveCall,
   drawOffensiveCall,
   type GameState,
-  identifyMatchups,
   isTwoMinuteDrill,
   type MatchupContribution,
   type PlayerRuntime,
@@ -22,6 +21,7 @@ import {
   synthesizeOutcome,
   type TeamRuntime,
 } from "./resolve-play.ts";
+import { resolveMatchups } from "./resolve-matchups.ts";
 
 function makeAttributes(
   overrides: Partial<PlayerAttributes> = {},
@@ -340,9 +340,9 @@ Deno.test("drawDefensiveCall", async (t) => {
   });
 });
 
-// ── identifyMatchups ────────────────────────────────────────────────
+// ── resolveMatchups ────────────────────────────────────────────────
 
-Deno.test("identifyMatchups", async (t) => {
+Deno.test("resolveMatchups", async (t) => {
   await t.step("returns run_block matchups for a run play", () => {
     const call: OffensiveCall = {
       concept: "inside_zone",
@@ -355,11 +355,13 @@ Deno.test("identifyMatchups", async (t) => {
       coverage: "cover_3",
       pressure: "four_man",
     };
-    const matchups = identifyMatchups(
+    const rng = makeRng();
+    const matchups = resolveMatchups(
       call,
       coverage,
       makeOffense(),
       makeDefense(),
+      rng,
     );
 
     const runMatchups = matchups.filter((m) => m.type === "run_block");
@@ -380,11 +382,13 @@ Deno.test("identifyMatchups", async (t) => {
         coverage: "cover_2",
         pressure: "four_man",
       };
-      const matchups = identifyMatchups(
+      const rng = makeRng();
+      const matchups = resolveMatchups(
         call,
         coverage,
         makeOffense(),
         makeDefense(),
+        rng,
       );
 
       const protectionMatchups = matchups.filter(
@@ -410,11 +414,13 @@ Deno.test("identifyMatchups", async (t) => {
       coverage: "cover_1",
       pressure: "man_blitz",
     };
-    const matchups = identifyMatchups(
+    const rng = makeRng();
+    const matchups = resolveMatchups(
       call,
       coverage,
       makeOffense(),
       makeDefense(),
+      rng,
     );
 
     const passRushMatchups = matchups.filter(
@@ -435,7 +441,8 @@ Deno.test("identifyMatchups", async (t) => {
       coverage: "cover_3",
       pressure: "four_man",
     };
-    const matchups = identifyMatchups(call, coverage, [], []);
+    const rng = makeRng();
+    const matchups = resolveMatchups(call, coverage, [], [], rng);
     assertEquals(matchups.length, 0);
   });
 });

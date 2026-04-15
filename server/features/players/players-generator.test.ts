@@ -609,7 +609,11 @@ Deno.test("cap-hit invariant: sum of cap hits equals total contract value for ev
       (sum, y) =>
         sum +
         computeCapHit(
-          { years: b.years, bonusProrations: b.bonusProrations },
+          {
+            years: b.years,
+            bonusProrations: b.bonusProrations,
+            optionBonuses: [],
+          },
           y.leagueYear,
         ),
       0,
@@ -765,7 +769,11 @@ Deno.test("cap-hit invariant holds with cap-hell archetype (void years present)"
       (sum, y) =>
         sum +
         computeCapHit(
-          { years: b.years, bonusProrations: b.bonusProrations },
+          {
+            years: b.years,
+            bonusProrations: b.bonusProrations,
+            optionBonuses: [],
+          },
           y.leagueYear,
         ),
       0,

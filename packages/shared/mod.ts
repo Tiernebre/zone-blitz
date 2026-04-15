@@ -95,11 +95,17 @@ export {
   CONTRACT_TYPES,
 } from "./contracts/contract-ledger.ts";
 export type {
-  CapHitBonusProration,
-  CapHitContract,
-  CapHitContractYear,
-} from "./contracts/cap-hit.ts";
-export { computeCapHit } from "./contracts/cap-hit.ts";
+  CapBonusProration,
+  CapContractInput,
+  CapContractYear,
+  CapOptionBonus,
+} from "./contracts/cap-engine.ts";
+export {
+  computeCapHit,
+  computeDeadCap,
+  computeHeadlineValue,
+  restructureContract,
+} from "./contracts/cap-engine.ts";
 export type {
   CapArchetype,
   Contract,

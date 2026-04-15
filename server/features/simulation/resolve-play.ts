@@ -20,6 +20,7 @@ import {
   pickPenalty,
   shouldPenaltyOccur,
 } from "./resolve-penalty.ts";
+import { resolveMatchups } from "./resolve-matchups.ts";
 
 export interface Situation {
   down: 1 | 2 | 3 | 4;
@@ -283,96 +284,6 @@ const DEFENSIVE_POSITIONS = new Set<NeutralBucket>([
   "CB",
   "S",
 ]);
-
-export function identifyMatchups(
-  call: OffensiveCall,
-  coverage: DefensiveCall,
-  offenseOnField: PlayerRuntime[],
-  defenseOnField: PlayerRuntime[],
-): Matchup[] {
-  const matchups: Matchup[] = [];
-
-  const offensivePlayers = offenseOnField.filter((p) =>
-    OFFENSIVE_POSITIONS.has(p.neutralBucket)
-  );
-  const defensivePlayers = defenseOnField.filter((p) =>
-    DEFENSIVE_POSITIONS.has(p.neutralBucket)
-  );
-
-  const isRunPlay = RUN_CONCEPTS.has(call.concept);
-  const isBlitz = coverage.pressure !== "four_man";
-
-  const oLinemen = offensivePlayers.filter((p) =>
-    p.neutralBucket === "OT" || p.neutralBucket === "IOL"
-  );
-  const passRushers = defensivePlayers.filter((p) =>
-    p.neutralBucket === "EDGE" || p.neutralBucket === "IDL"
-  );
-  const receivers = offensivePlayers.filter((p) =>
-    p.neutralBucket === "WR" || p.neutralBucket === "TE"
-  );
-  const coveragePlayers = defensivePlayers.filter((p) =>
-    p.neutralBucket === "CB" || p.neutralBucket === "S" ||
-    p.neutralBucket === "LB"
-  );
-  const runBlockers = offensivePlayers.filter((p) =>
-    p.neutralBucket === "OT" || p.neutralBucket === "IOL" ||
-    p.neutralBucket === "TE" || p.neutralBucket === "RB"
-  );
-  const runDefenders = defensivePlayers.filter((p) =>
-    p.neutralBucket === "IDL" || p.neutralBucket === "EDGE" ||
-    p.neutralBucket === "LB"
-  );
-
-  if (isRunPlay) {
-    const pairCount = Math.min(runBlockers.length, runDefenders.length);
-    for (let i = 0; i < pairCount; i++) {
-      matchups.push({
-        type: "run_block",
-        attacker: runBlockers[i],
-        defender: runDefenders[i],
-      });
-    }
-  } else {
-    const protectionPairs = Math.min(oLinemen.length, passRushers.length);
-    for (let i = 0; i < protectionPairs; i++) {
-      matchups.push({
-        type: "pass_protection",
-        attacker: oLinemen[i],
-        defender: passRushers[i],
-      });
-    }
-
-    if (isBlitz) {
-      const blitzers = coveragePlayers.filter((p) => p.neutralBucket === "LB");
-      const extraBlockers = offensivePlayers.filter((p) =>
-        p.neutralBucket === "RB"
-      );
-      const blitzPairs = Math.min(blitzers.length, extraBlockers.length);
-      for (let i = 0; i < blitzPairs; i++) {
-        matchups.push({
-          type: "pass_rush",
-          attacker: blitzers[i],
-          defender: extraBlockers[i],
-        });
-      }
-    }
-
-    const coverDBs = coveragePlayers.filter((p) =>
-      p.neutralBucket === "CB" || p.neutralBucket === "S"
-    );
-    const routePairs = Math.min(receivers.length, coverDBs.length);
-    for (let i = 0; i < routePairs; i++) {
-      matchups.push({
-        type: "route_coverage",
-        attacker: receivers[i],
-        defender: coverDBs[i],
-      });
-    }
-  }
-
-  return matchups;
-}
 
 export function rollMatchup(
   input: {
@@ -751,11 +662,12 @@ export function resolvePlay(
     rng,
     { twoMinute },
   );
-  const matchups = identifyMatchups(
+  const matchups = resolveMatchups(
     call,
     coverage,
     offense.onField,
     defense.onField,
+    rng,
   );
 
   const contributions = matchups.map((m) => {

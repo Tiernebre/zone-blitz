@@ -38,10 +38,21 @@ export type { SimTeam, SimulationInput } from "./simulate-game.ts";
 export {
   drawDefensiveCall,
   drawOffensiveCall,
-  identifyMatchups,
   rollMatchup,
   synthesizeOutcome,
 } from "./resolve-play.ts";
+export {
+  assignDefense,
+  assignOffense,
+  rankPlayers,
+  resolveMatchups,
+} from "./resolve-matchups.ts";
+export type {
+  DefensiveAssignment,
+  DefensiveRole,
+  OffensiveAssignment,
+  OffensiveRole,
+} from "./resolve-matchups.ts";
 export type {
   CoachingMods,
   GameState,
