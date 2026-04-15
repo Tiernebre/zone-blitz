@@ -44,14 +44,14 @@ as superseded.
 - [0014 — Season calendar and phase state machine](./0014-season-calendar-phase-state-machine.md)
   — ordered phase enum + per-phase step catalog on a single `league_clock`;
   user-initiated advance with gated transitions; unblocks draft, FA, contracts,
-  trading, and cap-compliance ADRs (Proposed)
+  trading, and cap-compliance ADRs (Accepted)
 - [0015 — Simulation resolution model: play-by-play core with fast-mode parity](./0015-simulation-resolution-model.md)
   — single play-by-play engine; fast mode is the same engine headless; seeded
-  RNG; per-play event stream is canonical output (Proposed)
+  RNG; per-play event stream is canonical output (Accepted)
 - [0016 — Contract structure: per-year breakdown with prorated signing bonus](./0016-contract-structure.md)
   — parent `contracts` + `contract_years` + `contract_bonus_prorations`; pure
   `computeCapHit` / `computeDeadCap`; void years in, post-June-1 and incentives
-  deferred (Proposed)
+  deferred (Accepted)
 - [0017 — League genesis as the default creation flow](./0017-league-genesis-default-creation-flow.md)
   — genesis is canonical; established mode is the secondary path (Superseded
   by 0021)
@@ -62,11 +62,20 @@ as superseded.
   — Year 1 skips preseason and uses a compressed regular season scaled to league
   size; Year 2+ uses the recurring calendar (Accepted)
 - [0020 — Phase-gated sidebar navigation](./0020-phase-gated-sidebar-navigation.md)
-  — UI sidebar surfaces are gated by the active league phase (Proposed)
+  — UI sidebar surfaces are gated by the active league phase (Accepted)
 - [0021 — Deprecate established mode; genesis is the only creation flow](./0021-deprecate-established-mode.md)
   — removes the established-mode escape hatch; every league begins at genesis
   (Accepted, supersedes 0017)
+- [0021 — Sim calibration harness: NFL bands as the sim's contract](./0021-sim-calibration-harness.md)
+  — seed-sweep harness asserts sim aggregates against `data/bands/*.json`;
+  three-gate tolerance (mean / spread / tails); CI fails the PR on drift
+  (Accepted)
+- [0022 — Fused owner/GM role as canonical](./0022-fused-owner-gm-role.md) — the
+  user plays a combined owner/GM; no split role model (Accepted)
+- [0022 — Per-league unique coach and scout generation](./0022-per-league-unique-coach-scout-generation.md)
+  — every league gets its own freshly generated coach/scout pool; no shared
+  global roster (Accepted)
 - [0023 — Sim football completeness: close the gap to real football](./0023-sim-football-completeness.md)
   — retires ADR 0015's v1 deferral list; commits XP/2PT, real kickoffs and
   returns, overtime, penalty mechanics, defensive scores, 4th-down decisioning,
-  clock management, and assignment-based matchups as in-scope (Proposed)
+  clock management, and assignment-based matchups as in-scope (Accepted)

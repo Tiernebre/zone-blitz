@@ -1,7 +1,7 @@
 # 0023 — Sim football completeness: close the gap to real football
 
 - **Date:** 2026-04-15
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** game simulation — see
   [`../north-star/game-simulation.md`](../north-star/game-simulation.md)
   (especially

@@ -1,7 +1,7 @@
 # 0022 — Per-league unique coach and scout generation
 
 - **Date:** 2026-04-15
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** [League Genesis](../north-star/league-genesis.md),
   [Coaches](../north-star/coaches.md), [Scouting](../north-star/scouting.md)
 

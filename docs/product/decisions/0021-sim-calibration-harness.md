@@ -1,7 +1,7 @@
 # 0021 — Sim calibration harness: NFL bands as the sim's contract
 
 - **Date:** 2026-04-15
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** game simulation — see
   [`../north-star/game-simulation.md#nfl-as-the-benchmark`](../north-star/game-simulation.md#nfl-as-the-benchmark);
   extends
