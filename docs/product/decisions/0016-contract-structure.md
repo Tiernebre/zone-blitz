@@ -63,16 +63,16 @@ signature construction (see the Taysom Hill case study below).
 
 ### Contract components (v1)
 
-| Component        | Storage                        | Cap treatment                                                               |
-| ---------------- | ------------------------------ | --------------------------------------------------------------------------- |
-| Base salary      | `contract_years.base`          | Counts fully in that year                                                   |
-| Signing bonus    | `contracts.signingBonus`       | Prorated evenly across `min(totalYears, 5)` years from signing year forward |
-| Roster bonus     | `contract_years.rosterBonus`   | Counts fully in that year; voidable if player cut before the vest year      |
-| Workout bonus    | `contract_years.workoutBonus`  | Counts fully in that year; voidable if cut in the offseason                 |
-| Per-game roster bonus (PGRB) | `contract_years.perGameRosterBonus` | Stored as the season max (17-game sum). Counts fully against the cap in that year as a **non-guaranteed** amount. Earned per game active; benches / injured-reserve stints reduce the actual payout. Cap-hit math treats it like a roster bonus; payout reconciliation is a separate system. |
-| Option bonus     | `contract_bonus_prorations` with `source = 'option'` | **Not counted** in cap hit or headline value until the team exercises the option. On exercise, a new proration slice is inserted (`amount`, `firstYear` = exercise year, `years` ≤ 5) and it prorates identically to a signing bonus from that point forward. Unexercised options contribute nothing to cap, dead cap, or headline. |
-| Guarantee status | `contract_years.guaranteeType` | Enum: `full` / `injury` / `none` — determines whether base is voidable      |
-| Void year flag   | `contract_years.isVoid`        | Year exists only to extend signing-bonus proration; no base/bonus paid      |
+| Component                    | Storage                                              | Cap treatment                                                                                                                                                                                                                                                                                                                       |
+| ---------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Base salary                  | `contract_years.base`                                | Counts fully in that year                                                                                                                                                                                                                                                                                                           |
+| Signing bonus                | `contracts.signingBonus`                             | Prorated evenly across `min(totalYears, 5)` years from signing year forward                                                                                                                                                                                                                                                         |
+| Roster bonus                 | `contract_years.rosterBonus`                         | Counts fully in that year; voidable if player cut before the vest year                                                                                                                                                                                                                                                              |
+| Workout bonus                | `contract_years.workoutBonus`                        | Counts fully in that year; voidable if cut in the offseason                                                                                                                                                                                                                                                                         |
+| Per-game roster bonus (PGRB) | `contract_years.perGameRosterBonus`                  | Stored as the season max (17-game sum). Counts fully against the cap in that year as a **non-guaranteed** amount. Earned per game active; benches / injured-reserve stints reduce the actual payout. Cap-hit math treats it like a roster bonus; payout reconciliation is a separate system.                                        |
+| Option bonus                 | `contract_bonus_prorations` with `source = 'option'` | **Not counted** in cap hit or headline value until the team exercises the option. On exercise, a new proration slice is inserted (`amount`, `firstYear` = exercise year, `years` ≤ 5) and it prorates identically to a signing bonus from that point forward. Unexercised options contribute nothing to cap, dead cap, or headline. |
+| Guarantee status             | `contract_years.guaranteeType`                       | Enum: `full` / `injury` / `none` — determines whether base is voidable                                                                                                                                                                                                                                                              |
+| Void year flag               | `contract_years.isVoid`                              | Year exists only to extend signing-bonus proration; no base/bonus paid                                                                                                                                                                                                                                                              |
 
 Incentives (LTBE/NLTBE) and rolling guarantee vest dates are explicitly out of
 v1 (see Follow-ups).
@@ -184,17 +184,17 @@ function computeHeadlineValue(contract: Contract): number {
 ```
 
 Media and morale systems read `computeHeadlineValue`; cap sheets read
-`computeCapHit`. **The divergence between the two is a feature, not a bug** —
-it is the entire point of modeling gimmick deals. A Cap-Hell GM signs a
-"4 year / $140M" headline that is really a 1-year / ~$10M cap reality; the fans
-expect a superstar, the cap engine sees a rental, and the GM gets six months
-before the press notices.
+`computeCapHit`. **The divergence between the two is a feature, not a bug** — it
+is the entire point of modeling gimmick deals. A Cap-Hell GM signs a "4 year /
+$140M" headline that is really a 1-year / ~$10M cap reality; the fans expect a
+superstar, the cap engine sees a rental, and the GM gets six months before the
+press notices.
 
 A **gimmick deal** is any contract where
 `computeHeadlineValue(contract) / realGuaranteedValue(contract) > ~3x` (rough
-heuristic). The concrete threshold and the media/morale behavior it triggers
-are deferred to the media/morale ADR; this ADR only guarantees the primitives
-that make the ratio computable.
+heuristic). The concrete threshold and the media/morale behavior it triggers are
+deferred to the media/morale ADR; this ADR only guarantees the primitives that
+make the ratio computable.
 
 ### Restructure as pure transformation
 
@@ -277,40 +277,40 @@ modern era — over the cap by tens of millions before free agency opened. Tayso
 Hill was a converted quarterback / utility player; useful, not a franchise
 player. The Saints reported a **4-year, $140M** contract for him. Functionally,
 it was a **1-year, ~$10M** deal dressed in dummy years stacked with
-non-guaranteed per-game roster bonuses and option money that would void or
-never be exercised. The headline pumped out a blockbuster story; the cap sheet
-recorded a short-term rental. The gap between those two numbers is exactly
-what this schema must be able to represent.
+non-guaranteed per-game roster bonuses and option money that would void or never
+be exercised. The headline pumped out a blockbuster story; the cap sheet
+recorded a short-term rental. The gap between those two numbers is exactly what
+this schema must be able to represent.
 
 A plausible encoding (numbers approximate — the goal is to show the schema can
 express the _shape_, not to match OTC line-for-line):
 
 **`contracts` parent row**
 
-| Field          | Value                |
-| -------------- | -------------------- |
-| `signedYear`   | 2021                 |
-| `totalYears`   | 4                    |
-| `realYears`    | 1                    |
-| `signingBonus` | $0                   |
-| `isRookieDeal` | false                |
-| `tagType`      | null                 |
+| Field          | Value |
+| -------------- | ----- |
+| `signedYear`   | 2021  |
+| `totalYears`   | 4     |
+| `realYears`    | 1     |
+| `signingBonus` | $0    |
+| `isRookieDeal` | false |
+| `tagType`      | null  |
 
 **`contract_years` rows**
 
-| `leagueYear` | `base`    | `rosterBonus` | `workoutBonus` | `perGameRosterBonus` | `guaranteeType` | `isVoid` |
-| ------------ | --------- | ------------- | -------------- | -------------------- | --------------- | -------- |
-| 2021         | $1.075M   | $7.5M         | $0             | $1.5M                | `full`          | false    |
-| 2022         | $0        | $0            | $0             | $0                   | `none`          | true     |
-| 2023         | $0        | $0            | $0             | $0                   | `none`          | true     |
-| 2024         | $0        | $0            | $0             | $0                   | `none`          | true     |
+| `leagueYear` | `base`  | `rosterBonus` | `workoutBonus` | `perGameRosterBonus` | `guaranteeType` | `isVoid` |
+| ------------ | ------- | ------------- | -------------- | -------------------- | --------------- | -------- |
+| 2021         | $1.075M | $7.5M         | $0             | $1.5M                | `full`          | false    |
+| 2022         | $0      | $0            | $0             | $0                   | `none`          | true     |
+| 2023         | $0      | $0            | $0             | $0                   | `none`          | true     |
+| 2024         | $0      | $0            | $0             | $0                   | `none`          | true     |
 
 **`contract_bonus_prorations` rows**
 
-_None at signing_ — there is no signing bonus in this encoding, so no
-proration slice exists. (Restructure slices could be layered in later seasons
-if the Saints chose to convert 2021 base or roster bonus into proration, which
-is precisely how gimmick deals typically evolve.)
+_None at signing_ — there is no signing bonus in this encoding, so no proration
+slice exists. (Restructure slices could be layered in later seasons if the
+Saints chose to convert 2021 base or roster bonus into proration, which is
+precisely how gimmick deals typically evolve.)
 
 **`contract_option_bonuses`** (declared-but-not-yet-exercised)
 
@@ -318,30 +318,29 @@ is precisely how gimmick deals typically evolve.)
 | -------------- | -------- | ---------------- | ------------- |
 | 2022           | $95M     | 5                | null          |
 
-The declared option is the bulk of the headline — a massive 2022 option the
-team never intends to exercise and will let expire, collapsing the deal into
-its real 1-year shape.
+The declared option is the bulk of the headline — a massive 2022 option the team
+never intends to exercise and will let expire, collapsing the deal into its real
+1-year shape.
 
 **Function outputs on the 2021 row**
 
-- `computeCapHit(contract, 2021)` ≈ **$10.075M** — base + roster bonus +
-  PGRB + $0 in proration (no signing bonus exists to prorate). This is the
-  number the cap sheet records: a one-year, ten-million-dollar rental.
+- `computeCapHit(contract, 2021)` ≈ **$10.075M** — base + roster bonus + PGRB +
+  $0 in proration (no signing bonus exists to prorate). This is the number the
+  cap sheet records: a one-year, ten-million-dollar rental.
 - `computeHeadlineValue(contract)` ≈ **$140M** — sums 2021's $10.075M of real
-  money, the void-year fields (all zero here but counted if populated), plus
-  the full $95M face of the unexercised option plus any additional option
+  money, the void-year fields (all zero here but counted if populated), plus the
+  full $95M face of the unexercised option plus any additional option
   declarations that together pad out the headline to the reported figure. This
   is the number the press release prints.
 - `computeDeadCap(contract, 2022)` ≈ **$8.575M** — if the Saints had cut Hill
   after 2021, the remaining guaranteed full-guarantee base and roster bonus in
   later years would accelerate. With this specific encoding (only 2021 is
-  guaranteed, no signing-bonus proration exists, voids carry nothing), dead
-  cap is roughly the 2021-guaranteed-but-unpaid residue; in practice the
-  Saints would have simply let the option expire. Swap in a more aggressive
-  structure — say a $20M signing bonus prorated over five years — and the
-  same cut would produce a much larger dead-cap number. The formula is the
-  same either way; the generator's archetype parameter decides how painful it
-  is.
+  guaranteed, no signing-bonus proration exists, voids carry nothing), dead cap
+  is roughly the 2021-guaranteed-but-unpaid residue; in practice the Saints
+  would have simply let the option expire. Swap in a more aggressive structure —
+  say a $20M signing bonus prorated over five years — and the same cut would
+  produce a much larger dead-cap number. The formula is the same either way; the
+  generator's archetype parameter decides how painful it is.
 
 If the schema couldn't represent this deal faithfully — the 14:1 ratio between
 reported and real, the option that never fires, the voids that extend nothing
@@ -415,22 +414,23 @@ export const contractBonusProrations = pgTable("contract_bonus_prorations", {
 });
 ```
 
-**Option bonus lifecycle.** Option bonuses are _declared_ at signing but do
-not produce a `contract_bonus_prorations` row until the team exercises them.
-The eligible option (amount, exercise-year window, proration length) is stored
-on a small `contract_option_bonuses` side table — one row per declared option,
-with an `exercisedAt` timestamp that is null until exercised. On exercise, the
-system writes a new `contract_bonus_prorations` row with `source = 'option'`,
+**Option bonus lifecycle.** Option bonuses are _declared_ at signing but do not
+produce a `contract_bonus_prorations` row until the team exercises them. The
+eligible option (amount, exercise-year window, proration length) is stored on a
+small `contract_option_bonuses` side table — one row per declared option, with
+an `exercisedAt` timestamp that is null until exercised. On exercise, the system
+writes a new `contract_bonus_prorations` row with `source = 'option'`,
 `firstYear` set to the exercise year, and `years` set to the lesser of 5 or
-remaining contract years. Until that proration row exists, `computeCapHit`
-sees nothing from the option (correct cap treatment). `computeHeadlineValue`,
-however, reads the declared-option face amount directly — headline is
-optimistic by construction and assumes every option is exercised.
+remaining contract years. Until that proration row exists, `computeCapHit` sees
+nothing from the option (correct cap treatment). `computeHeadlineValue`,
+however, reads the declared-option face amount directly — headline is optimistic
+by construction and assumes every option is exercised.
 
-The `contract_option_bonuses` table is a thin `{contractId, amount,
-exerciseYear, prorationYears, exercisedAt}` shape; its exact schema is
-finalized in the option-bonus implementation PR along with the exercise flow
-and player-option variants.
+The `contract_option_bonuses` table is a thin
+`{contractId, amount,
+exerciseYear, prorationYears, exercisedAt}` shape; its
+exact schema is finalized in the option-bonus implementation PR along with the
+exercise flow and player-option variants.
 
 `contract_history` (already exists) keeps its aggregate shape and is written at
 termination; it is a read model for the player detail page per ADR 0013, not the
@@ -443,16 +443,16 @@ authoritative contract record.
   single number and therefore cannot produce the dead-cap-on-cut behavior the
   north-star is built around. Picking this shape means ADRs 0010/0011 are as far
   as the cap game ever goes. Rejected — this is the whole point of zone-blitz.
-- **Fully NFL-accurate from day one** (LTBE/NLTBE incentives, rolling
-  guarantee vest dates, post-June-1 designations, fifth-year option math).
-  Correct long term, but each of those is its own testable mechanic and the
-  unblocked ADRs (FA bidding, re-signing, cuts, tags, trades) do not depend
-  on them. Rejected as v1 scope; each deferred item is a named follow-up ADR
-  with its own schema extension. **Per-game roster bonuses and option bonuses
-  were originally in this deferred list and have been promoted into v1** —
-  they are the two primitives gimmick contracts require, and without them the
-  schema cannot faithfully encode the deals the Cap-Hell archetype is built
-  around (see the Taysom Hill case study).
+- **Fully NFL-accurate from day one** (LTBE/NLTBE incentives, rolling guarantee
+  vest dates, post-June-1 designations, fifth-year option math). Correct long
+  term, but each of those is its own testable mechanic and the unblocked ADRs
+  (FA bidding, re-signing, cuts, tags, trades) do not depend on them. Rejected
+  as v1 scope; each deferred item is a named follow-up ADR with its own schema
+  extension. **Per-game roster bonuses and option bonuses were originally in
+  this deferred list and have been promoted into v1** — they are the two
+  primitives gimmick contracts require, and without them the schema cannot
+  faithfully encode the deals the Cap-Hell archetype is built around (see the
+  Taysom Hill case study).
 - **Single JSONB `structure` blob on the contract row** instead of a child
   table. Flexible, no migrations for new fields. Rejected for the same reason
   ADR 0007 rejected JSONB tendencies: queries like "show me every contract with
@@ -507,13 +507,13 @@ authoritative contract record.
     is a later refinement)
   - Media/morale "gimmick deal" detection threshold (consumes
     `computeHeadlineValue` from this ADR)
-- **North-star coverage check.** The salary-cap north-star names option
-  bonuses, per-game roster bonuses, incentives, and post-June-1 as part of the
-  vision. v1 delivers option bonuses and per-game roster bonuses (promoted for
+- **North-star coverage check.** The salary-cap north-star names option bonuses,
+  per-game roster bonuses, incentives, and post-June-1 as part of the vision. v1
+  delivers option bonuses and per-game roster bonuses (promoted for
   gimmick-contract modeling); incentives (LTBE/NLTBE), rolling guarantees, and
-  post-June-1 remain deferred but the schema leaves room for each. This ADR
-  adds a single subsection to the north-star — the Taysom Hill gimmick-contract
-  case study — so future contributors do not lose the archetype.
+  post-June-1 remain deferred but the schema leaves room for each. This ADR adds
+  a single subsection to the north-star — the Taysom Hill gimmick-contract case
+  study — so future contributors do not lose the archetype.
 - **NPC cap management** (salary-cap north-star §NPC Cap Management) now has a
   target shape to generate against. Win-Now and Gambler archetypes restructure
   aggressively; Developer archetypes structure cleanly. Those behaviors are
