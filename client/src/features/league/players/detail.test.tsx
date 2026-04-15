@@ -453,6 +453,7 @@ describe("PlayerDetail — sections", () => {
     expect(screen.getByTestId("player-contract-history-empty")).toBeDefined();
     expect(screen.getByTestId("player-transactions-empty")).toBeDefined();
     expect(screen.getByTestId("player-career-log-empty")).toBeDefined();
+    expect(screen.getByText("Statistics")).toBeDefined();
     expect(screen.getByTestId("player-accolades-empty")).toBeDefined();
   });
 
@@ -578,6 +579,264 @@ describe("PlayerDetail — sections", () => {
       "Unprojected",
     );
     expect(screen.queryByTestId("player-pre-draft-notes")).toBeNull();
+  });
+});
+
+describe("PlayerDetail — career statistics", () => {
+  it("renders position-appropriate stat column headers for a QB", () => {
+    renderDetail();
+    const regular = screen.getByTestId("player-career-log-regular");
+    expect(regular.textContent).toContain("CMP");
+    expect(regular.textContent).toContain("ATT");
+    expect(regular.textContent).toContain("YDS");
+    expect(regular.textContent).toContain("TD");
+    expect(regular.textContent).toContain("INT");
+    expect(regular.textContent).toContain("RTG");
+    expect(regular.textContent).not.toContain("TKL");
+    expect(regular.textContent).not.toContain("REC");
+  });
+
+  it("renders rushing columns for an RB", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        neutralBucket: "RB",
+        seasonStats: [
+          {
+            id: "ss-rb1",
+            seasonYear: 2024,
+            team: {
+              id: "t2",
+              name: "Bengals",
+              city: "Cincinnati",
+              abbreviation: "CIN",
+            },
+            playoffs: false,
+            gamesPlayed: 17,
+            gamesStarted: 17,
+            stats: { rushingYards: 1200, rushingTouchdowns: 10 },
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    const regular = screen.getByTestId("player-career-log-regular");
+    expect(regular.textContent).toContain("YDS");
+    expect(regular.textContent).toContain("YPC");
+    expect(regular.textContent).toContain("FUM");
+    expect(regular.textContent).not.toContain("CMP");
+    expect(regular.textContent).not.toContain("RTG");
+  });
+
+  it("renders receiving columns for a WR", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        neutralBucket: "WR",
+        seasonStats: [
+          {
+            id: "ss-wr1",
+            seasonYear: 2024,
+            team: {
+              id: "t2",
+              name: "Bengals",
+              city: "Cincinnati",
+              abbreviation: "CIN",
+            },
+            playoffs: false,
+            gamesPlayed: 17,
+            gamesStarted: 17,
+            stats: { receptions: 90, receivingYards: 1100 },
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    const regular = screen.getByTestId("player-career-log-regular");
+    expect(regular.textContent).toContain("TGT");
+    expect(regular.textContent).toContain("REC");
+    expect(regular.textContent).toContain("Y/R");
+  });
+
+  it("renders defensive columns for a CB", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        neutralBucket: "CB",
+        seasonStats: [
+          {
+            id: "ss-cb1",
+            seasonYear: 2024,
+            team: {
+              id: "t2",
+              name: "Bengals",
+              city: "Cincinnati",
+              abbreviation: "CIN",
+            },
+            playoffs: false,
+            gamesPlayed: 17,
+            gamesStarted: 17,
+            stats: { tackles: 55, interceptions: 4 },
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    const regular = screen.getByTestId("player-career-log-regular");
+    expect(regular.textContent).toContain("TKL");
+    expect(regular.textContent).toContain("SCK");
+    expect(regular.textContent).toContain("PD");
+    expect(regular.textContent).toContain("FF");
+  });
+
+  it("renders a Career Totals row aggregating all regular-season stats", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        seasonStats: [
+          {
+            id: "ss-a",
+            seasonYear: 2023,
+            team: {
+              id: "t2",
+              name: "Bengals",
+              city: "Cincinnati",
+              abbreviation: "CIN",
+            },
+            playoffs: false,
+            gamesPlayed: 17,
+            gamesStarted: 17,
+            stats: { passingYards: 4200, passingTouchdowns: 32 },
+          },
+          {
+            id: "ss-b",
+            seasonYear: 2024,
+            team: {
+              id: "t2",
+              name: "Bengals",
+              city: "Cincinnati",
+              abbreviation: "CIN",
+            },
+            playoffs: false,
+            gamesPlayed: 16,
+            gamesStarted: 16,
+            stats: { passingYards: 3800, passingTouchdowns: 28 },
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    const totals = screen.getByTestId("player-career-log-regular-totals");
+    expect(totals.textContent).toContain("Career Totals");
+    expect(totals.textContent).toContain("33");
+    expect(totals.textContent).toContain("8,000");
+    expect(totals.textContent).toContain("60");
+  });
+
+  it("aggregates Career Totals across multiple teams (mid-season trade)", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        neutralBucket: "RB",
+        seasonStats: [
+          {
+            id: "ss-trade1",
+            seasonYear: 2024,
+            team: {
+              id: "t2",
+              name: "Bengals",
+              city: "Cincinnati",
+              abbreviation: "CIN",
+            },
+            playoffs: false,
+            gamesPlayed: 8,
+            gamesStarted: 8,
+            stats: { rushingYards: 500, rushingTouchdowns: 4 },
+          },
+          {
+            id: "ss-trade2",
+            seasonYear: 2024,
+            team: {
+              id: "t3",
+              name: "Eagles",
+              city: "Philadelphia",
+              abbreviation: "PHI",
+            },
+            playoffs: false,
+            gamesPlayed: 9,
+            gamesStarted: 9,
+            stats: { rushingYards: 600, rushingTouchdowns: 6 },
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    const regular = screen.getByTestId("player-career-log-regular");
+    expect(regular.textContent).toContain("CIN");
+    expect(regular.textContent).toContain("PHI");
+    const totals = screen.getByTestId("player-career-log-regular-totals");
+    expect(totals.textContent).toContain("Career Totals");
+    expect(totals.textContent).toContain("17");
+    expect(totals.textContent).toContain("1,100");
+    expect(totals.textContent).toContain("10");
+  });
+
+  it("renders a splits link on current-season rows only", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        seasonStats: [
+          {
+            id: "ss-old",
+            seasonYear: 2023,
+            team: {
+              id: "t2",
+              name: "Bengals",
+              city: "Cincinnati",
+              abbreviation: "CIN",
+            },
+            playoffs: false,
+            gamesPlayed: 17,
+            gamesStarted: 17,
+            stats: { passingYards: 4000, passingTouchdowns: 30 },
+          },
+          {
+            id: "ss-cur",
+            seasonYear: 2024,
+            team: {
+              id: "t2",
+              name: "Bengals",
+              city: "Cincinnati",
+              abbreviation: "CIN",
+            },
+            playoffs: false,
+            gamesPlayed: 16,
+            gamesStarted: 16,
+            stats: { passingYards: 3800, passingTouchdowns: 28 },
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    expect(screen.getByTestId("player-splits-link-ss-cur")).toBeDefined();
+    expect(screen.queryByTestId("player-splits-link-ss-old")).toBeNull();
+  });
+
+  it("renders the section title as Statistics", () => {
+    renderDetail();
+    expect(screen.getByText("Statistics")).toBeDefined();
   });
 });
 

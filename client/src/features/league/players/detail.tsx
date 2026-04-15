@@ -11,6 +11,10 @@ import type {
   PlayerTransactionEntry,
   PlayerTransactionType,
 } from "@zone-blitz/shared/types/player.ts";
+import {
+  computeCareerTotals,
+  statColumnsForBucket,
+} from "./career-stats-utils.ts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -83,13 +87,6 @@ const numberFormatter = new Intl.NumberFormat("en-US");
 function formatStatValue(value: number | string): string {
   if (typeof value === "number") return numberFormatter.format(value);
   return value;
-}
-
-function toStatLabel(key: string): string {
-  return key
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (c) => c.toUpperCase())
-    .trim();
 }
 
 function injuryBadgeVariant(
@@ -641,7 +638,7 @@ function CareerLogSection(
 
   if (regular.length === 0 && playoff.length === 0) {
     return (
-      <Section title="Career log">
+      <Section title="Statistics">
         <p
           className="text-sm text-muted-foreground"
           data-testid="player-career-log-empty"
@@ -652,27 +649,33 @@ function CareerLogSection(
     );
   }
 
-  const statKeys = new Set<string>();
-  for (const row of detail.seasonStats) {
-    for (const key of Object.keys(row.stats)) statKeys.add(key);
-  }
-  const statColumns = [...statKeys];
+  const positionColumns = statColumnsForBucket(detail.neutralBucket);
+  const statKeys = positionColumns.map((c) => c.key);
+  const currentSeasonYear = Math.max(
+    ...detail.seasonStats.map((r) => r.seasonYear),
+  );
 
   return (
-    <Section title="Career log">
+    <Section title="Statistics">
       <CareerLogTable
         caption="Regular season"
         rows={regular}
-        statColumns={statColumns}
+        positionColumns={positionColumns}
+        statKeys={statKeys}
         leagueId={leagueId}
+        playerId={detail.id}
+        currentSeasonYear={currentSeasonYear}
         testId="player-career-log-regular"
       />
       {playoff.length > 0 && (
         <CareerLogTable
           caption="Playoffs"
           rows={playoff}
-          statColumns={statColumns}
+          positionColumns={positionColumns}
+          statKeys={statKeys}
           leagueId={leagueId}
+          playerId={detail.id}
+          currentSeasonYear={currentSeasonYear}
           testId="player-career-log-playoffs"
         />
       )}
@@ -681,14 +684,28 @@ function CareerLogSection(
 }
 
 function CareerLogTable(
-  { caption, rows, statColumns, leagueId, testId }: {
+  {
+    caption,
+    rows,
+    positionColumns,
+    statKeys,
+    leagueId,
+    playerId,
+    currentSeasonYear,
+    testId,
+  }: {
     caption: string;
     rows: PlayerSeasonStatRow[];
-    statColumns: string[];
+    positionColumns: { key: string; label: string }[];
+    statKeys: string[];
     leagueId: string;
+    playerId: string;
+    currentSeasonYear: number;
     testId: string;
   },
 ) {
+  const totals = computeCareerTotals(rows, statKeys);
+
   return (
     <Card data-testid={testId}>
       <CardHeader>
@@ -704,8 +721,8 @@ function CareerLogTable(
               <TableHead>Team</TableHead>
               <TableHead>GP</TableHead>
               <TableHead>GS</TableHead>
-              {statColumns.map((key) => (
-                <TableHead key={key}>{toStatLabel(key)}</TableHead>
+              {positionColumns.map((col) => (
+                <TableHead key={col.key}>{col.label}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
@@ -715,7 +732,21 @@ function CareerLogTable(
                 key={row.id}
                 data-testid={`player-career-row-${row.id}`}
               >
-                <TableCell>{row.seasonYear}</TableCell>
+                <TableCell>
+                  {row.seasonYear === currentSeasonYear
+                    ? (
+                      <Link
+                        to="/leagues/$leagueId/players/$playerId"
+                        params={{ leagueId, playerId }}
+                        hash="splits"
+                        className="underline-offset-2 hover:underline"
+                        data-testid={`player-splits-link-${row.id}`}
+                      >
+                        {row.seasonYear}
+                      </Link>
+                    )
+                    : row.seasonYear}
+                </TableCell>
                 <TableCell>
                   <Link
                     to="/leagues/$leagueId/opponents/$teamId"
@@ -727,13 +758,28 @@ function CareerLogTable(
                 </TableCell>
                 <TableCell>{row.gamesPlayed}</TableCell>
                 <TableCell>{row.gamesStarted}</TableCell>
-                {statColumns.map((key) => (
-                  <TableCell key={key}>
-                    {key in row.stats ? formatStatValue(row.stats[key]) : "—"}
+                {positionColumns.map((col) => (
+                  <TableCell key={col.key}>
+                    {col.key in row.stats
+                      ? formatStatValue(row.stats[col.key])
+                      : "—"}
                   </TableCell>
                 ))}
               </TableRow>
             ))}
+            <TableRow
+              className="font-semibold"
+              data-testid={`${testId}-totals`}
+            >
+              <TableCell colSpan={2}>Career Totals</TableCell>
+              <TableCell>{totals.gamesPlayed}</TableCell>
+              <TableCell>{totals.gamesStarted}</TableCell>
+              {positionColumns.map((col) => (
+                <TableCell key={col.key}>
+                  {formatStatValue(totals.stats[col.key])}
+                </TableCell>
+              ))}
+            </TableRow>
           </TableBody>
         </Table>
       </CardContent>
