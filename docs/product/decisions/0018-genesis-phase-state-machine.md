@@ -1,7 +1,7 @@
 # 0018 — Genesis phase state machine
 
 - **Date:** 2026-04-15
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** [League Genesis](../north-star/league-genesis.md),
   [League Management](../north-star/league-management.md),
   [0014 — Season calendar and phase state machine](./0014-season-calendar-phase-state-machine.md)

@@ -53,10 +53,12 @@ as superseded.
   `computeCapHit` / `computeDeadCap`; void years in, post-June-1 and incentives
   deferred (Proposed)
 - [0017 — League genesis as the default creation flow](./0017-league-genesis-default-creation-flow.md)
-  — genesis is canonical; established mode is the secondary path (Proposed)
+  — genesis is canonical; established mode is the secondary path (Accepted)
 - [0018 — Genesis phase state machine](./0018-genesis-phase-state-machine.md) —
   extends ADR 0014 with a one-shot genesis phase sequence sharing the same
-  `league_clock` row (Proposed)
+  `league_clock` row (Accepted)
 - [0019 — Inaugural Year 1 calendar (no preseason)](./0019-inaugural-year-one-calendar.md)
   — Year 1 skips preseason and uses a compressed regular season scaled to league
-  size; Year 2+ uses the recurring calendar (Proposed)
+  size; Year 2+ uses the recurring calendar (Accepted)
+- [0020 — Phase-gated sidebar navigation](./0020-phase-gated-sidebar-navigation.md)
+  — UI sidebar surfaces are gated by the active league phase (Proposed)

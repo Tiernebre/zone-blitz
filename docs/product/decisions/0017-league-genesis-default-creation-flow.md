@@ -1,7 +1,7 @@
 # 0017 — League genesis as the default creation flow
 
 - **Date:** 2026-04-15
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** [League Genesis](../north-star/league-genesis.md),
   [League Management](../north-star/league-management.md)
 

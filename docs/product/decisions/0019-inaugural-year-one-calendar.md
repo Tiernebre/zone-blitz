@@ -1,7 +1,7 @@
 # 0019 — Inaugural Year 1 calendar (no preseason)
 
 - **Date:** 2026-04-15
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** [League Genesis](../north-star/league-genesis.md),
   [League Management](../north-star/league-management.md),
   [Game Simulation](../north-star/game-simulation.md),

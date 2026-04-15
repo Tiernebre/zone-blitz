@@ -1,4 +1,4 @@
-# 0017 — Phase-gated sidebar navigation
+# 0020 — Phase-gated sidebar navigation
 
 - **Date:** 2026-04-15
 - **Status:** Proposed
