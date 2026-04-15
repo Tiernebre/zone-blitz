@@ -94,8 +94,8 @@ Each of these has a dedicated vision document:
   coaching trees, the GM-coach relationship, and the coaching market
 - [Media](./north-star/media.md) — analysts, headlines, grades, narratives, and
   the mechanical effects of public perception
-- [Owners](./north-star/owners.md) — the authority above the GM; personality,
-  patience, directives, and job security
+- [League Genesis](./north-star/league-genesis.md) — startup-league vision:
+  founding small, growing via expansion, and the founder as owner-and-GM
 - [Teams & Branding](./north-star/teams-and-branding.md) — fictional franchises,
   market size, relocation, divisions, visual identity, and custom team uploads
 

@@ -26,9 +26,9 @@ feature, not a limitation. Fictional teams mean:
 A team's brand isn't a skin layered on top of the game. It's woven into the
 experience. Your team's colors theme your dashboard. Your rival's colors show up
 on scouting reports and matchup screens. The city you're in determines your
-market size, which determines media pressure, free agent appeal, and owner
-expectations. Branding creates the _feeling_ of being the GM of the Portland
-Riverhawks, not just "Team 14."
+market size, which determines media pressure, free agent appeal, and fan
+expectations. Branding creates the _feeling_ of running the Portland Riverhawks,
+not just "Team 14."
 
 ### Customization is a first-class feature
 
@@ -141,20 +141,21 @@ meaningful ways.
 Each city/market falls into a tier:
 
 - **Large market**: Major metropolitan areas. High media scrutiny, strong free
-  agent appeal, demanding fan bases, and owners who expect to compete. The GM of
-  a large-market team operates under a spotlight — every move is analyzed, every
-  loss is a crisis, and patience is harder to come by. But the advantages are
-  real: top free agents _want_ to play here, national media covers your games,
-  and a winning team in a big market becomes a cultural force.
+  agent appeal, demanding fan bases, and league peers who expect you to compete.
+  Running a large-market franchise means operating under a spotlight — every
+  move is analyzed, every loss is a crisis, and the margin for rebuilding is
+  thinner. But the advantages are real: top free agents _want_ to play here,
+  national media covers your games, and a winning team in a big market becomes a
+  cultural force.
 - **Mid market**: Solid regional cities. Moderate media attention, reasonable
   free agent appeal, and fan bases that are passionate but not overwhelming. The
-  sweet spot for many GMs — enough resources and appeal to compete, without the
-  pressure cooker of a major market. Mid-market teams have to work harder to
-  attract marquee free agents but aren't at a structural disadvantage in the
-  draft or through the cap.
+  sweet spot for many operators — enough resources and appeal to compete,
+  without the pressure cooker of a major market. Mid-market teams have to work
+  harder to attract marquee free agents but aren't at a structural disadvantage
+  in the draft or through the cap.
 - **Small market**: Smaller cities and regions. Lower media scrutiny, weaker
-  free agent appeal, but often the most loyal and passionate fan bases. The GM
-  of a small-market team has more patience from the owner and media, but fewer
+  free agent appeal, but often the most loyal and passionate fan bases. A
+  small-market franchise has more runway from fans and media, but fewer
   structural advantages. Top free agents rarely choose small markets without
   overpaying. Building through the draft isn't just a strategy here — it's a
   necessity.
@@ -167,24 +168,28 @@ Each city/market falls into a tier:
 - **Media pressure**: Large-market GMs face more intense coverage and faster
   narrative cycles. A two-game losing streak in a large market is a "crisis." In
   a small market, it's a "rough stretch." See [Media](./media.md).
-- **Owner patience**: Market size interacts with owner personality. A large-
-  market owner with low patience is the most demanding boss in the league. A
-  small-market owner with high patience gives you the most runway. See
-  [Owners](./owners.md).
+- **Peer and fan pressure**: Because Zone Blitz franchises are run by a fused
+  owner/GM (see [League Genesis](./league-genesis.md)), there is no separate
+  owner pressuring you from above. Market size instead shapes how loudly fans
+  and media react: a large-market franchise operates under constant scrutiny,
+  while a small-market franchise has more runway before league peers and the fan
+  base begin applying pressure.
 - **Fan expectations**: Large-market fans expect contention. Small-market fans
   are more tolerant of rebuilds but more devastated by relocation rumors.
-- **Revenue and spending**: While the salary cap is the same for everyone,
-  market size may influence the owner's non-cap spending willingness — bigger
-  markets tend to generate more revenue, which can mean better facilities,
-  larger scouting departments, and more organizational support.
+- **Revenue and non-cap spending**: While the salary cap is the same for
+  everyone, market size influences non-cap spending. Bigger markets tend to
+  generate more revenue, which translates to better facilities, larger scouting
+  departments, and more organizational support — all of which you, as the
+  owner/GM, choose how to allocate.
 
 ### Market size is not destiny
 
-A small-market team with a smart GM, a patient owner, and a great scouting
-operation can build a dynasty. A large-market team with a meddling owner and a
-bad GM can be a dumpster fire for a decade. Market size creates advantages and
-disadvantages, but it doesn't determine outcomes. The best GMs figure out how to
-leverage their market's strengths and mitigate its weaknesses.
+A small-market franchise with sharp decisions, smart hiring, and a great
+scouting operation can build a dynasty. A large-market franchise that mismanages
+its talent and hires the wrong staff can be a dumpster fire for a decade. Market
+size creates advantages and disadvantages, but it doesn't determine outcomes.
+The best owner/GMs figure out how to leverage their market's strengths and
+mitigate its weaknesses.
 
 ---
 
@@ -196,16 +201,19 @@ painful, and permanent.
 
 ### Who decides
 
-The **owner** decides to relocate. The GM does not initiate or control
-relocation — it's an ownership-level decision driven by factors outside the GM's
-domain: stadium situations, market economics, political dynamics, and the
-owner's personal ambitions.
+**You do — because you're the owner.** In Zone Blitz, every franchise is run by
+a fused owner/GM (see [League Genesis](./league-genesis.md)), so relocation is
+an owner-level call the franchise's operator makes for themselves. For human-run
+franchises, that's you. For NPC franchises, the franchise's AI persona makes the
+call based on its market, finances, and personality.
 
-As a GM, you experience relocation as a seismic event that happens _to_ you:
+For your own franchise, relocating is a heavy choice with real fallout:
 
-- You might get a phone call that the team is moving to a new city next season
-- You deal with the fallout — roster disruption, coaching uncertainty, fan anger
-  in the old city, and the challenge of building a brand in the new one
+- Stadium situation, market economics, fan backlash, and league realignment all
+  weigh in
+- You deal with the consequences — roster disruption, coaching turnover, fan
+  anger in the old city, and the challenge of rebuilding brand equity in the new
+  one
 - The football doesn't stop. You still have a roster to manage, a draft to
   prepare for, and games to win — just in a different city
 
@@ -241,21 +249,21 @@ affects league structure, and that players across the league notice. When a
 relocation happens, it should feel like a moment in league history, not a
 routine occurrence.
 
-Factors that make relocation more likely for NPC-owned teams:
+Factors that make relocation more likely for NPC franchises:
 
 - Sustained losing combined with low fan engagement
-- An owner who has publicly clashed with the city over stadium funding
-- A small-market team with a big-spending owner who wants a larger stage
-- Expansion-era teams that never established deep roots
+- A franchise that has publicly clashed with its city over stadium funding
+- A small-market franchise with an ambitious operator who wants a larger stage
+- Expansion-era franchises that never established deep roots
 
-### Impact on the GM
+### Impact on the franchise
 
-If your team relocates while you're the GM:
+When you relocate:
 
 - Your roster, coaching staff, cap situation, and draft picks come with you
-- The owner's patience may reset — a new city means new expectations
+- Fan and media sentiment reset — the new city's press corps evaluates the
+  franchise fresh, and the old city's fans become a lingering narrative
 - Free agent appeal changes based on the new market tier
-- Media coverage resets — the new city's press corps evaluates you fresh
 - Division rivals may change if the league realigns
 - It's an opportunity and a disruption. Some GMs thrive in the chaos of a fresh
   start. Others never recover from the instability.
@@ -393,21 +401,20 @@ uploads use — they're just the ones that ship with the game.
 
 ## Interaction with Other Systems
 
-### Owners
+### League Genesis
 
-The owner is tied to the franchise, not just the roster. Owner personality
-interacts with market size to create the GM's operating environment. A
-relocation changes the market context the owner operates in — a frugal owner who
-moves to a large market may face new pressure to spend. See
-[Owners](./owners.md).
+Every franchise is run by a fused owner/GM — a founding operator who makes both
+ownership-level calls (identity, relocation, expansion votes) and
+football-operations calls. Market size, brand, and relocation dynamics
+documented here all apply to that single role, not to a separate owner-above-GM
+layer. See [League Genesis](./league-genesis.md).
 
 ### Free Agency
 
 Market size and team brand reputation affect free agent decisions. A winning
-franchise in a large market is the most attractive destination. A losing
-franchise in a small market with a dysfunctional owner is the least. Players
-weigh these factors alongside money. See
-[Free Agency & Contracts](./free-agency-and-contracts.md).
+franchise in a large market is the most attractive destination. A dysfunctional
+franchise in a small market is the least. Players weigh these factors alongside
+money. See [Free Agency & Contracts](./free-agency-and-contracts.md).
 
 ### Media
 
@@ -438,20 +445,20 @@ uses the team pool system to assemble the league roster. See
 Team branding is fun because it transforms abstract management decisions into an
 experience with emotional stakes:
 
-- "I've been the Portland Riverhawks GM for fifteen seasons. I've seen three
-  coaching staffs, two complete roster overhauls, and a championship. This
-  dashboard — these colors — they're _mine_."
+- "I've run the Portland Riverhawks for fifteen seasons. I founded the
+  franchise, I picked these colors, I hired three coaching staffs, I lived
+  through two complete roster overhauls and one championship. This dashboard —
+  these colors — they're _mine_."
 - "Every year, twice a year, I play the division rival who took the quarterback
   I wanted in the draft six years ago. He's a Hall of Famer now. My guy busted.
   I hate that team. I will always hate that team."
-- "The owner just announced we're relocating. Fifteen years of history in this
-  city, gone. New city, new name, new colors. I hate it. But the roster is still
-  mine, and I'm going to win a championship in the new stadium just to prove
-  it."
+- "After fifteen seasons in this city, I made the call to relocate. New city,
+  new name, new colors. Half my fans will never forgive me. But the roster is
+  still mine, and I'm going to win a championship in the new stadium just to
+  prove it was the right call."
 - "My friend uploaded a custom team pack based on European cities. Now I'm
   running the London Monarchs in a league with the Paris Sentinels and the
   Berlin Bears. Same game, completely different flavor."
-- "I'm the GM of a small-market team. Free agents don't want to come here. The
-  media ignores us. But my owner is patient, my scouts are elite, and my last
-  three draft classes have been the best in the league. Nobody's paying
-  attention yet. They will."
+- "I run a small-market franchise. Free agents don't want to come here. The
+  media ignores us. But my scouts are elite and my last three draft classes have
+  been the best in the league. Nobody's paying attention yet. They will."

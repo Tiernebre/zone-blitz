@@ -720,10 +720,9 @@ segment of the market.
   Others never adjust to having 53 grown men with agents instead of 85
   scholarship kids.
 - **Ego and culture shock.** A coach who was king of his college program — total
-  control, adoring fans, no owner to answer to — may struggle with the NFL's
-  power structure. He answers to you. He answers to the owner. His players have
-  more leverage. The media is harsher. Not every college king survives the
-  transition.
+  control, adoring fans, nobody above him — may struggle with the pro power
+  structure. He answers to you, the owner/GM. His players have more leverage.
+  The media is harsher. Not every college king survives the transition.
 - **Scheme translation isn't automatic.** The college game and the pro game are
   different sports in important ways. Wider hash marks, different rules, faster
   defenders, more complex coverages. An offense that gashed college defenses

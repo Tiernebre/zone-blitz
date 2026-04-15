@@ -51,33 +51,32 @@ first several seasons.
 
 ### You are the owner _and_ the GM
 
-In an established Zone Blitz league, the owner and the GM are distinct roles —
-the owner sets direction and patience, the GM executes (see
-[Owners](./owners.md)). In a start-up league, that separation doesn't exist yet.
-You're not a hired GM slotting into someone else's franchise. You are a
-**founding owner** who is also running football operations.
+In Zone Blitz, there is no separate "owner" sitting above you. You are a
+**founding owner** who is also running football operations. That fusion is
+canonical — it is how every franchise in a Zone Blitz league is run, yours and
+every NPC's alike, for the life of the league.
 
-This dual role is true to the scrappy reality of a new league: there are no
-billionaire absentee owners yet, no large front-office staffs, no established
-chains of command. The people who put the league together are the people running
-the teams. You pick the city, you pick the colors, you sign the checks, you make
-the draft picks, you fire the coach if it isn't working.
+This reflects the scrappy reality of a start-up league: there are no billionaire
+absentee owners, no large front-office staffs, no established chains of command
+above the people actually running the teams. The people who put the league
+together are the people running the teams. You pick the city, you pick the
+colors, you sign the checks, you make the draft picks, you fire the coach if it
+isn't working. NPC franchises work the same way — a single AI persona owns the
+franchise and runs football operations.
 
-The dual role shapes what decisions are available to you during genesis and
-early seasons:
+The fused role shapes what decisions are available to you:
 
-- **Franchise-level calls** (identity, relocation, expansion votes,
-  ownership-tier financial decisions) are yours, not delegated to an NPC owner
+- **Franchise-level calls** (identity, relocation, expansion votes, non-cap
+  spending) are yours, period
 - **Football operations** (roster, cap, draft, trades, coaching hires) are also
-  yours, exactly as they would be for a GM in established mode
-- **There is no owner patience meter pointed at you** during the early league —
-  you can't fire yourself, and no one above you is threatening to. Patience
-  still exists, but it comes from fans, media, and league peers rather than an
-  employer
+  yours
+- **There is no owner patience meter pointed at you** — you can't fire yourself,
+  and no one above you is threatening to. Stakes still exist, but they come from
+  fans, media, league peers, and the expansion vote rather than from an employer
 
-As the league matures and expansion brings in larger ownership groups, the
-owner/GM split may re-emerge — but that's a late-league evolution, not the
-founding state.
+This is a deliberate departure from the "GM works for an opaque owner" model
+common to other franchise sims. In Zone Blitz, there is no such layer — and that
+is the design, not a gap to fill later.
 
 ### Genesis is about declaration, not management
 
@@ -251,10 +250,11 @@ Each franchise slot is filled, in order:
   come from the selected pool entry but the founder may override any of them
 - **Conference/division assignment**: placed into the structure from Phase 1,
   with geographic suggestions surfaced but not enforced
-- **Ownership**: in a start-up league, the franchise's founding owner _is_ the
-  GM. For human-claimed franchises, that's you. For NPC franchises, owner
-  personality is generated and the same AI drives both ownership and football
-  operations (see [Owners](./owners.md))
+- **Ownership**: each franchise's founding owner _is_ the GM — a fused role, not
+  an owner above a separate GM. For human-claimed franchises, that's you. For
+  NPC franchises, a single AI persona is generated that handles both
+  ownership-level decisions (identity, expansion votes, non-cap spending) and
+  football operations (roster, draft, trades, coaching)
 
 In multiplayer, this phase is where human owner/GMs claim their franchise. In
 single-player, the founder picks their team and the remaining slots are
@@ -739,16 +739,15 @@ next generation of talent while the franchise is still finding its feet.
 Scouting department investment is one of the genesis-phase decisions available
 to each franchise. See [Scouting](./scouting.md).
 
-### Owners
+### Ownership
 
-In a genesis league, the owner and GM are the same person for every franchise —
+In Zone Blitz, the owner and GM are the same person for every franchise —
 human-claimed franchises are run by the player, NPC franchises are run by an AI
-that wears both hats. This is a deliberate divergence from the
-established-league model in [Owners](./owners.md), where the two roles are
-distinct. Ownership personality still matters — it drives expansion votes,
-relocation pressure, and inter-franchise dynamics — but it is fused with
-football operations rather than layered above them. The owner/GM split may
-re-emerge in the late league as franchises mature.
+that wears both hats. There is no separate owner-above-GM layer anywhere in the
+game. Ownership personality still matters as a concept — it drives expansion
+votes, relocation decisions, and inter-franchise dynamics — but it is fused with
+football operations, not layered above them. This is a core design choice, not a
+genesis-era simplification.
 
 ### Media
 
