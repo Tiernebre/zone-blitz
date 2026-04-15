@@ -194,5 +194,14 @@ export { statColumnsForBucket } from "./statistics/position-stat-columns.ts";
 export type { CareerTotalsResult } from "./statistics/career-totals.ts";
 export { computeCareerTotals } from "./statistics/career-totals.ts";
 
+// RNG
+export {
+  createRng,
+  createSeededRng,
+  deriveGameSeed,
+  mulberry32,
+} from "./rng/mod.ts";
+export type { SeededRng } from "./rng/mod.ts";
+
 // Errors
 export { DomainError } from "./errors/domain-error.ts";
