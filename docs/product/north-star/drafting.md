@@ -412,3 +412,9 @@ The best draft experiences:
   he busts, I mortgaged the future for nothing. I won't know for three years."
 - "Everyone clowned my second-round pick. Two years later he's All-Pro and their
   guy is out of the league."
+
+---
+
+## Related decisions
+
+- [0024 — Allocation draft as Year 1's only draft](../decisions/0024-allocation-draft-as-year-one-only-draft.md)
