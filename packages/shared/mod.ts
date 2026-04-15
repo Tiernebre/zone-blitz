@@ -84,6 +84,16 @@ export type {
 } from "./types/roster.ts";
 export { NEUTRAL_BUCKET_GROUPS, neutralBucketGroupOf } from "./types/roster.ts";
 export type {
+  ContractLedgerEntry,
+  ContractType,
+  ContractYearInput,
+  ContractYearRow,
+} from "./contracts/contract-ledger.ts";
+export {
+  buildContractYears,
+  CONTRACT_TYPES,
+} from "./contracts/contract-ledger.ts";
+export type {
   Contract,
   ContractHistoryEntry,
   ContractTerminationReason,
@@ -177,6 +187,12 @@ export {
   attributeRatingSchema,
   playerAttributesSchema,
 } from "./schemas/player-attributes.ts";
+
+// Statistics
+export type { StatColumnDefinition } from "./statistics/position-stat-columns.ts";
+export { statColumnsForBucket } from "./statistics/position-stat-columns.ts";
+export type { CareerTotalsResult } from "./statistics/career-totals.ts";
+export { computeCareerTotals } from "./statistics/career-totals.ts";
 
 // Errors
 export { DomainError } from "./errors/domain-error.ts";

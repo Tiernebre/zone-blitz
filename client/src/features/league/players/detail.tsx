@@ -1,8 +1,9 @@
 import { Link, useParams } from "@tanstack/react-router";
 import type { PlayerDetail as PlayerDetailData } from "@zone-blitz/shared";
 import type {
-  ContractHistoryEntry,
+  ContractLedgerEntry,
   ContractTerminationReason,
+  ContractType,
   PlayerAccoladeEntry,
   PlayerAccoladeType,
   PlayerInjuryStatus,
@@ -11,6 +12,10 @@ import type {
   PlayerTransactionEntry,
   PlayerTransactionType,
 } from "@zone-blitz/shared/types/player.ts";
+import {
+  computeCareerTotals,
+  statColumnsForBucket,
+} from "./career-stats-utils.ts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,6 +27,11 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -33,7 +43,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { usePlayerDetail } from "../../../hooks/use-player-detail.ts";
-import { UserIcon } from "lucide-react";
+import { ChevronDownIcon, UserIcon } from "lucide-react";
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -52,6 +62,14 @@ const terminationLabels: Record<ContractTerminationReason, string> = {
   traded: "Traded",
   extended: "Extended",
   restructured: "Restructured",
+};
+
+const contractTypeLabels: Record<ContractType, string> = {
+  rookie_scale: "Rookie Scale",
+  veteran: "Veteran",
+  extension: "Extension",
+  franchise_tag: "Franchise Tag",
+  restructure: "Restructure",
 };
 
 const transactionLabels: Record<PlayerTransactionType, string> = {
@@ -83,13 +101,6 @@ const numberFormatter = new Intl.NumberFormat("en-US");
 function formatStatValue(value: number | string): string {
   if (typeof value === "number") return numberFormatter.format(value);
   return value;
-}
-
-function toStatLabel(key: string): string {
-  return key
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (c) => c.toUpperCase())
-    .trim();
 }
 
 function injuryBadgeVariant(
@@ -388,39 +399,173 @@ function Section(
 function ContractSection(
   { detail, leagueId }: { detail: PlayerDetailData; leagueId: string },
 ) {
-  const { currentContract, contractHistory } = detail;
+  const { contractLedger } = detail;
+
+  if (contractLedger.length === 0) {
+    return (
+      <Section title="Contract">
+        <p
+          className="text-sm text-muted-foreground"
+          data-testid="player-no-current-contract"
+        >
+          Not under contract.
+        </p>
+      </Section>
+    );
+  }
+
+  const current = contractLedger.find((c) => c.isCurrent);
+  const prior = contractLedger.filter((c) => !c.isCurrent);
+
   return (
     <Section title="Contract">
-      {currentContract
-        ? (
-          <Card data-testid="player-current-contract">
-            <CardContent className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-4">
-              <Fact label="Years">
-                {currentContract.yearsRemaining}/{currentContract.totalYears}
-              </Fact>
-              <Fact label="Cap hit">
-                {formatCurrency(currentContract.annualSalary)}
-              </Fact>
-              <Fact label="Total value">
-                {formatCurrency(currentContract.totalSalary)}
-              </Fact>
-              <Fact label="Guaranteed">
-                {formatCurrency(currentContract.guaranteedMoney)}
-              </Fact>
-            </CardContent>
-          </Card>
-        )
-        : (
-          <p
-            className="text-sm text-muted-foreground"
-            data-testid="player-no-current-contract"
-          >
-            Not under contract.
-          </p>
-        )}
-
-      <ContractHistoryTable entries={contractHistory} leagueId={leagueId} />
+      {current && (
+        <ContractLedgerBlock
+          entry={current}
+          leagueId={leagueId}
+          testIdPrefix="player-current-contract"
+        />
+      )}
+      {prior.length > 0 && (
+        <div
+          className="flex flex-col gap-3"
+          data-testid="player-prior-contracts"
+        >
+          {prior.map((entry) => (
+            <Collapsible key={entry.id} defaultOpen={false}>
+              <CollapsibleTrigger
+                className="flex w-full items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+                data-testid={`player-prior-contract-trigger-${entry.id}`}
+              >
+                <ChevronDownIcon className="size-4 transition-transform [[data-panel-open]_&]:rotate-180" />
+                {entry.signedInYear} · {entry.team.abbreviation} ·{" "}
+                {contractTypeLabels[entry.contractType]} ·{" "}
+                {entry.totalYears}yr · {formatCurrency(entry.totalValue)}
+                {entry.terminationReason && (
+                  <Badge variant="outline" className="ml-auto">
+                    {terminationLabels[
+                      entry.terminationReason as ContractTerminationReason
+                    ]}
+                  </Badge>
+                )}
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <ContractLedgerBlock
+                  entry={entry}
+                  leagueId={leagueId}
+                  testIdPrefix={`player-prior-contract-${entry.id}`}
+                />
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
+        </div>
+      )}
     </Section>
+  );
+}
+
+function ContractLedgerBlock(
+  { entry, leagueId, testIdPrefix }: {
+    entry: ContractLedgerEntry;
+    leagueId: string;
+    testIdPrefix: string;
+  },
+) {
+  const cashToDate = entry.years
+    .filter((y) => !y.isVoid)
+    .reduce((sum, y) => sum + y.cashPaid, 0);
+
+  return (
+    <Card data-testid={testIdPrefix}>
+      <CardHeader>
+        <CardTitle className="flex flex-wrap items-center gap-2 text-sm">
+          <Link
+            to="/leagues/$leagueId/opponents/$teamId"
+            params={{ leagueId, teamId: entry.team.id }}
+            className="underline-offset-2 hover:underline"
+          >
+            {entry.team.city} {entry.team.name}
+          </Link>
+          <span className="text-muted-foreground">·</span>
+          <span data-testid={`${testIdPrefix}-type`}>
+            {contractTypeLabels[entry.contractType]}
+          </span>
+          {entry.contractType === "rookie_scale" && (
+            <Badge
+              variant="secondary"
+              data-testid={`${testIdPrefix}-rookie-label`}
+            >
+              Rookie Scale
+            </Badge>
+          )}
+          <span className="text-muted-foreground">·</span>
+          <span>{entry.totalYears} years</span>
+          {entry.signedInYear && (
+            <>
+              <span className="text-muted-foreground">·</span>
+              <span>Signed {entry.signedInYear}</span>
+            </>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Year</TableHead>
+              <TableHead>Base</TableHead>
+              <TableHead>Signing Bonus</TableHead>
+              <TableHead>Roster Bonus</TableHead>
+              <TableHead>Workout Bonus</TableHead>
+              <TableHead>Cap Hit</TableHead>
+              <TableHead>Dead Cap</TableHead>
+              <TableHead>Cash</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {entry.years.map((year) => (
+              <TableRow
+                key={year.yearNumber}
+                data-testid={`${testIdPrefix}-year-${year.yearNumber}`}
+                className={year.isVoid ? "text-muted-foreground italic" : ""}
+              >
+                <TableCell>
+                  {year.isVoid
+                    ? (
+                      <span
+                        data-testid={`${testIdPrefix}-void-${year.yearNumber}`}
+                      >
+                        Void
+                      </span>
+                    )
+                    : year.yearNumber}
+                </TableCell>
+                <TableCell>{formatCurrency(year.baseSalary)}</TableCell>
+                <TableCell>
+                  {formatCurrency(year.signingBonusProration)}
+                </TableCell>
+                <TableCell>{formatCurrency(year.rosterBonus)}</TableCell>
+                <TableCell>{formatCurrency(year.workoutBonus)}</TableCell>
+                <TableCell>{formatCurrency(year.capHit)}</TableCell>
+                <TableCell>{formatCurrency(year.deadCap)}</TableCell>
+                <TableCell>{formatCurrency(year.cashPaid)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        <div
+          className="grid grid-cols-1 gap-4 sm:grid-cols-3"
+          data-testid={`${testIdPrefix}-totals`}
+        >
+          <Fact label="Total value">{formatCurrency(entry.totalValue)}</Fact>
+          <Fact label="Guaranteed at signing">
+            {formatCurrency(entry.guaranteedAtSigning)}
+          </Fact>
+          <Fact label="Cash to date">{formatCurrency(cashToDate)}</Fact>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -473,77 +618,6 @@ function PreDraft({ detail }: { detail: PlayerDetailData }) {
         </CardContent>
       </Card>
     </Section>
-  );
-}
-
-function ContractHistoryTable(
-  { entries, leagueId }: {
-    entries: ContractHistoryEntry[];
-    leagueId: string;
-  },
-) {
-  if (entries.length === 0) {
-    return (
-      <p
-        className="text-sm text-muted-foreground"
-        data-testid="player-contract-history-empty"
-      >
-        No contract history on file.
-      </p>
-    );
-  }
-  return (
-    <Card data-testid="player-contract-history">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          Deal history
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Signed</TableHead>
-              <TableHead>Team</TableHead>
-              <TableHead>Years</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Guaranteed</TableHead>
-              <TableHead>Outcome</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {entries.map((entry) => (
-              <TableRow
-                key={entry.id}
-                data-testid={`player-contract-history-row-${entry.id}`}
-              >
-                <TableCell>{entry.signedInYear}</TableCell>
-                <TableCell>
-                  <Link
-                    to="/leagues/$leagueId/opponents/$teamId"
-                    params={{ leagueId, teamId: entry.team.id }}
-                    className="underline-offset-2 hover:underline"
-                  >
-                    {entry.team.abbreviation}
-                  </Link>
-                </TableCell>
-                <TableCell>{entry.totalYears}</TableCell>
-                <TableCell>{formatCurrency(entry.totalSalary)}</TableCell>
-                <TableCell>{formatCurrency(entry.guaranteedMoney)}</TableCell>
-                <TableCell>
-                  {terminationLabels[entry.terminationReason]}
-                  {entry.endedInYear !== null && (
-                    <span className="text-muted-foreground">
-                      · {entry.endedInYear}
-                    </span>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -641,7 +715,7 @@ function CareerLogSection(
 
   if (regular.length === 0 && playoff.length === 0) {
     return (
-      <Section title="Career log">
+      <Section title="Statistics">
         <p
           className="text-sm text-muted-foreground"
           data-testid="player-career-log-empty"
@@ -652,27 +726,33 @@ function CareerLogSection(
     );
   }
 
-  const statKeys = new Set<string>();
-  for (const row of detail.seasonStats) {
-    for (const key of Object.keys(row.stats)) statKeys.add(key);
-  }
-  const statColumns = [...statKeys];
+  const positionColumns = statColumnsForBucket(detail.neutralBucket);
+  const statKeys = positionColumns.map((c) => c.key);
+  const currentSeasonYear = Math.max(
+    ...detail.seasonStats.map((r) => r.seasonYear),
+  );
 
   return (
-    <Section title="Career log">
+    <Section title="Statistics">
       <CareerLogTable
         caption="Regular season"
         rows={regular}
-        statColumns={statColumns}
+        positionColumns={positionColumns}
+        statKeys={statKeys}
         leagueId={leagueId}
+        playerId={detail.id}
+        currentSeasonYear={currentSeasonYear}
         testId="player-career-log-regular"
       />
       {playoff.length > 0 && (
         <CareerLogTable
           caption="Playoffs"
           rows={playoff}
-          statColumns={statColumns}
+          positionColumns={positionColumns}
+          statKeys={statKeys}
           leagueId={leagueId}
+          playerId={detail.id}
+          currentSeasonYear={currentSeasonYear}
           testId="player-career-log-playoffs"
         />
       )}
@@ -681,14 +761,28 @@ function CareerLogSection(
 }
 
 function CareerLogTable(
-  { caption, rows, statColumns, leagueId, testId }: {
+  {
+    caption,
+    rows,
+    positionColumns,
+    statKeys,
+    leagueId,
+    playerId,
+    currentSeasonYear,
+    testId,
+  }: {
     caption: string;
     rows: PlayerSeasonStatRow[];
-    statColumns: string[];
+    positionColumns: { key: string; label: string }[];
+    statKeys: string[];
     leagueId: string;
+    playerId: string;
+    currentSeasonYear: number;
     testId: string;
   },
 ) {
+  const totals = computeCareerTotals(rows, statKeys);
+
   return (
     <Card data-testid={testId}>
       <CardHeader>
@@ -704,8 +798,8 @@ function CareerLogTable(
               <TableHead>Team</TableHead>
               <TableHead>GP</TableHead>
               <TableHead>GS</TableHead>
-              {statColumns.map((key) => (
-                <TableHead key={key}>{toStatLabel(key)}</TableHead>
+              {positionColumns.map((col) => (
+                <TableHead key={col.key}>{col.label}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
@@ -715,7 +809,21 @@ function CareerLogTable(
                 key={row.id}
                 data-testid={`player-career-row-${row.id}`}
               >
-                <TableCell>{row.seasonYear}</TableCell>
+                <TableCell>
+                  {row.seasonYear === currentSeasonYear
+                    ? (
+                      <Link
+                        to="/leagues/$leagueId/players/$playerId"
+                        params={{ leagueId, playerId }}
+                        hash="splits"
+                        className="underline-offset-2 hover:underline"
+                        data-testid={`player-splits-link-${row.id}`}
+                      >
+                        {row.seasonYear}
+                      </Link>
+                    )
+                    : row.seasonYear}
+                </TableCell>
                 <TableCell>
                   <Link
                     to="/leagues/$leagueId/opponents/$teamId"
@@ -727,13 +835,28 @@ function CareerLogTable(
                 </TableCell>
                 <TableCell>{row.gamesPlayed}</TableCell>
                 <TableCell>{row.gamesStarted}</TableCell>
-                {statColumns.map((key) => (
-                  <TableCell key={key}>
-                    {key in row.stats ? formatStatValue(row.stats[key]) : "—"}
+                {positionColumns.map((col) => (
+                  <TableCell key={col.key}>
+                    {col.key in row.stats
+                      ? formatStatValue(row.stats[col.key])
+                      : "—"}
                   </TableCell>
                 ))}
               </TableRow>
             ))}
+            <TableRow
+              className="font-semibold"
+              data-testid={`${testId}-totals`}
+            >
+              <TableCell colSpan={2}>Career Totals</TableCell>
+              <TableCell>{totals.gamesPlayed}</TableCell>
+              <TableCell>{totals.gamesStarted}</TableCell>
+              {positionColumns.map((col) => (
+                <TableCell key={col.key}>
+                  {formatStatValue(totals.stats[col.key])}
+                </TableCell>
+              ))}
+            </TableRow>
           </TableBody>
         </Table>
       </CardContent>
