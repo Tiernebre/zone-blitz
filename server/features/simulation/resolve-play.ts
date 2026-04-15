@@ -142,10 +142,24 @@ const MATCHUP_ATTR_KEYS: Record<MatchupType, {
   },
 };
 
+function parseClock(clock: string): number {
+  const [mins, secs] = clock.split(":").map(Number);
+  return mins * 60 + (secs ?? 0);
+}
+
+export function isTwoMinuteDrill(
+  quarter: 1 | 2 | 3 | 4 | "OT",
+  clock: string,
+): boolean {
+  if (quarter !== 2 && quarter !== 4) return false;
+  return parseClock(clock) <= 120;
+}
+
 export function drawOffensiveCall(
   fingerprint: SchemeFingerprint,
   situation: Situation,
   rng: SeededRng,
+  options?: { twoMinute?: boolean },
 ): OffensiveCall {
   const offense = fingerprint.offense;
   const runPassLean = offense?.runPassLean ?? 50;
@@ -156,6 +170,7 @@ export function drawOffensiveCall(
   let runProbability = (100 - runPassLean) / 100;
   if (isShortYardage) runProbability += 0.2;
   if (isLongYardage) runProbability -= 0.2;
+  if (options?.twoMinute) runProbability -= 0.3;
   runProbability = Math.max(0.1, Math.min(0.9, runProbability));
 
   const isRun = rng.next() < runProbability;
@@ -198,13 +213,16 @@ export function drawDefensiveCall(
   fingerprint: SchemeFingerprint,
   situation: Situation,
   rng: SeededRng,
+  options?: { twoMinute?: boolean },
 ): DefensiveCall {
   const defense = fingerprint.defense;
 
   const frontLean = defense?.frontOddEven ?? 50;
   const subPackage = defense?.subPackageLean ?? 50;
   let front: string;
-  if (subPackage > 65) {
+  if (options?.twoMinute) {
+    front = rng.pick(["nickel", "dime"] as const);
+  } else if (subPackage > 65) {
     front = rng.pick(["nickel", "dime"] as const);
   } else if (frontLean < 40) {
     front = "3-4";
@@ -217,7 +235,9 @@ export function drawDefensiveCall(
   const manZone = defense?.coverageManZone ?? 50;
   const shell = defense?.coverageShell ?? 50;
   let coverage: string;
-  if (manZone < 35) {
+  if (options?.twoMinute) {
+    coverage = rng.pick(["cover_2", "cover_3", "cover_4", "cover_6"] as const);
+  } else if (manZone < 35) {
     coverage = shell < 50
       ? rng.pick(["cover_0", "cover_1"] as const)
       : "cover_1";
@@ -233,6 +253,7 @@ export function drawDefensiveCall(
   const isPassSituation = situation.down >= 3 && situation.distance >= 5;
   let blitzProb = pressureRate / 100;
   if (isPassSituation) blitzProb += 0.15;
+  if (options?.twoMinute) blitzProb -= 0.2;
   blitzProb = Math.max(0.05, Math.min(0.8, blitzProb));
 
   let pressure: string;
@@ -718,9 +739,18 @@ export function resolvePlay(
   offense: TeamRuntime,
   defense: TeamRuntime,
   rng: SeededRng,
+  options?: { twoMinute?: boolean },
 ): PlayEvent {
-  const call = drawOffensiveCall(offense.fingerprint, state.situation, rng);
-  const coverage = drawDefensiveCall(defense.fingerprint, state.situation, rng);
+  const twoMinute = options?.twoMinute ?? false;
+  const call = drawOffensiveCall(offense.fingerprint, state.situation, rng, {
+    twoMinute,
+  });
+  const coverage = drawDefensiveCall(
+    defense.fingerprint,
+    state.situation,
+    rng,
+    { twoMinute },
+  );
   const matchups = identifyMatchups(
     call,
     coverage,
@@ -753,5 +783,9 @@ export function resolvePlay(
     });
   });
 
-  return synthesizeOutcome(call, coverage, contributions, state, rng);
+  const event = synthesizeOutcome(call, coverage, contributions, state, rng);
+  if (twoMinute) {
+    event.tags.push("two_minute");
+  }
+  return event;
 }

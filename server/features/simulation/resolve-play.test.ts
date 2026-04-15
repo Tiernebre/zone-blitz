@@ -13,6 +13,7 @@ import {
   drawOffensiveCall,
   type GameState,
   identifyMatchups,
+  isTwoMinuteDrill,
   type MatchupContribution,
   type PlayerRuntime,
   resolvePlay,
@@ -1513,4 +1514,115 @@ Deno.test("determinism: different seeds produce different sequences", () => {
   const str1 = JSON.stringify(event1);
   const str2 = JSON.stringify(event2);
   assertNotEquals(str1, str2);
+});
+
+Deno.test("isTwoMinuteDrill", async (t) => {
+  await t.step("returns true in Q2 under 2:00", () => {
+    assertEquals(isTwoMinuteDrill(2, "1:59"), true);
+    assertEquals(isTwoMinuteDrill(2, "2:00"), true);
+    assertEquals(isTwoMinuteDrill(2, "0:30"), true);
+    assertEquals(isTwoMinuteDrill(2, "0:01"), true);
+  });
+
+  await t.step("returns true in Q4 under 2:00", () => {
+    assertEquals(isTwoMinuteDrill(4, "1:30"), true);
+    assertEquals(isTwoMinuteDrill(4, "0:01"), true);
+  });
+
+  await t.step("returns false in Q1 and Q3", () => {
+    assertEquals(isTwoMinuteDrill(1, "1:00"), false);
+    assertEquals(isTwoMinuteDrill(3, "0:30"), false);
+  });
+
+  await t.step("returns false when clock is above 2:00", () => {
+    assertEquals(isTwoMinuteDrill(2, "2:01"), false);
+    assertEquals(isTwoMinuteDrill(4, "5:00"), false);
+    assertEquals(isTwoMinuteDrill(4, "15:00"), false);
+  });
+
+  await t.step("returns false in OT", () => {
+    assertEquals(isTwoMinuteDrill("OT", "1:00"), false);
+  });
+});
+
+Deno.test("drawOffensiveCall with twoMinute option shifts to more passing", () => {
+  const fingerprint = makeFingerprint();
+  const situation: Situation = { down: 1, distance: 10, yardLine: 50 };
+  let normalRuns = 0;
+  let twoMinRuns = 0;
+  const iterations = 500;
+
+  for (let i = 0; i < iterations; i++) {
+    const normalCall = drawOffensiveCall(fingerprint, situation, makeRng(i));
+    const twoMinCall = drawOffensiveCall(fingerprint, situation, makeRng(i), {
+      twoMinute: true,
+    });
+    if (
+      normalCall.concept === "inside_zone" ||
+      normalCall.concept === "outside_zone" ||
+      normalCall.concept === "power" ||
+      normalCall.concept === "counter" ||
+      normalCall.concept === "draw"
+    ) {
+      normalRuns++;
+    }
+    if (
+      twoMinCall.concept === "inside_zone" ||
+      twoMinCall.concept === "outside_zone" ||
+      twoMinCall.concept === "power" ||
+      twoMinCall.concept === "counter" ||
+      twoMinCall.concept === "draw"
+    ) {
+      twoMinRuns++;
+    }
+  }
+
+  assertEquals(
+    twoMinRuns < normalRuns,
+    true,
+    `Two-minute should have fewer runs (${twoMinRuns}) than normal (${normalRuns})`,
+  );
+});
+
+Deno.test("drawDefensiveCall with twoMinute option shifts to prevent coverage", () => {
+  const fingerprint = makeFingerprint();
+  const situation: Situation = { down: 1, distance: 10, yardLine: 50 };
+  const preventCoverages = new Set([
+    "cover_2",
+    "cover_3",
+    "cover_4",
+    "cover_6",
+  ]);
+  let normalPrevent = 0;
+  let twoMinPrevent = 0;
+  const iterations = 500;
+
+  for (let i = 0; i < iterations; i++) {
+    const normalCall = drawDefensiveCall(fingerprint, situation, makeRng(i));
+    const twoMinCall = drawDefensiveCall(fingerprint, situation, makeRng(i), {
+      twoMinute: true,
+    });
+    if (preventCoverages.has(normalCall.coverage)) normalPrevent++;
+    if (preventCoverages.has(twoMinCall.coverage)) twoMinPrevent++;
+  }
+
+  assertEquals(
+    twoMinPrevent > normalPrevent,
+    true,
+    `Two-minute should have more prevent (${twoMinPrevent}) than normal (${normalPrevent})`,
+  );
+});
+
+Deno.test("resolvePlay with twoMinute option adds two_minute tag", () => {
+  const state = makeGameState();
+  const offense = makeTeamRuntime({ onField: makeOffense() });
+  const defense = makeTeamRuntime({ onField: makeDefense() });
+  const rng = makeRng(42);
+
+  const event = resolvePlay(state, offense, defense, rng, { twoMinute: true });
+  assertEquals(
+    event.tags.includes("two_minute"),
+    true,
+    "Event should carry two_minute tag",
+  );
 });

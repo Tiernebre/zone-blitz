@@ -72,7 +72,10 @@ export type PlayTag =
   | "injury_miss_season"
   | "injury_career_ending"
   | "onside"
-  | "return_td";
+  | "return_td"
+  | "two_minute"
+  | "victory_formation"
+  | "timeout";
 
 export type PenaltyType =
   | "false_start"

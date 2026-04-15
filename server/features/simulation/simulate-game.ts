@@ -14,7 +14,7 @@ import type {
   TeamRuntime,
 } from "./resolve-play.ts";
 import type { SchemeFingerprint } from "@zone-blitz/shared";
-import { resolvePlay } from "./resolve-play.ts";
+import { isTwoMinuteDrill, resolvePlay } from "./resolve-play.ts";
 import { resolveKickoff } from "./resolve-kickoff.ts";
 import type { KickoffContext } from "./resolve-kickoff.ts";
 import {
@@ -60,6 +60,8 @@ const INJURY_SEVERITIES: InjurySeverity[] = [
 const INJURY_WEIGHTS = [0.35, 0.25, 0.15, 0.10, 0.08, 0.05, 0.02];
 
 const OT_SECONDS = 600;
+const TIMEOUTS_PER_HALF = 3;
+const KNEEL_CLOCK_BURN = 40;
 
 interface MutableGameState {
   quarter: 1 | 2 | 3 | 4 | "OT";
@@ -76,6 +78,8 @@ interface MutableGameState {
   driveStartYardLine: number;
   drivePlays: number;
   driveYards: number;
+  homeTimeouts: number;
+  awayTimeouts: number;
 }
 
 interface ActiveRosters {
@@ -139,8 +143,10 @@ function promoteNextManUp(
 function shouldClockStop(event: PlayEvent): boolean {
   return (
     event.outcome === "pass_incomplete" ||
+    event.outcome === "spike" ||
     event.tags.includes("penalty") ||
     event.tags.includes("turnover") ||
+    event.tags.includes("timeout") ||
     event.outcome === "touchdown" ||
     event.outcome === "field_goal" ||
     event.outcome === "missed_field_goal" ||
@@ -180,6 +186,8 @@ export function simulateGame(input: SimulationInput): GameResult {
     driveStartYardLine: 35,
     drivePlays: 0,
     driveYards: 0,
+    homeTimeouts: TIMEOUTS_PER_HALF,
+    awayTimeouts: TIMEOUTS_PER_HALF,
   };
 
   function findPlayerByBucket(
@@ -734,7 +742,106 @@ export function simulateGame(input: SimulationInput): GameResult {
     }
   }
 
+  function shouldKneel(): boolean {
+    if (state.quarter !== 2 && state.quarter !== 4) return false;
+
+    const offenseScore = state.possession === "home"
+      ? state.homeScore
+      : state.awayScore;
+    const defenseScore = state.possession === "home"
+      ? state.awayScore
+      : state.homeScore;
+    if (offenseScore <= defenseScore) return false;
+
+    const downsRemaining = 4 - state.down + 1;
+    const clockNeeded = downsRemaining * KNEEL_CLOCK_BURN;
+    return state.clock <= clockNeeded && state.clock > 0;
+  }
+
+  function emitKneel(): void {
+    const kneelEvent: PlayEvent = {
+      gameId,
+      driveIndex: state.driveIndex,
+      playIndex: state.playIndex,
+      quarter: state.quarter,
+      clock: formatClock(state.clock),
+      situation: {
+        down: state.down,
+        distance: state.distance,
+        yardLine: state.yardLine,
+      },
+      offenseTeamId: currentOffenseTeamId(),
+      defenseTeamId: currentDefenseTeamId(),
+      call: {
+        concept: "kneel",
+        personnel: "victory",
+        formation: "under_center",
+        motion: "none",
+      },
+      coverage: {
+        front: "victory",
+        coverage: "none",
+        pressure: "none",
+      },
+      participants: [],
+      outcome: "kneel",
+      yardage: -1,
+      tags: ["victory_formation"],
+    };
+
+    events.push(kneelEvent);
+    state.drivePlays++;
+    state.globalPlayIndex++;
+    state.playIndex++;
+    state.clock -= KNEEL_CLOCK_BURN;
+    state.down = Math.min(state.down + 1, 4) as 1 | 2 | 3 | 4;
+    state.distance += 1;
+    state.yardLine -= 1;
+    if (state.yardLine < 1) state.yardLine = 1;
+  }
+
+  function trySpendTimeout(): boolean {
+    const twoMinute = isTwoMinuteDrill(state.quarter, formatClock(state.clock));
+    if (!twoMinute) return false;
+
+    const offenseTimeouts = state.possession === "home"
+      ? state.homeTimeouts
+      : state.awayTimeouts;
+    const defenseTimeouts = state.possession === "home"
+      ? state.awayTimeouts
+      : state.homeTimeouts;
+
+    const offenseScore = state.possession === "home"
+      ? state.homeScore
+      : state.awayScore;
+    const defenseScore = state.possession === "home"
+      ? state.awayScore
+      : state.homeScore;
+
+    const offenseTrailing = offenseScore < defenseScore;
+    const defenseLeading = defenseScore > offenseScore;
+
+    if (offenseTrailing && offenseTimeouts > 0 && rng.next() < 0.4) {
+      if (state.possession === "home") state.homeTimeouts--;
+      else state.awayTimeouts--;
+      return true;
+    }
+
+    if (defenseLeading && defenseTimeouts > 0 && rng.next() < 0.3) {
+      if (state.possession === "home") state.awayTimeouts--;
+      else state.homeTimeouts--;
+      return true;
+    }
+
+    return false;
+  }
+
   function runPlay(): boolean {
+    if (shouldKneel()) {
+      emitKneel();
+      return false;
+    }
+
     const offenseTeam = state.possession === "home" ? input.home : input.away;
     const defenseTeam = state.possession === "home" ? input.away : input.home;
 
@@ -746,7 +853,15 @@ export function simulateGame(input: SimulationInput): GameResult {
     );
 
     const gameState = buildGameState();
-    const event = resolvePlay(gameState, offense, defense, rng);
+    const twoMinute = isTwoMinuteDrill(state.quarter, formatClock(state.clock));
+    const event = resolvePlay(gameState, offense, defense, rng, { twoMinute });
+
+    if (twoMinute) {
+      const usedTimeout = trySpendTimeout();
+      if (usedTimeout) {
+        event.tags.push("timeout");
+      }
+    }
 
     processInjury(event);
     events.push(event);
@@ -788,6 +903,8 @@ export function simulateGame(input: SimulationInput): GameResult {
     state.clock = QUARTER_SECONDS;
 
     if (q === 3) {
+      state.homeTimeouts = TIMEOUTS_PER_HALF;
+      state.awayTimeouts = TIMEOUTS_PER_HALF;
       const secondHalfKicker: "home" | "away" = state.possession === "home"
         ? "home"
         : "away";
