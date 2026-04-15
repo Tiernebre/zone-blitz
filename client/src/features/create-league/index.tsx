@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CREATION_STAGES, STAGE_INTERVAL_MS } from "./stages.ts";
+import { LEAGUE_SETTINGS_DEFAULTS } from "./league-settings-defaults.ts";
 
 export function CreateLeague() {
   const createLeague = useCreateLeague();
@@ -87,6 +88,136 @@ export function CreateLeague() {
                     placeholder="e.g. The Gridiron Classic"
                     autoFocus
                   />
+                </div>
+
+                <hr className="border-border" />
+
+                <div className="space-y-4">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    League settings — 8 founding franchises
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="season-length"
+                        className="text-sm font-medium"
+                      >
+                        Regular season games
+                      </label>
+                      <Input
+                        id="season-length"
+                        type="number"
+                        value={LEAGUE_SETTINGS_DEFAULTS.seasonLength}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="conferences"
+                        className="text-sm font-medium"
+                      >
+                        Conferences
+                      </label>
+                      <Input
+                        id="conferences"
+                        type="number"
+                        value={LEAGUE_SETTINGS_DEFAULTS.conferences}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="divisions-per-conference"
+                        className="text-sm font-medium"
+                      >
+                        Divisions per conference
+                      </label>
+                      <Input
+                        id="divisions-per-conference"
+                        type="number"
+                        value={LEAGUE_SETTINGS_DEFAULTS.divisionsPerConference}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="roster-size"
+                        className="text-sm font-medium"
+                      >
+                        Roster size
+                      </label>
+                      <Input
+                        id="roster-size"
+                        type="number"
+                        value={LEAGUE_SETTINGS_DEFAULTS.rosterSize}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="salary-cap"
+                        className="text-sm font-medium"
+                      >
+                        Salary cap
+                      </label>
+                      <Input
+                        id="salary-cap"
+                        type="text"
+                        value={`$${
+                          LEAGUE_SETTINGS_DEFAULTS.salaryCap.toLocaleString(
+                            "en-US",
+                          )
+                        }`}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="salary-floor"
+                        className="text-sm font-medium"
+                      >
+                        Salary floor
+                      </label>
+                      <Input
+                        id="salary-floor"
+                        type="text"
+                        value={`$${
+                          LEAGUE_SETTINGS_DEFAULTS.salaryFloor.toLocaleString(
+                            "en-US",
+                          )
+                        }`}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="draft-rounds"
+                        className="text-sm font-medium"
+                      >
+                        Draft rounds
+                      </label>
+                      <Input
+                        id="draft-rounds"
+                        type="number"
+                        value={LEAGUE_SETTINGS_DEFAULTS.draftRounds}
+                        disabled
+                        readOnly
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {createLeague.isError && (
