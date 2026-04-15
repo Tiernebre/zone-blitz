@@ -6,7 +6,7 @@ export interface KickoffContext {
   gameId: string;
   driveIndex: number;
   playIndex: number;
-  quarter: 1 | 2 | 3 | 4;
+  quarter: 1 | 2 | 3 | 4 | "OT";
   clock: string;
   kickingTeamId: string;
   receivingTeamId: string;
