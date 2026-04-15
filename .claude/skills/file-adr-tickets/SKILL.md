@@ -14,8 +14,6 @@ this skill turns it into claimable work.
 - An ADR just transitioned to `Status: Accepted` in
   `docs/product/decisions/NNNN-*.md` and the implementation has not been filed
   yet.
-- The user adds a `Implement ADR NNNN` line to `docs/backlog.md` — prefer filing
-  tickets over leaving the bullet.
 
 Do **not** invoke for ADRs still `Proposed` — the decision can still change.
 
@@ -116,14 +114,7 @@ Tickets with unmet dependencies get `--label blocked` instead of
 `ready-for-agent`. When their blocker closes, the skill (or whoever closes the
 blocker) swaps the labels.
 
-### 5. Update the backlog
-
-- If a `Implement ADR NNNN` bullet exists in `docs/backlog.md`, replace it with
-  a one-liner pointing at the tracking issues:
-  `**2026-MM-DD — ADR NNNN tracked in issues #A, #B, #C.**`
-- Leave unrelated backlog entries alone.
-
-### 6. Report back
+### 5. Report back
 
 Print to the user:
 
