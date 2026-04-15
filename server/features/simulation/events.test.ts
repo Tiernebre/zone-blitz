@@ -181,6 +181,9 @@ Deno.test("PlayEvent types", async (t) => {
       "injury_miss_season",
       "injury_career_ending",
       "return_td",
+      "two_minute",
+      "victory_formation",
+      "timeout",
     ];
     assertExists(tags);
   });

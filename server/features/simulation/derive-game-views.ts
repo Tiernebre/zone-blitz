@@ -42,7 +42,7 @@ export function deriveBoxScore(
   };
 
   for (const event of events) {
-    if (event.outcome === "kickoff") continue;
+    if (event.outcome === "kickoff" || event.outcome === "kneel") continue;
 
     const isHome = event.offenseTeamId === homeTeamId;
     const offenseBox = isHome ? box.home : box.away;
@@ -102,6 +102,7 @@ function inferDriveResult(lastEvent: PlayEvent): DriveResult {
     return "field_goal";
   }
   if (lastEvent.outcome === "punt") return "punt";
+  if (lastEvent.outcome === "kneel") return "end_of_half";
   return "end_of_half";
 }
 
