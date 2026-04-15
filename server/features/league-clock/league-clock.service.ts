@@ -40,6 +40,7 @@ export interface ClockState {
   kind: string;
   flavorDate: string | null;
   advancedAt: Date;
+  hasCompletedGenesis: boolean;
 }
 
 export interface ReadyCheckState {
@@ -106,6 +107,7 @@ export function createLeagueClockService(deps: {
         kind: step?.kind ?? "",
         flavorDate: step?.flavorDate ?? null,
         advancedAt: clock.advancedAt,
+        hasCompletedGenesis: clock.hasCompletedGenesis,
       };
     },
 

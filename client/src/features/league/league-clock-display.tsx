@@ -3,6 +3,7 @@ import {
   AlertTriangleIcon,
   CalendarIcon,
   ChevronRightIcon,
+  InfoIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -40,6 +41,9 @@ export function LeagueClockDisplay({
   const [error, setError] = useState<string | null>(null);
 
   if (!clock) return null;
+
+  const showInauguralYearNote = !clock.hasCompletedGenesis &&
+    !clock.phase.startsWith("genesis_");
 
   const handleAdvance = () => {
     setError(null);
@@ -94,6 +98,12 @@ export function LeagueClockDisplay({
           </Button>
         )}
       </div>
+      {showInauguralYearNote && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <InfoIcon className="size-3" />
+          <span>No preseason (inaugural year)</span>
+        </div>
+      )}
       {error && (
         <Alert variant="destructive">
           <AlertTriangleIcon />
