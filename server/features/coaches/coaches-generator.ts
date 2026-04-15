@@ -277,6 +277,22 @@ function generateCoach(
   };
 }
 
+const TIER_ORDER: Record<string, number> = {
+  HC: 0,
+  COORDINATOR: 1,
+  POSITION: 2,
+};
+
+function tierForRole(role: CoachRole): number {
+  if (role === "HC") return TIER_ORDER.HC;
+  if (COORDINATOR_ROLES.has(role)) return TIER_ORDER.COORDINATOR;
+  return TIER_ORDER.POSITION;
+}
+
+function sortMentorsFirst(coaches: GeneratedCoach[]): void {
+  coaches.sort((a, b) => tierForRole(a.role) - tierForRole(b.role));
+}
+
 function wireMentors(
   coaches: GeneratedCoach[],
   random: () => number,
@@ -354,6 +370,7 @@ export function createCoachesGenerator(
       }
 
       wireMentors(coaches, random);
+      sortMentorsFirst(coaches);
 
       return coaches;
     },
@@ -388,6 +405,7 @@ export function createCoachesGenerator(
       }
 
       wireMentors(coaches, random);
+      sortMentorsFirst(coaches);
 
       return coaches;
     },

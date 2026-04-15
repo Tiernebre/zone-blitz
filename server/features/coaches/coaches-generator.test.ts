@@ -504,6 +504,57 @@ Deno.test("generatePool produces no coaches when numberOfTeams is 0", () => {
   assertEquals(result.length, 0);
 });
 
+Deno.test("generatePool sorts mentors before mentees for safe FK insertion", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  const idIndex = new Map<string, number>();
+  result.forEach((c, i) => idIndex.set(c.id, i));
+  for (const coach of result) {
+    if (coach.mentorCoachId !== null) {
+      const mentorIdx = idIndex.get(coach.mentorCoachId)!;
+      const coachIdx = idIndex.get(coach.id)!;
+      assertEquals(
+        mentorIdx < coachIdx,
+        true,
+        `mentor at index ${mentorIdx} should precede mentee at index ${coachIdx}`,
+      );
+    }
+  }
+});
+
+Deno.test("generate sorts reportsTo targets before dependents for safe FK insertion", () => {
+  const result = makeGenerator().generate(INPUT);
+  const idIndex = new Map<string, number>();
+  result.forEach((c, i) => idIndex.set(c.id, i));
+  for (const coach of result) {
+    if (coach.reportsToId !== null) {
+      const bossIdx = idIndex.get(coach.reportsToId)!;
+      const coachIdx = idIndex.get(coach.id)!;
+      assertEquals(
+        bossIdx < coachIdx,
+        true,
+        `reportsTo target at index ${bossIdx} should precede dependent at index ${coachIdx}`,
+      );
+    }
+  }
+});
+
+Deno.test("generate sorts mentors before mentees for safe FK insertion", () => {
+  const result = makeGenerator().generate(INPUT);
+  const idIndex = new Map<string, number>();
+  result.forEach((c, i) => idIndex.set(c.id, i));
+  for (const coach of result) {
+    if (coach.mentorCoachId !== null) {
+      const mentorIdx = idIndex.get(coach.mentorCoachId)!;
+      const coachIdx = idIndex.get(coach.id)!;
+      assertEquals(
+        mentorIdx < coachIdx,
+        true,
+        `mentor at index ${mentorIdx} should precede mentee at index ${coachIdx}`,
+      );
+    }
+  }
+});
+
 Deno.test("generatePool two leagues produce independent pools with no shared ids", () => {
   const gen = makePoolGenerator();
   const poolA = gen.generatePool({ leagueId: "league-a", numberOfTeams: 4 });
