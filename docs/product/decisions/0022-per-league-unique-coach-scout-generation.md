@@ -68,7 +68,8 @@ universe is fully self-contained.
   acceptable given that coach/scout records are small relative to play-by-play
   and player history data.
 
-- **Name generation must avoid intra-league collisions.** The generation system
-  must ensure no two coaches or scouts within the same league share a name,
-  while accepting that names may coincidentally repeat across separate leagues
-  (since those universes never interact).
+- **Duplicate names are acceptable.** The generator makes no effort to avoid
+  name collisions, either within a league or across leagues. Two coaches in the
+  same league sharing a first/last name is fine — real coaching staffs have this
+  happen too, and the added implementation complexity of dedup isn't worth it.
+  Identity is established by the coach record itself, not the name.
