@@ -19,6 +19,10 @@ export function createLeagueRouter(leagueService: LeagueService) {
       const result = await leagueService.create(input);
       return c.json(result, 201);
     })
+    .get("/:id/franchises", async (c) => {
+      const teams = await leagueService.getFranchiseTeams(c.req.param("id"));
+      return c.json(teams);
+    })
     .post("/:id/found", async (c) => {
       const result = await leagueService.found(c.req.param("id"));
       return c.json(result);

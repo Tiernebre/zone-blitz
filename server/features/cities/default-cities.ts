@@ -13,6 +13,7 @@
  */
 import { DEFAULT_COLLEGES } from "../colleges/default-colleges.ts";
 import { DEFAULT_TEAMS } from "../team/default-teams.ts";
+import { FOUNDING_FRANCHISES } from "../team/founding-franchises.ts";
 
 export interface DefaultCity {
   name: string;
@@ -223,8 +224,14 @@ const TEAM_CITIES: DefaultCity[] = DEFAULT_TEAMS.map((t) => ({
   stateCode: t.state,
 }));
 
+const FOUNDING_CITIES: DefaultCity[] = FOUNDING_FRANCHISES.map((f) => ({
+  name: f.city,
+  stateCode: f.state,
+}));
+
 export const DEFAULT_CITIES: DefaultCity[] = dedupe([
   ...TOP_US_CITIES,
   ...COLLEGE_CITIES,
   ...TEAM_CITIES,
+  ...FOUNDING_CITIES,
 ]);

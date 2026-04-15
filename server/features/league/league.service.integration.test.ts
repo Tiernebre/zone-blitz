@@ -16,6 +16,7 @@ import type { ScheduleService } from "../schedule/schedule.service.interface.ts"
 import type { TeamService } from "../team/team.service.interface.ts";
 import type { FranchiseRepository } from "../franchise/franchise.repository.ts";
 import type { LeagueClockRepository } from "../league-clock/league-clock.repository.ts";
+import { FOUNDING_FRANCHISES } from "../team/founding-franchises.ts";
 
 const FOUNDING_TEAM_COUNT = 8;
 
@@ -34,18 +35,18 @@ function createTestLogger() {
 }
 
 function createStubTeamService(): TeamService {
-  const teams = Array.from({ length: FOUNDING_TEAM_COUNT }, (_, i) => ({
+  const teams = FOUNDING_FRANCHISES.map((f) => ({
     id: crypto.randomUUID(),
-    name: `Stub Team ${i + 1}`,
+    name: f.name,
     cityId: crypto.randomUUID(),
-    city: "Stubville",
-    state: "NY",
-    abbreviation: `ST${i}`,
-    primaryColor: "#000",
-    secondaryColor: "#FFF",
-    accentColor: "#F00",
-    conference: i < 4 ? "AFC" : "NFC",
-    division: i < 4 ? "AFC East" : "NFC East",
+    city: f.city,
+    state: f.state,
+    abbreviation: f.abbreviation,
+    primaryColor: f.primaryColor,
+    secondaryColor: f.secondaryColor,
+    accentColor: f.accentColor,
+    conference: "Founding",
+    division: "Founding",
     createdAt: new Date(),
     updatedAt: new Date(),
   }));

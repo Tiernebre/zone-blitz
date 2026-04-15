@@ -1,4 +1,5 @@
 import { deriveDefaultSeasonLength, DomainError } from "@zone-blitz/shared";
+import { FOUNDING_FRANCHISES } from "../team/founding-franchises.ts";
 import type pino from "pino";
 import type { TransactionRunner } from "../../db/transaction-runner.ts";
 import type { LeagueRepository } from "./league.repository.interface.ts";
@@ -77,15 +78,20 @@ export function createLeagueService(deps: {
     async create(input) {
       log.info({ name: input.name }, "creating league shell");
 
-      const teams = await deps.teamService.getAll();
-      if (teams.length === 0) {
+      const foundingAbbreviations = new Set(
+        FOUNDING_FRANCHISES.map((f) => f.abbreviation),
+      );
+      const allTeams = await deps.teamService.getAll();
+      const foundingTeams = allTeams.filter((t) =>
+        foundingAbbreviations.has(t.abbreviation)
+      );
+
+      if (foundingTeams.length !== FOUNDING_TEAM_COUNT) {
         throw new DomainError(
           "PRECONDITION_FAILED",
-          "Cannot create a league with no teams. Run `deno task db:seed` to seed default teams.",
+          `Expected ${FOUNDING_TEAM_COUNT} founding franchises but found ${foundingTeams.length}. Run \`deno task db:seed\` to seed founding franchises.`,
         );
       }
-
-      const foundingTeams = teams.slice(0, FOUNDING_TEAM_COUNT);
 
       return await deps.txRunner.run(async (tx) => {
         const league = await deps.leagueRepo.create(
@@ -200,6 +206,18 @@ export function createLeagueService(deps: {
           scoutCount: personnelResult.scoutCount,
         };
       });
+    },
+
+    async getFranchiseTeams(leagueId) {
+      log.debug({ leagueId }, "fetching franchise teams for league");
+      const league = await deps.leagueRepo.getById(leagueId);
+      if (!league) {
+        throw new DomainError("NOT_FOUND", `League ${leagueId} not found`);
+      }
+      const franchises = await deps.franchiseRepo.getByLeagueId(leagueId);
+      const teamIds = new Set(franchises.map((f) => f.teamId));
+      const allTeams = await deps.teamService.getAll();
+      return allTeams.filter((t) => teamIds.has(t.id));
     },
 
     async assignUserTeam(id, userTeamId) {

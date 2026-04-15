@@ -63,6 +63,7 @@ function createMockLeagueService(
         coachCount: 10,
         scoutCount: 5,
       }),
+    getFranchiseTeams: () => Promise.resolve([]),
     assignUserTeam: () => Promise.resolve(createMockLeague()),
     touchLastPlayed: () => Promise.resolve(createMockLeague()),
     deleteById: () => Promise.resolve(),

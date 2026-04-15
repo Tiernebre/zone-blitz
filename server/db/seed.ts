@@ -6,6 +6,7 @@ import { cities, colleges, leaguePhaseStep, states, teams } from "./schema.ts";
 import { DEFAULT_STATES } from "../features/states/default-states.ts";
 import { DEFAULT_CITIES } from "../features/cities/default-cities.ts";
 import { DEFAULT_TEAMS } from "../features/team/default-teams.ts";
+import { FOUNDING_FRANCHISES } from "../features/team/founding-franchises.ts";
 import { DEFAULT_COLLEGES } from "../features/colleges/default-colleges.ts";
 import { DEFAULT_PHASE_STEPS } from "../features/league-clock/default-phase-steps.ts";
 
@@ -96,6 +97,30 @@ await db
     },
   });
 log.info({ count: DEFAULT_TEAMS.length }, "Default teams seeded.");
+
+log.info("Seeding founding franchises...");
+await db
+  .insert(teams)
+  .values(
+    FOUNDING_FRANCHISES.map((f) => ({
+      name: f.name,
+      cityId: resolveCityId(f.city, f.state),
+      abbreviation: f.abbreviation,
+      primaryColor: f.primaryColor,
+      secondaryColor: f.secondaryColor,
+      accentColor: f.accentColor,
+      conference: "Founding",
+      division: "Founding",
+    })),
+  )
+  .onConflictDoUpdate({
+    target: teams.abbreviation,
+    set: {
+      cityId: sql`excluded.city_id`,
+      updatedAt: new Date(),
+    },
+  });
+log.info({ count: FOUNDING_FRANCHISES.length }, "Founding franchises seeded.");
 
 log.info("Seeding default colleges...");
 await db

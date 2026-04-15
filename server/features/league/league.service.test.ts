@@ -12,6 +12,7 @@ import type { PersonnelService } from "../personnel/personnel.service.interface.
 import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
 import type { FranchiseRepository } from "../franchise/franchise.repository.ts";
 import type { LeagueClockRepository } from "../league-clock/league-clock.repository.ts";
+import { FOUNDING_FRANCHISES } from "../team/founding-franchises.ts";
 
 const TX_MARKER = { __tx: true };
 const FOUNDING_TEAM_COUNT = 8;
@@ -96,18 +97,18 @@ function createMockSeasonService(
 function createMockTeamService(
   overrides: Partial<TeamService> = {},
 ): TeamService {
-  const teams = Array.from({ length: FOUNDING_TEAM_COUNT }, (_, i) => ({
+  const teams = FOUNDING_FRANCHISES.map((f, i) => ({
     id: `team-${i + 1}`,
-    name: `Team ${i + 1}`,
+    name: f.name,
     cityId: `city-${i + 1}`,
-    city: `City ${i + 1}`,
-    state: "NY",
-    abbreviation: `T${i + 1}`,
-    primaryColor: "#000",
-    secondaryColor: "#FFF",
-    accentColor: "#F00",
-    conference: i < 4 ? "AFC" : "NFC",
-    division: i < 4 ? "AFC East" : "NFC East",
+    city: f.city,
+    state: f.state,
+    abbreviation: f.abbreviation,
+    primaryColor: f.primaryColor,
+    secondaryColor: f.secondaryColor,
+    accentColor: f.accentColor,
+    conference: "Founding",
+    division: "Founding",
     createdAt: new Date(),
     updatedAt: new Date(),
   }));
@@ -485,7 +486,7 @@ Deno.test("league.service", async (t) => {
   );
 
   await t.step(
-    "create throws PRECONDITION_FAILED when no teams are seeded",
+    "create throws PRECONDITION_FAILED when founding franchises are missing",
     async () => {
       const service = createService({
         teamService: { getAll: () => Promise.resolve([]) },
@@ -494,7 +495,7 @@ Deno.test("league.service", async (t) => {
       await assertRejects(
         () => service.create({ name: "New League" }),
         DomainError,
-        "no teams",
+        "founding franchises",
       );
     },
   );
@@ -793,6 +794,48 @@ Deno.test("league.service", async (t) => {
         () => service.found(leagueId),
         Error,
         "schedule boom",
+      );
+    },
+  );
+
+  // === getFranchiseTeams ===
+
+  await t.step(
+    "getFranchiseTeams returns teams associated with a league's franchises",
+    async () => {
+      const leagueId = "lg-1";
+      const mockFranchises = [
+        createMockFranchise({ leagueId, teamId: "team-1" }),
+        createMockFranchise({ leagueId, teamId: "team-3" }),
+      ];
+
+      const service = createService({
+        leagueRepo: {
+          getById: () => Promise.resolve(createMockLeague({ id: leagueId })),
+        },
+        franchiseRepo: {
+          getByLeagueId: () => Promise.resolve(mockFranchises),
+        },
+      });
+
+      const teams = await service.getFranchiseTeams(leagueId);
+      assertEquals(teams.length, 2);
+      assertEquals(teams[0].id, "team-1");
+      assertEquals(teams[1].id, "team-3");
+    },
+  );
+
+  await t.step(
+    "getFranchiseTeams throws NOT_FOUND when league does not exist",
+    async () => {
+      const service = createService({
+        leagueRepo: { getById: () => Promise.resolve(undefined) },
+      });
+
+      await assertRejects(
+        () => service.getFranchiseTeams("missing"),
+        DomainError,
+        "not found",
       );
     },
   );

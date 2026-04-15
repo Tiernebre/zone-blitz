@@ -1,72 +1,91 @@
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { useTeams } from "../../hooks/use-teams.ts";
-import { useAssignUserTeam } from "../../hooks/use-leagues.ts";
+import {
+  useAssignUserTeam,
+  useFranchiseTeams,
+} from "../../hooks/use-leagues.ts";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TeamLogo } from "../../components/team-logo.tsx";
 
-interface Team {
+interface FranchiseTeam {
   id: string;
   name: string;
   city: string;
   abbreviation: string;
   primaryColor: string;
   secondaryColor: string;
-  conference: string;
-  division: string;
+  accentColor: string;
 }
 
-function groupByDivision(teams: Team[]) {
-  const grouped = new Map<string, Team[]>();
-  for (const team of teams) {
-    if (!grouped.has(team.division)) {
-      grouped.set(team.division, []);
-    }
-    grouped.get(team.division)!.push(team);
-  }
-  return grouped;
-}
-
-function TeamCard({
+function FranchiseCard({
   team,
   onSelect,
 }: {
-  team: Team;
-  onSelect: (team: Team) => void;
+  team: FranchiseTeam;
+  onSelect: (team: FranchiseTeam) => void;
 }) {
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       onClick={() => onSelect(team)}
-      className="flex items-center gap-3 px-4 py-3 text-left h-auto w-full justify-start"
+      className="h-auto p-0 w-full"
     >
-      <TeamLogo team={team} className="size-8 text-xs" decorative />
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-card-foreground truncate">
-          {team.city} {team.name}
-        </p>
-        <p className="text-xs text-muted-foreground">{team.abbreviation}</p>
-      </div>
+      <Card className="w-full overflow-hidden transition-shadow hover:shadow-lg">
+        <div
+          className="h-2"
+          style={{
+            background:
+              `linear-gradient(to right, ${team.primaryColor}, ${team.secondaryColor})`,
+          }}
+        />
+        <CardContent className="flex items-center gap-4 p-4">
+          <TeamLogo team={team} className="size-12 text-base" decorative />
+          <div className="min-w-0 text-left">
+            <p className="text-base font-bold text-card-foreground truncate">
+              {team.city}
+            </p>
+            <p
+              className="text-lg font-extrabold tracking-tight truncate"
+              style={{ color: team.primaryColor }}
+            >
+              {team.name}
+            </p>
+          </div>
+          <div className="ml-auto flex gap-1">
+            <span
+              className="size-4 rounded-full ring-1 ring-inset ring-black/10"
+              style={{ backgroundColor: team.primaryColor }}
+            />
+            <span
+              className="size-4 rounded-full ring-1 ring-inset ring-black/10"
+              style={{ backgroundColor: team.secondaryColor }}
+            />
+            <span
+              className="size-4 rounded-full ring-1 ring-inset ring-black/10"
+              style={{ backgroundColor: team.accentColor }}
+            />
+          </div>
+        </CardContent>
+      </Card>
     </Button>
   );
 }
 
 export function TeamSelect() {
   const { leagueId } = useParams({ strict: false });
-  const { data: teams, isLoading, error } = useTeams();
+  const { data: teams, isLoading, error } = useFranchiseTeams(leagueId!);
   const assignUserTeam = useAssignUserTeam();
   const navigate = useNavigate();
 
-  const handleSelect = (team: Team) => {
+  const handleSelect = (team: FranchiseTeam) => {
     assignUserTeam.mutate(
       { leagueId: leagueId!, userTeamId: team.id },
       {
         onSuccess: () => {
           navigate({
-            to: "/leagues/$leagueId",
+            to: "/leagues/$leagueId/generate",
             params: { leagueId: leagueId! },
           });
         },
@@ -77,13 +96,16 @@ export function TeamSelect() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background text-foreground p-8">
-        <div className="max-w-5xl mx-auto space-y-8">
+        <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <Skeleton className="h-9 w-64 mx-auto" />
             <Skeleton className="h-5 w-80 mx-auto" />
           </div>
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-48 w-full" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -94,24 +116,21 @@ export function TeamSelect() {
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <Alert variant="destructive" className="max-w-md">
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>Failed to load teams</AlertDescription>
+          <AlertDescription>Failed to load franchises</AlertDescription>
         </Alert>
       </div>
     );
   }
 
-  const divisions = groupByDivision(teams as Team[]);
-  const conferences = [...new Set((teams as Team[]).map((t) => t.conference))];
-
   return (
     <div className="min-h-screen bg-background text-foreground p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">
-            Choose Your Team
+            Choose Your Franchise
           </h1>
           <p className="text-muted-foreground">
-            Select the franchise you want to manage.
+            Pick one of the eight founding franchises to lead.
           </p>
         </div>
 
@@ -124,36 +143,15 @@ export function TeamSelect() {
           </Alert>
         )}
 
-        {conferences.map((conference) => (
-          <Card key={conference}>
-            <CardHeader>
-              <CardTitle className="text-xl">{conference}</CardTitle>
-            </CardHeader>
-            <Separator />
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[...divisions.entries()]
-                  .filter(([div]) => div.startsWith(conference))
-                  .map(([division, divTeams]) => (
-                    <div key={division} className="space-y-2">
-                      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                        {division}
-                      </h3>
-                      <div className="space-y-1">
-                        {divTeams.map((team) => (
-                          <TeamCard
-                            key={team.id}
-                            team={team}
-                            onSelect={handleSelect}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {(teams as FranchiseTeam[]).map((team) => (
+            <FranchiseCard
+              key={team.id}
+              team={team}
+              onSelect={handleSelect}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
