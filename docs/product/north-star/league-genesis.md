@@ -805,3 +805,4 @@ season coverage patterns. See [Media](./media.md).
 - [0018 — Genesis phase state machine](../decisions/0018-genesis-phase-state-machine.md)
 - [0019 — Inaugural Year 1 calendar (no preseason)](../decisions/0019-inaugural-year-one-calendar.md)
 - [0021 — Deprecate established mode; genesis is the only creation flow](../decisions/0021-deprecate-established-mode.md)
+- [0022 — Fused owner/GM role as canonical](../decisions/0022-fused-owner-gm-role.md)
