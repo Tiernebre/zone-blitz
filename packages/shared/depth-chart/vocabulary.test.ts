@@ -3,6 +3,7 @@ import type { SchemeFingerprint } from "../types/scheme-fingerprint.ts";
 import type { OffensiveTendencies } from "../types/coach-tendencies.ts";
 import type { DefensiveTendencies } from "../types/coach-tendencies.ts";
 import {
+  depthChartSectionLabels,
   type DepthChartSlotDefinition,
   depthChartVocabulary,
 } from "./vocabulary.ts";
@@ -263,4 +264,140 @@ Deno.test("depthChartVocabulary: full ground-and-pound team snapshot", () => {
     "P",
     "LS",
   ]);
+});
+
+// depthChartSectionLabels tests
+
+Deno.test("depthChartSectionLabels: null offense returns plain 'Offense'", () => {
+  const labels = depthChartSectionLabels(fp({ offense: null }));
+  assertEquals(labels.offense, "Offense");
+});
+
+Deno.test("depthChartSectionLabels: null defense returns plain 'Defense'", () => {
+  const labels = depthChartSectionLabels(fp({ defense: null }));
+  assertEquals(labels.defense, "Defense");
+});
+
+Deno.test("depthChartSectionLabels: special teams is always 'Special Teams'", () => {
+  const labels = depthChartSectionLabels(fp());
+  assertEquals(labels.specialTeams, "Special Teams");
+});
+
+Deno.test("depthChartSectionLabels: defense odd front (frontOddEven >= 56) is 'Base 3-4'", () => {
+  const labels = depthChartSectionLabels(fp({ defense: { frontOddEven: 70 } }));
+  assertEquals(labels.defense, "Base 3-4");
+});
+
+Deno.test("depthChartSectionLabels: defense odd front at boundary 56 is 'Base 3-4'", () => {
+  const labels = depthChartSectionLabels(fp({ defense: { frontOddEven: 56 } }));
+  assertEquals(labels.defense, "Base 3-4");
+});
+
+Deno.test("depthChartSectionLabels: defense even front (frontOddEven <= 45) is 'Base 4-3'", () => {
+  const labels = depthChartSectionLabels(fp({ defense: { frontOddEven: 30 } }));
+  assertEquals(labels.defense, "Base 4-3");
+});
+
+Deno.test("depthChartSectionLabels: defense even front at boundary 45 is 'Base 4-3'", () => {
+  const labels = depthChartSectionLabels(fp({ defense: { frontOddEven: 45 } }));
+  assertEquals(labels.defense, "Base 4-3");
+});
+
+Deno.test("depthChartSectionLabels: defense hybrid front (frontOddEven 46-55) is 'Hybrid Front'", () => {
+  const labels = depthChartSectionLabels(fp({ defense: { frontOddEven: 50 } }));
+  assertEquals(labels.defense, "Hybrid Front");
+});
+
+Deno.test("depthChartSectionLabels: defense hybrid front at boundary 46 is 'Hybrid Front'", () => {
+  const labels = depthChartSectionLabels(fp({ defense: { frontOddEven: 46 } }));
+  assertEquals(labels.defense, "Hybrid Front");
+});
+
+Deno.test("depthChartSectionLabels: defense hybrid front at boundary 55 is 'Hybrid Front'", () => {
+  const labels = depthChartSectionLabels(fp({ defense: { frontOddEven: 55 } }));
+  assertEquals(labels.defense, "Hybrid Front");
+});
+
+Deno.test("depthChartSectionLabels: nickel suffix on odd front", () => {
+  const labels = depthChartSectionLabels(
+    fp({ defense: { frontOddEven: 70, subPackageLean: 60 } }),
+  );
+  assertEquals(labels.defense, "Base 3-4 · Nickel");
+});
+
+Deno.test("depthChartSectionLabels: nickel suffix on even front", () => {
+  const labels = depthChartSectionLabels(
+    fp({ defense: { frontOddEven: 30, subPackageLean: 56 } }),
+  );
+  assertEquals(labels.defense, "Base 4-3 · Nickel");
+});
+
+Deno.test("depthChartSectionLabels: nickel suffix on hybrid front", () => {
+  const labels = depthChartSectionLabels(
+    fp({ defense: { frontOddEven: 50, subPackageLean: 70 } }),
+  );
+  assertEquals(labels.defense, "Hybrid Front · Nickel");
+});
+
+Deno.test("depthChartSectionLabels: nickel suffix at boundary 56", () => {
+  const labels = depthChartSectionLabels(
+    fp({ defense: { frontOddEven: 50, subPackageLean: 56 } }),
+  );
+  assertEquals(labels.defense, "Hybrid Front · Nickel");
+});
+
+Deno.test("depthChartSectionLabels: no nickel suffix at 55", () => {
+  const labels = depthChartSectionLabels(
+    fp({ defense: { frontOddEven: 50, subPackageLean: 55 } }),
+  );
+  assertEquals(labels.defense, "Hybrid Front");
+});
+
+Deno.test("depthChartSectionLabels: heavy offense (personnelWeight >= 66) is '21 Personnel'", () => {
+  const labels = depthChartSectionLabels(
+    fp({ offense: { personnelWeight: 80 } }),
+  );
+  assertEquals(labels.offense, "21 Personnel");
+});
+
+Deno.test("depthChartSectionLabels: heavy offense at boundary 66 is '21 Personnel'", () => {
+  const labels = depthChartSectionLabels(
+    fp({ offense: { personnelWeight: 66 } }),
+  );
+  assertEquals(labels.offense, "21 Personnel");
+});
+
+Deno.test("depthChartSectionLabels: light offense (personnelWeight <= 45) is '10 Personnel'", () => {
+  const labels = depthChartSectionLabels(
+    fp({ offense: { personnelWeight: 20 } }),
+  );
+  assertEquals(labels.offense, "10 Personnel");
+});
+
+Deno.test("depthChartSectionLabels: light offense at boundary 45 is '10 Personnel'", () => {
+  const labels = depthChartSectionLabels(
+    fp({ offense: { personnelWeight: 45 } }),
+  );
+  assertEquals(labels.offense, "10 Personnel");
+});
+
+Deno.test("depthChartSectionLabels: balanced offense (personnelWeight 46-65) is '11 Personnel'", () => {
+  const labels = depthChartSectionLabels(
+    fp({ offense: { personnelWeight: 50 } }),
+  );
+  assertEquals(labels.offense, "11 Personnel");
+});
+
+Deno.test("depthChartSectionLabels: balanced offense at boundary 46 is '11 Personnel'", () => {
+  const labels = depthChartSectionLabels(
+    fp({ offense: { personnelWeight: 46 } }),
+  );
+  assertEquals(labels.offense, "11 Personnel");
+});
+
+Deno.test("depthChartSectionLabels: balanced offense at boundary 65 is '11 Personnel'", () => {
+  const labels = depthChartSectionLabels(
+    fp({ offense: { personnelWeight: 65 } }),
+  );
+  assertEquals(labels.offense, "11 Personnel");
 });

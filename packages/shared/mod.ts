@@ -132,10 +132,14 @@ export type {
 export { NEUTRAL_BUCKETS, neutralBucket } from "./archetypes/neutral-bucket.ts";
 export type { Game } from "./types/game.ts";
 export type {
+  DepthChartSectionLabels,
   DepthChartSlotDefinition,
   DepthChartSlotGroup,
 } from "./depth-chart/vocabulary.ts";
-export { depthChartVocabulary } from "./depth-chart/vocabulary.ts";
+export {
+  depthChartSectionLabels,
+  depthChartVocabulary,
+} from "./depth-chart/vocabulary.ts";
 export { eligibleBucketsForSlot } from "./depth-chart/slot-mapping.ts";
 export { assignDepthChart } from "./depth-chart/assign.ts";
 export type {

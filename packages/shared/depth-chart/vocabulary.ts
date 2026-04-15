@@ -31,6 +31,7 @@ const DEFAULT_DEFENSE: DepthChartSlotDefinition[] = [
 ];
 
 const HEAVY_PERSONNEL_THRESHOLD = 66;
+const LIGHT_PERSONNEL_CEILING = 45;
 const ODD_FRONT_THRESHOLD = 56;
 const EVEN_FRONT_CEILING = 45;
 const SUB_PACKAGE_THRESHOLD = 56;
@@ -100,6 +101,51 @@ function defenseSlots(
   slots.push({ code: "S", label: "Safety", group: "defense" });
 
   return slots;
+}
+
+export interface DepthChartSectionLabels {
+  offense: string;
+  defense: string;
+  specialTeams: string;
+}
+
+export function depthChartSectionLabels(
+  fingerprint: SchemeFingerprint,
+): DepthChartSectionLabels {
+  return {
+    offense: offenseLabel(fingerprint),
+    defense: defenseLabel(fingerprint),
+    specialTeams: "Special Teams",
+  };
+}
+
+function offenseLabel(fingerprint: SchemeFingerprint): string {
+  if (!fingerprint.offense) return "Offense";
+
+  const weight = fingerprint.offense.personnelWeight;
+  if (weight >= HEAVY_PERSONNEL_THRESHOLD) return "21 Personnel";
+  if (weight <= LIGHT_PERSONNEL_CEILING) return "10 Personnel";
+  return "11 Personnel";
+}
+
+function defenseLabel(fingerprint: SchemeFingerprint): string {
+  if (!fingerprint.defense) return "Defense";
+
+  const front = fingerprint.defense.frontOddEven;
+  let label: string;
+  if (front >= ODD_FRONT_THRESHOLD) {
+    label = "Base 3-4";
+  } else if (front <= EVEN_FRONT_CEILING) {
+    label = "Base 4-3";
+  } else {
+    label = "Hybrid Front";
+  }
+
+  if (fingerprint.defense.subPackageLean >= SUB_PACKAGE_THRESHOLD) {
+    label += " · Nickel";
+  }
+
+  return label;
 }
 
 export function depthChartVocabulary(
