@@ -107,6 +107,7 @@ export {
   restructureContract,
 } from "./contracts/cap-engine.ts";
 export type {
+  CapArchetype,
   Contract,
   ContractBonusSource,
   ContractGuaranteeType,
@@ -129,6 +130,7 @@ export type {
   PreDraftEvaluation,
 } from "./types/player.ts";
 export {
+  CAP_ARCHETYPES,
   CONTRACT_BONUS_SOURCES,
   CONTRACT_GUARANTEE_TYPES,
   CONTRACT_TAG_TYPES,

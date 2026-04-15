@@ -1,4 +1,5 @@
 import {
+  type CapArchetype,
   NEUTRAL_BUCKETS,
   type NeutralBucket,
   neutralBucket,
@@ -628,6 +629,57 @@ function rollOrigin(
   };
 }
 
+interface ArchetypeShapeParams {
+  bonusRatioMin: number;
+  bonusRatioMax: number;
+  voidYearChance: number;
+  maxVoidYears: number;
+}
+
+const ARCHETYPE_SHAPE: Record<CapArchetype, ArchetypeShapeParams> = {
+  "cap-hell": {
+    bonusRatioMin: 0.45,
+    bonusRatioMax: 0.65,
+    voidYearChance: 0.6,
+    maxVoidYears: 2,
+  },
+  tight: {
+    bonusRatioMin: 0.30,
+    bonusRatioMax: 0.50,
+    voidYearChance: 0.3,
+    maxVoidYears: 1,
+  },
+  balanced: {
+    bonusRatioMin: 0.25,
+    bonusRatioMax: 0.45,
+    voidYearChance: 0.15,
+    maxVoidYears: 1,
+  },
+  flush: {
+    bonusRatioMin: 0.08,
+    bonusRatioMax: 0.22,
+    voidYearChance: 0.0,
+    maxVoidYears: 0,
+  },
+};
+
+const ROOKIE_SLOTTED_MAX = 40_000_000;
+const ROOKIE_SLOTTED_MIN = 4_000_000;
+const ROOKIE_MAX_PICK = 224;
+const ROOKIE_DEAL_YEARS = 4;
+const ROOKIE_BONUS_RATIO = 0.15;
+
+function rookieSlottedValue(draftPick: number): number {
+  const normalized = Math.max(
+    0,
+    Math.min(1, (draftPick - 1) / (ROOKIE_MAX_PICK - 1)),
+  );
+  const factor = Math.pow(1 - normalized, 1.5);
+  return Math.round(
+    ROOKIE_SLOTTED_MIN + (ROOKIE_SLOTTED_MAX - ROOKIE_SLOTTED_MIN) * factor,
+  );
+}
+
 interface RolledContractBundle {
   contract: GeneratedContract;
   years: GeneratedContractYear[];
@@ -644,47 +696,157 @@ function rollContract(
     quality: number;
     age: number;
     signedYear: number;
+    archetype: CapArchetype;
   },
   multiplierFn: SalaryMultiplierFn,
 ): RolledContractBundle {
   const isRookie = args.age <= ROOKIE_SCALE_AGE_THRESHOLD;
-  const mult = isRookie ? 1.0 : multiplierFn(args.bucket, args.quality);
+
+  if (isRookie) {
+    return rollRookieContract(rng, args);
+  }
+
+  return rollVeteranContract(rng, args, multiplierFn);
+}
+
+function rollRookieContract(
+  rng: Rng,
+  args: {
+    playerId: string;
+    teamId: string;
+    quality: number;
+    age: number;
+    signedYear: number;
+  },
+): RolledContractBundle {
+  const draftPick = rng.int(1, ROOKIE_MAX_PICK);
+  const totalValue = rookieSlottedValue(draftPick);
+  const signingBonus = Math.round(totalValue * ROOKIE_BONUS_RATIO);
+  const remainingBase = totalValue - signingBonus;
+  const annualBase = Math.max(1, Math.floor(remainingBase / ROOKIE_DEAL_YEARS));
+  const residue = remainingBase - annualBase * ROOKIE_DEAL_YEARS;
+
+  const years: GeneratedContractYear[] = [];
+  for (let i = 0; i < ROOKIE_DEAL_YEARS; i++) {
+    years.push({
+      leagueYear: args.signedYear + i,
+      base: annualBase + (i === ROOKIE_DEAL_YEARS - 1 ? residue : 0),
+      rosterBonus: 0,
+      workoutBonus: 0,
+      perGameRosterBonus: 0,
+      guaranteeType: i < 2 ? "full" : "none",
+      isVoid: false,
+    });
+  }
+
+  const bonusProrations: GeneratedBonusProration[] = [];
+  if (signingBonus > 0) {
+    bonusProrations.push({
+      amount: signingBonus,
+      firstYear: args.signedYear,
+      years: Math.min(ROOKIE_DEAL_YEARS, 5),
+      source: "signing",
+    });
+  }
+
+  return {
+    contract: {
+      playerId: args.playerId,
+      teamId: args.teamId,
+      signedYear: args.signedYear,
+      totalYears: ROOKIE_DEAL_YEARS,
+      realYears: ROOKIE_DEAL_YEARS,
+      signingBonus,
+      isRookieDeal: true,
+      rookieDraftPick: draftPick,
+      tagType: null,
+    },
+    years,
+    bonusProrations,
+    annualBase,
+  };
+}
+
+function rollVeteranContract(
+  rng: Rng,
+  args: {
+    playerId: string;
+    teamId: string;
+    bucket: NeutralBucket;
+    quality: number;
+    age: number;
+    signedYear: number;
+    archetype: CapArchetype;
+  },
+  multiplierFn: SalaryMultiplierFn,
+): RolledContractBundle {
+  const shape = ARCHETYPE_SHAPE[args.archetype];
+  const mult = multiplierFn(args.bucket, args.quality);
   const excess = Math.max(0, args.quality - 50);
   const baseSalary = SALARY_FLOOR + excess * SALARY_PER_QUALITY_POINT * mult;
   const jitter = 0.9 + rng.next() * 0.2;
   const annualBase = Math.max(SALARY_FLOOR, Math.round(baseSalary * jitter));
-  let totalYears: number;
-  if (args.age >= 32) totalYears = rng.int(1, 2);
-  else if (args.quality >= 80) totalYears = rng.int(3, 5);
-  else if (args.quality >= 65) totalYears = rng.int(2, 4);
-  else totalYears = rng.int(1, 3);
-  const totalSalary = annualBase * totalYears;
+
+  let realYears: number;
+  if (args.age >= 32) realYears = rng.int(1, 2);
+  else if (args.quality >= 80) realYears = rng.int(3, 5);
+  else if (args.quality >= 65) realYears = rng.int(2, 4);
+  else realYears = rng.int(1, 3);
+
+  const totalValue = annualBase * realYears;
+
+  const bonusRatio = shape.bonusRatioMin +
+    rng.next() * (shape.bonusRatioMax - shape.bonusRatioMin);
+  const signingBonus = Math.round(totalValue * bonusRatio);
+  const remainingBase = totalValue - signingBonus;
+
+  let voidYears = 0;
+  if (
+    shape.maxVoidYears > 0 && realYears >= 2 &&
+    rng.next() < shape.voidYearChance
+  ) {
+    voidYears = rng.int(1, shape.maxVoidYears);
+  }
+  const totalYears = realYears + voidYears;
+
+  const perYearBase = Math.max(1, Math.floor(remainingBase / realYears));
+  const baseResidue = remainingBase - perYearBase * realYears;
+
   const guaranteedPct = args.quality >= 80
     ? 0.5 + rng.next() * 0.2
     : args.quality >= 65
     ? 0.2 + rng.next() * 0.2
     : 0.05 + rng.next() * 0.1;
-  const guaranteedMoney = Math.round(totalSalary * guaranteedPct);
-  const signingBonus = Math.round(guaranteedMoney * (0.3 + rng.next() * 0.3));
-
   const guaranteedYears = Math.max(
     1,
-    Math.round((guaranteedMoney / totalSalary) * totalYears),
+    Math.round(guaranteedPct * realYears),
   );
 
   const years: GeneratedContractYear[] = [];
-  for (let i = 0; i < totalYears; i++) {
+  for (let i = 0; i < realYears; i++) {
     const guaranteeType: ContractGuaranteeType = i < guaranteedYears
       ? "full"
       : "none";
     years.push({
       leagueYear: args.signedYear + i,
-      base: annualBase,
+      base: perYearBase + (i === realYears - 1 ? baseResidue : 0),
       rosterBonus: 0,
       workoutBonus: 0,
       perGameRosterBonus: 0,
       guaranteeType,
       isVoid: false,
+    });
+  }
+
+  for (let i = 0; i < voidYears; i++) {
+    years.push({
+      leagueYear: args.signedYear + realYears + i,
+      base: 0,
+      rosterBonus: 0,
+      workoutBonus: 0,
+      perGameRosterBonus: 0,
+      guaranteeType: "none",
+      isVoid: true,
     });
   }
 
@@ -704,9 +866,9 @@ function rollContract(
       teamId: args.teamId,
       signedYear: args.signedYear,
       totalYears,
-      realYears: totalYears,
+      realYears,
       signingBonus,
-      isRookieDeal: isRookie,
+      isRookieDeal: false,
       rookieDraftPick: null,
       tagType: null,
     },
@@ -893,6 +1055,8 @@ export function createPlayersGenerator(
 
       const bundles: GeneratedContractBundle[] = [];
       for (const [teamId, teamPlayers] of byTeam) {
+        const archetype: CapArchetype = input.teamArchetypes?.get(teamId) ??
+          "balanced";
         const rawBundles = teamPlayers.map((p, idx) => {
           const bucket = ROSTER_BUCKET_SLOTS[idx % ROSTER_BUCKET_SLOTS.length];
           const bucketCount = ROSTER_BUCKET_COMPOSITION.find((c) =>
@@ -905,14 +1069,19 @@ export function createPlayersGenerator(
           const tier = qualityTierForIndex(indexInBucket, bucketCount);
           const quality = rollQuality(rng, tier);
           const age = rollAge(rng, "rostered");
-          return rollContract(rng, {
-            playerId: p.id,
-            teamId,
-            bucket,
-            quality,
-            age,
-            signedYear: currentYear,
-          }, salaryMultiplier);
+          return rollContract(
+            rng,
+            {
+              playerId: p.id,
+              teamId,
+              bucket,
+              quality,
+              age,
+              signedYear: currentYear,
+              archetype,
+            },
+            salaryMultiplier,
+          );
         });
         const teamAnnualTotal = rawBundles.reduce(
           (s, b) => s + b.annualBase,
@@ -925,10 +1094,24 @@ export function createPlayersGenerator(
           const scaledSigningBonus = Math.round(
             b.contract.signingBonus * scale,
           );
+          const scaledRealBase = b.years
+            .filter((y) => !y.isVoid)
+            .reduce((s, y) => s + y.base, 0);
+          const scaledTotalValue = Math.round(scaledRealBase * scale) +
+            scaledSigningBonus;
           const scaledYears = b.years.map((y) => ({
             ...y,
-            base: Math.max(1, Math.floor(y.base * scale)),
+            base: y.isVoid ? 0 : Math.max(1, Math.floor(y.base * scale)),
           }));
+          const realYears = scaledYears.filter((y) => !y.isVoid);
+          if (realYears.length > 0) {
+            const scaledBaseSum = realYears.reduce((s, y) => s + y.base, 0);
+            const targetBase = scaledTotalValue - scaledSigningBonus;
+            const diff = targetBase - scaledBaseSum;
+            if (diff !== 0) {
+              realYears[realYears.length - 1].base += diff;
+            }
+          }
           const scaledProrations = b.bonusProrations.map((p) => ({
             ...p,
             amount: Math.round(p.amount * scale),

@@ -1,4 +1,5 @@
 import type {
+  CapArchetype,
   ContractBonusSource,
   ContractGuaranteeType,
   ContractTagType,
@@ -25,6 +26,7 @@ export interface GeneratedPlayers {
 export interface ContractGeneratorInput {
   salaryCap: number;
   players: Pick<Player, "id" | "teamId">[];
+  teamArchetypes?: Map<string, CapArchetype>;
 }
 
 export interface GeneratedContract {

@@ -1,5 +1,7 @@
 import { assertEquals } from "@std/assert";
 import {
+  type CapArchetype,
+  computeCapHit,
   mulberry32,
   NEUTRAL_BUCKETS,
   type NeutralBucket,
@@ -154,14 +156,17 @@ Deno.test("contract bundles include per-year rows matching totalYears", () => {
   const bundles = generator.generateContracts({ salaryCap, players });
   for (const b of bundles) {
     assertEquals(b.years.length, b.contract.totalYears);
-    assertEquals(
-      b.contract.totalYears >= 1 && b.contract.totalYears <= 5,
-      true,
-    );
-    assertEquals(b.contract.realYears, b.contract.totalYears);
-    for (const y of b.years) {
+    assertEquals(b.contract.totalYears >= 1, true);
+    assertEquals(b.contract.realYears <= b.contract.totalYears, true);
+    const realYears = b.years.filter((y) => !y.isVoid);
+    const voidYears = b.years.filter((y) => y.isVoid);
+    assertEquals(realYears.length, b.contract.realYears);
+    assertEquals(realYears.length + voidYears.length, b.contract.totalYears);
+    for (const y of realYears) {
       assertEquals(y.base > 0, true);
-      assertEquals(y.isVoid, false);
+    }
+    for (const y of voidYears) {
+      assertEquals(y.base, 0);
     }
   }
 });
@@ -580,5 +585,272 @@ Deno.test("rookie-age contracts are flagged as isRookieDeal", () => {
   assertEquals(rookies.length > 0, true);
   for (const b of rookies) {
     assertEquals(b.contract.tagType, null);
+  }
+});
+
+// ---- Per-year shape distribution (ADR 0016 / issue #292) ----
+
+Deno.test("cap-hit invariant: sum of cap hits equals total contract value for every bundle", () => {
+  const generator = makeGenerator();
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+  const bundles = generator.generateContracts({
+    salaryCap: 255_000_000,
+    players,
+  });
+  for (const b of bundles) {
+    const totalBase = b.years
+      .filter((y) => !y.isVoid)
+      .reduce((sum, y) => sum + y.base, 0);
+    const totalContractValue = totalBase + b.contract.signingBonus;
+    const capHitSum = b.years.reduce(
+      (sum, y) =>
+        sum +
+        computeCapHit(
+          {
+            years: b.years,
+            bonusProrations: b.bonusProrations,
+            optionBonuses: [],
+          },
+          y.leagueYear,
+        ),
+      0,
+    );
+    assertEquals(
+      capHitSum,
+      totalContractValue,
+      `Cap-hit invariant violated for ${b.contract.playerId}: capHitSum=${capHitSum}, totalValue=${totalContractValue}`,
+    );
+  }
+});
+
+Deno.test("cap-hell archetype generates higher signing-bonus ratios than flush", () => {
+  const capHellGen = createPlayersGenerator({
+    random: seededRandom(42),
+    nameGenerator: fixedNameGenerator(),
+    currentYear: 2026,
+  });
+  const flushGen = createPlayersGenerator({
+    random: seededRandom(42),
+    nameGenerator: fixedNameGenerator(),
+    currentYear: 2026,
+  });
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+
+  const capHellBundles = capHellGen.generateContracts({
+    salaryCap: 999_999_999,
+    players,
+    teamArchetypes: new Map([["team-1", "cap-hell" as CapArchetype]]),
+  });
+  const flushBundles = flushGen.generateContracts({
+    salaryCap: 999_999_999,
+    players,
+    teamArchetypes: new Map([["team-1", "flush" as CapArchetype]]),
+  });
+
+  const avgBonusRatio = (bundles: typeof capHellBundles) => {
+    const vets = bundles.filter(
+      (b) => !b.contract.isRookieDeal && b.contract.signingBonus > 0,
+    );
+    if (vets.length === 0) return 0;
+    return (
+      vets.reduce((sum, b) => {
+        const totalBase = b.years
+          .filter((y) => !y.isVoid)
+          .reduce((s, y) => s + y.base, 0);
+        const total = totalBase + b.contract.signingBonus;
+        return sum + b.contract.signingBonus / total;
+      }, 0) / vets.length
+    );
+  };
+
+  const capHellAvg = avgBonusRatio(capHellBundles);
+  const flushAvg = avgBonusRatio(flushBundles);
+  assertEquals(
+    capHellAvg > flushAvg,
+    true,
+    `Cap-hell bonus ratio (${capHellAvg}) should exceed flush (${flushAvg})`,
+  );
+});
+
+Deno.test("cap-hell archetype generates more void years than flush", () => {
+  const capHellGen = createPlayersGenerator({
+    random: seededRandom(42),
+    nameGenerator: fixedNameGenerator(),
+    currentYear: 2026,
+  });
+  const flushGen = createPlayersGenerator({
+    random: seededRandom(42),
+    nameGenerator: fixedNameGenerator(),
+    currentYear: 2026,
+  });
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+
+  const capHellBundles = capHellGen.generateContracts({
+    salaryCap: 999_999_999,
+    players,
+    teamArchetypes: new Map([["team-1", "cap-hell" as CapArchetype]]),
+  });
+  const flushBundles = flushGen.generateContracts({
+    salaryCap: 999_999_999,
+    players,
+    teamArchetypes: new Map([["team-1", "flush" as CapArchetype]]),
+  });
+
+  const voidCount = (bundles: typeof capHellBundles) =>
+    bundles.reduce(
+      (sum, b) => sum + b.years.filter((y) => y.isVoid).length,
+      0,
+    );
+
+  const capHellVoids = voidCount(capHellBundles);
+  const flushVoids = voidCount(flushBundles);
+  assertEquals(
+    capHellVoids > flushVoids,
+    true,
+    `Cap-hell void years (${capHellVoids}) should exceed flush (${flushVoids})`,
+  );
+});
+
+Deno.test("rookie deals are 4 years with rookieDraftPick populated", () => {
+  const generator = makeGenerator();
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+  const bundles = generator.generateContracts({
+    salaryCap: 999_999_999,
+    players,
+  });
+  const rookies = bundles.filter((b) => b.contract.isRookieDeal);
+  assertEquals(rookies.length > 0, true);
+  for (const b of rookies) {
+    assertEquals(b.contract.totalYears, 4);
+    assertEquals(b.contract.realYears, 4);
+    assertEquals(typeof b.contract.rookieDraftPick, "number");
+    assertEquals(
+      b.contract.rookieDraftPick! >= 1 && b.contract.rookieDraftPick! <= 224,
+      true,
+    );
+    assertEquals(b.years.length, 4);
+    assertEquals(b.years.every((y) => !y.isVoid), true);
+  }
+});
+
+Deno.test("cap-hit invariant holds with cap-hell archetype (void years present)", () => {
+  const generator = createPlayersGenerator({
+    random: seededRandom(42),
+    nameGenerator: fixedNameGenerator(),
+    currentYear: 2026,
+  });
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+  const bundles = generator.generateContracts({
+    salaryCap: 255_000_000,
+    players,
+    teamArchetypes: new Map([["team-1", "cap-hell" as CapArchetype]]),
+  });
+  for (const b of bundles) {
+    const totalBase = b.years
+      .filter((y) => !y.isVoid)
+      .reduce((sum, y) => sum + y.base, 0);
+    const totalContractValue = totalBase + b.contract.signingBonus;
+    const capHitSum = b.years.reduce(
+      (sum, y) =>
+        sum +
+        computeCapHit(
+          {
+            years: b.years,
+            bonusProrations: b.bonusProrations,
+            optionBonuses: [],
+          },
+          y.leagueYear,
+        ),
+      0,
+    );
+    assertEquals(capHitSum, totalContractValue);
+  }
+});
+
+Deno.test("balanced archetype generates NFL-median structures", () => {
+  const generator = createPlayersGenerator({
+    random: seededRandom(42),
+    nameGenerator: fixedNameGenerator(),
+    currentYear: 2026,
+  });
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+  const bundles = generator.generateContracts({
+    salaryCap: 999_999_999,
+    players,
+    teamArchetypes: new Map([["team-1", "balanced" as CapArchetype]]),
+  });
+  const vets = bundles.filter(
+    (b) => !b.contract.isRookieDeal && b.contract.signingBonus > 0,
+  );
+  const avgBonusRatio = vets.reduce((sum, b) => {
+    const totalBase = b.years
+      .filter((y) => !y.isVoid)
+      .reduce((s, y) => s + y.base, 0);
+    const total = totalBase + b.contract.signingBonus;
+    return sum + b.contract.signingBonus / total;
+  }, 0) / vets.length;
+  assertEquals(
+    avgBonusRatio >= 0.20 && avgBonusRatio <= 0.55,
+    true,
+    `Balanced bonus ratio (${avgBonusRatio}) should be in NFL-median range`,
+  );
+});
+
+Deno.test("contract totalYears includes void years, realYears excludes them", () => {
+  const generator = createPlayersGenerator({
+    random: seededRandom(42),
+    nameGenerator: fixedNameGenerator(),
+    currentYear: 2026,
+  });
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+  const bundles = generator.generateContracts({
+    salaryCap: 999_999_999,
+    players,
+    teamArchetypes: new Map([["team-1", "cap-hell" as CapArchetype]]),
+  });
+  for (const b of bundles) {
+    const realCount = b.years.filter((y) => !y.isVoid).length;
+    const voidCount = b.years.filter((y) => y.isVoid).length;
+    assertEquals(b.contract.realYears, realCount);
+    assertEquals(b.contract.totalYears, realCount + voidCount);
+    assertEquals(b.years.length, b.contract.totalYears);
+  }
+});
+
+Deno.test("default archetype (no teamArchetypes provided) still produces valid contracts", () => {
+  const generator = makeGenerator();
+  const players = Array.from({ length: 53 }, (_, i) => ({
+    id: `p${i}`,
+    teamId: "team-1",
+  }));
+  const bundles = generator.generateContracts({
+    salaryCap: 255_000_000,
+    players,
+  });
+  assertEquals(bundles.length, 53);
+  for (const b of bundles) {
+    assertEquals(b.years.length, b.contract.totalYears);
+    assertEquals(b.contract.realYears <= b.contract.totalYears, true);
   }
 });
