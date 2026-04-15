@@ -7,6 +7,7 @@ import type {
 import type {
   DefensiveCall,
   OffensiveCall,
+  PenaltyInfo,
   PlayEvent,
   PlayOutcome,
   PlayTag,
@@ -14,6 +15,11 @@ import type {
 import type { SeededRng } from "./rng.ts";
 import { computeSchemeFit } from "../schemes/fit.ts";
 import type { PlayerForFit } from "../schemes/fit.ts";
+import {
+  type PenaltyContext,
+  pickPenalty,
+  shouldPenaltyOccur,
+} from "./resolve-penalty.ts";
 
 export interface Situation {
   down: 1 | 2 | 3 | 4;
@@ -420,6 +426,8 @@ export function synthesizeOutcome(
   contributions: MatchupContribution[],
   state: GameState,
   rng: SeededRng,
+  offensePlayerIds?: string[],
+  defensePlayerIds?: string[],
 ): PlayEvent {
   const isRunPlay = RUN_CONCEPTS.has(call.concept);
   const avgScore = contributions.length > 0
@@ -583,10 +591,6 @@ export function synthesizeOutcome(
     }
   }
 
-  if (rng.next() < 0.05) {
-    tags.push("penalty");
-  }
-
   if (rng.next() < 0.005) {
     tags.push("injury");
   }
@@ -640,6 +644,56 @@ export function synthesizeOutcome(
     }
   }
 
+  let penalty: PenaltyInfo | undefined;
+  if (shouldPenaltyOccur(rng)) {
+    const offPositions = contributions
+      .filter((c) => OFFENSIVE_POSITIONS.has(c.matchup.attacker.neutralBucket))
+      .map((c) => c.matchup.attacker.neutralBucket);
+    const defPositions = contributions
+      .filter((c) => DEFENSIVE_POSITIONS.has(c.matchup.defender.neutralBucket))
+      .map((c) => c.matchup.defender.neutralBucket);
+    const offIds = offensePlayerIds ??
+      contributions
+        .filter((c) =>
+          OFFENSIVE_POSITIONS.has(c.matchup.attacker.neutralBucket)
+        )
+        .map((c) => c.matchup.attacker.playerId);
+    const defIds = defensePlayerIds ??
+      contributions
+        .filter((c) =>
+          DEFENSIVE_POSITIONS.has(c.matchup.defender.neutralBucket)
+        )
+        .map((c) => c.matchup.defender.playerId);
+
+    const ctx: PenaltyContext = {
+      offenseTeamId: state.offenseTeamId,
+      defenseTeamId: state.defenseTeamId,
+      offensePositions: offPositions,
+      defensePositions: defPositions,
+      offensePlayerIds: offIds,
+      defensePlayerIds: defIds,
+      isRunPlay,
+      playYardage: yardage,
+      playGainedFirstDown: yardage >= state.situation.distance,
+      situation: state.situation,
+    };
+
+    const penaltyResult = pickPenalty(ctx, rng);
+    if (penaltyResult) {
+      penalty = penaltyResult;
+      tags.push("penalty");
+
+      if (penalty.accepted) {
+        tags.push("accepted_penalty");
+        if (penalty.phase === "post_snap") {
+          tags.push("negated_play");
+        }
+      } else {
+        tags.push("declined_penalty");
+      }
+    }
+  }
+
   return {
     gameId: state.gameId,
     driveIndex: state.driveIndex,
@@ -655,6 +709,7 @@ export function synthesizeOutcome(
     outcome: outcome!,
     yardage: yardage!,
     tags,
+    penalty,
   };
 }
 

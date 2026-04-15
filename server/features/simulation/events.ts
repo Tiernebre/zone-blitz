@@ -51,6 +51,9 @@ export type PlayTag =
   | "big_play"
   | "injury"
   | "penalty"
+  | "accepted_penalty"
+  | "declined_penalty"
+  | "negated_play"
   | "touchdown"
   | "safety"
   | "two_point_conversion"
@@ -71,6 +74,35 @@ export type PlayTag =
   | "onside"
   | "return_td";
 
+export type PenaltyType =
+  | "false_start"
+  | "offsides"
+  | "delay_of_game"
+  | "holding"
+  | "defensive_holding"
+  | "pass_interference"
+  | "defensive_pass_interference"
+  | "facemask"
+  | "roughing_the_passer"
+  | "illegal_block_in_the_back"
+  | "illegal_use_of_hands"
+  | "unnecessary_roughness"
+  | "encroachment"
+  | "neutral_zone_infraction"
+  | "illegal_contact";
+
+export type PenaltyPhase = "pre_snap" | "post_snap";
+
+export type PenaltyInfo = {
+  type: PenaltyType;
+  phase: PenaltyPhase;
+  yardage: number;
+  automaticFirstDown: boolean;
+  againstTeamId: string;
+  againstPlayerId: string | null;
+  accepted: boolean;
+};
+
 export type PlayEvent = {
   gameId: string;
   driveIndex: number;
@@ -86,6 +118,7 @@ export type PlayEvent = {
   outcome: PlayOutcome;
   yardage: number;
   tags: PlayTag[];
+  penalty?: PenaltyInfo;
 };
 
 export type DriveResult =

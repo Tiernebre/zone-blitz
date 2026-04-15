@@ -694,6 +694,43 @@ export function simulateGame(input: SimulationInput): GameResult {
     }
   }
 
+  function applyAcceptedPenalty(event: PlayEvent): void {
+    const penalty = event.penalty!;
+    const isAgainstOffense = penalty.againstTeamId === currentOffenseTeamId();
+
+    if (isAgainstOffense) {
+      const penaltyYards = -Math.min(penalty.yardage, state.yardLine - 1);
+      state.yardLine += penaltyYards;
+      state.driveYards += penaltyYards;
+      if (penalty.phase === "pre_snap") {
+        state.distance = Math.min(
+          state.distance + penalty.yardage,
+          100 - state.yardLine,
+        );
+      } else {
+        state.down = Math.min(state.down + 1, 4) as 1 | 2 | 3 | 4;
+        state.distance = Math.min(
+          state.distance + penalty.yardage,
+          100 - state.yardLine,
+        );
+      }
+    } else {
+      const penaltyYards = Math.min(penalty.yardage, 100 - state.yardLine);
+      state.yardLine += penaltyYards;
+      state.driveYards += penaltyYards;
+      if (penalty.automaticFirstDown) {
+        state.down = 1;
+        state.distance = Math.min(10, 100 - state.yardLine);
+      } else {
+        state.down = 1;
+        state.distance = Math.max(1, state.distance - penalty.yardage);
+        if (state.distance <= 0 || penalty.yardage >= state.distance) {
+          state.distance = Math.min(10, 100 - state.yardLine);
+        }
+      }
+    }
+  }
+
   function runPlay(): boolean {
     const offenseTeam = state.possession === "home" ? input.home : input.away;
     const defenseTeam = state.possession === "home" ? input.away : input.home;
@@ -719,6 +756,12 @@ export function simulateGame(input: SimulationInput): GameResult {
       state.clock -= SECONDS_PER_PLAY;
     } else {
       state.clock -= rng.int(5, 15);
+    }
+
+    if (event.penalty?.accepted) {
+      applyAcceptedPenalty(event);
+      if (handleFourthDown()) return true;
+      return false;
     }
 
     if (handleScoring(event)) return true;
