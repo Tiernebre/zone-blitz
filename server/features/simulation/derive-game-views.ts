@@ -48,6 +48,12 @@ export function deriveBoxScore(
     const offenseBox = isHome ? box.home : box.away;
     const defenseBox = isHome ? box.away : box.home;
 
+    if (
+      event.outcome === "xp" || event.outcome === "two_point"
+    ) {
+      continue;
+    }
+
     if (event.outcome === "pass_complete") {
       offenseBox.passingYards += event.yardage;
       offenseBox.totalYards += event.yardage;

@@ -591,11 +591,53 @@ export function synthesizeOutcome(
     tags.push("injury");
   }
 
+  // Safety: offense driven behind their own goal line
+  const resultYardLine = state.situation.yardLine + yardage;
+  if (resultYardLine <= 0 && !tags.includes("turnover")) {
+    outcome = "safety";
+    yardage = -state.situation.yardLine;
+    tags.push("safety");
+  }
+
   const yardsToEndzone = 100 - state.situation.yardLine;
   if (yardage >= yardsToEndzone && !tags.includes("turnover")) {
     outcome = "touchdown";
     yardage = yardsToEndzone;
     tags.push("touchdown");
+  }
+
+  // Defensive return TD on turnovers
+  if (tags.includes("turnover") && outcome !== "safety") {
+    const turnoverDefender = contributions.find((c) => {
+      if (outcome === "interception") {
+        return c.matchup.type === "route_coverage" && c.score < -10;
+      }
+      return c.matchup.type === "pass_rush" ||
+        c.matchup.type === "run_defense" ||
+        c.matchup.type === "run_block";
+    });
+    const defender = turnoverDefender?.matchup.defender;
+    const speed = defender?.attributes.speed ?? 50;
+    const acceleration = defender?.attributes.acceleration ?? 50;
+    const avgAttr = (speed + acceleration) / 2;
+    const returnTdProb = 0.02 + (avgAttr - 30) * (0.06 / 60);
+    if (rng.next() < Math.max(0.01, Math.min(0.10, returnTdProb))) {
+      tags.push("return_td", "touchdown");
+      if (defender) {
+        const existingIdx = participants.findIndex(
+          (p) => p.playerId === defender.playerId,
+        );
+        if (existingIdx >= 0) {
+          participants[existingIdx].tags.push("return_td", "touchdown");
+        } else {
+          participants.push({
+            role: outcome === "interception" ? "route_coverage" : "run_defense",
+            playerId: defender.playerId,
+            tags: ["return_td", "touchdown"],
+          });
+        }
+      }
+    }
   }
 
   return {

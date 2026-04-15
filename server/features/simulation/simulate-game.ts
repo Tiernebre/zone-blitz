@@ -4,6 +4,7 @@ import type {
   GameResult,
   InjurySeverity,
   PlayEvent,
+  PlayOutcome,
   PlayTag,
 } from "./events.ts";
 import type {
@@ -21,6 +22,11 @@ import {
   deriveDriveLog,
   deriveInjuryReport,
 } from "./derive-game-views.ts";
+import {
+  conversionDecision,
+  resolveExtraPoint,
+  resolveTwoPointConversion,
+} from "./scoring.ts";
 
 export interface SimTeam {
   teamId: string;
@@ -145,7 +151,9 @@ function shouldClockStop(event: PlayEvent): boolean {
     event.outcome === "touchdown" ||
     event.outcome === "field_goal" ||
     event.outcome === "punt" ||
-    event.outcome === "kickoff"
+    event.outcome === "kickoff" ||
+    event.outcome === "safety" ||
+    event.tags.includes("return_td")
   );
 }
 
@@ -357,18 +365,119 @@ export function simulateGame(input: SimulationInput): GameResult {
     }
   }
 
+  function resolveConversion(scoringTeamId: string): void {
+    const scoringTeam = scoringTeamId === input.home.teamId
+      ? input.home
+      : input.away;
+    const defendingTeam = scoringTeamId === input.home.teamId
+      ? input.away
+      : input.home;
+    const isHome = scoringTeamId === input.home.teamId;
+
+    const diff = isHome
+      ? state.homeScore - state.awayScore
+      : state.awayScore - state.homeScore;
+    const choice = conversionDecision(
+      diff,
+      state.quarter,
+      formatClock(state.clock),
+      scoringTeam.coachingMods.situationalBonus * 10 + 50,
+    );
+
+    if (choice === "xp") {
+      const kicker = findKicker(isHome ? "home" : "away");
+      const made = resolveExtraPoint(kicker, rng);
+      const xpEvent: PlayEvent = {
+        gameId,
+        driveIndex: state.driveIndex,
+        playIndex: state.playIndex,
+        quarter: state.quarter,
+        clock: formatClock(state.clock),
+        situation: { down: 1, distance: 0, yardLine: 85 },
+        offenseTeamId: scoringTeamId,
+        defenseTeamId: scoringTeamId === input.home.teamId
+          ? input.away.teamId
+          : input.home.teamId,
+        call: {
+          concept: "extra_point",
+          personnel: "special_teams",
+          formation: "field_goal",
+          motion: "none",
+        },
+        coverage: {
+          front: "field_goal_block",
+          coverage: "none",
+          pressure: "none",
+        },
+        participants: [{
+          role: "kicker",
+          playerId: kicker.playerId,
+          tags: made ? ["xp_made"] : ["xp_missed"],
+        }],
+        outcome: "xp" as PlayOutcome,
+        yardage: 0,
+        tags: made ? [] : ["xp_missed" as PlayTag],
+      };
+      events.push(xpEvent);
+      state.playIndex++;
+      state.globalPlayIndex++;
+      if (made) {
+        if (isHome) state.homeScore += 1;
+        else state.awayScore += 1;
+      }
+    } else {
+      const offense = buildTeamRuntime(
+        scoringTeam,
+        rosters,
+        isHome ? "home" : "away",
+      );
+      const defense = buildTeamRuntime(
+        defendingTeam,
+        rosters,
+        isHome ? "away" : "home",
+      );
+      const conversionEvent = resolveTwoPointConversion(
+        buildGameState(),
+        offense,
+        defense,
+        rng,
+      );
+      events.push(conversionEvent);
+      state.playIndex++;
+      state.globalPlayIndex++;
+      if (conversionEvent.tags.includes("two_point_conversion")) {
+        if (isHome) state.homeScore += 2;
+        else state.awayScore += 2;
+      }
+    }
+  }
+
   function handleScoring(event: PlayEvent): boolean {
     if (event.outcome === "touchdown") {
       const isHome = event.offenseTeamId === input.home.teamId;
-      if (isHome) state.homeScore += 7;
-      else state.awayScore += 7;
+      if (isHome) state.homeScore += 6;
+      else state.awayScore += 6;
+
+      resolveConversion(event.offenseTeamId);
 
       const scoringSide: "home" | "away" = isHome ? "home" : "away";
       performKickoff(scoringSide);
       return true;
     }
 
-    if (event.tags.includes("safety")) {
+    if (event.tags.includes("return_td")) {
+      const isHome = event.defenseTeamId === input.home.teamId;
+      if (isHome) state.homeScore += 6;
+      else state.awayScore += 6;
+
+      resolveConversion(event.defenseTeamId);
+
+      const scoringSide: "home" | "away" = isHome ? "home" : "away";
+      performKickoff(scoringSide);
+      return true;
+    }
+
+    if (event.outcome === "safety") {
       const isHome = event.offenseTeamId === input.home.teamId;
       if (isHome) state.awayScore += 2;
       else state.homeScore += 2;
@@ -383,6 +492,7 @@ export function simulateGame(input: SimulationInput): GameResult {
 
   function handleTurnover(event: PlayEvent): boolean {
     if (!event.tags.includes("turnover")) return false;
+    if (event.tags.includes("return_td")) return false;
 
     const turnoverYardLine = Math.max(
       1,
