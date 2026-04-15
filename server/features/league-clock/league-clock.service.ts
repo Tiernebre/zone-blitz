@@ -2,6 +2,10 @@ import { DomainError } from "@zone-blitz/shared";
 import type pino from "pino";
 import type { TransactionRunner } from "../../db/transaction-runner.ts";
 import type { LeagueClockRepository } from "./league-clock.repository.ts";
+import type {
+  LeagueAdvanceVoteRepository,
+  VoteRow,
+} from "./league-advance-vote.repository.ts";
 import {
   type Blocker,
   computeNextStep,
@@ -13,10 +17,23 @@ import {
 import { DEFAULT_PHASE_STEPS } from "./default-phase-steps.ts";
 import { leaguePhaseEnum } from "./league-clock.schema.ts";
 
+export type AdvancePolicy = "commissioner" | "ready_check";
+
 export interface Actor {
   userId: string;
   isCommissioner: boolean;
   overrideReason?: string;
+}
+
+export interface TeamVoteState {
+  teamId: string;
+  isHuman: boolean;
+  autoPilot: boolean;
+}
+
+export interface AdvanceOptions {
+  advancePolicy: AdvancePolicy;
+  teamVoteStates: TeamVoteState[];
 }
 
 export interface AdvanceResult {
@@ -36,19 +53,60 @@ export interface LeagueClockService {
     leagueId: string,
     actor: Actor,
     gateState: LeagueGateState,
+    options?: AdvanceOptions,
   ): Promise<AdvanceResult>;
+
+  castReadyVote(
+    leagueId: string,
+    teamId: string,
+  ): Promise<VoteRow>;
 }
 
 export function createLeagueClockService(deps: {
   txRunner: TransactionRunner;
   leagueClockRepo: LeagueClockRepository;
+  voteRepo: LeagueAdvanceVoteRepository;
   log: pino.Logger;
 }): LeagueClockService {
   const log = deps.log.child({ module: "league-clock.service" });
   const phases = leaguePhaseEnum.enumValues;
 
+  async function enforceReadyCheck(
+    leagueId: string,
+    phase: string,
+    stepIndex: number,
+    actor: Actor,
+    teamVoteStates: TeamVoteState[],
+  ): Promise<void> {
+    if (actor.isCommissioner) return;
+
+    const teamsRequiringVote = teamVoteStates.filter(
+      (t) => t.isHuman && !t.autoPilot,
+    );
+
+    if (teamsRequiringVote.length === 0) return;
+
+    const votes = await deps.voteRepo.getVotesForStep(
+      leagueId,
+      phase,
+      stepIndex,
+    );
+
+    const votedTeamIds = new Set(votes.map((v) => v.teamId));
+    const allVoted = teamsRequiringVote.every((t) =>
+      votedTeamIds.has(t.teamId)
+    );
+
+    if (!allVoted) {
+      throw new DomainError(
+        "VOTES_MISSING",
+        "Not all teams have voted ready for the current step",
+      );
+    }
+  }
+
   return {
-    async advance(leagueId, actor, gateState) {
+    async advance(leagueId, actor, gateState, options) {
       log.info({ leagueId, userId: actor.userId }, "advancing league clock");
 
       const clock = await deps.leagueClockRepo.getByLeagueId(leagueId);
@@ -56,6 +114,16 @@ export function createLeagueClockService(deps: {
         throw new DomainError(
           "NOT_FOUND",
           `League clock for ${leagueId} not found`,
+        );
+      }
+
+      if (options?.advancePolicy === "ready_check") {
+        await enforceReadyCheck(
+          leagueId,
+          clock.phase,
+          clock.stepIndex,
+          actor,
+          options.teamVoteStates,
         );
       }
 
@@ -162,6 +230,25 @@ export function createLeagueClockService(deps: {
           autoResolved,
           looped,
         };
+      });
+    },
+
+    async castReadyVote(leagueId, teamId) {
+      log.info({ leagueId, teamId }, "casting ready vote");
+
+      const clock = await deps.leagueClockRepo.getByLeagueId(leagueId);
+      if (!clock) {
+        throw new DomainError(
+          "NOT_FOUND",
+          `League clock for ${leagueId} not found`,
+        );
+      }
+
+      return await deps.voteRepo.castVote({
+        leagueId,
+        teamId,
+        phase: clock.phase,
+        stepIndex: clock.stepIndex,
       });
     },
   };

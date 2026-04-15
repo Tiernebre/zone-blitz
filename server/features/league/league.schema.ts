@@ -1,5 +1,17 @@
-import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { teams } from "../team/team.schema.ts";
+
+export const advancePolicyEnum = pgEnum("advance_policy", [
+  "commissioner",
+  "ready_check",
+]);
 
 export const leagues = pgTable("leagues", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -13,6 +25,9 @@ export const leagues = pgTable("leagues", {
   capFloorPercent: integer("cap_floor_percent").notNull().default(89),
   capGrowthRate: integer("cap_growth_rate").notNull().default(5),
   rosterSize: integer("roster_size").notNull().default(53),
+  advancePolicy: advancePolicyEnum("advance_policy")
+    .notNull()
+    .default("commissioner"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastPlayedAt: timestamp("last_played_at"),
