@@ -1,7 +1,7 @@
 # 0014 — Season calendar and phase state machine
 
 - **Date:** 2026-04-15
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** league management — see
   [`../north-star/league-management.md`](../north-star/league-management.md);
   cross-cuts [`../north-star/salary-cap.md`](../north-star/salary-cap.md),

@@ -1,7 +1,7 @@
 # 0015 — Simulation resolution model: play-by-play core with fast-mode parity
 
 - **Date:** 2026-04-15
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** game simulation — see
   [`../north-star/game-simulation.md`](../north-star/game-simulation.md);
   consumes

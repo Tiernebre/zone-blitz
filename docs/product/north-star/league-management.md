@@ -163,3 +163,7 @@ A narrative history of the league:
 
 This history is what gives a 20-season franchise its weight. Every decision you
 made is recorded, and you can look back and trace the consequences.
+
+## Related decisions
+
+- [0014 — Season calendar and phase state machine](../decisions/0014-season-calendar-phase-state-machine.md)

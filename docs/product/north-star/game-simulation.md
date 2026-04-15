@@ -335,3 +335,7 @@ For the season:
 - Statistical leaders
 - Power rankings (algorithmic, team strength estimate)
 - Strength of schedule impact
+
+## Related decisions
+
+- [0015 — Simulation resolution model: play-by-play core with fast-mode parity](../decisions/0015-simulation-resolution-model.md)
