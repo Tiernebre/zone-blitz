@@ -79,3 +79,19 @@ as superseded.
   — retires ADR 0015's v1 deferral list; commits XP/2PT, real kickoffs and
   returns, overtime, penalty mechanics, defensive scores, 4th-down decisioning,
   clock management, and assignment-based matchups as in-scope (Accepted)
+- [0027 — MVP league creation wizard scope](./0027-mvp-league-creation-wizard.md)
+  — three-step wizard (name + readonly settings → team select → generation →
+  dashboard); defers the rich founder journey into the in-dashboard phase state
+  machine (Accepted)
+- [0028 — Readonly league settings in MVP creation wizard](./0028-readonly-league-settings-mvp.md)
+  — settings shown as disabled inputs for transparency; nothing is editable at
+  creation time in v1 (Accepted)
+- [0029 — Default 8 founding franchises with no count selector in MVP](./0029-eight-team-default-no-count-selector.md)
+  — franchise count hardcoded to 8; no founder-facing control, even readonly
+  (Accepted)
+- [0030 — Synchronous league generation with progress UI](./0030-synchronous-league-generation-with-progress-ui.md)
+  — coaches, scouts, founding pool, NPC franchises generated inline during a
+  loading step; no background job, no resumability in v1 (Accepted)
+- [0031 — Post-generation landing on the first in-dashboard genesis phase](./0031-post-generation-land-in-first-genesis-phase.md)
+  — after generation the founder lands straight in the dashboard at the earliest
+  incomplete genesis phase; no confirmation screen (Accepted)
