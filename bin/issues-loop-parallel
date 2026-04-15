@@ -83,7 +83,7 @@ AND the dependent-unblock sweep has run.
 PROMPT
 )
 
-  if ! claude -p "$prompt" --dangerously-skip-permissions </dev/null; then
+  if ! claude -p "$prompt" --verbose --dangerously-skip-permissions </dev/null 2>&1 | sed -u "s/^/[#$issue_number] /"; then
     echo "!!! worker failed: #$issue_number" >&2
     exit 1
   fi
