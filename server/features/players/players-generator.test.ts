@@ -4,12 +4,15 @@ import {
   type NeutralBucket,
   neutralBucket,
   PLAYER_ATTRIBUTE_KEYS,
+  positionalSalaryMultiplier,
 } from "@zone-blitz/shared";
 import {
   BUCKET_PROFILES,
   createPlayersGenerator,
   type NameGenerator,
   ROSTER_BUCKET_COMPOSITION,
+  SALARY_FLOOR,
+  SALARY_PER_QUALITY_POINT,
   stubAttributesFor,
 } from "./players-generator.ts";
 
@@ -401,5 +404,108 @@ Deno.test(
         assertEquals(pot >= cur && pot <= 100, true);
       }
     }
+  },
+);
+
+// ---- Positional market value integration (ADR 0011) ----
+
+Deno.test(
+  "at equal quality, veteran QB salary base is roughly 2.75× veteran RB through the market value table",
+  () => {
+    for (const quality of [70, 80, 85, 90]) {
+      const qbMult = positionalSalaryMultiplier("QB", quality);
+      const rbMult = positionalSalaryMultiplier("RB", quality);
+      const excess = Math.max(0, quality - 50);
+      const qbBase = SALARY_FLOOR + excess * SALARY_PER_QUALITY_POINT * qbMult;
+      const rbBase = SALARY_FLOOR + excess * SALARY_PER_QUALITY_POINT * rbMult;
+      const ratio = qbBase / rbBase;
+      assertEquals(ratio > 2.0, true);
+      assertEquals(ratio < 3.5, true);
+    }
+  },
+);
+
+Deno.test(
+  "rookie-scale contracts bypass positional multiplier",
+  () => {
+    const extremeMultiplier = (_pos: NeutralBucket, _q: number) => 100.0;
+    const normalGen = makeGenerator();
+    const extremeGen = createPlayersGenerator({
+      random: seededRandom(12345),
+      nameGenerator: fixedNameGenerator(),
+      currentYear: 2026,
+      salaryMultiplier: extremeMultiplier,
+    });
+    const players = Array.from({ length: 53 }, (_, i) => ({
+      id: `p${i}`,
+      teamId: "team-1",
+    }));
+    const cap = 999_999_999_999;
+    const normalContracts = normalGen.generateContracts({
+      salaryCap: cap,
+      players,
+    });
+    const extremeContracts = extremeGen.generateContracts({
+      salaryCap: cap,
+      players,
+    });
+    let identicalCount = 0;
+    let differentCount = 0;
+    for (let i = 0; i < normalContracts.length; i++) {
+      if (
+        normalContracts[i].annualSalary === extremeContracts[i].annualSalary
+      ) {
+        identicalCount++;
+      } else {
+        differentCount++;
+      }
+    }
+    assertEquals(identicalCount > 0, true);
+    assertEquals(differentCount > 0, true);
+  },
+);
+
+Deno.test(
+  "rookie-scale QB salary is not 2.75× a rookie-scale RB salary",
+  () => {
+    const calls: { position: NeutralBucket; quality: number }[] = [];
+    const recordingMultiplier = (pos: NeutralBucket, q: number) => {
+      calls.push({ position: pos, quality: q });
+      return positionalSalaryMultiplier(pos, q);
+    };
+    const gen = createPlayersGenerator({
+      random: seededRandom(12345),
+      nameGenerator: fixedNameGenerator(),
+      currentYear: 2026,
+      salaryMultiplier: recordingMultiplier,
+    });
+    const players = Array.from({ length: 53 }, (_, i) => ({
+      id: `p${i}`,
+      teamId: "team-1",
+    }));
+    gen.generateContracts({ salaryCap: 999_999_999_999, players });
+    assertEquals(calls.length < 53, true);
+  },
+);
+
+Deno.test(
+  "generator accepts injectable salary multiplier dependency",
+  () => {
+    const flatMultiplier = (_pos: NeutralBucket, _q: number) => 1.0;
+    const gen = createPlayersGenerator({
+      random: seededRandom(42),
+      nameGenerator: fixedNameGenerator(),
+      currentYear: 2026,
+      salaryMultiplier: flatMultiplier,
+    });
+    const players = Array.from({ length: 53 }, (_, i) => ({
+      id: `p${i}`,
+      teamId: "team-1",
+    }));
+    const contracts = gen.generateContracts({
+      salaryCap: 999_999_999_999,
+      players,
+    });
+    assertEquals(contracts.length, 53);
   },
 );

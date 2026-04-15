@@ -5,6 +5,7 @@ import {
   PLAYER_ATTRIBUTE_KEYS,
   type PlayerAttributeKey,
   type PlayerAttributes,
+  positionalSalaryMultiplier,
 } from "@zone-blitz/shared";
 import {
   createNameGenerator,
@@ -19,15 +20,6 @@ import type {
   PlayersGenerator,
   PlayersGeneratorInput,
 } from "./players.generator.interface.ts";
-
-// ADR 0009 — this generator graduated from constants to archetype-aware,
-// distribution-driven rolls. Each bucket has a signature (boosted) and
-// de-emphasized attribute set; a per-player quality tier (star / starter /
-// depth) shifts the mean of the rolled distribution so rosters contain a
-// handful of blue-chip players, a long middle tier of starters, and plenty
-// of JAG depth. Height, weight, age, college, hometown, and contract are
-// all driven off the same RNG so a seeded test reproduces the exact league.
-// Names are supplied by the shared `NameGenerator` (server/shared).
 
 // Re-export the shared NameGenerator type for consumer tests that want to
 // mock a name source without reaching into server/shared directly.
@@ -417,27 +409,10 @@ const FREE_AGENT_BUCKET_CYCLE: readonly NeutralBucket[] = [...NEUTRAL_BUCKETS];
 const FREE_AGENT_COUNT = 50;
 const DRAFT_PROSPECT_COUNT = 250;
 
-// Premium positions (QB / EDGE / OT / CB / WR) earn more per unit of quality;
-// pure specialists (K / P / LS) earn far less. Mid tier covers everyone else.
-const POSITION_TIER_MULTIPLIER: Record<NeutralBucket, number> = {
-  QB: 1.6,
-  EDGE: 1.35,
-  OT: 1.3,
-  CB: 1.25,
-  WR: 1.2,
-  IDL: 1.1,
-  TE: 1.0,
-  LB: 1.0,
-  S: 1.0,
-  IOL: 0.95,
-  RB: 0.95,
-  K: 0.45,
-  P: 0.4,
-  LS: 0.35,
-};
+export const SALARY_FLOOR = 750_000;
+export const SALARY_PER_QUALITY_POINT = 250_000;
 
-const SALARY_FLOOR = 750_000;
-const SALARY_PER_QUALITY_POINT = 250_000;
+const ROOKIE_SCALE_AGE_THRESHOLD = 25;
 
 const VETERAN_AGE_MIN = 21;
 const VETERAN_AGE_MAX = 36;
@@ -658,10 +633,12 @@ function rollContract(
     quality: number;
     age: number;
   },
+  multiplierFn: SalaryMultiplierFn,
 ): GeneratedContract {
-  const tier = POSITION_TIER_MULTIPLIER[args.bucket];
+  const isRookie = args.age <= ROOKIE_SCALE_AGE_THRESHOLD;
+  const mult = isRookie ? 1.0 : multiplierFn(args.bucket, args.quality);
   const excess = Math.max(0, args.quality - 50);
-  const base = SALARY_FLOOR + excess * SALARY_PER_QUALITY_POINT * tier;
+  const base = SALARY_FLOOR + excess * SALARY_PER_QUALITY_POINT * mult;
   const jitter = 0.9 + rng.next() * 0.2;
   const annualSalary = Math.max(SALARY_FLOOR, Math.round(base * jitter));
   let totalYears: number;
@@ -710,17 +687,16 @@ export function stubAttributesFor(bucket: NeutralBucket): PlayerAttributes {
   return attrs as PlayerAttributes;
 }
 
+export type SalaryMultiplierFn = (
+  position: NeutralBucket,
+  quality: number,
+) => number;
+
 export interface PlayersGeneratorOptions {
-  /**
-   * Injected name generator. Defaults to the shared server-wide
-   * `createNameGenerator()` so league creation produces varied names without
-   * explicit wiring; tests pass a seeded generator for determinism.
-   */
   nameGenerator?: NameGenerator;
-  /** Injected RNG for deterministic tests; defaults to `Math.random`. */
   random?: () => number;
-  /** Anchor year for birthdate/draft-year math; defaults to current UTC year. */
   currentYear?: number;
+  salaryMultiplier?: SalaryMultiplierFn;
 }
 
 export function createPlayersGenerator(
@@ -730,6 +706,8 @@ export function createPlayersGenerator(
   const rng = createRng(random);
   const nameGenerator = options.nameGenerator ?? createNameGenerator();
   const currentYear = options.currentYear ?? new Date().getUTCFullYear();
+  const salaryMultiplier = options.salaryMultiplier ??
+    positionalSalaryMultiplier;
 
   function buildPlayer(args: {
     leagueId: string;
@@ -884,7 +862,7 @@ export function createPlayersGenerator(
             bucket,
             quality,
             age,
-          });
+          }, salaryMultiplier);
         });
         const teamAnnualTotal = rawContracts.reduce(
           (s, c) => s + c.annualSalary,
