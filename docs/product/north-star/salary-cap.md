@@ -137,6 +137,54 @@ where the real strategy lives.
 - The game should make void year consequences clearly visible in cap projections
   so players understand the tradeoff they're making
 
+### Case study: the gimmick contract (Taysom Hill)
+
+The most extreme use of the tools above is the **gimmick contract** — a deal
+whose reported headline dollars bear almost no resemblance to the dollars that
+ever hit the cap or the player's bank account. Cap-Hell teams reach for the
+gimmick contract when the league-year deadline is looming and they still need
+to sign a useful player without the cap space to make a real offer. The player
+gets a headline "X-year, $Yzillion" press release that makes them sound like a
+star. The GM gets a one-year rental with a small real guarantee. The fan base
+sees "we signed a blockbuster deal" until they read past the lede.
+
+The canonical example is the **Taysom Hill 4-year, $140M contract** the New
+Orleans Saints signed in 2021. Hill was a converted quarterback / utility
+player — genuinely useful, nowhere near a $35M-per-year franchise player. The
+Saints were badly over the cap. The structure was: a small 2021 base salary,
+a 2021 per-game roster bonus, and three **void years** (2022, 2023, 2024) that
+were never meant to be played. On top of that, a huge **option bonus** was
+declared for an early league-year exercise — the figure the press multiplied
+into the $140M headline — that the team would let expire. In practice the deal
+was **one real year at roughly $10M**. Everything past 2021 was accounting
+fiction whose job was to make the headline look like a superstar signing.
+
+This is why the cap engine computes two separate numbers:
+
+- **Headline value** sums every theoretical dollar the deal could pay out —
+  base, signing bonus, workout and roster bonuses, the season max on any
+  per-game roster bonuses, and the face amount of every declared option bonus
+  as if the team intends to exercise it. This is the number the media reports,
+  the agent quotes, and the morale system reads. Headline is _optimistic by
+  construction_; it is what the deal looks like in the best possible light.
+- **Cap hit** records only what the deal actually charges against the cap this
+  year: real base, real bonuses earned, prorated signing-bonus slices, and
+  exercised options. Unexercised options contribute nothing. Void years
+  contribute only signing-bonus proration, not real money.
+
+**The divergence between those two numbers is part of the game feel.** The
+press announces a blockbuster. The fans expect a star. The cap sheet shows the
+GM got a one-year rental at a discount, a reputational victory, and a tiny
+future dead-cap tail. Two seasons later the void years activate, the
+accelerated proration hits, the fans notice the player is gone, and the story
+completes itself. A league full of gimmick deals is the signature sound of Cap
+Hell — a lot of noise in the press, a lot of short-term rentals on the field,
+a lot of bills coming due on the same day three years from now.
+
+See [ADR 0016](../decisions/0016-contract-structure.md) for the data model and
+pure-function shape — `computeCapHit`, `computeDeadCap`,
+`computeHeadlineValue` — that make this archetype expressible in v1.
+
 ---
 
 ## Cap Manipulation Tools
