@@ -1,22 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, Outlet, useParams } from "@tanstack/react-router";
-import {
-  ArrowLeftIcon,
-  ArrowLeftRightIcon,
-  CalendarIcon,
-  ClipboardListIcon,
-  CrownIcon,
-  DollarSignIcon,
-  HomeIcon,
-  ListOrderedIcon,
-  NewspaperIcon,
-  SearchIcon,
-  SettingsIcon,
-  TrophyIcon,
-  UserIcon,
-  UserPlusIcon,
-  UsersIcon,
-} from "lucide-react";
+import { ArrowLeftIcon, SettingsIcon, UserIcon } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -35,54 +19,30 @@ import {
 } from "@/components/ui/sidebar";
 import { UserMenu } from "../../components/user-menu.tsx";
 import { useLeague } from "../../hooks/use-league.ts";
+import { useLeagueClock } from "../../hooks/use-league-clock.ts";
 import { useTouchLeague } from "../../hooks/use-leagues.ts";
+import type { LeaguePhase } from "../../types/league-phase.ts";
 import { LeagueClockDisplay } from "./league-clock-display.tsx";
+import { navGroups } from "./nav-config.ts";
+import type { NavGroup } from "./nav-config.ts";
 
-type NavItem = {
-  label: string;
-  path: string;
-  Icon: typeof HomeIcon;
-};
-
-type NavGroup = {
-  label: string;
-  items: NavItem[];
-};
-
-const navGroups: NavGroup[] = [
-  {
-    label: "Team",
-    items: [
-      { label: "Home", path: "", Icon: HomeIcon },
-      { label: "Roster", path: "roster", Icon: UsersIcon },
-      { label: "Coaches", path: "coaches", Icon: ClipboardListIcon },
-      { label: "Scouts", path: "scouts", Icon: SearchIcon },
-    ],
-  },
-  {
-    label: "Team Building",
-    items: [
-      { label: "Draft", path: "draft", Icon: ListOrderedIcon },
-      { label: "Trades", path: "trades", Icon: ArrowLeftRightIcon },
-      { label: "Free Agency", path: "free-agency", Icon: UserPlusIcon },
-      { label: "Salary Cap", path: "salary-cap", Icon: DollarSignIcon },
-    ],
-  },
-  {
-    label: "League",
-    items: [
-      { label: "Standings", path: "standings", Icon: TrophyIcon },
-      { label: "Schedule", path: "schedule", Icon: CalendarIcon },
-      { label: "Opponents", path: "opponents", Icon: UsersIcon },
-      { label: "Media", path: "media", Icon: NewspaperIcon },
-      { label: "Owner", path: "owner", Icon: CrownIcon },
-    ],
-  },
-];
+function filterNavGroups(
+  groups: NavGroup[],
+  phase: LeaguePhase | undefined,
+): NavGroup[] {
+  if (!phase) return groups;
+  return groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => item.visibleInPhases(phase)),
+    }))
+    .filter((group) => group.items.length > 0);
+}
 
 export function LeagueLayout() {
   const { leagueId } = useParams({ strict: false });
   const { data: league } = useLeague(leagueId ?? "");
+  const { data: clock } = useLeagueClock(leagueId ?? "");
   const touchLeague = useTouchLeague();
 
   useEffect(() => {
@@ -91,6 +51,12 @@ export function LeagueLayout() {
     }
   }, [leagueId]);
 
+  const phase = clock?.phase as LeaguePhase | undefined;
+  const filteredGroups = useMemo(
+    () => filterNavGroups(navGroups, phase),
+    [phase],
+  );
+
   const basePath = `/leagues/${leagueId}`;
 
   return (
@@ -98,7 +64,7 @@ export function LeagueLayout() {
       <Sidebar collapsible="icon">
         <LeagueSidebarHeader name={league?.name} />
         <SidebarContent>
-          {navGroups.map((group) => (
+          {filteredGroups.map((group) => (
             <SidebarGroup key={group.label}>
               <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
               <SidebarGroupContent>

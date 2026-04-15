@@ -6,7 +6,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LeagueLayout } from "./layout.tsx";
 
 vi.mock("@tanstack/react-router", () => ({
@@ -51,6 +51,9 @@ const mockTouch = vi.fn().mockResolvedValue({
   json: () => Promise.resolve({ id: 1 }),
 });
 
+let mockPhase = "offseason_review";
+const mockClockGet = vi.fn();
+
 vi.mock("../../api.ts", () => ({
   api: {
     api: {
@@ -76,20 +79,7 @@ vi.mock("../../api.ts", () => ({
       },
       "league-clock": {
         [":leagueId"]: {
-          $get: vi.fn().mockResolvedValue({
-            ok: true,
-            json: () =>
-              Promise.resolve({
-                leagueId: "1",
-                seasonYear: 2026,
-                phase: "offseason_review",
-                stepIndex: 0,
-                slug: "awards_ceremony",
-                kind: "event",
-                flavorDate: "Feb 8",
-                advancedAt: "2026-01-01T00:00:00Z",
-              }),
-          }),
+          $get: (...args: unknown[]) => mockClockGet(...args),
           advance: {
             $post: vi.fn().mockResolvedValue({
               ok: true,
@@ -112,6 +102,26 @@ function renderWithProviders() {
     </QueryClientProvider>,
   );
 }
+
+beforeEach(() => {
+  mockPhase = "offseason_review";
+  mockClockGet.mockImplementation(() =>
+    Promise.resolve({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "1",
+          seasonYear: 2026,
+          phase: mockPhase,
+          stepIndex: 0,
+          slug: "awards_ceremony",
+          kind: "event",
+          flavorDate: "Feb 8",
+          advancedAt: "2026-01-01T00:00:00Z",
+        }),
+    })
+  );
+});
 
 afterEach(() => {
   cleanup();
@@ -236,17 +246,82 @@ describe("LeagueLayout", () => {
     ["Roster", "/leagues/1/roster"],
     ["Coaches", "/leagues/1/coaches"],
     ["Scouts", "/leagues/1/scouts"],
-    ["Draft", "/leagues/1/draft"],
-    ["Trades", "/leagues/1/trades"],
-    ["Free Agency", "/leagues/1/free-agency"],
     ["Salary Cap", "/leagues/1/salary-cap"],
-    ["Standings", "/leagues/1/standings"],
-    ["Schedule", "/leagues/1/schedule"],
     ["Media", "/leagues/1/media"],
     ["Owner", "/leagues/1/owner"],
-  ])("renders a %s nav link pointing to %s", (name, href) => {
+  ])(
+    "renders a %s nav link pointing to %s in offseason_review phase",
+    (name, href) => {
+      renderWithProviders();
+      const link = screen.getByRole("link", { name });
+      expect(link.getAttribute("href")).toBe(href);
+    },
+  );
+
+  it("renders all nav links in regular_season phase", async () => {
+    mockPhase = "regular_season";
     renderWithProviders();
-    const link = screen.getByRole("link", { name });
-    expect(link.getAttribute("href")).toBe(href);
+
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: "Roster" })).toBeDefined();
+    });
+
+    for (
+      const [name, href] of [
+        ["Roster", "/leagues/1/roster"],
+        ["Coaches", "/leagues/1/coaches"],
+        ["Scouts", "/leagues/1/scouts"],
+        ["Trades", "/leagues/1/trades"],
+        ["Free Agency", "/leagues/1/free-agency"],
+        ["Salary Cap", "/leagues/1/salary-cap"],
+        ["Standings", "/leagues/1/standings"],
+        ["Schedule", "/leagues/1/schedule"],
+        ["Opponents", "/leagues/1/opponents"],
+        ["Media", "/leagues/1/media"],
+        ["Owner", "/leagues/1/owner"],
+      ]
+    ) {
+      const link = screen.getByRole("link", { name });
+      expect(link.getAttribute("href")).toBe(href);
+    }
+  });
+
+  it("hides phase-gated nav items in genesis_charter", async () => {
+    mockPhase = "genesis_charter";
+    renderWithProviders();
+
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: "Home" })).toBeDefined();
+    });
+
+    expect(screen.getByRole("link", { name: "Owner" })).toBeDefined();
+    expect(screen.queryByRole("link", { name: "Roster" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Draft" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Standings" })).toBeNull();
+  });
+
+  it("shows all nav items when phase is loading", () => {
+    mockClockGet.mockImplementation(() => new Promise(() => {}));
+    renderWithProviders();
+
+    expect(screen.getByRole("link", { name: "Home" })).toBeDefined();
+    expect(screen.getByRole("link", { name: "Roster" })).toBeDefined();
+    expect(screen.getByRole("link", { name: "Draft" })).toBeDefined();
+    expect(screen.getByRole("link", { name: "Standings" })).toBeDefined();
+  });
+
+  it("collapses empty nav groups in early genesis phases", async () => {
+    mockPhase = "genesis_charter";
+    renderWithProviders();
+
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: "Home" })).toBeDefined();
+    });
+
+    const labels = Array.from(
+      document.querySelectorAll('[data-sidebar="group-label"]'),
+    ).map((el) => el.textContent);
+    expect(labels).toContain("Team");
+    expect(labels).not.toContain("Team Building");
   });
 });

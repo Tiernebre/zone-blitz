@@ -1,0 +1,25 @@
+export const LEAGUE_PHASES = [
+  "genesis_charter",
+  "genesis_franchise_establishment",
+  "genesis_staff_hiring",
+  "genesis_founding_pool",
+  "genesis_allocation_draft",
+  "genesis_free_agency",
+  "genesis_kickoff",
+  "offseason_review",
+  "coaching_carousel",
+  "tag_window",
+  "restricted_fa",
+  "legal_tampering",
+  "free_agency",
+  "pre_draft",
+  "draft",
+  "udfa",
+  "offseason_program",
+  "preseason",
+  "regular_season",
+  "playoffs",
+  "offseason_rollover",
+] as const;
+
+export type LeaguePhase = (typeof LEAGUE_PHASES)[number];
