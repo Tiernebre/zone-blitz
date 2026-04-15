@@ -41,3 +41,7 @@ as superseded.
 - [0013 — Player detail page: biography, contract, and transaction history](./0013-player-detail-page.md)
   — one canonical `/players/:playerId` route; breadcrumb + browser back, no
   generic "← Back" link
+- [0014 — Season calendar and phase state machine](./0014-season-calendar-phase-state-machine.md)
+  — ordered phase enum + per-phase step catalog on a single `league_clock`;
+  user-initiated advance with gated transitions; unblocks draft, FA, contracts,
+  trading, and cap-compliance ADRs (Proposed)
