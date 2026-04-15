@@ -138,6 +138,13 @@ export type {
   PlayerForAssignment,
 } from "./depth-chart/assign.ts";
 
+// Market
+export type { PositionalMarketEntry } from "./market/positional-market-value.ts";
+export {
+  POSITIONAL_MARKET_VALUES,
+  positionalSalaryMultiplier,
+} from "./market/positional-market-value.ts";
+
 // Interfaces — simulation
 export type {
   GameEvent,
