@@ -5,6 +5,7 @@ export { createLeagueClockService } from "./league-clock.service.ts";
 export type {
   Actor,
   AdvanceResult,
+  ClockState,
   LeagueClockService,
   ReadyCheckState,
   VoteResult,

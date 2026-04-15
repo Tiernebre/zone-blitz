@@ -62,10 +62,39 @@ vi.mock("../../api.ts", () => ({
       leagues: {
         [":id"]: {
           $get: vi.fn().mockResolvedValue({
-            json: () => Promise.resolve({ id: 1, name: "My League" }),
+            json: () =>
+              Promise.resolve({
+                id: 1,
+                name: "My League",
+                userTeamId: "team-1",
+              }),
           }),
           touch: {
             $post: (...args: unknown[]) => mockTouch(...args),
+          },
+        },
+      },
+      "league-clock": {
+        [":leagueId"]: {
+          $get: vi.fn().mockResolvedValue({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                leagueId: "1",
+                seasonYear: 2026,
+                phase: "offseason_review",
+                stepIndex: 0,
+                slug: "awards_ceremony",
+                kind: "event",
+                flavorDate: "Feb 8",
+                advancedAt: "2026-01-01T00:00:00Z",
+              }),
+          }),
+          advance: {
+            $post: vi.fn().mockResolvedValue({
+              ok: true,
+              json: () => Promise.resolve({}),
+            }),
           },
         },
       },
@@ -136,12 +165,12 @@ describe("LeagueLayout", () => {
     expect(settingsLink.getAttribute("href")).toBe("/leagues/1/settings");
   });
 
-  it("renders a toggle button for the sidebar", () => {
+  it("renders toggle buttons for the sidebar", () => {
     renderWithProviders();
-    const toggleButton = screen.getByRole("button", {
+    const toggleButtons = screen.getAllByRole("button", {
       name: /toggle sidebar/i,
     });
-    expect(toggleButton).toBeDefined();
+    expect(toggleButtons.length).toBeGreaterThanOrEqual(1);
   });
 
   it("collapses the sidebar when toggle is clicked", () => {
@@ -149,10 +178,10 @@ describe("LeagueLayout", () => {
     const sidebar = document.querySelector('[data-slot="sidebar"]');
     expect(sidebar?.getAttribute("data-state")).toBe("expanded");
 
-    const toggleButton = screen.getByRole("button", {
+    const toggleButtons = screen.getAllByRole("button", {
       name: /toggle sidebar/i,
     });
-    fireEvent.click(toggleButton);
+    fireEvent.click(toggleButtons[0]);
 
     expect(sidebar?.getAttribute("data-state")).toBe("collapsed");
   });
@@ -160,14 +189,15 @@ describe("LeagueLayout", () => {
   it("expands the sidebar when the toggle is clicked again", () => {
     renderWithProviders();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: /toggle sidebar/i }),
-    );
+    const toggleButtons = screen.getAllByRole("button", {
+      name: /toggle sidebar/i,
+    });
+    fireEvent.click(toggleButtons[0]);
     const sidebar = document.querySelector('[data-slot="sidebar"]');
     expect(sidebar?.getAttribute("data-state")).toBe("collapsed");
 
     fireEvent.click(
-      screen.getByRole("button", { name: /toggle sidebar/i }),
+      screen.getAllByRole("button", { name: /toggle sidebar/i })[0],
     );
     expect(sidebar?.getAttribute("data-state")).toBe("expanded");
   });
