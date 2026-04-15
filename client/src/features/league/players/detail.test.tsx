@@ -46,9 +46,12 @@ const draftedPlayer = {
   id: "p1",
   firstName: "Sam",
   lastName: "Stone",
+  status: "active",
+  jerseyNumber: 9,
   neutralBucket: "QB",
   schemeArchetype: null,
   age: 28,
+  birthDate: "1998-03-10",
   heightInches: 74,
   weightPounds: 225,
   yearsOfExperience: 5,
@@ -209,7 +212,7 @@ beforeEach(() => {
   });
 });
 
-describe("PlayerDetail — header + origin", () => {
+describe("PlayerDetail — loading and error states", () => {
   it("renders a loading skeleton while fetching", () => {
     mockUsePlayerDetail.mockReturnValue({
       data: undefined,
@@ -229,134 +232,190 @@ describe("PlayerDetail — header + origin", () => {
     renderDetail();
     expect(screen.getByText(/failed to load player detail/i)).toBeDefined();
   });
+});
 
-  it("renders name, position, age, height/weight, and experience", () => {
+describe("PlayerDetail — breadcrumb", () => {
+  it("shows Team > Roster > Player for a rostered player", () => {
     renderDetail();
-    const header = screen.getByTestId("player-header");
-    expect(header.textContent).toContain("Sam Stone");
-    expect(header.textContent).toContain("QB");
-    expect(header.textContent).toContain("Age 28");
-    expect(header.textContent).toContain("6'2\"");
-    expect(header.textContent).toContain("225 lbs");
-    expect(header.textContent).toContain("5 yr exp");
-    expect(header.textContent).toMatch(/healthy/i);
+    const breadcrumb = screen.getByLabelText("breadcrumb");
+    expect(breadcrumb.textContent).toContain("Cincinnati Bengals");
+    expect(breadcrumb.textContent).toContain("Roster");
+    expect(breadcrumb.textContent).toContain("Sam Stone");
   });
 
-  it("links the current team to its opponent roster page", () => {
+  it("links the team breadcrumb to the opponent roster page", () => {
     renderDetail();
-    const link = screen.getByTestId(
-      "player-current-team-link",
-    ) as HTMLAnchorElement;
-    expect(link.getAttribute("href")).toBe("/leagues/L1/opponents/t2");
-  });
-
-  it("renders origin with draft pick, drafting team, college, and hometown", () => {
-    renderDetail();
-    const origin = screen.getByTestId("player-origin");
-    expect(screen.getByTestId("player-origin-draft").textContent).toContain(
-      "Round 1",
+    const breadcrumb = screen.getByLabelText("breadcrumb");
+    const links = breadcrumb.querySelectorAll("a");
+    const teamLink = Array.from(links).find((l) =>
+      l.textContent?.includes("Cincinnati Bengals")
     );
-    expect(screen.getByTestId("player-origin-draft").textContent).toContain(
-      "3rd",
-    );
-    expect(origin.textContent).toContain("State University");
-    expect(origin.textContent).toContain("Dallas, TX");
-    const link = screen.getByTestId(
-      "player-drafting-team-link",
-    ) as HTMLAnchorElement;
-    expect(link.getAttribute("href")).toBe("/leagues/L1/opponents/t2");
+    expect(teamLink?.getAttribute("href")).toBe("/leagues/L1/opponents/t2");
   });
 
-  it("shows Undrafted when the player was not drafted", () => {
+  it("shows Free Agents > Player for a free agent", () => {
     mockUsePlayerDetail.mockReturnValue({
       data: {
         ...draftedPlayer,
+        status: "active",
         currentTeam: null,
-        origin: {
-          ...draftedPlayer.origin,
-          draftYear: null,
-          draftRound: null,
-          draftPick: null,
-          draftingTeam: null,
-          college: null,
-          hometown: null,
+      },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    const breadcrumb = screen.getByLabelText("breadcrumb");
+    expect(breadcrumb.textContent).toContain("Free Agents");
+    expect(breadcrumb.textContent).toContain("Sam Stone");
+    expect(breadcrumb.textContent).not.toContain("Roster");
+  });
+
+  it("shows Draft year > Player for a pre-draft prospect", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: {
+        ...draftedPlayer,
+        status: "prospect",
+        currentTeam: null,
+        preDraftEvaluation: {
+          draftClassYear: 2026,
+          projectedRound: 1,
+          scoutingNotes: null,
         },
       },
       isLoading: false,
       error: null,
     });
     renderDetail();
-    expect(screen.getByTestId("player-origin-undrafted")).toBeDefined();
-    expect(screen.getByText(/unsigned free agent/i)).toBeDefined();
+    const breadcrumb = screen.getByLabelText("breadcrumb");
+    expect(breadcrumb.textContent).toContain("Draft 2026");
+    expect(breadcrumb.textContent).toContain("Sam Stone");
+  });
+});
+
+describe("PlayerDetail — biography header", () => {
+  it("renders a generic silhouette headshot", () => {
+    renderDetail();
+    expect(screen.getByTestId("player-headshot")).toBeDefined();
   });
 
-  it("renders an 'out' badge in red when the player is out", () => {
+  it("renders name, jersey number, position, team, and status", () => {
+    renderDetail();
+    const header = screen.getByTestId("player-header");
+    expect(header.textContent).toContain("Sam Stone");
+    expect(header.textContent).toContain("#9");
+    expect(header.textContent).toContain("QB");
+    expect(header.textContent).toContain("Cincinnati Bengals");
+    expect(header.textContent).toMatch(/active/i);
+  });
+
+  it("renders injury status badge when not healthy", () => {
     mockUsePlayerDetail.mockReturnValue({
-      data: { ...draftedPlayer, injuryStatus: "out" },
+      data: { ...draftedPlayer, injuryStatus: "ir" },
       isLoading: false,
       error: null,
     });
     renderDetail();
-    expect(screen.getByTestId("player-header").textContent).toMatch(/out/i);
+    const header = screen.getByTestId("player-header");
+    expect(header.textContent).toMatch(/ir/i);
   });
 
-  it("renders a 'questionable' badge for intermediate statuses", () => {
-    mockUsePlayerDetail.mockReturnValue({
-      data: { ...draftedPlayer, injuryStatus: "questionable" },
-      isLoading: false,
-      error: null,
-    });
+  it("renders physical measurements: height and weight", () => {
     renderDetail();
-    expect(screen.getByTestId("player-header").textContent).toMatch(
-      /questionable/i,
-    );
+    const header = screen.getByTestId("player-header");
+    expect(header.textContent).toContain("6'2\"");
+    expect(header.textContent).toContain("225 lbs");
   });
 
-  it("formats draft picks in the teens with 'th' suffix", () => {
+  it("renders background: age, birthdate, hometown, college", () => {
+    renderDetail();
+    const header = screen.getByTestId("player-header");
+    expect(header.textContent).toContain("Age 28");
+    expect(header.textContent).toContain("1998");
+    expect(header.textContent).toContain("Dallas, TX");
+    expect(header.textContent).toContain("State University");
+  });
+
+  it("renders experience: years, draft info, Pro Bowl count", () => {
+    renderDetail();
+    const header = screen.getByTestId("player-header");
+    expect(header.textContent).toContain("5 yr exp");
+    expect(header.textContent).toContain("2020");
+    expect(header.textContent).toContain("Rd 1");
+    expect(header.textContent).toContain("Pick 3");
+    expect(header.textContent).toContain("1× Pro Bowl");
+  });
+
+  it("renders All-Pro count when present", () => {
     mockUsePlayerDetail.mockReturnValue({
       data: {
         ...draftedPlayer,
-        origin: { ...draftedPlayer.origin, draftPick: 12 },
+        accolades: [
+          ...draftedPlayer.accolades,
+          { id: "acc3", seasonYear: 2023, type: "all_pro_first", detail: null },
+          {
+            id: "acc4",
+            seasonYear: 2022,
+            type: "all_pro_second",
+            detail: null,
+          },
+        ],
       },
       isLoading: false,
       error: null,
     });
     renderDetail();
-    expect(screen.getByTestId("player-origin-draft").textContent).toContain(
-      "12th",
-    );
+    const header = screen.getByTestId("player-header");
+    expect(header.textContent).toContain("2× All-Pro");
   });
 
-  it("formats a 1st-overall pick correctly", () => {
+  it("shows Unsigned free agent for a player with no team", () => {
     mockUsePlayerDetail.mockReturnValue({
       data: {
         ...draftedPlayer,
-        origin: { ...draftedPlayer.origin, draftPick: 1 },
+        currentTeam: null,
+        status: "active",
       },
       isLoading: false,
       error: null,
     });
     renderDetail();
-    expect(screen.getByTestId("player-origin-draft").textContent).toContain(
-      "1st",
-    );
+    const header = screen.getByTestId("player-header");
+    expect(header.textContent).toContain("Free Agent");
   });
 
-  it("formats a 22nd-overall pick correctly", () => {
+  it("shows undrafted for a player with no draft info", () => {
     mockUsePlayerDetail.mockReturnValue({
       data: {
         ...draftedPlayer,
-        origin: { ...draftedPlayer.origin, draftPick: 22 },
+        origin: {
+          ...draftedPlayer.origin,
+          draftYear: null,
+          draftRound: null,
+          draftPick: null,
+          draftingTeam: null,
+        },
       },
       isLoading: false,
       error: null,
     });
     renderDetail();
-    expect(screen.getByTestId("player-origin-draft").textContent).toContain(
-      "22nd",
-    );
+    const header = screen.getByTestId("player-header");
+    expect(header.textContent).toMatch(/undrafted/i);
   });
 
+  it("omits jersey number when null", () => {
+    mockUsePlayerDetail.mockReturnValue({
+      data: { ...draftedPlayer, jerseyNumber: null },
+      isLoading: false,
+      error: null,
+    });
+    renderDetail();
+    const header = screen.getByTestId("player-header");
+    expect(header.textContent).not.toContain("#");
+  });
+});
+
+describe("PlayerDetail — sections", () => {
   it("renders the current contract card with years, cap hit, total, and guaranteed", () => {
     renderDetail();
     const card = screen.getByTestId("player-current-contract");
@@ -476,15 +535,6 @@ describe("PlayerDetail — header + origin", () => {
     expect(extended.textContent).toContain("Extended");
   });
 
-  it("does not leak attributes, overall rating, or scout grade", () => {
-    renderDetail();
-    const main = document.body;
-    expect(main.textContent).not.toMatch(/overall rating/i);
-    expect(main.textContent).not.toMatch(/\bOVR\b/);
-    expect(main.textContent).not.toMatch(/scout grade/i);
-    expect(main.textContent).not.toMatch(/potential/i);
-  });
-
   it("renders the pre-draft evaluation when present", () => {
     renderDetail();
     const panel = screen.getByTestId("player-pre-draft");
@@ -528,5 +578,17 @@ describe("PlayerDetail — header + origin", () => {
       "Unprojected",
     );
     expect(screen.queryByTestId("player-pre-draft-notes")).toBeNull();
+  });
+});
+
+describe("PlayerDetail — no rating/grade leaks", () => {
+  it("does not leak attributes, overall rating, or scout grade", () => {
+    renderDetail();
+    const main = document.body;
+    expect(main.textContent).not.toMatch(/overall rating/i);
+    expect(main.textContent).not.toMatch(/\bOVR\b/);
+    expect(main.textContent).not.toMatch(/scout grade/i);
+    expect(main.textContent).not.toMatch(/potential/i);
+    expect(main.textContent).not.toMatch(/attribute/i);
   });
 });

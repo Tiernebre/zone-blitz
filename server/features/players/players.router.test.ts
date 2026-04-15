@@ -26,11 +26,14 @@ Deno.test("players.router", async (t) => {
     let receivedId: string | undefined;
     const detail: PlayerDetail = {
       id: "p1",
+      status: "active",
       firstName: "Sam",
       lastName: "Stone",
+      jerseyNumber: 9,
       neutralBucket: "QB",
       schemeArchetype: null,
       age: 28,
+      birthDate: "1998-03-10",
       heightInches: 74,
       weightPounds: 225,
       yearsOfExperience: 5,

@@ -47,6 +47,7 @@ export interface Player {
   status: PlayerStatus;
   firstName: string;
   lastName: string;
+  jerseyNumber: number | null;
   injuryStatus: PlayerInjuryStatus;
   heightInches: number;
   weightPounds: number;
@@ -155,9 +156,12 @@ export interface PlayerDetail {
   id: string;
   firstName: string;
   lastName: string;
+  status: PlayerStatus;
+  jerseyNumber: number | null;
   neutralBucket: NeutralBucket;
   schemeArchetype: SchemeArchetype | null;
   age: number;
+  birthDate: string;
   heightInches: number;
   weightPounds: number;
   yearsOfExperience: number;

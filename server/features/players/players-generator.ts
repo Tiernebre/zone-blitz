@@ -745,6 +745,7 @@ export function createPlayersGenerator(
         status: args.status,
         firstName,
         lastName,
+        jerseyNumber: null,
         injuryStatus: "healthy" as const,
         heightInches,
         weightPounds,
