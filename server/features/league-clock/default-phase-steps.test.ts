@@ -2,6 +2,13 @@ import { assertEquals } from "@std/assert";
 import { DEFAULT_PHASE_STEPS } from "./default-phase-steps.ts";
 
 const ALL_PHASES = [
+  "genesis_charter",
+  "genesis_franchise_establishment",
+  "genesis_staff_hiring",
+  "genesis_founding_pool",
+  "genesis_allocation_draft",
+  "genesis_free_agency",
+  "genesis_kickoff",
   "offseason_review",
   "coaching_carousel",
   "tag_window",
@@ -164,4 +171,34 @@ Deno.test("all steps have non-empty slugs", () => {
   for (const step of DEFAULT_PHASE_STEPS) {
     assertEquals(step.slug.length > 0, true);
   }
+});
+
+Deno.test("each genesis phase has at least one step", () => {
+  const genesisPhases = [
+    "genesis_charter",
+    "genesis_franchise_establishment",
+    "genesis_staff_hiring",
+    "genesis_founding_pool",
+    "genesis_allocation_draft",
+    "genesis_free_agency",
+    "genesis_kickoff",
+  ];
+  const phasesWithSteps = new Set(DEFAULT_PHASE_STEPS.map((s) => s.phase));
+  for (const phase of genesisPhases) {
+    assertEquals(
+      phasesWithSteps.has(phase),
+      true,
+      `Genesis phase "${phase}" has no steps`,
+    );
+  }
+});
+
+Deno.test("genesis steps appear before recurring steps in the catalog", () => {
+  const firstGenesisIdx = DEFAULT_PHASE_STEPS.findIndex((s) =>
+    s.phase.startsWith("genesis_")
+  );
+  const firstRecurringIdx = DEFAULT_PHASE_STEPS.findIndex(
+    (s) => s.phase === "offseason_review",
+  );
+  assertEquals(firstGenesisIdx < firstRecurringIdx, true);
 });

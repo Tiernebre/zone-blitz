@@ -78,6 +78,9 @@ export function createLeagueClockService(deps: {
 }): LeagueClockService {
   const log = deps.log.child({ module: "league-clock.service" });
   const phases = leaguePhaseEnum.enumValues;
+  const firstRecurringPhase = phases.find(
+    (p) => !p.startsWith("genesis_"),
+  )!;
 
   return {
     async getClockState(leagueId) {
@@ -147,7 +150,7 @@ export function createLeagueClockService(deps: {
 
       if (isAtRolloverEnd) {
         seasonYear = clock.seasonYear + 1;
-        targetPhase = phases[0];
+        targetPhase = firstRecurringPhase;
         targetStepIndex = 0;
         looped = true;
         log.info(
