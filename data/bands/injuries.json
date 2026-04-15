@@ -1,0 +1,182 @@
+{
+  "generated_at": "2026-04-15T18:13:35Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Injury bands derived from nflreadr::load_injuries() joined to nflreadr::load_rosters_weekly(). Regular season only. Severity classified by actual weeks missed (roster absence), not game-status designation. Season-ending = 8+ weeks missed. Non-injury reports (illness, rest, personal) excluded. Position groups: QB, RB (incl FB), WR, TE, OL, DL, LB, DB, ST (K/P/LS). Re-injury rate = proportion of injured player-seasons with >1 stint for the same injury type within a season.",
+  "bands": {
+    "injuries_per_team_game": {
+      "n": 2692,
+      "mean": 2.6913,
+      "sd": 1.8191,
+      "min": 0,
+      "p10": 1,
+      "p25": 1,
+      "p50": 2,
+      "p75": 4,
+      "p90": 5,
+      "max": 12
+    },
+    "season_ending_rate_pct_of_roster": {
+      "n": 160,
+      "mean": 0.0628,
+      "sd": 0.0292,
+      "min": 0,
+      "p10": 0.0285,
+      "p25": 0.0405,
+      "p50": 0.0588,
+      "p75": 0.0822,
+      "p90": 0.1054,
+      "max": 0.1316
+    },
+    "position_injury_rates": {
+      "WR": {
+        "mean_rate": 0.7879,
+        "sd": 0.0932,
+        "min": 0.6679,
+        "max": 0.8826,
+        "mean_injuries_per_season": 202.2,
+        "mean_players_per_season": 257.4
+      },
+      "DB": {
+        "mean_rate": 0.7689,
+        "sd": 0.0381,
+        "min": 0.7239,
+        "max": 0.8055,
+        "mean_injuries_per_season": 340.2,
+        "mean_players_per_season": 442.8
+      },
+      "RB": {
+        "mean_rate": 0.7008,
+        "sd": 0.0894,
+        "min": 0.578,
+        "max": 0.7683,
+        "mean_injuries_per_season": 122.6,
+        "mean_players_per_season": 175.2
+      },
+      "OL": {
+        "mean_rate": 0.6477,
+        "sd": 0.0806,
+        "min": 0.518,
+        "max": 0.7357,
+        "mean_injuries_per_season": 241.6,
+        "mean_players_per_season": 373.8
+      },
+      "TE": {
+        "mean_rate": 0.6405,
+        "sd": 0.069,
+        "min": 0.5714,
+        "max": 0.7254,
+        "mean_injuries_per_season": 92,
+        "mean_players_per_season": 144
+      },
+      "LB": {
+        "mean_rate": 0.6072,
+        "sd": 0.0952,
+        "min": 0.4984,
+        "max": 0.7453,
+        "mean_injuries_per_season": 192.8,
+        "mean_players_per_season": 317.4
+      },
+      "DL": {
+        "mean_rate": 0.5932,
+        "sd": 0.0607,
+        "min": 0.5528,
+        "max": 0.7003,
+        "mean_injuries_per_season": 201,
+        "mean_players_per_season": 338.8
+      },
+      "QB": {
+        "mean_rate": 0.3929,
+        "sd": 0.0819,
+        "min": 0.2857,
+        "max": 0.5053,
+        "mean_injuries_per_season": 37.8,
+        "mean_players_per_season": 96.4
+      },
+      "ST": {
+        "mean_rate": 0.1591,
+        "sd": 0.0575,
+        "min": 0.0976,
+        "max": 0.2521,
+        "mean_injuries_per_season": 18.8,
+        "mean_players_per_season": 118.2
+      }
+    },
+    "injury_category_distribution": {
+      "soft_tissue": {
+        "count": 1642,
+        "proportion": 0.2266
+      },
+      "knee": {
+        "count": 1220,
+        "proportion": 0.1684
+      },
+      "ankle": {
+        "count": 1029,
+        "proportion": 0.142
+      },
+      "shoulder": {
+        "count": 578,
+        "proportion": 0.0798
+      },
+      "concussion": {
+        "count": 529,
+        "proportion": 0.073
+      },
+      "back_neck": {
+        "count": 513,
+        "proportion": 0.0708
+      },
+      "foot": {
+        "count": 403,
+        "proportion": 0.0556
+      },
+      "other": {
+        "count": 378,
+        "proportion": 0.0522
+      },
+      "upper_extremity": {
+        "count": 344,
+        "proportion": 0.0475
+      },
+      "torso": {
+        "count": 311,
+        "proportion": 0.0429
+      },
+      "hip": {
+        "count": 285,
+        "proportion": 0.0393
+      },
+      "head_face": {
+        "count": 13,
+        "proportion": 0.0018
+      }
+    },
+    "severity_distribution": {
+      "0_games": {
+        "count": 908,
+        "proportion": 0.1253
+      },
+      "1_game": {
+        "count": 1591,
+        "proportion": 0.2196
+      },
+      "2_3_weeks": {
+        "count": 2128,
+        "proportion": 0.2937
+      },
+      "4_7_weeks": {
+        "count": 1734,
+        "proportion": 0.2393
+      },
+      "season_ending": {
+        "count": 884,
+        "proportion": 0.122
+      }
+    },
+    "re_injury_rate": {
+      "re_injured_player_seasons": 491,
+      "total_injured_player_seasons": 4852,
+      "rate": 0.1012
+    }
+  }
+}

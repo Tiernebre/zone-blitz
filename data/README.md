@@ -20,6 +20,7 @@ data/
       rushing-plays.R          # per-rush yardage + gain thresholds
       situational.R            # 4th-down, 2-point, and onside kick decision rates
       position-concentration.R # top-k share by position group
+      injuries.R               # injury rates by position, severity, and category
   bands/              # generated JSON artifacts — checked in
   cache/              # nflreadr disk cache — gitignored
 ```
@@ -86,6 +87,14 @@ without depending on network or R at test time. Regenerate them when:
   `load_snap_counts()` for CB snap share. Mid-season QB changes and injured
   starters are handled naturally — weekly stats are summed per player, so a
   starter who misses games accumulates less and the backup's share rises.
+- **`injuries.json`** — injury rate bands by position, severity, and category.
+  Derived from `nflreadr::load_injuries()` joined to
+  `nflreadr::load_rosters_weekly()` to determine actual weeks missed (severity
+  from roster absence, not game-status designation). Covers: injuries per team
+  per game, season-ending rate as % of roster, position-specific injury rates,
+  injury category distribution (soft-tissue, knee, ankle, concussion, etc.),
+  severity split (0 games / 1 game / 2-3 weeks / 4-7 weeks / season-ending), and
+  re-injury rate. Non-injury reports (illness, rest, personal) excluded.
 
 ## Planned bands (follow-up work)
 
@@ -95,8 +104,8 @@ and are tracked as GitHub issues labeled `ready-for-agent`:
 
 - **Special-teams outcomes** (#247) — FG success by distance bucket, punt net
   yards distribution, kickoff return distribution, return-TD rate
-- **Injury rates by position** (#249) — separate source (`nflverse` injury
-  tables)
+- **Position stat concentration** (#248) — RB1/RB2/RB3 carry share, WR1/WR2/slot
+  target share, CB1 coverage share
 
 ## Why R
 
