@@ -9,6 +9,7 @@ import type {
 } from "./league-clock.repository.ts";
 import {
   type Actor,
+  type ClockState,
   createLeagueClockService,
 } from "./league-clock.service.ts";
 import type { LeagueGateState, TeamGateState } from "./gates.ts";
@@ -601,5 +602,62 @@ Deno.test("league-clock.service", async (t) => {
         assertEquals(upsertedRow?.overrideBlockers, null);
       },
     );
+  });
+
+  await t.step("getClockState", async (t) => {
+    await t.step("returns clock joined with catalog step", async () => {
+      const service = createService({
+        leagueClockRepo: {
+          getByLeagueId: () =>
+            Promise.resolve(
+              createMockClock({
+                phase: "offseason_review",
+                stepIndex: 0,
+                seasonYear: 2026,
+              }),
+            ),
+        },
+      });
+
+      const state: ClockState = await service.getClockState("league-1");
+      assertEquals(state.phase, "offseason_review");
+      assertEquals(state.stepIndex, 0);
+      assertEquals(state.seasonYear, 2026);
+      assertEquals(state.slug, "awards_ceremony");
+      assertEquals(state.kind, "event");
+    });
+
+    await t.step("throws NOT_FOUND when clock does not exist", async () => {
+      const service = createService({
+        leagueClockRepo: {
+          getByLeagueId: () => Promise.resolve(undefined),
+        },
+      });
+
+      await assertRejects(
+        () => service.getClockState("missing"),
+        DomainError,
+        "not found",
+      );
+    });
+
+    await t.step("includes flavorDate from catalog step", async () => {
+      const service = createService({
+        leagueClockRepo: {
+          getByLeagueId: () =>
+            Promise.resolve(
+              createMockClock({
+                phase: "regular_season",
+                stepIndex: 0,
+              }),
+            ),
+        },
+      });
+
+      const state = await service.getClockState("league-1");
+      assertEquals(state.slug, "week_1");
+      assertEquals(state.kind, "week");
+      assertEquals(state.flavorDate, "Sep 7");
+    });
   });
 });

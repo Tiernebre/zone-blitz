@@ -36,6 +36,7 @@ import {
 import { UserMenu } from "../../components/user-menu.tsx";
 import { useLeague } from "../../hooks/use-league.ts";
 import { useTouchLeague } from "../../hooks/use-leagues.ts";
+import { LeagueClockDisplay } from "./league-clock-display.tsx";
 
 type NavItem = {
   label: string;
@@ -162,6 +163,15 @@ export function LeagueLayout() {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
+        <header className="flex items-center gap-2 border-b px-4 py-2">
+          <SidebarTrigger className="-ml-1" />
+          {leagueId && (
+            <LeagueClockDisplay
+              leagueId={leagueId}
+              isCommissioner={!!league?.userTeamId}
+            />
+          )}
+        </header>
         <Outlet />
       </SidebarInset>
     </SidebarProvider>

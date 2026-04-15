@@ -31,7 +31,19 @@ export interface AdvanceResult {
   looped: boolean;
 }
 
+export interface ClockState {
+  leagueId: string;
+  seasonYear: number;
+  phase: string;
+  stepIndex: number;
+  slug: string;
+  kind: string;
+  flavorDate: string | null;
+  advancedAt: Date;
+}
+
 export interface LeagueClockService {
+  getClockState(leagueId: string): Promise<ClockState>;
   advance(
     leagueId: string,
     actor: Actor,
@@ -48,6 +60,32 @@ export function createLeagueClockService(deps: {
   const phases = leaguePhaseEnum.enumValues;
 
   return {
+    async getClockState(leagueId) {
+      log.debug({ leagueId }, "fetching league clock state");
+      const clock = await deps.leagueClockRepo.getByLeagueId(leagueId);
+      if (!clock) {
+        throw new DomainError(
+          "NOT_FOUND",
+          `League clock for ${leagueId} not found`,
+        );
+      }
+
+      const step = DEFAULT_PHASE_STEPS.find(
+        (s) => s.phase === clock.phase && s.stepIndex === clock.stepIndex,
+      );
+
+      return {
+        leagueId: clock.leagueId,
+        seasonYear: clock.seasonYear,
+        phase: clock.phase,
+        stepIndex: clock.stepIndex,
+        slug: step?.slug ?? "",
+        kind: step?.kind ?? "",
+        flavorDate: step?.flavorDate ?? null,
+        advancedAt: clock.advancedAt,
+      };
+    },
+
     async advance(leagueId, actor, gateState) {
       log.info({ leagueId, userId: actor.userId }, "advancing league clock");
 
