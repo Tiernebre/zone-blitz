@@ -1,5 +1,6 @@
 import {
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   primaryKey,
@@ -39,6 +40,8 @@ export const leagueClock = pgTable("league_clock", {
   stepIndex: integer("step_index").notNull().default(0),
   advancedAt: timestamp("advanced_at").defaultNow().notNull(),
   advancedByUserId: text("advanced_by_user_id").references(() => users.id),
+  overrideReason: text("override_reason"),
+  overrideBlockers: jsonb("override_blockers"),
 });
 
 export const leaguePhaseStep = pgTable("league_phase_step", {
