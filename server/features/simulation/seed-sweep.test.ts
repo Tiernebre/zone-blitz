@@ -35,3 +35,10 @@ Deno.test("seedSweep band means are in plausible ranges", () => {
   assertGreater(result.completionPercentage.mean, 30);
   assertLessOrEqual(result.completionPercentage.mean, 95);
 });
+
+Deno.test("seedSweep average drive start sits inside NFL bands", () => {
+  const result = seedSweep([100, 200], { teamCount: 8, gamesPerTeam: 7 });
+
+  assertGreater(result.averageDriveStartYardLine.mean, 20);
+  assertLessOrEqual(result.averageDriveStartYardLine.mean, 35);
+});

@@ -10,6 +10,7 @@ export interface SeasonAggregates {
   sacksPerTeamPerGame: number;
   turnoversPerTeamPerGame: number;
   fourthDownGoRate: number;
+  averageDriveStartYardLine: number;
   totalGames: number;
 }
 
@@ -27,6 +28,7 @@ export function computeSeasonAggregates(
       sacksPerTeamPerGame: 0,
       turnoversPerTeamPerGame: 0,
       fourthDownGoRate: 0,
+      averageDriveStartYardLine: 0,
       totalGames: 0,
     };
   }
@@ -114,6 +116,15 @@ export function computeSeasonAggregates(
     }
   }
 
+  let totalDriveStarts = 0;
+  let driveStartYardLineSum = 0;
+  for (const result of results) {
+    for (const drive of result.driveLog) {
+      totalDriveStarts++;
+      driveStartYardLineSum += drive.startYardLine;
+    }
+  }
+
   const totalCategorized = rushPlays + passAttempts;
   const games = results.length;
 
@@ -134,6 +145,9 @@ export function computeSeasonAggregates(
     turnoversPerTeamPerGame: turnovers / (games * 2),
     fourthDownGoRate: fourthDownAttempts > 0
       ? (fourthDownGo / fourthDownAttempts) * 100
+      : 0,
+    averageDriveStartYardLine: totalDriveStarts > 0
+      ? driveStartYardLineSum / totalDriveStarts
       : 0,
     totalGames: games,
   };

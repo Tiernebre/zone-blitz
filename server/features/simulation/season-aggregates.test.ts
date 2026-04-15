@@ -99,3 +99,37 @@ Deno.test("computeSeasonAggregates handles zero games", () => {
   assertEquals(agg.passPercentage, 0);
   assertEquals(agg.totalGames, 0);
 });
+
+Deno.test("computeSeasonAggregates computes averageDriveStartYardLine from drive log", () => {
+  const events = [
+    makeEvent({
+      driveIndex: 0,
+      situation: { down: 1, distance: 10, yardLine: 25 },
+    }),
+    makeEvent({
+      driveIndex: 1,
+      situation: { down: 1, distance: 10, yardLine: 35 },
+    }),
+  ];
+  const result = makeGameResult(events);
+  result.driveLog = [
+    {
+      driveIndex: 0,
+      offenseTeamId: "home",
+      startYardLine: 25,
+      plays: 1,
+      yards: 5,
+      result: "punt",
+    },
+    {
+      driveIndex: 1,
+      offenseTeamId: "away",
+      startYardLine: 35,
+      plays: 1,
+      yards: 5,
+      result: "punt",
+    },
+  ];
+  const agg = computeSeasonAggregates([result]);
+  assertEquals(agg.averageDriveStartYardLine, 30);
+});

@@ -329,4 +329,48 @@ Deno.test("resolveKickoff", async (t) => {
     assertEquals(result.event.situation.distance, 10);
     assertEquals(result.event.situation.yardLine, 35);
   });
+
+  await t.step("safety kick situation reflects yard line 20", () => {
+    const rng = createSeededRng(42);
+    const ctx = makeKickoffContext({ isSafetyKick: true });
+    const result = resolveKickoff(ctx, rng);
+
+    assertEquals(result.event.situation.yardLine, 20);
+  });
+
+  await t.step(
+    "safety kick never elects onside even when trailing late",
+    () => {
+      let onsideFound = false;
+      for (let seed = 1; seed <= 500; seed++) {
+        const rng = createSeededRng(seed);
+        const ctx = makeKickoffContext({
+          isSafetyKick: true,
+          scoreDifferential: -10,
+          quarter: 4,
+          clock: "2:00",
+        });
+        const result = resolveKickoff(ctx, rng);
+        if (result.event.tags.includes("onside")) {
+          onsideFound = true;
+        }
+      }
+      assertEquals(onsideFound, false);
+    },
+  );
+
+  await t.step(
+    "safety kick starting yard line is between 1 and 99",
+    () => {
+      for (let seed = 1; seed <= 100; seed++) {
+        const rng = createSeededRng(seed);
+        const ctx = makeKickoffContext({ isSafetyKick: true });
+        const result = resolveKickoff(ctx, rng);
+        if (!result.isReturnTouchdown) {
+          assertGreater(result.startingYardLine, 0);
+          assertEquals(result.startingYardLine <= 99, true);
+        }
+      }
+    },
+  );
 });
