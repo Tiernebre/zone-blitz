@@ -42,6 +42,8 @@ export function deriveBoxScore(
   };
 
   for (const event of events) {
+    if (event.outcome === "kickoff") continue;
+
     const isHome = event.offenseTeamId === homeTeamId;
     const offenseBox = isHome ? box.home : box.away;
     const defenseBox = isHome ? box.away : box.home;
@@ -92,6 +94,7 @@ export function deriveDriveLog(events: PlayEvent[]): DriveSummary[] {
 
   const driveMap = new Map<number, PlayEvent[]>();
   for (const event of events) {
+    if (event.outcome === "kickoff") continue;
     const list = driveMap.get(event.driveIndex);
     if (list) {
       list.push(event);

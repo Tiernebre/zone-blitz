@@ -535,6 +535,7 @@ Deno.test("simulateGame", async (t) => {
 
       const byDrive = new Map<number, PlayEvent[]>();
       for (const event of result.events) {
+        if (event.outcome === "kickoff") continue;
         const list = byDrive.get(event.driveIndex) ?? [];
         list.push(event);
         byDrive.set(event.driveIndex, list);
@@ -548,6 +549,126 @@ Deno.test("simulateGame", async (t) => {
           );
         }
       }
+    },
+  );
+
+  await t.step("kickoff events emitted at start of game", () => {
+    const result = simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+    });
+
+    const firstEvent = result.events[0];
+    assertEquals(firstEvent.outcome, "kickoff");
+    assertEquals(firstEvent.call.concept, "kickoff");
+    assertEquals(firstEvent.call.personnel, "special_teams");
+  });
+
+  await t.step("kickoff events emitted after every score", () => {
+    const result = simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+    });
+
+    for (let i = 0; i < result.events.length - 1; i++) {
+      const event = result.events[i];
+      if (
+        event.outcome === "touchdown" ||
+        event.outcome === "field_goal"
+      ) {
+        const nextEvent = result.events[i + 1];
+        assertEquals(
+          nextEvent.outcome,
+          "kickoff",
+          `Expected kickoff after ${event.outcome} at event index ${i}`,
+        );
+      }
+    }
+  });
+
+  await t.step("multiple kickoff events exist across a full game", () => {
+    const result = simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+    });
+
+    const kickoffs = result.events.filter((e) => e.outcome === "kickoff");
+    assertGreater(kickoffs.length, 1);
+  });
+
+  await t.step("kickoff event has kicker participant", () => {
+    const result = simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+    });
+
+    const kickoffs = result.events.filter((e) => e.outcome === "kickoff");
+    for (const ko of kickoffs) {
+      const kicker = ko.participants.find((p) => p.role === "kicker");
+      assertEquals(kicker !== undefined, true);
+    }
+  });
+
+  await t.step("kickoff yardage does not pollute box score", () => {
+    const result = simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+    });
+
+    let homePassing = 0;
+    let homeRushing = 0;
+    let awayPassing = 0;
+    let awayRushing = 0;
+
+    for (const event of result.events) {
+      if (event.outcome === "kickoff") continue;
+
+      const isHome = event.offenseTeamId === "team-home";
+      if (event.outcome === "pass_complete") {
+        if (isHome) homePassing += event.yardage;
+        else awayPassing += event.yardage;
+      } else if (event.outcome === "rush") {
+        if (isHome) homeRushing += event.yardage;
+        else awayRushing += event.yardage;
+      } else if (event.outcome === "sack") {
+        if (isHome) homePassing += event.yardage;
+        else awayPassing += event.yardage;
+      }
+    }
+
+    assertEquals(result.boxScore.home.passingYards, homePassing);
+    assertEquals(result.boxScore.home.rushingYards, homeRushing);
+    assertEquals(result.boxScore.away.passingYards, awayPassing);
+    assertEquals(result.boxScore.away.rushingYards, awayRushing);
+  });
+
+  await t.step(
+    "onside kicks can occur when trailing in Q4 final minutes",
+    () => {
+      let foundOnside = false;
+      for (let seed = 1; seed <= 5000 && !foundOnside; seed++) {
+        const result = simulateGame({
+          home: makeTeam("home"),
+          away: makeTeam("away"),
+          seed,
+        });
+
+        const onsideEvents = result.events.filter((e) =>
+          e.tags.includes("onside" as PlayEvent["tags"][number])
+        );
+        if (onsideEvents.length > 0) {
+          foundOnside = true;
+          for (const e of onsideEvents) {
+            assertEquals(e.outcome, "kickoff");
+          }
+        }
+      }
+      assertEquals(foundOnside, true);
     },
   );
 });

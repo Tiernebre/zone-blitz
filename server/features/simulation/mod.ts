@@ -23,6 +23,8 @@ export {
 export type { SeededRng } from "./rng.ts";
 
 export { resolvePlay } from "./resolve-play.ts";
+export { resolveKickoff } from "./resolve-kickoff.ts";
+export type { KickoffContext, KickoffResult } from "./resolve-kickoff.ts";
 export {
   deriveBoxScore,
   deriveDriveLog,
