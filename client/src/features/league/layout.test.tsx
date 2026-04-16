@@ -302,9 +302,11 @@ describe("LeagueLayout", () => {
     renderWithProviders();
 
     await waitFor(() => {
-      expect(screen.getByRole("link", { name: "Coaches" })).toBeDefined();
+      expect(screen.getByRole("link", { name: "Hiring" })).toBeDefined();
     });
 
+    expect(screen.queryByRole("link", { name: "Coaches" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Scouts" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Initial Pool" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Allocation Draft" })).toBeNull();

@@ -50,6 +50,7 @@ function always(): boolean {
 }
 
 const fromStaffHiring = fromPhaseOnward("initial_staff_hiring");
+const fromStaffHired = fromPhaseOnward("initial_pool");
 const fromAllocationDraft = fromPhaseOnward("initial_draft");
 const fromPreseason = fromPhaseOnward("preseason");
 const fromRegularSeason = fromPhaseOnward("regular_season");
@@ -88,13 +89,13 @@ export const navGroups: NavGroup[] = [
         label: "Coaches",
         path: "coaches",
         Icon: ClipboardListIcon,
-        visibleInPhases: fromStaffHiring,
+        visibleInPhases: fromStaffHired,
       },
       {
         label: "Scouts",
         path: "scouts",
         Icon: SearchIcon,
-        visibleInPhases: fromStaffHiring,
+        visibleInPhases: fromStaffHired,
       },
     ],
   },

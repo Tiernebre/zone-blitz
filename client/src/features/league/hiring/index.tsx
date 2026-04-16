@@ -232,7 +232,7 @@ function MarketSurveyView(
       <CardHeader>
         <CardTitle>Candidate Pool</CardTitle>
         <CardDescription>
-          Search, filter, and mark the candidates you want to pursue.
+          Mark the candidates you want to pursue.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -241,7 +241,8 @@ function MarketSurveyView(
           candidates={data ?? []}
           renderAction={renderAction}
           testIdPrefix="market"
-          toolbarEnd={interestBadge}
+          tabsEnd={interestBadge}
+          searchable={false}
         />
       </CardContent>
     </Card>

@@ -184,13 +184,9 @@ describe("Market survey view", () => {
     expect(screen.getByTestId("candidate-row-c2")).toBeTruthy();
   });
 
-  it("filters candidates by search", () => {
+  it("does not render a search bar in the market survey", () => {
     renderPage();
-    fireEvent.change(screen.getByLabelText("Search candidates"), {
-      target: { value: "Reid" },
-    });
-    expect(screen.getByTestId("candidate-row-c1")).toBeTruthy();
-    expect(screen.queryByTestId("candidate-row-c2")).toBeNull();
+    expect(screen.queryByLabelText("Search candidates")).toBeNull();
   });
 
   it("invokes expressInterest on Express Interest click", () => {
