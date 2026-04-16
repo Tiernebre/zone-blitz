@@ -81,7 +81,7 @@ async function seedFoundingFranchises(
   const cityIds: string[] = [];
   const stateIds: string[] = [];
 
-  for (const f of FOUNDING_FRANCHISES) {
+  for (const [i, f] of FOUNDING_FRANCHISES.entries()) {
     const [state] = await db
       .insert(states)
       .values({
@@ -104,7 +104,7 @@ async function seedFoundingFranchises(
       .values({
         name: f.name,
         cityId: city.id,
-        abbreviation: uniqAbbr("X"),
+        abbreviation: uniqAbbr(`X${i}`),
         primaryColor: f.primaryColor,
         secondaryColor: f.secondaryColor,
         accentColor: f.accentColor,
