@@ -330,6 +330,13 @@
       "when": 1776556800009,
       "tag": "0046_market_tier_for_franchises_and_teams",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1776556800010,
+      "tag": "0047_backfill_franchise_backstory",
+      "breakpoints": true
     }
   ]
 }
