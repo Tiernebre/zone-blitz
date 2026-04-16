@@ -153,7 +153,10 @@ Deno.test("runPassLean is unimodal with sd ~5-9 (no bimodal gap)", () => {
   // so the center is set above 50 to land the league pass_rate near
   // the NFL band of ~0.58.
   const league = generateCalibrationLeague();
-  const values = league.teams.map((t) => t.fingerprint.offense.runPassLean);
+  const values = league.teams.map((t) => {
+    assert(t.fingerprint.offense !== null, "offense must be set");
+    return t.fingerprint.offense.runPassLean;
+  });
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
   const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) /
     values.length;
