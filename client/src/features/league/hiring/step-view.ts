@@ -39,7 +39,7 @@ export function stepHeadline(slug: string): string {
     case "hiring_second_wave_decisions":
       return "Decisions — Wave 2";
     case "hiring_finalization":
-      return "Finalization";
+      return "Staff Assembly";
     default:
       return "Hiring";
   }
@@ -48,7 +48,7 @@ export function stepHeadline(slug: string): string {
 export function stepDescription(slug: string): string {
   switch (slug) {
     case "hiring_market_survey":
-      return "Review the candidate pool and express interest in the staff you want to pursue.";
+      return "Review the market for Head Coaches and Directors of Scouting and express interest in the leaders you want to pursue. They will hire the rest of the staff.";
     case "hiring_interview_1":
     case "hiring_interview_2":
       return "Request interviews with candidates you're interested in. Not every candidate will agree.";
@@ -60,7 +60,7 @@ export function stepDescription(slug: string): string {
     case "hiring_second_wave_interview":
       return "Chase anyone you missed in the first wave before the window closes.";
     case "hiring_finalization":
-      return "Fill any remaining mandatory roles from the leftover candidate pool.";
+      return "Your Head Coach and Director of Scouting have assembled the rest of the staff.";
     default:
       return "Hiring is active during the coaching carousel.";
   }

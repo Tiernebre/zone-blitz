@@ -61,25 +61,6 @@ export function useTeamHiringState(leagueId: string) {
   });
 }
 
-export function useHiringBlockers(leagueId: string) {
-  return useQuery({
-    queryKey: ["hiring", leagueId, "blockers"],
-    queryFn: async () => {
-      const res = await api.api.leagues[":leagueId"].hiring.blockers.$get({
-        param: { leagueId },
-      });
-      if (!res.ok) {
-        throw new Error(`Failed to load blockers (${res.status})`);
-      }
-      return (await res.json()) as {
-        missingCoachRoles: string[];
-        missingScoutRoles: string[];
-      };
-    },
-    enabled: !!leagueId,
-  });
-}
-
 function invalidateHiring(
   queryClient: ReturnType<typeof useQueryClient>,
   leagueId: string,
@@ -159,34 +140,6 @@ export function useSubmitOffers() {
         throw new Error(
           (body as Record<string, string>).message ??
             `Failed to submit offers (${res.status})`,
-        );
-      }
-      return res.json();
-    },
-    onSuccess: (_data, variables) =>
-      invalidateHiring(queryClient, variables.leagueId),
-  });
-}
-
-export function useResolveBlocker() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (
-      { leagueId, candidateId }: {
-        leagueId: string;
-        candidateId: string;
-      },
-    ) => {
-      const res = await api.api.leagues[":leagueId"].hiring.blockers.resolve
-        .$post({
-          param: { leagueId },
-          json: { candidateId },
-        });
-      if (!res.ok) {
-        const body = await res.json();
-        throw new Error(
-          (body as Record<string, string>).message ??
-            `Failed to resolve blocker (${res.status})`,
         );
       }
       return res.json();

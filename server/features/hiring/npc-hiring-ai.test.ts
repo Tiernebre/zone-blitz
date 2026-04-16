@@ -275,7 +275,7 @@ function stubService(overrides: Partial<HiringService> = {}): {
       );
     },
     resolveDecisions: () => Promise.resolve([]),
-    finalize: () => Promise.resolve({ decisions: [], blockers: [] }),
+    finalize: () => Promise.resolve({ decisions: [] }),
     getHiringState: () =>
       Promise.resolve({
         leagueId: "lg",
@@ -301,25 +301,11 @@ function stubService(overrides: Partial<HiringService> = {}): {
     getCandidateDetail: () => Promise.resolve(undefined),
     resolveCandidate: () => Promise.resolve(undefined),
     listDecisions: () => Promise.resolve([]),
-    getTeamBlockers: () =>
-      Promise.resolve({ missingCoachRoles: [], missingScoutRoles: [] }),
-    resolveBlocker: () =>
-      Promise.resolve({
-        id: crypto.randomUUID(),
-        leagueId: "lg",
-        staffType: "coach",
-        staffId: crypto.randomUUID(),
-        chosenOfferId: null,
-        wave: 99,
-        decidedAt: new Date(0),
-        createdAt: new Date(0),
-        updatedAt: new Date(0),
-      }),
   };
   return { service: { ...base, ...overrides }, calls };
 }
 
-Deno.test("executeNpcInterest: prioritizes missing HC before other roles", async () => {
+Deno.test("executeNpcInterest: only contests for HC and Director (subordinate roles ignored)", async () => {
   const hc = makeUnassigned({ role: "HC" });
   const oc = makeUnassigned({ role: "OC" });
   const areaScout = makeUnassigned({ role: "AREA_SCOUT" });
@@ -346,7 +332,7 @@ Deno.test("executeNpcInterest: prioritizes missing HC before other roles", async
         return Promise.resolve(toContext(candidate, staffType));
       },
     }),
-    leagueRepo: stubLeagueRepo({ ...defaultLeague, interestCap: 3 }),
+    leagueRepo: stubLeagueRepo({ ...defaultLeague, interestCap: 5 }),
     service,
     log: silentLog(),
   });
@@ -357,21 +343,18 @@ Deno.test("executeNpcInterest: prioritizes missing HC before other roles", async
     stepSlug: "hiring_market_survey",
   });
 
-  // First interest must be HC because it is the highest-priority unfilled role.
-  assertEquals(calls.interest.length, 3);
+  // Only HC and DIRECTOR are leadership roles, so only those are pursued.
+  assertEquals(calls.interest.length, 2);
+  const ids = calls.interest.map((i) => i.staffId).sort();
+  assertEquals(ids, [hc.id, director.id].sort());
+  // HC (priority 0) must come before DIRECTOR (priority 3).
   assertEquals(calls.interest[0].staffId, hc.id);
-  assertEquals(calls.interest[0].staffType, "coach");
-  assertEquals(calls.interest[1].staffId, oc.id);
-  // Third slot should pick the director (higher-priority scout role) over the
-  // area scout.
-  assertEquals(calls.interest[2].staffId, director.id);
-  assertEquals(calls.interest[2].staffType, "scout");
 });
 
 Deno.test("executeNpcInterest: respects interest cap minus existing active interests", async () => {
-  const hc = makeUnassigned({ role: "HC" });
-  const oc = makeUnassigned({ role: "OC" });
-  const dc = makeUnassigned({ role: "DC" });
+  const hcA = makeUnassigned({ role: "HC" });
+  const hcB = makeUnassigned({ role: "HC" });
+  const directorA = makeUnassigned({ role: "DIRECTOR" });
 
   const existing = [
     makeInterest({ teamId: "npc-a", staffType: "coach", staffId: "prev-1" }),
@@ -386,8 +369,8 @@ Deno.test("executeNpcInterest: respects interest cap minus existing active inter
   const { service, calls } = stubService();
   const ai = createNpcHiringAi({
     repo: stubRepo({
-      listUnassignedCoaches: () => Promise.resolve([hc, oc, dc]),
-      listUnassignedScouts: () => Promise.resolve([]),
+      listUnassignedCoaches: () => Promise.resolve([hcA, hcB]),
+      listUnassignedScouts: () => Promise.resolve([directorA]),
       listInterestsByTeam: () => Promise.resolve(existing),
       listSignedStaffByTeam: () => Promise.resolve([]),
       getFranchiseScoringProfile: (teamId) =>
@@ -397,7 +380,7 @@ Deno.test("executeNpcInterest: respects interest cap minus existing active inter
           existingStaff: [],
         } as FranchiseScoringProfile),
       getCandidateScoringContext: (staffType, id) => {
-        const candidate = [hc, oc, dc].find((c) => c.id === id);
+        const candidate = [hcA, hcB, directorA].find((c) => c.id === id);
         if (!candidate) return Promise.resolve(undefined);
         return Promise.resolve(toContext(candidate, staffType));
       },
@@ -413,14 +396,13 @@ Deno.test("executeNpcInterest: respects interest cap minus existing active inter
     stepSlug: "hiring_market_survey",
   });
 
-  // 3 cap minus 1 active = 2 slots available
+  // 3 cap minus 1 active = 2 slots available, all leadership candidates.
   assertEquals(calls.interest.length, 2);
-  assertEquals(calls.interest[0].staffId, hc.id);
 });
 
-Deno.test("executeNpcInterest: skips roles the team already filled", async () => {
+Deno.test("executeNpcInterest: skips HC role when the team already signed an HC", async () => {
   const hc2 = makeUnassigned({ role: "HC" });
-  const oc = makeUnassigned({ role: "OC" });
+  const director = makeUnassigned({ role: "DIRECTOR" });
 
   const signed: SignedStaffMember[] = [
     {
@@ -434,8 +416,8 @@ Deno.test("executeNpcInterest: skips roles the team already filled", async () =>
   const { service, calls } = stubService();
   const ai = createNpcHiringAi({
     repo: stubRepo({
-      listUnassignedCoaches: () => Promise.resolve([hc2, oc]),
-      listUnassignedScouts: () => Promise.resolve([]),
+      listUnassignedCoaches: () => Promise.resolve([hc2]),
+      listUnassignedScouts: () => Promise.resolve([director]),
       listInterestsByTeam: () => Promise.resolve([]),
       listSignedStaffByTeam: () => Promise.resolve(signed),
       getFranchiseScoringProfile: (teamId) =>
@@ -445,7 +427,7 @@ Deno.test("executeNpcInterest: skips roles the team already filled", async () =>
           existingStaff: [],
         } as FranchiseScoringProfile),
       getCandidateScoringContext: (staffType, id) => {
-        const candidate = [hc2, oc].find((c) => c.id === id);
+        const candidate = [hc2, director].find((c) => c.id === id);
         if (!candidate) return Promise.resolve(undefined);
         return Promise.resolve(toContext(candidate, staffType));
       },
@@ -462,9 +444,11 @@ Deno.test("executeNpcInterest: skips roles the team already filled", async () =>
   });
 
   const hcInterest = calls.interest.find((i) => i.staffId === hc2.id);
-  const ocInterest = calls.interest.find((i) => i.staffId === oc.id);
+  const directorInterest = calls.interest.find((i) =>
+    i.staffId === director.id
+  );
   assertEquals(hcInterest, undefined);
-  assertEquals(ocInterest?.staffType, "coach");
+  assertEquals(directorInterest?.staffType, "scout");
 });
 
 Deno.test("executeNpcInterest: deterministic with a seeded rng when candidates tie", async () => {
@@ -510,21 +494,16 @@ Deno.test("executeNpcInterest: deterministic with a seeded rng when candidates t
   assertEquals(run1.length, 1);
 });
 
-Deno.test("executeNpcInterviews: interviews candidates from active interests in role-priority order", async () => {
+Deno.test("executeNpcInterviews: interviews HC before Director when both active interests are present", async () => {
   const hcInterest = makeInterest({
     teamId: "npc-a",
     staffType: "coach",
     staffId: "hc-1",
   });
-  const ocInterest = makeInterest({
-    teamId: "npc-a",
-    staffType: "coach",
-    staffId: "oc-1",
-  });
-  const scoutInterest = makeInterest({
+  const dirInterest = makeInterest({
     teamId: "npc-a",
     staffType: "scout",
-    staffId: "scout-1",
+    staffId: "dir-1",
   });
 
   const candidates: Record<string, CandidateScoringContext> = {
@@ -542,23 +521,9 @@ Deno.test("executeNpcInterviews: interviews candidates from active interests in 
       offense: null,
       defense: null,
     },
-    "oc-1": {
-      staffType: "coach",
-      staffId: "oc-1",
-      role: "OC",
-      preferences: {
-        marketTierPref: 50,
-        philosophyFitPref: 50,
-        staffFitPref: 50,
-        compensationPref: 50,
-        minimumThreshold: 40,
-      },
-      offense: null,
-      defense: null,
-    },
-    "scout-1": {
+    "dir-1": {
       staffType: "scout",
-      staffId: "scout-1",
+      staffId: "dir-1",
       role: "DIRECTOR",
       preferences: {
         marketTierPref: 50,
@@ -575,8 +540,7 @@ Deno.test("executeNpcInterviews: interviews candidates from active interests in 
   const { service, calls } = stubService();
   const ai = createNpcHiringAi({
     repo: stubRepo({
-      listInterestsByTeam: () =>
-        Promise.resolve([scoutInterest, ocInterest, hcInterest]),
+      listInterestsByTeam: () => Promise.resolve([dirInterest, hcInterest]),
       listInterviewsByTeam: () => Promise.resolve([]),
       getCandidateScoringContext: (_st, id) => Promise.resolve(candidates[id]),
       getFranchiseScoringProfile: (teamId) =>
@@ -600,9 +564,9 @@ Deno.test("executeNpcInterviews: interviews candidates from active interests in 
   assertEquals(calls.interviews.length, 1);
   const [req] = calls.interviews;
   assertEquals(req.targets.length, 2);
-  // HC is highest priority, must come first.
+  // HC priority 0 ranks ahead of DIRECTOR priority 3.
   assertEquals(req.targets[0].staffId, "hc-1");
-  assertEquals(req.targets[1].staffId, "oc-1");
+  assertEquals(req.targets[1].staffId, "dir-1");
 });
 
 Deno.test("executeNpcInterviews: does not re-request interviews for candidates already interviewed this step", async () => {

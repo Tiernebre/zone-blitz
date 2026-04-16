@@ -24,52 +24,16 @@ import {
   type SalaryBand,
   type StaffCandidate,
 } from "./preference-scoring.ts";
+import { COACH_SALARY_BANDS, SCOUT_SALARY_BANDS } from "./staff-assembly.ts";
 
-// Priority tiers for role-need ranking. Lower value = higher priority.
-// Must match the hiring hierarchy: HC, then coordinators, then position
-// coaches, then scout roles (director first, then other scouts).
-const COACH_ROLE_PRIORITY: Record<CoachRole, number> = {
+// NPC teams only contest for leadership roles in the GM-facing pipeline. The
+// rest of the staff is auto-assembled at finalize.
+const COACH_ROLE_PRIORITY: Partial<Record<CoachRole, number>> = {
   HC: 0,
-  OC: 1,
-  DC: 1,
-  STC: 1,
-  QB: 2,
-  RB: 2,
-  WR: 2,
-  TE: 2,
-  OL: 2,
-  DL: 2,
-  LB: 2,
-  DB: 2,
-  ST_ASSISTANT: 2,
 };
 
-const SCOUT_ROLE_PRIORITY: Record<ScoutRole, number> = {
+const SCOUT_ROLE_PRIORITY: Partial<Record<ScoutRole, number>> = {
   DIRECTOR: 3,
-  NATIONAL_CROSS_CHECKER: 4,
-  AREA_SCOUT: 4,
-};
-
-const COACH_SALARY_BANDS: Record<CoachRole, SalaryBand> = {
-  HC: { min: 5_000_000, max: 20_000_000 },
-  OC: { min: 1_500_000, max: 6_000_000 },
-  DC: { min: 1_500_000, max: 5_000_000 },
-  STC: { min: 800_000, max: 2_000_000 },
-  QB: { min: 500_000, max: 1_500_000 },
-  RB: { min: 300_000, max: 1_200_000 },
-  WR: { min: 300_000, max: 1_200_000 },
-  TE: { min: 300_000, max: 1_200_000 },
-  OL: { min: 300_000, max: 1_200_000 },
-  DL: { min: 300_000, max: 1_200_000 },
-  LB: { min: 300_000, max: 1_200_000 },
-  DB: { min: 300_000, max: 1_200_000 },
-  ST_ASSISTANT: { min: 250_000, max: 600_000 },
-};
-
-const SCOUT_SALARY_BANDS: Record<ScoutRole, SalaryBand> = {
-  DIRECTOR: { min: 250_000, max: 800_000 },
-  NATIONAL_CROSS_CHECKER: { min: 150_000, max: 400_000 },
-  AREA_SCOUT: { min: 80_000, max: 200_000 },
 };
 
 // Market-tier bias applied on top of the mid-band salary when an NPC team
