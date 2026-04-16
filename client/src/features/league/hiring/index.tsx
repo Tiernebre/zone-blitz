@@ -32,13 +32,13 @@ import {
 import { useLeagueClock } from "../../../hooks/use-league-clock.ts";
 import {
   useExpressInterest,
-  useHiringBlockers,
   useHiringCandidates,
   useRequestInterviews,
-  useResolveBlocker,
   useSubmitOffers,
   useTeamHiringState,
 } from "../../../hooks/use-hiring.ts";
+import { useStaffTree } from "../../../hooks/use-staff-tree.ts";
+import { useScoutStaffTree } from "../../../hooks/use-scout-staff-tree.ts";
 import { bandFor, formatMoney, medianSalary } from "./salary-bands.ts";
 import { stepDescription, stepHeadline, stepViewFor } from "./step-view.ts";
 
@@ -125,7 +125,12 @@ export function Hiring() {
           decisions={teamState?.decisions ?? []}
         />
       )}
-      {view === "finalize" && <FinalizeView leagueId={leagueId} />}
+      {view === "finalize" && (
+        <StaffResultView
+          leagueId={leagueId}
+          teamId={teamState?.teamId ?? ""}
+        />
+      )}
     </div>
   );
 }
@@ -589,125 +594,106 @@ function DecisionsView(
   );
 }
 
-function FinalizeView({ leagueId }: { leagueId: string }) {
-  const { data: blockers, isLoading } = useHiringBlockers(leagueId);
-  const { data: candidates } = useHiringCandidates(leagueId);
-  const resolveBlocker = useResolveBlocker();
+function StaffResultView(
+  { leagueId, teamId }: { leagueId: string; teamId: string },
+) {
+  const { data: coaches, isLoading: coachesLoading } = useStaffTree(
+    leagueId,
+    teamId,
+  );
+  const { data: scouts, isLoading: scoutsLoading } = useScoutStaffTree(
+    leagueId,
+    teamId,
+  );
 
-  if (isLoading) {
-    return <Skeleton data-testid="finalize-loading" className="h-64 w-full" />;
-  }
-
-  const missingCoachRoles = blockers?.missingCoachRoles ?? [];
-  const missingScoutRoles = blockers?.missingScoutRoles ?? [];
-
-  if (missingCoachRoles.length === 0 && missingScoutRoles.length === 0) {
+  if (coachesLoading || scoutsLoading) {
     return (
-      <Alert data-testid="finalize-complete">
-        <AlertTitle>Staff complete</AlertTitle>
-        <AlertDescription>
-          Every mandatory role is filled. Advance to kick off the next phase.
-        </AlertDescription>
-      </Alert>
+      <Skeleton data-testid="staff-result-loading" className="h-64 w-full" />
     );
   }
 
-  const handleResolve = (candidateId: string) => {
-    resolveBlocker.mutate(
-      { leagueId, candidateId },
-      {
-        onSuccess: () => toast.success("Role filled"),
-        onError: (err) => toast.error(err.message),
-      },
-    );
-  };
+  const coachList = coaches ?? [];
+  const scoutList = scouts ?? [];
 
   return (
-    <div className="flex flex-col gap-4" data-testid="finalize-view">
-      <Alert variant="destructive">
-        <AlertTitle>Mandatory roles unfilled</AlertTitle>
+    <div className="flex flex-col gap-4" data-testid="staff-result-view">
+      <Alert>
+        <AlertTitle>Staff Assembled</AlertTitle>
         <AlertDescription>
-          You must fill {missingCoachRoles.join(", ")}
-          {missingCoachRoles.length > 0 && missingScoutRoles.length > 0
-            ? " and "
-            : ""}
-          {missingScoutRoles.join(", ")} before the hiring phase closes.
+          Your Head Coach and Director of Scouting have built out the rest of
+          the staff.
         </AlertDescription>
       </Alert>
-      {missingCoachRoles.map((role) => (
-        <BlockerSection
-          key={`coach-${role}`}
-          role={role}
-          staffType="coach"
-          candidates={candidates ?? []}
-          onPick={handleResolve}
-          submitting={resolveBlocker.isPending}
-          leagueId={leagueId}
-        />
-      ))}
-      {missingScoutRoles.map((role) => (
-        <BlockerSection
-          key={`scout-${role}`}
-          role={role}
-          staffType="scout"
-          candidates={candidates ?? []}
-          onPick={handleResolve}
-          submitting={resolveBlocker.isPending}
-          leagueId={leagueId}
-        />
-      ))}
+      <Card data-testid="staff-result-coaches">
+        <CardHeader>
+          <CardTitle>Coaching Staff</CardTitle>
+          <CardDescription>
+            {coachList.length} coach{coachList.length === 1 ? "" : "es"}{" "}
+            on staff.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {coachList.length === 0
+            ? (
+              <p className="text-sm text-muted-foreground">
+                No coaches have been assigned yet.
+              </p>
+            )
+            : <StaffTable rows={coachList} />}
+        </CardContent>
+      </Card>
+      <Card data-testid="staff-result-scouts">
+        <CardHeader>
+          <CardTitle>Scouting Staff</CardTitle>
+          <CardDescription>
+            {scoutList.length} scout{scoutList.length === 1 ? "" : "s"}{" "}
+            on staff.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {scoutList.length === 0
+            ? (
+              <p className="text-sm text-muted-foreground">
+                No scouts have been assigned yet.
+              </p>
+            )
+            : <StaffTable rows={scoutList} />}
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-function BlockerSection(
-  { role, staffType, candidates, onPick, submitting, leagueId }: {
-    role: string;
-    staffType: "coach" | "scout";
-    candidates: HiringCandidateSummary[];
-    onPick: (candidateId: string) => void;
-    submitting: boolean;
-    leagueId: string;
-  },
-) {
-  const roster = candidates.filter(
-    (c) => c.staffType === staffType && c.role === role,
-  );
+interface StaffMember {
+  id: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  isVacancy: boolean;
+}
+
+function StaffTable({ rows }: { rows: StaffMember[] }) {
   return (
-    <Card data-testid={`blocker-${staffType}-${role}`}>
-      <CardHeader>
-        <CardTitle>Fill {role}</CardTitle>
-        <CardDescription>
-          {roster.length} leftover candidate{roster.length === 1 ? "" : "s"}
-          {" "}
-          for this role.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {roster.length === 0
-          ? (
-            <p className="text-sm text-muted-foreground">
-              No unsigned candidates available for this role.
-            </p>
-          )
-          : (
-            <CandidateTable
-              candidates={roster}
-              leagueId={leagueId}
-              renderAction={(c) => (
-                <Button
-                  size="sm"
-                  disabled={submitting}
-                  onClick={() => onPick(c.id)}
-                  data-testid={`fill-${c.id}`}
-                >
-                  Hire
-                </Button>
-              )}
-            />
-          )}
-      </CardContent>
-    </Card>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Role</TableHead>
+          <TableHead>Name</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((row) => (
+          <TableRow key={row.id} data-testid={`staff-row-${row.id}`}>
+            <TableCell>{row.role}</TableCell>
+            <TableCell>
+              {row.isVacancy
+                ? <Badge variant="outline">Vacant</Badge>
+                : `${row.firstName} ${row.lastName}`}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 

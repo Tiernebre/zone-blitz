@@ -31,7 +31,7 @@ function stubs() {
     },
     finalize: (leagueId: string) => {
       calls.push({ method: "finalize", args: { leagueId } });
-      return Promise.resolve({ decisions: [], blockers: [] });
+      return Promise.resolve({ decisions: [] });
     },
   };
   const npcAi = {

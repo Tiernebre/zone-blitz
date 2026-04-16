@@ -108,7 +108,7 @@ function createMockService(
     resolveInterviewDeclines: () => Promise.resolve([]),
     submitOffers: () => Promise.resolve([]),
     resolveDecisions: () => Promise.resolve([]),
-    finalize: () => Promise.resolve({ decisions: [], blockers: [] }),
+    finalize: () => Promise.resolve({ decisions: [] }),
     getHiringState: () =>
       Promise.resolve({
         leagueId: "lg",
@@ -124,9 +124,6 @@ function createMockService(
     getCandidateDetail: () => Promise.resolve(undefined),
     resolveCandidate: () => Promise.resolve(undefined),
     listDecisions: () => Promise.resolve([]),
-    getTeamBlockers: () =>
-      Promise.resolve({ missingCoachRoles: [], missingScoutRoles: [] }),
-    resolveBlocker: () => Promise.resolve(makeDecision({ wave: 99 })),
     ...overrides,
   };
 }
@@ -584,71 +581,4 @@ Deno.test("GET /:leagueId/hiring/decisions filters by wave query param", async (
   const res = await router.request("/lg/hiring/decisions?wave=2");
   assertEquals(res.status, 200);
   assertEquals(receivedWave, 2);
-});
-
-Deno.test("GET /:leagueId/hiring/blockers returns missing mandatory roles for the user team", async () => {
-  let receivedTeamId: string | undefined;
-  const router = createHiringRouter(
-    createMockService({
-      getTeamBlockers: (_leagueId, teamId) => {
-        receivedTeamId = teamId;
-        return Promise.resolve({
-          missingCoachRoles: ["HC"],
-          missingScoutRoles: ["DIRECTOR"],
-        });
-      },
-    }),
-    createMockDeps(),
-  );
-
-  const res = await router.request("/lg/hiring/blockers");
-  assertEquals(res.status, 200);
-  const body = await res.json();
-  assertEquals(body, {
-    missingCoachRoles: ["HC"],
-    missingScoutRoles: ["DIRECTOR"],
-  });
-  assertEquals(receivedTeamId, "tm");
-});
-
-Deno.test("POST /:leagueId/hiring/blockers/resolve assigns a leftover candidate", async () => {
-  const candidateId = "00000000-0000-0000-0000-000000000001";
-  let receivedArgs: unknown;
-  const router = createHiringRouter(
-    createMockService({
-      resolveBlocker: (input) => {
-        receivedArgs = input;
-        return Promise.resolve(makeDecision({ wave: 99 }));
-      },
-    }),
-    createMockDeps(),
-  );
-
-  const res = await router.request("/lg/hiring/blockers/resolve", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ candidateId }),
-  });
-  assertEquals(res.status, 201);
-  const body = await res.json();
-  assertEquals(body.wave, 99);
-  assertEquals(receivedArgs, {
-    leagueId: "lg",
-    teamId: "tm",
-    candidateId,
-  });
-});
-
-Deno.test("POST /:leagueId/hiring/blockers/resolve rejects non-UUID candidateId", async () => {
-  const router = createHiringRouter(
-    createMockService(),
-    createMockDeps(),
-  );
-
-  const res = await router.request("/lg/hiring/blockers/resolve", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ candidateId: "not-a-uuid" }),
-  });
-  assertEquals(res.status, 400);
 });

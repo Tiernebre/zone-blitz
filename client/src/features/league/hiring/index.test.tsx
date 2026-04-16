@@ -7,12 +7,12 @@ const mockUseParams = vi.fn();
 const mockUseLeagueClock = vi.fn();
 const mockUseTeamHiringState = vi.fn();
 const mockUseHiringCandidates = vi.fn();
-const mockUseHiringBlockers = vi.fn();
+const mockUseStaffTree = vi.fn();
+const mockUseScoutStaffTree = vi.fn();
 
 const expressInterestMutate = vi.fn();
 const requestInterviewsMutate = vi.fn();
 const submitOffersMutate = vi.fn();
-const resolveBlockerMutate = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
   useParams: (...args: unknown[]) => mockUseParams(...args),
@@ -30,7 +30,6 @@ vi.mock("../../../hooks/use-league-clock.ts", () => ({
 vi.mock("../../../hooks/use-hiring.ts", () => ({
   useTeamHiringState: (...args: unknown[]) => mockUseTeamHiringState(...args),
   useHiringCandidates: (...args: unknown[]) => mockUseHiringCandidates(...args),
-  useHiringBlockers: (...args: unknown[]) => mockUseHiringBlockers(...args),
   useExpressInterest: () => ({
     mutate: expressInterestMutate,
     isPending: false,
@@ -43,10 +42,14 @@ vi.mock("../../../hooks/use-hiring.ts", () => ({
     mutate: submitOffersMutate,
     isPending: false,
   }),
-  useResolveBlocker: () => ({
-    mutate: resolveBlockerMutate,
-    isPending: false,
-  }),
+}));
+
+vi.mock("../../../hooks/use-staff-tree.ts", () => ({
+  useStaffTree: (...args: unknown[]) => mockUseStaffTree(...args),
+}));
+
+vi.mock("../../../hooks/use-scout-staff-tree.ts", () => ({
+  useScoutStaffTree: (...args: unknown[]) => mockUseScoutStaffTree(...args),
 }));
 
 vi.mock("sonner", () => ({
@@ -69,11 +72,9 @@ function renderPage() {
 
 beforeEach(() => {
   mockUseParams.mockReturnValue({ leagueId: "lg" });
-  mockUseHiringBlockers.mockReturnValue({
-    data: { missingCoachRoles: [], missingScoutRoles: [] },
-    isLoading: false,
-  });
   mockUseHiringCandidates.mockReturnValue({ data: [], isLoading: false });
+  mockUseStaffTree.mockReturnValue({ data: [], isLoading: false });
+  mockUseScoutStaffTree.mockReturnValue({ data: [], isLoading: false });
   mockUseTeamHiringState.mockReturnValue({
     data: {
       leagueId: "lg",
@@ -713,7 +714,7 @@ describe("Decisions view", () => {
   });
 });
 
-describe("Finalize view", () => {
+describe("Staff result view", () => {
   beforeEach(() => {
     mockUseLeagueClock.mockReturnValue({
       data: { slug: "hiring_finalization" },
@@ -721,89 +722,112 @@ describe("Finalize view", () => {
     });
   });
 
-  it("shows loading state while blockers load", () => {
-    mockUseHiringBlockers.mockReturnValue({ data: undefined, isLoading: true });
-    renderPage();
-    expect(screen.getByTestId("finalize-loading")).toBeTruthy();
-  });
-
-  it("shows complete state when no blockers", () => {
-    renderPage();
-    expect(screen.getByTestId("finalize-complete")).toBeTruthy();
-  });
-
-  it("lists blockers and allows hiring a leftover candidate", () => {
-    mockUseHiringBlockers.mockReturnValue({
-      data: { missingCoachRoles: ["HC"], missingScoutRoles: [] },
-      isLoading: false,
+  it("shows loading skeleton while staff trees load", () => {
+    mockUseStaffTree.mockReturnValue({ data: undefined, isLoading: true });
+    mockUseScoutStaffTree.mockReturnValue({
+      data: undefined,
+      isLoading: true,
     });
-    mockUseHiringCandidates.mockReturnValue({
+    renderPage();
+    expect(screen.getByTestId("staff-result-loading")).toBeTruthy();
+  });
+
+  it("renders coaches and scouts grouped after assembly", () => {
+    mockUseStaffTree.mockReturnValue({
       data: [
         {
-          id: "c1",
-          leagueId: "lg",
-          staffType: "coach",
-          firstName: "Leftover",
-          lastName: "HC",
+          id: "hc1",
+          firstName: "Andy",
+          lastName: "Reid",
           role: "HC",
+          reportsToId: null,
+          playCaller: null,
+          specialty: null,
+          age: 60,
+          yearsWithTeam: 1,
+          contractYearsRemaining: 4,
+          isVacancy: false,
+        },
+        {
+          id: "oc1",
+          firstName: "Matt",
+          lastName: "Nagy",
+          role: "OC",
+          reportsToId: "hc1",
+          playCaller: null,
+          specialty: null,
+          age: 45,
+          yearsWithTeam: 1,
+          contractYearsRemaining: 3,
+          isVacancy: false,
+        },
+      ],
+      isLoading: false,
+    });
+    mockUseScoutStaffTree.mockReturnValue({
+      data: [
+        {
+          id: "ds1",
+          firstName: "Brett",
+          lastName: "Veach",
+          role: "DIRECTOR",
+          reportsToId: null,
+          coverage: null,
+          age: 50,
+          yearsWithTeam: 1,
+          contractYearsRemaining: 4,
+          workCapacity: 10,
+          isVacancy: false,
         },
       ],
       isLoading: false,
     });
     renderPage();
-    expect(screen.getByTestId("blocker-coach-HC")).toBeTruthy();
-    fireEvent.click(screen.getByTestId("fill-c1"));
-    expect(resolveBlockerMutate).toHaveBeenCalledWith(
-      { leagueId: "lg", candidateId: "c1" },
-      expect.any(Object),
+    expect(screen.getByTestId("staff-result-view")).toBeTruthy();
+    expect(screen.getByTestId("staff-row-hc1").textContent).toContain("Andy");
+    expect(screen.getByTestId("staff-row-oc1").textContent).toContain("Nagy");
+    expect(screen.getByTestId("staff-row-ds1").textContent).toContain("Brett");
+  });
+
+  it("renders empty messages when no staff is on either tree", () => {
+    renderPage();
+    expect(screen.getByTestId("staff-result-coaches").textContent).toContain(
+      "No coaches",
+    );
+    expect(screen.getByTestId("staff-result-scouts").textContent).toContain(
+      "No scouts",
     );
   });
 
-  it("joins missing coach and scout roles with 'and' in the alert", () => {
-    mockUseHiringBlockers.mockReturnValue({
-      data: { missingCoachRoles: ["HC"], missingScoutRoles: ["DIRECTOR"] },
+  it("marks vacancies with a Vacant badge", () => {
+    mockUseStaffTree.mockReturnValue({
+      data: [
+        {
+          id: "v1",
+          firstName: "",
+          lastName: "",
+          role: "OC",
+          reportsToId: null,
+          playCaller: null,
+          specialty: null,
+          age: 0,
+          yearsWithTeam: 0,
+          contractYearsRemaining: 0,
+          isVacancy: true,
+        },
+      ],
       isLoading: false,
     });
-    mockUseHiringCandidates.mockReturnValue({ data: [], isLoading: false });
     renderPage();
-    expect(screen.getByText(/HC and DIRECTOR/)).toBeTruthy();
+    expect(screen.getByTestId("staff-row-v1").textContent).toContain("Vacant");
   });
 
-  it("defaults to empty blocker and candidate lists when hooks return undefined", () => {
-    mockUseHiringBlockers.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-    });
-    mockUseHiringCandidates.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-    });
-    renderPage();
-    expect(screen.getByTestId("finalize-complete")).toBeTruthy();
-  });
-
-  it("renders blocker section with undefined candidates list", () => {
-    mockUseHiringBlockers.mockReturnValue({
-      data: { missingCoachRoles: ["HC"], missingScoutRoles: [] },
-      isLoading: false,
-    });
-    mockUseHiringCandidates.mockReturnValue({
+  it("falls back to empty state when team id is missing", () => {
+    mockUseTeamHiringState.mockReturnValue({
       data: undefined,
       isLoading: false,
     });
     renderPage();
-    expect(screen.getByTestId("blocker-coach-HC")).toBeTruthy();
-  });
-
-  it("indicates when no leftover candidates are available for a role", () => {
-    mockUseHiringBlockers.mockReturnValue({
-      data: { missingCoachRoles: [], missingScoutRoles: ["DIRECTOR"] },
-      isLoading: false,
-    });
-    mockUseHiringCandidates.mockReturnValue({ data: [], isLoading: false });
-    renderPage();
-    expect(screen.getByTestId("blocker-scout-DIRECTOR")).toBeTruthy();
-    expect(screen.getAllByText(/No unsigned candidates available/i).length)
-      .toBeGreaterThan(0);
+    expect(screen.getByTestId("staff-result-view")).toBeTruthy();
   });
 });

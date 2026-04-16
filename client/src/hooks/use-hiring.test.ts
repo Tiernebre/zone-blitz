@@ -4,11 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 import { createElement } from "react";
 import {
   useExpressInterest,
-  useHiringBlockers,
   useHiringCandidateDetail,
   useHiringCandidates,
   useRequestInterviews,
-  useResolveBlocker,
   useSubmitOffers,
   useTeamHiringState,
 } from "./use-hiring.ts";
@@ -16,11 +14,9 @@ import {
 const mockCandidatesGet = vi.fn();
 const mockCandidateDetailGet = vi.fn();
 const mockStateGet = vi.fn();
-const mockBlockersGet = vi.fn();
 const mockInterestsPost = vi.fn();
 const mockInterviewsPost = vi.fn();
 const mockOffersPost = vi.fn();
-const mockResolvePost = vi.fn();
 
 vi.mock("../api.ts", () => ({
   api: {
@@ -36,12 +32,6 @@ vi.mock("../api.ts", () => ({
             },
             state: {
               $get: (...args: unknown[]) => mockStateGet(...args),
-            },
-            blockers: {
-              $get: (...args: unknown[]) => mockBlockersGet(...args),
-              resolve: {
-                $post: (...args: unknown[]) => mockResolvePost(...args),
-              },
             },
             interests: {
               $post: (...args: unknown[]) => mockInterestsPost(...args),
@@ -162,34 +152,6 @@ describe("useTeamHiringState", () => {
       json: () => Promise.resolve({}),
     });
     const { result } = renderHook(() => useTeamHiringState("lg"), {
-      wrapper: createWrapper(),
-    });
-    await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(result.current.error?.message).toContain("500");
-  });
-});
-
-describe("useHiringBlockers", () => {
-  it("returns blockers on success", async () => {
-    mockBlockersGet.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({ missingCoachRoles: ["HC"], missingScoutRoles: [] }),
-    });
-    const { result } = renderHook(() => useHiringBlockers("lg"), {
-      wrapper: createWrapper(),
-    });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data?.missingCoachRoles).toEqual(["HC"]);
-  });
-
-  it("throws on non-ok response", async () => {
-    mockBlockersGet.mockResolvedValue({
-      ok: false,
-      status: 500,
-      json: () => Promise.resolve({}),
-    });
-    const { result } = renderHook(() => useHiringBlockers("lg"), {
       wrapper: createWrapper(),
     });
     await waitFor(() => expect(result.current.isError).toBe(true));
@@ -352,52 +314,6 @@ describe("useSubmitOffers", () => {
         },
       ],
     });
-    await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(result.current.error?.message).toContain("500");
-  });
-});
-
-describe("useResolveBlocker", () => {
-  it("posts resolve on success", async () => {
-    mockResolvePost.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ id: "d-1", wave: 99 }),
-    });
-    const { result } = renderHook(() => useResolveBlocker(), {
-      wrapper: createWrapper(),
-    });
-    result.current.mutate({ leagueId: "lg", candidateId: "c-1" });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockResolvePost).toHaveBeenCalledWith({
-      param: { leagueId: "lg" },
-      json: { candidateId: "c-1" },
-    });
-  });
-
-  it("propagates server error", async () => {
-    mockResolvePost.mockResolvedValue({
-      ok: false,
-      status: 400,
-      json: () => Promise.resolve({ message: "invalid" }),
-    });
-    const { result } = renderHook(() => useResolveBlocker(), {
-      wrapper: createWrapper(),
-    });
-    result.current.mutate({ leagueId: "lg", candidateId: "c-1" });
-    await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(result.current.error?.message).toBe("invalid");
-  });
-
-  it("uses fallback message when server omits one", async () => {
-    mockResolvePost.mockResolvedValue({
-      ok: false,
-      status: 500,
-      json: () => Promise.resolve({}),
-    });
-    const { result } = renderHook(() => useResolveBlocker(), {
-      wrapper: createWrapper(),
-    });
-    result.current.mutate({ leagueId: "lg", candidateId: "c-1" });
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.error?.message).toContain("500");
   });

@@ -39,7 +39,7 @@ describe("stepHeadline", () => {
     ["hiring_decisions", "Decisions — Wave 1"],
     ["hiring_second_wave_interview", "Second-Wave Interviews"],
     ["hiring_second_wave_decisions", "Decisions — Wave 2"],
-    ["hiring_finalization", "Finalization"],
+    ["hiring_finalization", "Staff Assembly"],
     ["unknown", "Hiring"],
   ])("headline for %s", (slug, expected) => {
     expect(stepHeadline(slug)).toBe(expected);
@@ -64,5 +64,15 @@ describe("stepDescription", () => {
   });
   it("falls back for unknown slugs", () => {
     expect(stepDescription("foo")).toContain("coaching carousel");
+  });
+  it("market_survey description mentions Head Coach and Director of Scouting", () => {
+    const desc = stepDescription("hiring_market_survey");
+    expect(desc).toContain("Head Coach");
+    expect(desc).toContain("Director");
+  });
+  it("finalization description mentions staff assembly", () => {
+    const desc = stepDescription("hiring_finalization");
+    expect(desc).toContain("Head Coach");
+    expect(desc).toContain("Director");
   });
 });

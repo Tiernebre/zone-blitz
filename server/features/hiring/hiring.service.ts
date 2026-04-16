@@ -28,6 +28,14 @@ import {
   type SalaryBand,
   type StaffCandidate,
 } from "./preference-scoring.ts";
+import {
+  assembleCoachingStaff,
+  assembleScoutingStaff,
+  COACH_SALARY_BANDS,
+  poolMemberQuality,
+  SCOUT_SALARY_BANDS,
+  type StaffPoolMember,
+} from "./staff-assembly.ts";
 
 export interface InterestTarget {
   staffType: StaffType;
@@ -69,25 +77,8 @@ export interface CandidateFilter {
   staffType?: HiringStaffType;
 }
 
-export interface FinalizeBlocker {
-  teamId: string;
-  missingRoles: string[];
-}
-
 export interface FinalizeResult {
   decisions: HiringDecisionRow[];
-  blockers: FinalizeBlocker[];
-}
-
-export interface TeamBlockers {
-  missingCoachRoles: CoachRole[];
-  missingScoutRoles: ScoutRole[];
-}
-
-export interface ResolveBlockerInput {
-  leagueId: string;
-  teamId: string;
-  candidateId: string;
 }
 
 export interface HiringService {
@@ -120,8 +111,6 @@ export interface HiringService {
     wave: number,
   ): Promise<HiringDecisionRow[]>;
   finalize(leagueId: string): Promise<FinalizeResult>;
-  getTeamBlockers(leagueId: string, teamId: string): Promise<TeamBlockers>;
-  resolveBlocker(input: ResolveBlockerInput): Promise<HiringDecisionRow>;
   getHiringState(leagueId: string): Promise<HiringState>;
   getTeamHiringState(
     leagueId: string,
@@ -166,31 +155,6 @@ export interface HiringPoolGenerator {
   ): Promise<unknown>;
 }
 
-// Salary bands. The compensation component of the candidate
-// preference function compares the offer against the role's market band
-// — a salary near the ceiling scores 100, near the floor scores 0.
-const COACH_SALARY_BANDS: Record<CoachRole, SalaryBand> = {
-  HC: { min: 5_000_000, max: 20_000_000 },
-  OC: { min: 1_500_000, max: 6_000_000 },
-  DC: { min: 1_500_000, max: 5_000_000 },
-  STC: { min: 800_000, max: 2_000_000 },
-  QB: { min: 500_000, max: 1_500_000 },
-  RB: { min: 300_000, max: 1_200_000 },
-  WR: { min: 300_000, max: 1_200_000 },
-  TE: { min: 300_000, max: 1_200_000 },
-  OL: { min: 300_000, max: 1_200_000 },
-  DL: { min: 300_000, max: 1_200_000 },
-  LB: { min: 300_000, max: 1_200_000 },
-  DB: { min: 300_000, max: 1_200_000 },
-  ST_ASSISTANT: { min: 250_000, max: 600_000 },
-};
-
-const SCOUT_SALARY_BANDS: Record<ScoutRole, SalaryBand> = {
-  DIRECTOR: { min: 250_000, max: 800_000 },
-  NATIONAL_CROSS_CHECKER: { min: 150_000, max: 400_000 },
-  AREA_SCOUT: { min: 80_000, max: 200_000 },
-};
-
 // Wave reserved for finalize auto-assigns. Waves 1 and 2 represent the
 // primary and second-wave decision steps; 99 marks the terminal
 // finalization step so consumers can distinguish auto-fills from contests.
@@ -211,8 +175,11 @@ const COORDINATOR_PARENTS: Partial<Record<CoachRole, CoachRole>> = {
   ST_ASSISTANT: "STC",
 };
 
-const MANDATORY_COACH_ROLES: CoachRole[] = ["HC"];
-const MANDATORY_SCOUT_ROLES: ScoutRole[] = ["DIRECTOR"];
+// GM-facing hiring market only surfaces league-leader roles. Subordinate
+// staff (coordinators, position coaches, NCC, area scouts) are auto-assembled
+// after the leader signs.
+const LEADERSHIP_COACH_ROLES = new Set<string>(["HC"]);
+const LEADERSHIP_SCOUT_ROLES = new Set<string>(["DIRECTOR"]);
 
 function bandFor(
   staffType: StaffType,
@@ -300,9 +267,11 @@ export function createHiringService(deps: {
   scoutsService: HiringPoolGenerator;
   log: pino.Logger;
   now?: () => Date;
+  rng?: () => number;
 }): HiringService {
   const log = deps.log.child({ module: "hiring.service" });
   const now = deps.now ?? (() => new Date());
+  const rng = deps.rng ?? Math.random;
 
   async function loadLeague(leagueId: string): Promise<HiringLeagueSummary> {
     const league = await deps.leagueRepo.getById(leagueId);
@@ -632,181 +601,132 @@ export function createHiringService(deps: {
       const teamSummaries = await deps.repo.listTeamsForLeague(leagueId);
       const unassignedCoaches = await deps.repo.listUnassignedCoaches(leagueId);
       const unassignedScouts = await deps.repo.listUnassignedScouts(leagueId);
+
+      const decisions: HiringDecisionRow[] = [];
       const pickedCoachIds = new Set<string>();
       const pickedScoutIds = new Set<string>();
 
-      const decisions: HiringDecisionRow[] = [];
-      const blockers: FinalizeBlocker[] = [];
+      // Track total league-wide spend so the staff budget covers every team's
+      // assembly together (HC/DoS contracts already counted via repo).
+      let leagueSpentOnAssembly = 0;
+
+      function coachPool(): StaffPoolMember[] {
+        return unassignedCoaches
+          .filter((c) => !pickedCoachIds.has(c.id))
+          .map((c) => ({
+            id: c.id,
+            role: c.role,
+            quality: poolMemberQuality(c),
+          }));
+      }
+      function scoutPool(): StaffPoolMember[] {
+        return unassignedScouts
+          .filter((s) => !pickedScoutIds.has(s.id))
+          .map((s) => ({
+            id: s.id,
+            role: s.role,
+            quality: poolMemberQuality(s),
+          }));
+      }
 
       for (const team of teamSummaries) {
         const signed = await deps.repo.listSignedStaffByTeam(
           leagueId,
           team.teamId,
         );
-        const signedCoachRoles = new Set(
-          signed.filter((m) => m.staffType === "coach").map((m) => m.role),
+        const signedTotalSalary = signed.reduce(
+          (sum, m) => sum + m.contractSalary,
+          0,
         );
-        const signedScoutRoles = new Set(
-          signed.filter((m) => m.staffType === "scout").map((m) => m.role),
-        );
+        const remainingBudget = league.staffBudget - signedTotalSalary -
+          leagueSpentOnAssembly;
+        const signedCoaches = signed
+          .filter((m) => m.staffType === "coach")
+          .map((m) => ({
+            staffId: m.staffId,
+            role: m.role as CoachRole,
+          }));
 
-        const missingCoachRoles = MANDATORY_COACH_ROLES.filter(
-          (r) => !signedCoachRoles.has(r),
-        );
-        const missingScoutRoles = MANDATORY_SCOUT_ROLES.filter(
-          (r) => !signedScoutRoles.has(r),
-        );
-
-        if (missingCoachRoles.length === 0 && missingScoutRoles.length === 0) {
-          continue;
-        }
-
-        const isHumanTeam = league.userTeamId === team.teamId;
-        if (isHumanTeam) {
-          blockers.push({
-            teamId: team.teamId,
-            missingRoles: [
-              ...missingCoachRoles,
-              ...missingScoutRoles,
-            ],
-          });
-          continue;
-        }
-
-        for (const role of missingCoachRoles) {
-          const candidate = pickBestCandidateForRole(
-            unassignedCoaches,
-            role,
-            pickedCoachIds,
+        // Build coaching staff under HC.
+        const hc = signedCoaches.find((c) => c.role === "HC");
+        if (hc) {
+          const hcCtx = await deps.repo.getCandidateScoringContext(
+            "coach",
+            hc.staffId,
           );
-          if (!candidate) continue;
-          pickedCoachIds.add(candidate.id);
-          const band = COACH_SALARY_BANDS[role];
-          const salary = Math.round((band.min + band.max) / 2);
-          const contractYears = 2;
-          const buyout = Math.round(salary * contractYears * 0.5);
-          await deps.repo.assignCoach(candidate.id, {
-            teamId: team.teamId,
-            reportsToId: null,
-            contractSalary: salary,
-            contractYears,
-            contractBuyout: buyout,
-            hiredAt: now(),
+          const hcQuality = hcCtx ? sumPreferences(hcCtx) : 200;
+          const result = assembleCoachingStaff({
+            hcQuality,
+            pool: coachPool(),
+            remainingBudget,
+            rng,
           });
-          const decision = await deps.repo.createDecision({
-            leagueId,
-            staffType: "coach",
-            staffId: candidate.id,
-            chosenOfferId: null,
-            wave: FINALIZE_WAVE,
-          });
-          decisions.push(decision);
+          for (const a of result.assignments) {
+            pickedCoachIds.add(a.staffId);
+            const reportsToId = pickReportsTo(a.role, signedCoaches);
+            await deps.repo.assignCoach(a.staffId, {
+              teamId: team.teamId,
+              reportsToId,
+              contractSalary: a.salary,
+              contractYears: a.contractYears,
+              contractBuyout: a.contractBuyout,
+              hiredAt: now(),
+            });
+            signedCoaches.push({ staffId: a.staffId, role: a.role });
+            const decision = await deps.repo.createDecision({
+              leagueId,
+              staffType: "coach",
+              staffId: a.staffId,
+              chosenOfferId: null,
+              wave: FINALIZE_WAVE,
+            });
+            decisions.push(decision);
+          }
+          leagueSpentOnAssembly += result.spent;
         }
 
-        for (const role of missingScoutRoles) {
-          const candidate = pickBestCandidateForRole(
-            unassignedScouts,
-            role,
-            pickedScoutIds,
-          );
-          if (!candidate) continue;
-          pickedScoutIds.add(candidate.id);
-          const band = SCOUT_SALARY_BANDS[role];
-          const salary = Math.round((band.min + band.max) / 2);
-          const contractYears = 2;
-          const buyout = Math.round(salary * contractYears * 0.5);
-          await deps.repo.assignScout(candidate.id, {
-            teamId: team.teamId,
-            contractSalary: salary,
-            contractYears,
-            contractBuyout: buyout,
-            hiredAt: now(),
-          });
-          const decision = await deps.repo.createDecision({
-            leagueId,
-            staffType: "scout",
-            staffId: candidate.id,
-            chosenOfferId: null,
-            wave: FINALIZE_WAVE,
-          });
-          decisions.push(decision);
-        }
-      }
-
-      return { decisions, blockers };
-    },
-
-    async getTeamBlockers(leagueId, teamId) {
-      const signed = await deps.repo.listSignedStaffByTeam(leagueId, teamId);
-      const signedCoachRoles = new Set(
-        signed.filter((m) => m.staffType === "coach").map((m) => m.role),
-      );
-      const signedScoutRoles = new Set(
-        signed.filter((m) => m.staffType === "scout").map((m) => m.role),
-      );
-      return {
-        missingCoachRoles: MANDATORY_COACH_ROLES.filter(
-          (r) => !signedCoachRoles.has(r),
-        ),
-        missingScoutRoles: MANDATORY_SCOUT_ROLES.filter(
-          (r) => !signedScoutRoles.has(r),
-        ),
-      };
-    },
-
-    async resolveBlocker(input) {
-      const [coaches, scouts] = await Promise.all([
-        deps.repo.listUnassignedCoaches(input.leagueId),
-        deps.repo.listUnassignedScouts(input.leagueId),
-      ]);
-      const coach = coaches.find((c) => c.id === input.candidateId);
-      const scout = scouts.find((s) => s.id === input.candidateId);
-      if (!coach && !scout) {
-        throw new DomainError(
-          "INVALID_CANDIDATE",
-          `Candidate ${input.candidateId} is not in the unassigned pool`,
+        // Build scouting staff under Director.
+        const director = signed.find(
+          (m) => m.staffType === "scout" && m.role === "DIRECTOR",
         );
+        if (director) {
+          const dosCtx = await deps.repo.getCandidateScoringContext(
+            "scout",
+            director.staffId,
+          );
+          const dosQuality = dosCtx ? sumPreferences(dosCtx) : 200;
+          // Recompute remaining budget after coaching staff assembled.
+          const remainingForScouts = league.staffBudget - signedTotalSalary -
+            leagueSpentOnAssembly;
+          const result = assembleScoutingStaff({
+            dosQuality,
+            pool: scoutPool(),
+            remainingBudget: remainingForScouts,
+            rng,
+          });
+          for (const a of result.assignments) {
+            pickedScoutIds.add(a.staffId);
+            await deps.repo.assignScout(a.staffId, {
+              teamId: team.teamId,
+              contractSalary: a.salary,
+              contractYears: a.contractYears,
+              contractBuyout: a.contractBuyout,
+              hiredAt: now(),
+            });
+            const decision = await deps.repo.createDecision({
+              leagueId,
+              staffType: "scout",
+              staffId: a.staffId,
+              chosenOfferId: null,
+              wave: FINALIZE_WAVE,
+            });
+            decisions.push(decision);
+          }
+          leagueSpentOnAssembly += result.spent;
+        }
       }
-      const hiredAt = now();
-      const contractYears = 2;
-      const buyoutFactor = 0.5;
-      if (coach) {
-        const band = COACH_SALARY_BANDS[coach.role as CoachRole];
-        const salary = Math.round((band.min + band.max) / 2);
-        const buyout = Math.round(salary * contractYears * buyoutFactor);
-        await deps.repo.assignCoach(coach.id, {
-          teamId: input.teamId,
-          reportsToId: null,
-          contractSalary: salary,
-          contractYears,
-          contractBuyout: buyout,
-          hiredAt,
-        });
-        return await deps.repo.createDecision({
-          leagueId: input.leagueId,
-          staffType: "coach",
-          staffId: coach.id,
-          chosenOfferId: null,
-          wave: FINALIZE_WAVE,
-        });
-      }
-      const band = SCOUT_SALARY_BANDS[scout!.role as ScoutRole];
-      const salary = Math.round((band.min + band.max) / 2);
-      const buyout = Math.round(salary * contractYears * buyoutFactor);
-      await deps.repo.assignScout(scout!.id, {
-        teamId: input.teamId,
-        contractSalary: salary,
-        contractYears,
-        contractBuyout: buyout,
-        hiredAt,
-      });
-      return await deps.repo.createDecision({
-        leagueId: input.leagueId,
-        staffType: "scout",
-        staffId: scout!.id,
-        chosenOfferId: null,
-        wave: FINALIZE_WAVE,
-      });
+
+      return { decisions };
     },
 
     async getHiringState(leagueId) {
@@ -875,6 +795,7 @@ export function createHiringService(deps: {
       const all: HiringCandidateSummary[] = [];
       if (!filter?.staffType || filter.staffType === "coach") {
         for (const coach of coaches) {
+          if (!LEADERSHIP_COACH_ROLES.has(coach.role)) continue;
           if (filter?.role && coach.role !== filter.role) continue;
           all.push({
             id: coach.id,
@@ -888,6 +809,7 @@ export function createHiringService(deps: {
       }
       if (!filter?.staffType || filter.staffType === "scout") {
         for (const scout of scouts) {
+          if (!LEADERSHIP_SCOUT_ROLES.has(scout.role)) continue;
           if (filter?.role && scout.role !== filter.role) continue;
           all.push({
             id: scout.id,
@@ -970,24 +892,9 @@ export function createHiringService(deps: {
   };
 }
 
-function pickBestCandidateForRole(
-  pool: UnassignedCandidate[],
-  role: string,
-  taken: Set<string>,
-): UnassignedCandidate | undefined {
-  let best: UnassignedCandidate | undefined;
-  for (const candidate of pool) {
-    if (candidate.role !== role) continue;
-    if (taken.has(candidate.id)) continue;
-    if (!best) {
-      best = candidate;
-      continue;
-    }
-    const score = (candidate.compensationPref ?? 50) +
-      (candidate.philosophyFitPref ?? 50);
-    const bestScore = (best.compensationPref ?? 50) +
-      (best.philosophyFitPref ?? 50);
-    if (score > bestScore) best = candidate;
-  }
-  return best;
+function sumPreferences(ctx: CandidateScoringContext): number {
+  return ctx.preferences.marketTierPref +
+    ctx.preferences.philosophyFitPref +
+    ctx.preferences.staffFitPref +
+    ctx.preferences.compensationPref;
 }
