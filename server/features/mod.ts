@@ -155,9 +155,15 @@ export function createFeatureRouters(
   const franchiseRepo = createFranchiseRepository({ db, log });
   const franchiseService = createFranchiseService({ franchiseRepo, log });
 
-  // Hiring (staff-hiring feature) — skeleton wired in; per-step logic lands in a follow-up.
+  // Hiring (staff-hiring feature)
   const hiringRepo = createHiringRepository({ db, log });
-  const hiringService = createHiringService({ repo: hiringRepo, log });
+  const hiringService = createHiringService({
+    repo: hiringRepo,
+    leagueRepo,
+    coachesService,
+    scoutsService,
+    log,
+  });
 
   const leagueService = createLeagueService({
     txRunner,
