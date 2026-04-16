@@ -32,8 +32,14 @@ function createWrapper() {
 
 describe("useLeagueClock", () => {
   it("fetches the league clock by leagueId", async () => {
-    const clock = { phase: "regular-season", week: 3 };
-    mockGet.mockResolvedValue({ json: () => Promise.resolve(clock) });
+    const apiResponse = {
+      phase: "regular-season",
+      week: 3,
+      hasCompletedGenesis: true,
+    };
+    mockGet.mockResolvedValue({
+      json: () => Promise.resolve(apiResponse),
+    });
 
     const { result } = renderHook(() => useLeagueClock("league-1"), {
       wrapper: createWrapper(),
@@ -43,7 +49,11 @@ describe("useLeagueClock", () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(result.current.data).toEqual(clock);
+    expect(result.current.data).toEqual({
+      phase: "regular-season",
+      week: 3,
+      isInauguralSeason: false,
+    });
     expect(mockGet).toHaveBeenCalledWith({ param: { leagueId: "league-1" } });
   });
 
