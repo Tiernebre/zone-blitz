@@ -149,24 +149,15 @@ function LeagueSidebarHeader({ name }: { name?: string }) {
   const isCollapsed = state === "collapsed";
 
   if (isCollapsed) {
-    return (
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarTrigger className="w-full" />
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-    );
+    return null;
   }
 
   return (
     <SidebarHeader>
-      <div className="flex items-center justify-between gap-2 px-2 py-1">
+      <div className="flex items-center gap-2 px-2 py-1">
         <span className="truncate text-sm font-semibold">
           {name ?? "League"}
         </span>
-        <SidebarTrigger />
       </div>
     </SidebarHeader>
   );
