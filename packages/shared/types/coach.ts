@@ -154,6 +154,7 @@ export interface Coach {
   reportsToId: string | null;
   playCaller: CoachPlayCaller | null;
   age: number;
+  yearsExperience: number;
   hiredAt: Date;
   contractYears: number;
   contractSalary: number;

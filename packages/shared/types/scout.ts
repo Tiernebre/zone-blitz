@@ -127,6 +127,7 @@ export interface Scout {
   reportsToId: string | null;
   coverage: string | null;
   age: number;
+  yearsExperience: number;
   hiredAt: Date;
   contractYears: number;
   contractSalary: number;

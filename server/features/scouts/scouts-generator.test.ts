@@ -194,6 +194,33 @@ Deno.test("contract years fall within per-role bounds", () => {
   }
 });
 
+Deno.test("yearsExperience sits within tier band and never exceeds age - 22", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const s of result) {
+    assertEquals(s.yearsExperience >= 0, true);
+    assertEquals(s.yearsExperience <= s.age - 22, true);
+  }
+  // At least one role should show variance across the league.
+  const directorExp = new Set(
+    result.filter((s) => s.role === "DIRECTOR").map((s) => s.yearsExperience),
+  );
+  const areaExp = new Set(
+    result.filter((s) => s.role === "AREA_SCOUT").map((s) => s.yearsExperience),
+  );
+  assertEquals(directorExp.size + areaExp.size > 2, true);
+});
+
+Deno.test("generatePool also populates yearsExperience", () => {
+  const pool = makeGenerator().generatePool({
+    leagueId: "lg",
+    numberOfTeams: 2,
+  });
+  for (const s of pool) {
+    assertEquals(s.yearsExperience >= 0, true);
+    assertEquals(s.yearsExperience <= s.age - 22, true);
+  }
+});
+
 Deno.test("seeded generator is deterministic", () => {
   const fixedNow = () => new Date("2026-01-01T00:00:00Z");
   const a = createScoutsGenerator({

@@ -65,6 +65,7 @@ export const coaches = pgTable("coaches", {
   ),
   playCaller: coachPlayCallerEnum("play_caller"),
   age: integer("age").notNull(),
+  yearsExperience: integer("years_experience").notNull().default(0),
   hiredAt: timestamp("hired_at").notNull(),
   contractYears: integer("contract_years").notNull(),
   contractSalary: integer("contract_salary").notNull(),
