@@ -65,6 +65,8 @@ function createMockService(
   };
 }
 
+const stubResolveStaff = () => Promise.resolve(true);
+
 Deno.test("league-clock.router", async (t) => {
   await t.step("GET /:leagueId returns current clock state", async () => {
     const state = createMockClockState({
@@ -76,6 +78,7 @@ Deno.test("league-clock.router", async (t) => {
     });
     const router = createLeagueClockRouter(
       createMockService({ getClockState: () => Promise.resolve(state) }),
+      stubResolveStaff,
     );
 
     const res = await router.request("/league-1");
@@ -101,6 +104,7 @@ Deno.test("league-clock.router", async (t) => {
             return Promise.resolve(createMockClockState());
           },
         }),
+        stubResolveStaff,
       );
 
       await router.request("/my-league-id");
@@ -117,6 +121,7 @@ Deno.test("league-clock.router", async (t) => {
       });
       const router = createLeagueClockRouter(
         createMockService({ advance: () => Promise.resolve(result) }),
+        stubResolveStaff,
       );
 
       const res = await router.request("/league-1/advance", {
@@ -151,6 +156,7 @@ Deno.test("league-clock.router", async (t) => {
             return Promise.resolve(createMockAdvanceResult());
           },
         }),
+        stubResolveStaff,
       );
 
       await router.request("/league-1/advance", {
@@ -178,6 +184,44 @@ Deno.test("league-clock.router", async (t) => {
   );
 
   await t.step(
+    "POST /:leagueId/advance merges server-computed allTeamsHaveStaff into gate state",
+    async () => {
+      let receivedGateState: unknown;
+      const router = createLeagueClockRouter(
+        createMockService({
+          advance: (_id, _actor, gateState) => {
+            receivedGateState = gateState;
+            return Promise.resolve(createMockAdvanceResult());
+          },
+        }),
+        () => Promise.resolve(false),
+      );
+
+      await router.request("/league-1/advance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          isCommissioner: true,
+          gateState: {
+            teams: [],
+            draftOrderResolved: true,
+            superBowlPlayed: true,
+            priorPhaseComplete: true,
+            allTeamsHaveStaff: true,
+          },
+        }),
+      });
+
+      const gs = receivedGateState as Record<string, unknown>;
+      assertEquals(
+        gs.allTeamsHaveStaff,
+        false,
+        "server-computed value should override client-sent value",
+      );
+    },
+  );
+
+  await t.step(
     "POST /:leagueId/votes casts a vote and returns 201",
     async () => {
       const teamId = crypto.randomUUID();
@@ -198,6 +242,7 @@ Deno.test("league-clock.router", async (t) => {
             return Promise.resolve(voteResult);
           },
         }),
+        stubResolveStaff,
       );
 
       const res = await router.request(`/${leagueId}/votes`, {
@@ -220,7 +265,10 @@ Deno.test("league-clock.router", async (t) => {
   await t.step(
     "POST /:leagueId/votes returns 400 when teamId is missing",
     async () => {
-      const router = createLeagueClockRouter(createMockService());
+      const router = createLeagueClockRouter(
+        createMockService(),
+        stubResolveStaff,
+      );
 
       const res = await router.request("/lg-1/votes", {
         method: "POST",
@@ -235,7 +283,10 @@ Deno.test("league-clock.router", async (t) => {
   await t.step(
     "POST /:leagueId/votes returns 400 when teamId is not a uuid",
     async () => {
-      const router = createLeagueClockRouter(createMockService());
+      const router = createLeagueClockRouter(
+        createMockService(),
+        stubResolveStaff,
+      );
 
       const res = await router.request("/lg-1/votes", {
         method: "POST",

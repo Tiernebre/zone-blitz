@@ -1,6 +1,7 @@
 export { createLeagueClockRepository } from "./league-clock.repository.ts";
 export type { LeagueClockRepository } from "./league-clock.repository.ts";
 export { createLeagueClockRouter } from "./league-clock.router.ts";
+export type { ResolveAllTeamsHaveStaff } from "./league-clock.router.ts";
 export { createLeagueClockService } from "./league-clock.service.ts";
 export type {
   Actor,

@@ -4,7 +4,14 @@ import { castAdvanceVoteSchema } from "@zone-blitz/shared";
 import type { LeagueClockService } from "./league-clock.service.ts";
 import type { AppEnv } from "../../env.ts";
 
-export function createLeagueClockRouter(service: LeagueClockService) {
+export type ResolveAllTeamsHaveStaff = (
+  leagueId: string,
+) => Promise<boolean>;
+
+export function createLeagueClockRouter(
+  service: LeagueClockService,
+  resolveAllTeamsHaveStaff: ResolveAllTeamsHaveStaff,
+) {
   return new Hono<AppEnv>()
     .get("/:leagueId", async (c) => {
       const leagueId = c.req.param("leagueId");
@@ -22,10 +29,12 @@ export function createLeagueClockRouter(service: LeagueClockService) {
         overrideReason: body.overrideReason,
       };
 
+      const allTeamsHaveStaff = await resolveAllTeamsHaveStaff(leagueId);
+
       const result = await service.advance(
         leagueId,
         actor,
-        body.gateState,
+        { ...body.gateState, allTeamsHaveStaff },
       );
 
       return c.json(result);

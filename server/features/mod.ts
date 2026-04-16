@@ -172,7 +172,18 @@ export function createFeatureRouters(
     leagueClockRepo,
     log,
   });
-  const leagueClockRouter = createLeagueClockRouter(leagueClockService);
+  const resolveAllTeamsHaveStaff = async (leagueId: string) => {
+    const teams = await teamService.getByLeagueId(leagueId);
+    for (const team of teams) {
+      const staff = await coachesService.getStaffTree(leagueId, team.id);
+      if (staff.length === 0) return false;
+    }
+    return true;
+  };
+  const leagueClockRouter = createLeagueClockRouter(
+    leagueClockService,
+    resolveAllTeamsHaveStaff,
+  );
 
   // Routers
   const leagueRouter = createLeagueRouter(leagueService);
