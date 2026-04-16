@@ -13,6 +13,10 @@ export interface League {
   capGrowthRate: number;
   rosterSize: number;
   advancePolicy: AdvancePolicy;
+  staffBudget: number;
+  interestCap: number;
+  interviewsPerWeek: number;
+  maxConcurrentOffers: number;
   createdAt: Date;
   updatedAt: Date;
   lastPlayedAt: Date | null;
