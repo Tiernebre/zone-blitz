@@ -33,7 +33,7 @@ function renderWithProviders(props: {
   isCommissioner: boolean;
 }) {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   return render(
     <QueryClientProvider client={queryClient}>
@@ -126,30 +126,19 @@ describe("LeagueClockDisplay", () => {
     expect(screen.queryByRole("button", { name: /advance/i })).toBeNull();
   });
 
-  it("renders blocker warnings when advance fails with GATE_BLOCKED", async () => {
+  it("shows confirmation dialog when Advance button is clicked", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
         Promise.resolve({
           leagueId: "lg-1",
           seasonYear: 2026,
-          phase: "preseason",
-          stepIndex: 3,
-          slug: "final_cuts",
+          phase: "offseason_review",
+          stepIndex: 0,
+          slug: "awards_ceremony",
           kind: "event",
-          flavorDate: "Aug 27",
+          flavorDate: "Feb 8",
           advancedAt: "2026-01-01T00:00:00Z",
-        }),
-    });
-
-    mockAdvance.mockResolvedValue({
-      ok: false,
-      status: 400,
-      json: () =>
-        Promise.resolve({
-          error: "GATE_BLOCKED",
-          message:
-            "Cannot advance to regular_season: Team is not cap-compliant",
         }),
     });
 
@@ -164,11 +153,61 @@ describe("LeagueClockDisplay", () => {
     fireEvent.click(screen.getByRole("button", { name: /advance/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/not cap-compliant/i)).toBeDefined();
+      expect(screen.getByText("Advance league?")).toBeDefined();
+      expect(
+        screen.getByText(/this will move the league forward/i),
+      ).toBeDefined();
+      expect(
+        screen.getByRole("button", { name: "Confirm Advance" }),
+      ).toBeDefined();
+      expect(
+        screen.getByRole("button", { name: "Cancel" }),
+      ).toBeDefined();
     });
+
+    expect(mockAdvance).not.toHaveBeenCalled();
   });
 
-  it("shows a success toast when advance succeeds", async () => {
+  it("does not advance when Cancel is clicked in confirmation dialog", async () => {
+    mockGetClock.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2026,
+          phase: "offseason_review",
+          stepIndex: 0,
+          slug: "awards_ceremony",
+          kind: "event",
+          flavorDate: "Feb 8",
+          advancedAt: "2026-01-01T00:00:00Z",
+        }),
+    });
+
+    renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /advance/i }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /advance/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Cancel" })).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Advance league?")).toBeNull();
+    });
+
+    expect(mockAdvance).not.toHaveBeenCalled();
+  });
+
+  it("shows a success toast when advance is confirmed", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -211,6 +250,14 @@ describe("LeagueClockDisplay", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: /advance/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Confirm Advance" }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirm Advance" }));
 
     await waitFor(() => {
       expect(screen.getByText(/Advanced to End Of Year Recap/)).toBeDefined();
@@ -260,6 +307,14 @@ describe("LeagueClockDisplay", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: /advance/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Confirm Advance" }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirm Advance" }));
 
     await waitFor(() => {
       expect(screen.getByText(/Advanced to Week 2/)).toBeDefined();
@@ -314,12 +369,20 @@ describe("LeagueClockDisplay", () => {
 
     await waitFor(() => {
       expect(
+        screen.getByRole("button", { name: "Confirm Advance" }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirm Advance" }));
+
+    await waitFor(() => {
+      expect(
         screen.getByText(/Advanced to Establish Franchises/),
       ).toBeDefined();
     });
   });
 
-  it("shows an error toast when advance fails", async () => {
+  it("shows an error toast when advance fails after confirmation", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -355,6 +418,14 @@ describe("LeagueClockDisplay", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: /advance/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Confirm Advance" }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirm Advance" }));
 
     await waitFor(() => {
       expect(screen.getByText(/Cannot Advance/)).toBeDefined();
