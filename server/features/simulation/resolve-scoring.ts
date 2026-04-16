@@ -1,7 +1,6 @@
 import type { PlayEvent, PlayTag } from "./events.ts";
 import type { GameState, PlayerRuntime, TeamRuntime } from "./resolve-play.ts";
 import type { SeededRng } from "./rng.ts";
-import type { MutableGameState } from "./game-clock.ts";
 import { formatClock } from "./game-clock.ts";
 import type { SimTeam } from "./simulate-game.ts";
 import type { ActiveRosters } from "./simulate-game.ts";
@@ -11,6 +10,12 @@ import {
   resolveTwoPointConversion,
 } from "./scoring.ts";
 import { buildPlayEvent } from "./play-event.ts";
+import type { SimulationState } from "./game-state-manager.ts";
+import {
+  addScore,
+  incrementGlobalPlayIndex,
+  incrementPlayIndex,
+} from "./game-state-manager.ts";
 
 export interface ScoringResult {
   scored: boolean;
@@ -70,7 +75,7 @@ export function determineScoringOutcome(
 
 export interface ConversionContext {
   gameId: string;
-  state: MutableGameState;
+  state: SimulationState;
   scoringTeamId: string;
   homeTeamId: string;
   home: SimTeam;
@@ -139,11 +144,10 @@ export function resolveConversion(
       tags: made ? [] : ["xp_missed" as PlayTag],
     });
     events.push(xpEvent);
-    state.playIndex++;
-    state.globalPlayIndex++;
+    incrementPlayIndex(state);
+    incrementGlobalPlayIndex(state);
     if (made) {
-      if (isHome) state.homeScore += 1;
-      else state.awayScore += 1;
+      addScore(state, isHome ? "home" : "away", 1);
     }
   } else {
     const offense = ctx.buildTeamRuntime(
@@ -163,11 +167,10 @@ export function resolveConversion(
       rng,
     );
     events.push(conversionEvent);
-    state.playIndex++;
-    state.globalPlayIndex++;
+    incrementPlayIndex(state);
+    incrementGlobalPlayIndex(state);
     if (conversionEvent.tags.includes("two_point_conversion")) {
-      if (isHome) state.homeScore += 2;
-      else state.awayScore += 2;
+      addScore(state, isHome ? "home" : "away", 2);
     }
   }
 

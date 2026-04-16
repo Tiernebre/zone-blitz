@@ -1,7 +1,9 @@
 import { assertEquals } from "@std/assert";
 import type { PlayEvent, PlayTag } from "./events.ts";
-import type { MutableGameState } from "./game-clock.ts";
-import { QUARTER_SECONDS, TIMEOUTS_PER_HALF } from "./game-clock.ts";
+import {
+  createInitialState,
+  type SimulationState,
+} from "./game-state-manager.ts";
 import {
   advanceDowns,
   applyAcceptedPenalty,
@@ -11,27 +13,12 @@ import {
 } from "./possession.ts";
 
 function makeState(
-  overrides: Partial<MutableGameState> = {},
-): MutableGameState {
-  return {
-    quarter: 1,
-    clock: QUARTER_SECONDS,
-    homeScore: 0,
-    awayScore: 0,
-    possession: "home",
-    yardLine: 35,
-    down: 1,
-    distance: 10,
-    driveIndex: 0,
-    playIndex: 0,
-    globalPlayIndex: 0,
-    driveStartYardLine: 35,
-    drivePlays: 0,
-    driveYards: 0,
-    homeTimeouts: TIMEOUTS_PER_HALF,
-    awayTimeouts: TIMEOUTS_PER_HALF,
+  overrides: Partial<SimulationState> = {},
+): SimulationState {
+  return createInitialState({
+    kickoffYardLine: 35,
     ...overrides,
-  };
+  });
 }
 
 function makeEvent(

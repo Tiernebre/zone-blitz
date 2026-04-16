@@ -33,7 +33,6 @@ import {
   RETURNER_POSITIONS,
 } from "./find-eligible-player.ts";
 
-import type { MutableGameState } from "./game-clock.ts";
 import {
   formatClock,
   KICKOFF_STARTING_YARD_LINE,
@@ -43,7 +42,6 @@ import {
   SECONDS_PER_PLAY,
   shouldClockStop,
   shouldKneel,
-  TIMEOUTS_PER_HALF,
   trySpendTimeout,
 } from "./game-clock.ts";
 import {
@@ -58,6 +56,20 @@ import {
   resolveConversion,
 } from "./resolve-scoring.ts";
 import type { ConversionContext } from "./resolve-scoring.ts";
+import type { SimulationState } from "./game-state-manager.ts";
+import {
+  addScore,
+  applyKneel,
+  createInitialState,
+  incrementGlobalPlayIndex,
+  recordPlay,
+  resetHalfTimeouts,
+  setClock,
+  setPossession,
+  setQuarter,
+  tickClock,
+  useTimeout,
+} from "./game-state-manager.ts";
 
 export interface SimTeam {
   teamId: string;
@@ -152,24 +164,9 @@ export function simulateGame(input: SimulationInput): GameResult {
     injuredPlayerIds: new Set(),
   };
 
-  const state: MutableGameState = {
-    quarter: 1,
-    clock: QUARTER_SECONDS,
-    homeScore: 0,
-    awayScore: 0,
-    possession: "home",
-    yardLine: KICKOFF_STARTING_YARD_LINE,
-    down: 1,
-    distance: 10,
-    driveIndex: 0,
-    playIndex: 0,
-    globalPlayIndex: 0,
-    driveStartYardLine: KICKOFF_STARTING_YARD_LINE,
-    drivePlays: 0,
-    driveYards: 0,
-    homeTimeouts: TIMEOUTS_PER_HALF,
-    awayTimeouts: TIMEOUTS_PER_HALF,
-  };
+  const state: SimulationState = createInitialState({
+    kickoffYardLine: KICKOFF_STARTING_YARD_LINE,
+  });
 
   function findPlayerByBucket(
     side: "home" | "away",
@@ -255,27 +252,25 @@ export function simulateGame(input: SimulationInput): GameResult {
 
     const result = resolveKickoff(ctx, rng);
     events.push(result.event);
-    state.globalPlayIndex++;
+    incrementGlobalPlayIndex(state);
 
     if (result.isReturnTouchdown) {
-      const isReceiverHome = receivingSide === "home";
-      if (isReceiverHome) state.homeScore += 6;
-      else state.awayScore += 6;
+      addScore(state, receivingSide, 6);
 
       doConversion(receivingTeamId);
 
-      state.possession = kickingSide;
+      setPossession(state, kickingSide);
       performKickoff(receivingSide);
       return;
     }
 
     if (result.isOnsideRecovery) {
-      state.possession = kickingSide;
+      setPossession(state, kickingSide);
       startNewDrive(state, result.startingYardLine);
       return;
     }
 
-    state.possession = receivingSide;
+    setPossession(state, receivingSide);
     startNewDrive(state, result.startingYardLine);
   }
 
@@ -362,18 +357,14 @@ export function simulateGame(input: SimulationInput): GameResult {
     const result = determineScoringOutcome(event, input.home.teamId);
     if (!result.scored) return false;
 
-    if (result.type === "safety") {
-      if (result.scoringTeamSide === "home") state.homeScore += result.points!;
-      else state.awayScore += result.points!;
+    addScore(state, result.scoringTeamSide!, result.points!);
 
+    if (result.type === "safety") {
       performKickoff(result.kickoffSide!, { isSafetyKick: result.safetyKick });
       return true;
     }
 
     // TD or return TD
-    if (result.scoringTeamSide === "home") state.homeScore += result.points!;
-    else state.awayScore += result.points!;
-
     doConversion(result.scoringTeamId!);
     performKickoff(result.kickoffSide!);
     return true;
@@ -430,15 +421,12 @@ export function simulateGame(input: SimulationInput): GameResult {
     }
 
     events.push(fgEvent);
-    state.drivePlays++;
-    state.globalPlayIndex++;
-    state.playIndex++;
+    recordPlay(state);
 
     if (fgResult.outcome === "made") {
-      const isHome = currentOffenseTeamId() === input.home.teamId;
-      if (isHome) state.homeScore += 3;
-      else state.awayScore += 3;
-      const kickingSide: "home" | "away" = isHome ? "home" : "away";
+      const kickingSide: "home" | "away" =
+        currentOffenseTeamId() === input.home.teamId ? "home" : "away";
+      addScore(state, kickingSide, 3);
       performKickoff(kickingSide);
     } else {
       switchPossession(state);
@@ -519,9 +507,7 @@ export function simulateGame(input: SimulationInput): GameResult {
     });
 
     events.push(puntEvent);
-    state.drivePlays++;
-    state.globalPlayIndex++;
-    state.playIndex++;
+    recordPlay(state);
 
     if (puntResult.outcome === "blocked_punt") {
       switchPossession(state);
@@ -600,14 +586,9 @@ export function simulateGame(input: SimulationInput): GameResult {
     });
 
     events.push(kneelEvent);
-    state.drivePlays++;
-    state.globalPlayIndex++;
-    state.playIndex++;
-    state.clock -= KNEEL_CLOCK_BURN;
-    state.down = Math.min(state.down + 1, 4) as 1 | 2 | 3 | 4;
-    state.distance += 1;
-    state.yardLine -= 1;
-    if (state.yardLine < 1) state.yardLine = 1;
+    recordPlay(state);
+    tickClock(state, KNEEL_CLOCK_BURN);
+    applyKneel(state);
   }
 
   function runPlay(): boolean {
@@ -639,8 +620,9 @@ export function simulateGame(input: SimulationInput): GameResult {
     }
 
     if (twoMinute) {
-      const usedTimeout = trySpendTimeout(state, rng);
-      if (usedTimeout) {
+      const timeoutSide = trySpendTimeout(state, rng);
+      if (timeoutSide) {
+        useTimeout(state, timeoutSide);
         event.tags.push("timeout");
       }
     }
@@ -648,14 +630,12 @@ export function simulateGame(input: SimulationInput): GameResult {
     processInjury(event);
     events.push(event);
 
-    state.drivePlays++;
-    state.globalPlayIndex++;
-    state.playIndex++;
+    recordPlay(state);
 
     if (!shouldClockStop(event)) {
-      state.clock -= SECONDS_PER_PLAY;
+      tickClock(state, SECONDS_PER_PLAY);
     } else {
-      state.clock -= rng.int(5, 15);
+      tickClock(state, rng.int(5, 15));
     }
 
     if (event.penalty?.accepted && !event.tags.includes("return_td")) {
@@ -669,7 +649,9 @@ export function simulateGame(input: SimulationInput): GameResult {
     advanceDowns(state, event.yardage);
 
     // Turnover on downs: 4th-down go-for-it failed to convert
-    if (isFourthDownAttempt && state.down !== 1) {
+    // Cast needed: advanceDowns mutates down through the state-manager,
+    // but TypeScript narrows state.down to 4 inside the isFourthDownAttempt guard.
+    if (isFourthDownAttempt && (state.down as number) !== 1) {
       const turnoverYardLine = Math.max(
         1,
         Math.min(99, state.yardLine),
@@ -689,12 +671,10 @@ export function simulateGame(input: SimulationInput): GameResult {
     q <= 4;
     q = (q + 1) as 1 | 2 | 3 | 4
   ) {
-    state.quarter = q;
-    state.clock = QUARTER_SECONDS;
+    setQuarter(state, q, QUARTER_SECONDS);
 
     if (q === 3) {
-      state.homeTimeouts = TIMEOUTS_PER_HALF;
-      state.awayTimeouts = TIMEOUTS_PER_HALF;
+      resetHalfTimeouts(state);
       const secondHalfKicker: "home" | "away" = state.possession === "home"
         ? "home"
         : "away";
@@ -709,11 +689,10 @@ export function simulateGame(input: SimulationInput): GameResult {
 
   if (state.homeScore === state.awayScore) {
     const isPlayoff = input.isPlayoff ?? false;
-    state.quarter = "OT";
-    state.clock = OT_SECONDS;
+    setQuarter(state, "OT", OT_SECONDS);
 
     const otCoinFlip: "home" | "away" = rng.next() < 0.5 ? "home" : "away";
-    state.possession = otCoinFlip;
+    setPossession(state, otCoinFlip);
     performKickoff(otCoinFlip === "home" ? "away" : "home");
 
     const scoreBeforeOt = { home: state.homeScore, away: state.awayScore };
@@ -754,7 +733,7 @@ export function simulateGame(input: SimulationInput): GameResult {
         }
       } else {
         if (state.clock <= 0) {
-          state.clock = OT_SECONDS;
+          setClock(state, OT_SECONDS);
           performKickoff(rng.next() < 0.5 ? "home" : "away");
         }
       }
