@@ -248,7 +248,6 @@ describe("LeagueLayout", () => {
     ["Scouts", "/leagues/1/scouts"],
     ["Salary Cap", "/leagues/1/salary-cap"],
     ["Media", "/leagues/1/media"],
-    ["Owner", "/leagues/1/owner"],
   ])(
     "renders a %s nav link pointing to %s in offseason_review phase",
     (name, href) => {
@@ -278,7 +277,6 @@ describe("LeagueLayout", () => {
         ["Schedule", "/leagues/1/schedule"],
         ["Opponents", "/leagues/1/opponents"],
         ["Media", "/leagues/1/media"],
-        ["Owner", "/leagues/1/owner"],
       ]
     ) {
       const link = screen.getByRole("link", { name });
@@ -294,7 +292,6 @@ describe("LeagueLayout", () => {
       expect(screen.getByRole("link", { name: "Home" })).toBeDefined();
     });
 
-    expect(screen.getByRole("link", { name: "Owner" })).toBeDefined();
     expect(screen.getByRole("link", { name: "Charter" })).toBeDefined();
     expect(screen.queryByRole("link", { name: "Roster" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Draft" })).toBeNull();
