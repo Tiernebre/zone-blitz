@@ -1,45 +1,13 @@
 import { assertEquals } from "@std/assert";
-import {
-  PLAYER_ATTRIBUTE_KEYS,
-  type PlayerAttributes,
-} from "@zone-blitz/shared";
-import { createRng, mulberry32 } from "./rng.ts";
-import type { SeededRng } from "./rng.ts";
 import type { DefensiveCall, OffensiveCall } from "./events.ts";
-import type { PlayerRuntime } from "./resolve-play.ts";
 import {
   assignDefense,
   assignOffense,
   rankPlayers,
   resolveMatchups,
 } from "./resolve-matchups.ts";
-
-function makeAttributes(
-  overrides: Partial<PlayerAttributes> = {},
-): PlayerAttributes {
-  const base: Partial<PlayerAttributes> = {};
-  for (const key of PLAYER_ATTRIBUTE_KEYS) {
-    (base as Record<string, number>)[key] = 50;
-    (base as Record<string, number>)[`${key}Potential`] = 50;
-  }
-  return { ...base, ...overrides } as PlayerAttributes;
-}
-
-function makePlayer(
-  id: string,
-  bucket: PlayerRuntime["neutralBucket"],
-  overrides: Partial<PlayerAttributes> = {},
-): PlayerRuntime {
-  return {
-    playerId: id,
-    neutralBucket: bucket,
-    attributes: makeAttributes(overrides),
-  };
-}
-
-function makeRng(seed = 42): SeededRng {
-  return createRng(mulberry32(seed));
-}
+import type { PlayerRuntime } from "./resolve-play.ts";
+import { makePlayer, makeRng } from "./test-helpers.ts";
 
 function makeOffense(): PlayerRuntime[] {
   return [

@@ -1,14 +1,6 @@
 import { assertEquals, assertExists, assertNotEquals } from "@std/assert";
-import {
-  PLAYER_ATTRIBUTE_KEYS,
-  type PlayerAttributes,
-  type SchemeFingerprint,
-} from "@zone-blitz/shared";
-import { createRng, mulberry32 } from "./rng.ts";
-import type { SeededRng } from "./rng.ts";
 import type { DefensiveCall, OffensiveCall } from "./events.ts";
 import {
-  type CoachingMods,
   drawDefensiveCall,
   drawOffensiveCall,
   type GameState,
@@ -22,78 +14,14 @@ import {
   type TeamRuntime,
 } from "./resolve-play.ts";
 import { resolveMatchups } from "./resolve-matchups.ts";
-
-function makeAttributes(
-  overrides: Partial<PlayerAttributes> = {},
-): PlayerAttributes {
-  const base: Partial<PlayerAttributes> = {};
-  for (const key of PLAYER_ATTRIBUTE_KEYS) {
-    (base as Record<string, number>)[key] = 50;
-    (base as Record<string, number>)[`${key}Potential`] = 50;
-  }
-  return { ...base, ...overrides } as PlayerAttributes;
-}
-
-function makeFingerprint(
-  overrides: Partial<SchemeFingerprint> = {},
-): SchemeFingerprint {
-  return {
-    offense: {
-      runPassLean: 50,
-      tempo: 50,
-      personnelWeight: 50,
-      formationUnderCenterShotgun: 50,
-      preSnapMotionRate: 50,
-      passingStyle: 50,
-      passingDepth: 50,
-      runGameBlocking: 50,
-      rpoIntegration: 50,
-    },
-    defense: {
-      frontOddEven: 50,
-      gapResponsibility: 50,
-      subPackageLean: 50,
-      coverageManZone: 50,
-      coverageShell: 50,
-      cornerPressOff: 50,
-      pressureRate: 50,
-      disguiseRate: 50,
-    },
-    overrides: {},
-    ...overrides,
-  };
-}
-
-function makeSituation(overrides: Partial<Situation> = {}): Situation {
-  return { down: 1, distance: 10, yardLine: 30, ...overrides };
-}
-
-function makeRng(seed = 42): SeededRng {
-  return createRng(mulberry32(seed));
-}
-
-function makePlayer(
-  id: string,
-  bucket: PlayerRuntime["neutralBucket"],
-  overrides: Partial<PlayerAttributes> = {},
-): PlayerRuntime {
-  return {
-    playerId: id,
-    neutralBucket: bucket,
-    attributes: makeAttributes(overrides),
-  };
-}
-
-function makeCoachingMods(
-  overrides: Partial<CoachingMods> = {},
-): CoachingMods {
-  return {
-    schemeFitBonus: 0,
-    situationalBonus: 0,
-    aggressiveness: 50,
-    ...overrides,
-  };
-}
+import { createRng, mulberry32 } from "./rng.ts";
+import {
+  makeCoachingMods,
+  makeFingerprint,
+  makePlayer,
+  makeRng,
+  makeSituation,
+} from "./test-helpers.ts";
 
 function makeOffense(): PlayerRuntime[] {
   return [
