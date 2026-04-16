@@ -95,3 +95,20 @@ as superseded.
 - [0031 — Post-generation landing on the first in-dashboard genesis phase](./0031-post-generation-land-in-first-genesis-phase.md)
   — after generation the founder lands straight in the dashboard at the earliest
   incomplete genesis phase; no confirmation screen (Accepted)
+- [0035 — Scouting advocacy and dissent event model](./0035-scouting-advocacy-dissent-event-model.md)
+  — single append-only `scouting_events` log with typed kinds (report, advocacy,
+  dissent, cross-check, media mock, director consensus); GM responses are a
+  separate surface (Proposed)
+- [0036 — League-wide scouting allowances](./0036-league-wide-scouting-allowances.md)
+  — uniform per-franchise caps (30 visits, 10 workouts, 15 cross-checks) for the
+  genesis scouting phase; scout quality shapes value, never quantity (Proposed)
+- [0037 — Draft board data model](./0037-draft-board-data-model.md) — tiered
+  board (`draft_boards` + tiers + entries) with an append-only decision log
+  linking moves to the scouting events that motivated them (Proposed)
+- [0038 — Scouting director consensus logic](./0038-scouting-director-consensus-logic.md)
+  — weighted aggregation of scout grades driven by hidden director attributes
+  (`staff_reading`, `bias_awareness`, `tier_discipline`); bias correction
+  disabled in genesis (Proposed)
+- [0039 — Scouting flavor text generation strategy](./0039-scouting-flavor-text-strategy.md)
+  — author-written templates with a resolver abstraction; MVP is deterministic,
+  LLM swap is a single DI change (Proposed)
