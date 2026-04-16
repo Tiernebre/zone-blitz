@@ -108,6 +108,9 @@ export type {
 export { simulateSeason } from "./simulate-season.ts";
 export type { SeasonInput, SeasonResult } from "./simulate-season.ts";
 
+export { noopLogger } from "./simulation-logger.ts";
+export type { SimLogger } from "./simulation-logger.ts";
+
 export { computeSeasonAggregates } from "./season-aggregates.ts";
 export type { SeasonAggregates } from "./season-aggregates.ts";
 

@@ -19,6 +19,7 @@ import {
   makePlayer,
   makeStarters,
 } from "./test-helpers.ts";
+import { createSpyLogger } from "./simulation-logger.test.ts";
 
 function makeBench(prefix: string): PlayerRuntime[] {
   return [
@@ -1671,6 +1672,229 @@ Deno.test("simulateGame", async (t) => {
       );
     },
   );
+
+  await t.step(
+    "logging: accepts optional logger without changing results",
+    () => {
+      const { logger } = createSpyLogger();
+      const home = makeTeam("home");
+      const away = makeTeam("away");
+
+      const withoutLog = simulateGame({ home, away, seed: 42 });
+      const withLog = simulateGame({ home, away, seed: 42, log: logger });
+
+      assertEquals(withLog.finalScore, withoutLog.finalScore);
+      assertEquals(withLog.events.length, withoutLog.events.length);
+    },
+  );
+
+  await t.step("logging: emits game start and game end info logs", () => {
+    const { logger, calls } = createSpyLogger();
+    simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+      log: logger,
+    });
+
+    const startLogs = calls.filter((c) => c.msg === "game started");
+    const endLogs = calls.filter((c) => c.msg === "game ended");
+    assertEquals(startLogs.length, 1);
+    assertEquals(startLogs[0].level, "info");
+    assertEquals(endLogs.length, 1);
+    assertEquals(endLogs[0].level, "info");
+    assertExists(endLogs[0].obj.homeScore);
+    assertExists(endLogs[0].obj.awayScore);
+  });
+
+  await t.step("logging: emits quarter transition info logs", () => {
+    const { logger, calls } = createSpyLogger();
+    simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+      log: logger,
+    });
+
+    const quarterLogs = calls.filter((c) => c.msg === "quarter started");
+    assertGreaterOrEqual(quarterLogs.length, 4);
+    assertEquals(quarterLogs[0].level, "info");
+  });
+
+  await t.step("logging: emits drive start debug logs", () => {
+    const { logger, calls } = createSpyLogger();
+    simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+      log: logger,
+    });
+
+    const driveLogs = calls.filter((c) => c.msg === "drive started");
+    assertGreater(driveLogs.length, 0);
+    assertEquals(driveLogs[0].level, "debug");
+    assertExists(driveLogs[0].obj.driveIndex);
+  });
+
+  await t.step("logging: emits play resolved debug logs", () => {
+    const { logger, calls } = createSpyLogger();
+    simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+      log: logger,
+    });
+
+    const playLogs = calls.filter((c) => c.msg === "play resolved");
+    assertGreater(playLogs.length, 0);
+    assertEquals(playLogs[0].level, "debug");
+    assertExists(playLogs[0].obj.outcome);
+  });
+
+  await t.step("logging: emits scoring event info logs", () => {
+    const { logger, calls } = createSpyLogger();
+    simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+      log: logger,
+    });
+
+    const scoringLogs = calls.filter(
+      (c) =>
+        c.msg === "touchdown scored" ||
+        c.msg === "field goal made" ||
+        c.msg === "safety scored",
+    );
+    assertGreater(scoringLogs.length, 0);
+    assertEquals(scoringLogs[0].level, "info");
+  });
+
+  await t.step("logging: emits kickoff debug logs", () => {
+    const { logger, calls } = createSpyLogger();
+    simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+      log: logger,
+    });
+
+    const kickoffLogs = calls.filter((c) => c.msg === "kickoff");
+    assertGreater(kickoffLogs.length, 0);
+    assertEquals(kickoffLogs[0].level, "debug");
+  });
+
+  await t.step("logging: emits fourth down decision debug logs", () => {
+    const { logger, calls } = createSpyLogger();
+    // Run multiple seeds to find fourth-down decisions
+    for (let seed = 1; seed <= 20; seed++) {
+      simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+        log: logger,
+      });
+    }
+
+    const fourthDownLogs = calls.filter(
+      (c) => c.msg === "fourth down decision",
+    );
+    assertGreater(fourthDownLogs.length, 0);
+    assertEquals(fourthDownLogs[0].level, "debug");
+    assertExists(fourthDownLogs[0].obj.decision);
+  });
+
+  await t.step("logging: emits penalty debug logs", () => {
+    const { logger, calls } = createSpyLogger();
+    for (let seed = 1; seed <= 20; seed++) {
+      simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+        log: logger,
+      });
+    }
+
+    const penaltyLogs = calls.filter((c) => c.msg === "penalty");
+    assertGreater(penaltyLogs.length, 0);
+    assertEquals(penaltyLogs[0].level, "debug");
+    assertExists(penaltyLogs[0].obj.type);
+    assertExists(penaltyLogs[0].obj.accepted);
+  });
+
+  await t.step("logging: emits turnover debug logs", () => {
+    const { logger, calls } = createSpyLogger();
+    for (let seed = 1; seed <= 20; seed++) {
+      simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+        log: logger,
+      });
+    }
+
+    const turnoverLogs = calls.filter((c) => c.msg === "turnover");
+    assertGreater(turnoverLogs.length, 0);
+    assertEquals(turnoverLogs[0].level, "debug");
+  });
+
+  await t.step("logging: emits overtime info log when game goes to OT", () => {
+    const { logger, calls } = createSpyLogger();
+    let otFound = false;
+    for (let seed = 1; seed <= 5000 && !otFound; seed++) {
+      calls.length = 0;
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+        log: logger,
+      });
+      if (result.events.some((e) => e.quarter === "OT")) {
+        otFound = true;
+        const otLogs = calls.filter((c) => c.msg === "overtime started");
+        assertEquals(otLogs.length, 1);
+        assertEquals(otLogs[0].level, "info");
+      }
+    }
+    assertEquals(otFound, true);
+  });
+
+  await t.step("logging: emits conversion debug logs after touchdowns", () => {
+    const { logger, calls } = createSpyLogger();
+    simulateGame({
+      home: makeTeam("home"),
+      away: makeTeam("away"),
+      seed: 42,
+      log: logger,
+    });
+
+    const conversionLogs = calls.filter(
+      (c) => c.msg === "conversion attempt",
+    );
+    assertGreater(conversionLogs.length, 0);
+    assertEquals(conversionLogs[0].level, "debug");
+  });
+
+  await t.step("logging: emits timeout debug logs when timeouts occur", () => {
+    const { logger, calls } = createSpyLogger();
+    let foundTimeout = false;
+    for (let seed = 1; seed <= 500 && !foundTimeout; seed++) {
+      calls.length = 0;
+      const result = simulateGame({
+        home: makeTeam("home"),
+        away: makeTeam("away"),
+        seed,
+        log: logger,
+      });
+      if (result.events.some((e) => e.tags.includes("timeout"))) {
+        foundTimeout = true;
+        const timeoutLogs = calls.filter((c) => c.msg === "timeout called");
+        assertGreater(timeoutLogs.length, 0);
+        assertEquals(timeoutLogs[0].level, "debug");
+      }
+    }
+    assertEquals(foundTimeout, true);
+  });
 
   await t.step(
     "two-minute defense shifts to prevent-adjacent coverage",
