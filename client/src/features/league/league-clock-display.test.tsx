@@ -264,6 +264,58 @@ describe("LeagueClockDisplay", () => {
     expect(screen.getByText(/Sep 14/)).toBeDefined();
   });
 
+  it("shows a success toast without flavor date when absent", async () => {
+    mockGetClock.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2026,
+          phase: "genesis_charter",
+          stepIndex: 0,
+          slug: "ratify_league_charter",
+          kind: "event",
+          flavorDate: null,
+          advancedAt: "2026-01-01T00:00:00Z",
+          hasCompletedGenesis: false,
+        }),
+    });
+
+    mockAdvance.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2026,
+          phase: "genesis_franchise_establishment",
+          stepIndex: 0,
+          slug: "establish_franchises",
+          flavorDate: null,
+          advancedAt: "2026-01-01T00:00:00Z",
+          overrideReason: null,
+          overrideBlockers: null,
+          autoResolved: [],
+          looped: false,
+        }),
+    });
+
+    renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /advance/i }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /advance/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Advanced to Establish Franchises/),
+      ).toBeDefined();
+    });
+  });
+
   it("shows an error toast when advance fails", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
