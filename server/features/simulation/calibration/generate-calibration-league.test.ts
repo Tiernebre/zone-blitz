@@ -145,6 +145,45 @@ Deno.test("unique team IDs", () => {
   assertEquals(ids.length, new Set(ids).size);
 });
 
+Deno.test("runPassLean is unimodal with sd ~5-9 (no bimodal gap)", () => {
+  // NFL play-calling tendency is roughly normally distributed, not
+  // bimodal. Calibration teams must mirror that shape so the harness's
+  // pass_rate / rush_rate spread bands are reachable. See issue #367.
+  // Note: in the resolve-play model higher runPassLean → MORE passing,
+  // so the center is set above 50 to land the league pass_rate near
+  // the NFL band of ~0.58.
+  const league = generateCalibrationLeague();
+  const values = league.teams.map((t) => t.fingerprint.offense.runPassLean);
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) /
+    values.length;
+  const sd = Math.sqrt(variance);
+
+  assert(
+    mean >= 54 && mean <= 62,
+    `runPassLean mean ${mean.toFixed(1)} should sit in 54-62`,
+  );
+  assert(
+    sd >= 5 && sd <= 9,
+    `runPassLean sd ${sd.toFixed(1)} should sit in 5-9`,
+  );
+  assert(
+    Math.min(...values) >= 35 && Math.max(...values) <= 80,
+    `runPassLean range [${Math.min(...values)}, ${
+      Math.max(...values)
+    }] should sit in 35-80`,
+  );
+
+  // Reject bimodality: count teams in the central band 45-70. With a
+  // unimodal distribution centered ~58 sd ~7, ≥80% of 32 teams should
+  // land in [45, 70]. The pre-fix bimodal fixture had only ~16/32.
+  const inCenter = values.filter((v) => v >= 45 && v <= 70).length;
+  assert(
+    inCenter >= 26,
+    `expected ≥26 of 32 teams with runPassLean in [45,70], got ${inCenter}`,
+  );
+});
+
 Deno.test("unique player IDs across the entire league", () => {
   const league = generateCalibrationLeague();
   const allIds: string[] = [];

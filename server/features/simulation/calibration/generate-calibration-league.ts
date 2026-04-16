@@ -149,7 +149,7 @@ function generateTeamRoster(
   return { starters, bench };
 }
 
-function generateFingerprint(_rng: Rng, teamIndex: number): SchemeFingerprint {
+function generateFingerprint(rng: Rng, teamIndex: number): SchemeFingerprint {
   const offArchetype =
     OFFENSIVE_ARCHETYPES[teamIndex % OFFENSIVE_ARCHETYPES.length];
   const defArchetype =
@@ -158,8 +158,15 @@ function generateFingerprint(_rng: Rng, teamIndex: number): SchemeFingerprint {
   const offSeed = `cal-team-${teamIndex}-oc`;
   const defSeed = `cal-team-${teamIndex}-dc`;
 
+  const offense = offensiveVectorFromArchetype(offArchetype, offSeed);
+  // Override runPassLean with a normally-distributed sample so the
+  // calibration league mirrors the NFL's roughly-normal play-calling
+  // tendency rather than the bimodal cluster the five archetypes
+  // produce when cycled over 32 teams. See issue #367.
+  offense.runPassLean = rng.gaussian(57, 7, 35, 78);
+
   return {
-    offense: offensiveVectorFromArchetype(offArchetype, offSeed),
+    offense,
     defense: defensiveVectorFromArchetype(defArchetype, defSeed),
     overrides: {},
   };
