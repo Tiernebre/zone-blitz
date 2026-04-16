@@ -1,6 +1,5 @@
 import { assertEquals } from "@std/assert";
 import type { PlayEvent, PlayTag } from "./events.ts";
-import type { MutableGameState } from "./game-clock.ts";
 import {
   formatClock,
   KNEEL_CLOCK_BURN,
@@ -12,29 +11,18 @@ import {
   TIMEOUTS_PER_HALF,
   trySpendTimeout,
 } from "./game-clock.ts";
+import {
+  createInitialState,
+  type SimulationState,
+} from "./game-state-manager.ts";
 
 function makeState(
-  overrides: Partial<MutableGameState> = {},
-): MutableGameState {
-  return {
-    quarter: 1,
-    clock: QUARTER_SECONDS,
-    homeScore: 0,
-    awayScore: 0,
-    possession: "home",
-    yardLine: 35,
-    down: 1,
-    distance: 10,
-    driveIndex: 0,
-    playIndex: 0,
-    globalPlayIndex: 0,
-    driveStartYardLine: 35,
-    drivePlays: 0,
-    driveYards: 0,
-    homeTimeouts: TIMEOUTS_PER_HALF,
-    awayTimeouts: TIMEOUTS_PER_HALF,
+  overrides: Partial<SimulationState> = {},
+): SimulationState {
+  return createInitialState({
+    kickoffYardLine: 35,
     ...overrides,
-  };
+  });
 }
 
 function makeEvent(
@@ -338,7 +326,7 @@ Deno.test("game-clock", async (t) => {
   });
 
   await t.step("trySpendTimeout", async (t) => {
-    await t.step("returns false outside two-minute drill", () => {
+    await t.step("returns null outside two-minute drill", () => {
       const state = makeState({
         quarter: 2,
         clock: 300,
@@ -356,12 +344,12 @@ Deno.test("game-clock", async (t) => {
         pick: <T>(arr: readonly T[]): T => arr[0],
         gaussian: () => 0,
       };
-      assertEquals(trySpendTimeout(state, rng), false);
+      assertEquals(trySpendTimeout(state, rng), null);
       assertEquals(callCount, 0);
     });
 
     await t.step(
-      "can spend offense timeout when trailing in two-minute drill",
+      "returns offense side when trailing in two-minute drill",
       () => {
         const state = makeState({
           quarter: 2,
@@ -377,13 +365,12 @@ Deno.test("game-clock", async (t) => {
           pick: <T>(arr: readonly T[]): T => arr[0],
           gaussian: () => 0,
         };
-        assertEquals(trySpendTimeout(state, rng), true);
-        assertEquals(state.homeTimeouts, 2);
+        assertEquals(trySpendTimeout(state, rng), "home");
       },
     );
 
     await t.step(
-      "does not spend timeout when rng roll is high",
+      "returns null when rng roll is high",
       () => {
         const state = makeState({
           quarter: 4,
@@ -400,14 +387,12 @@ Deno.test("game-clock", async (t) => {
           pick: <T>(arr: readonly T[]): T => arr[0],
           gaussian: () => 0,
         };
-        assertEquals(trySpendTimeout(state, rng), false);
-        assertEquals(state.homeTimeouts, 3);
-        assertEquals(state.awayTimeouts, 3);
+        assertEquals(trySpendTimeout(state, rng), null);
       },
     );
 
     await t.step(
-      "can spend defense timeout when leading in two-minute drill",
+      "returns offense side when trailing in two-minute drill (away possession)",
       () => {
         const state = makeState({
           quarter: 4,
@@ -418,25 +403,22 @@ Deno.test("game-clock", async (t) => {
           homeTimeouts: 3,
           awayTimeouts: 3,
         });
-        // First call (offense trailing check) returns > 0.4 to skip offense
-        // Second call (defense leading check) returns < 0.3 to trigger defense timeout
         let callIdx = 0;
         const rng = {
           next: () => {
             callIdx++;
-            return callIdx === 1 ? 0.1 : 0.1; // offense trailing + has timeouts
+            return callIdx === 1 ? 0.1 : 0.1;
           },
           int: () => 0,
           pick: <T>(arr: readonly T[]): T => arr[0],
           gaussian: () => 0,
         };
-        // Away is trailing (7 < 14), so offense timeout is spent first
-        assertEquals(trySpendTimeout(state, rng), true);
-        assertEquals(state.awayTimeouts, 2);
+        // Away is trailing (7 < 14), so offense timeout side is returned
+        assertEquals(trySpendTimeout(state, rng), "away");
       },
     );
 
-    await t.step("does not spend timeout with 0 timeouts remaining", () => {
+    await t.step("returns null with 0 timeouts remaining", () => {
       const state = makeState({
         quarter: 4,
         clock: 90,
@@ -452,7 +434,7 @@ Deno.test("game-clock", async (t) => {
         pick: <T>(arr: readonly T[]): T => arr[0],
         gaussian: () => 0,
       };
-      assertEquals(trySpendTimeout(state, rng), false);
+      assertEquals(trySpendTimeout(state, rng), null);
     });
   });
 });

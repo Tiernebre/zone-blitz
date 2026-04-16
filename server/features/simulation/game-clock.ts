@@ -51,7 +51,7 @@ export function shouldClockStop(event: PlayEvent): boolean {
   );
 }
 
-export function shouldKneel(state: MutableGameState): boolean {
+export function shouldKneel(state: Readonly<MutableGameState>): boolean {
   if (state.quarter !== 2 && state.quarter !== 4) return false;
 
   const offenseScore = state.possession === "home"
@@ -67,12 +67,17 @@ export function shouldKneel(state: MutableGameState): boolean {
   return state.clock <= clockNeeded && state.clock > 0;
 }
 
+/**
+ * Determines whether a timeout should be spent and by which side.
+ * Returns the side that used a timeout, or null if none was used.
+ * The caller is responsible for applying the timeout via the state-manager.
+ */
 export function trySpendTimeout(
-  state: MutableGameState,
+  state: Readonly<MutableGameState>,
   rng: SeededRng,
-): boolean {
+): "home" | "away" | null {
   const twoMinute = isTwoMinuteDrill(state.quarter, formatClock(state.clock));
-  if (!twoMinute) return false;
+  if (!twoMinute) return null;
 
   const offenseTimeouts = state.possession === "home"
     ? state.homeTimeouts
@@ -92,16 +97,12 @@ export function trySpendTimeout(
   const defenseLeading = defenseScore > offenseScore;
 
   if (offenseTrailing && offenseTimeouts > 0 && rng.next() < 0.4) {
-    if (state.possession === "home") state.homeTimeouts--;
-    else state.awayTimeouts--;
-    return true;
+    return state.possession;
   }
 
   if (defenseLeading && defenseTimeouts > 0 && rng.next() < 0.3) {
-    if (state.possession === "home") state.awayTimeouts--;
-    else state.homeTimeouts--;
-    return true;
+    return state.possession === "home" ? "away" : "home";
   }
 
-  return false;
+  return null;
 }
