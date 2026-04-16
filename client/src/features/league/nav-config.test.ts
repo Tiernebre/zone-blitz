@@ -119,13 +119,10 @@ describe("navGroups", () => {
     expect(visibleLabels("regular_season")).not.toContain("Charter");
   });
 
-  it("shows Staff Hiring only in genesis_staff_hiring", () => {
-    expect(visibleLabels("genesis_staff_hiring")).toContain("Staff Hiring");
-    expect(visibleLabels("genesis_charter")).not.toContain("Staff Hiring");
-    expect(visibleLabels("genesis_founding_pool")).not.toContain(
-      "Staff Hiring",
-    );
-    expect(visibleLabels("regular_season")).not.toContain("Staff Hiring");
+  it("does not include a Staff Hiring nav item", () => {
+    for (const phase of LEAGUE_PHASES) {
+      expect(visibleLabels(phase)).not.toContain("Staff Hiring");
+    }
   });
 
   it("shows Founding Pool only in genesis_founding_pool", () => {
@@ -162,7 +159,7 @@ describe("navGroups", () => {
       ["genesis_charter", ["Home", "Charter"]],
       [
         "genesis_staff_hiring",
-        ["Home", "Coaches", "Scouts", "Staff Hiring", "Media"],
+        ["Home", "Coaches", "Scouts", "Media"],
       ],
       [
         "genesis_allocation_draft",

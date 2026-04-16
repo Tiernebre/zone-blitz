@@ -56,15 +56,14 @@ afterEach(() => {
 });
 
 describe("LeagueHome", () => {
-  it("renders the staff-hiring view when phase is genesis_staff_hiring", async () => {
+  it("renders the dashboard view when phase is genesis_staff_hiring", async () => {
     mockPhase = "genesis_staff_hiring";
     renderWithProviders();
     await waitFor(() => {
       expect(
-        screen.getByRole("heading", { name: "Staff Hiring" }),
+        screen.getByRole("heading", { name: "League Home" }),
       ).toBeDefined();
     });
-    expect(screen.getByText(/hire the head coaches/i)).toBeDefined();
   });
 
   it("renders the founding-pool view when phase is genesis_founding_pool", async () => {

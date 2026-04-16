@@ -16,11 +16,6 @@ const PHASE_VIEWS: Partial<Record<LeaguePhase, PhaseView>> = {
     description:
       "The eight founding franchises take the field. Claim yours and meet your rivals.",
   },
-  genesis_staff_hiring: {
-    title: "Staff Hiring",
-    description:
-      "Hire the head coaches and scouts who will shape your franchise's first season.",
-  },
   genesis_founding_pool: {
     title: "Founding Pool",
     description:

@@ -1,6 +1,5 @@
 import {
   ArrowLeftRightIcon,
-  BriefcaseIcon,
   CalendarIcon,
   ClipboardListIcon,
   DollarSignIcon,
@@ -72,7 +71,6 @@ const freeAgencyPhases = inPhases(
 );
 
 const genesisCharter = inPhases("genesis_charter");
-const genesisStaffHiring = inPhases("genesis_staff_hiring");
 const genesisFoundingPool = inPhases("genesis_founding_pool");
 const genesisAllocationDraft = inPhases("genesis_allocation_draft");
 
@@ -98,12 +96,6 @@ export const navGroups: NavGroup[] = [
         path: "scouts",
         Icon: SearchIcon,
         visibleInPhases: fromStaffHiring,
-      },
-      {
-        label: "Staff Hiring",
-        path: "staff-hiring",
-        Icon: BriefcaseIcon,
-        visibleInPhases: genesisStaffHiring,
       },
     ],
   },
