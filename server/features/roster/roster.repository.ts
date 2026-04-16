@@ -2,8 +2,6 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import type pino from "pino";
 import {
   type CoachTendencies,
-  DEFENSIVE_TENDENCY_KEYS,
-  type DefensiveTendencies,
   type DepthChartInactive,
   type DepthChartSlot,
   depthChartVocabulary,
@@ -11,8 +9,6 @@ import {
   neutralBucket,
   type NeutralBucketGroup,
   neutralBucketGroupOf,
-  OFFENSIVE_TENDENCY_KEYS,
-  type OffensiveTendencies,
   type PlayerAttributes,
   type RosterPlayer,
   type RosterPositionGroupSummary,
@@ -26,56 +22,19 @@ import {
   pickAttributes,
   playerAttributes,
 } from "../players/attributes.schema.ts";
+import { ageFromBirthDate } from "../players/age.ts";
 import { contracts } from "../contracts/contract.schema.ts";
 import { depthChartEntries } from "../players/depth-chart.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { coaches } from "../coaches/coach.schema.ts";
 import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";
+import { toCoachTendencies } from "../coaches/tendency-row.ts";
 import {
   computeFingerprint,
   computeSchemeFit,
   schemeLens,
 } from "../schemes/mod.ts";
 import type { RosterRepository } from "./roster.repository.interface.ts";
-
-type TendencyRow = typeof coachTendencies.$inferSelect;
-
-function pickOffense(row: TendencyRow): OffensiveTendencies | null {
-  if (OFFENSIVE_TENDENCY_KEYS.every((k) => row[k] === null)) return null;
-  const out = {} as OffensiveTendencies;
-  for (const k of OFFENSIVE_TENDENCY_KEYS) out[k] = (row[k] ?? 0) as number;
-  return out;
-}
-
-function pickDefense(row: TendencyRow): DefensiveTendencies | null {
-  if (DEFENSIVE_TENDENCY_KEYS.every((k) => row[k] === null)) return null;
-  const out = {} as DefensiveTendencies;
-  for (const k of DEFENSIVE_TENDENCY_KEYS) out[k] = (row[k] ?? 0) as number;
-  return out;
-}
-
-function toCoachTendencies(row: TendencyRow): CoachTendencies {
-  return {
-    coachId: row.coachId,
-    offense: pickOffense(row),
-    defense: pickDefense(row),
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
-function ageFromBirthDate(birthDate: string, today: Date): number {
-  const birth = new Date(birthDate);
-  let age = today.getUTCFullYear() - birth.getUTCFullYear();
-  const monthDelta = today.getUTCMonth() - birth.getUTCMonth();
-  if (
-    monthDelta < 0 ||
-    (monthDelta === 0 && today.getUTCDate() < birth.getUTCDate())
-  ) {
-    age -= 1;
-  }
-  return Math.max(0, age);
-}
 
 function summarizeGroups(
   rosterPlayers: RosterPlayer[],

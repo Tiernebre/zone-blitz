@@ -3,12 +3,8 @@ import type pino from "pino";
 import {
   assignDepthChart,
   type CoachTendencies,
-  DEFENSIVE_TENDENCY_KEYS,
-  type DefensiveTendencies,
   depthChartVocabulary,
   neutralBucket,
-  OFFENSIVE_TENDENCY_KEYS,
-  type OffensiveTendencies,
   type PlayerForAssignment,
 } from "@zone-blitz/shared";
 import type { Database } from "../../db/connection.ts";
@@ -21,34 +17,9 @@ import {
 import { depthChartEntries } from "../players/depth-chart.schema.ts";
 import { coaches } from "../coaches/coach.schema.ts";
 import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";
+import { toCoachTendencies } from "../coaches/tendency-row.ts";
 import { computeFingerprint, computeSchemeScore } from "../schemes/mod.ts";
 import type { DepthChartPublisher } from "./depth-chart.publisher.interface.ts";
-
-type TendencyRow = typeof coachTendencies.$inferSelect;
-
-function pickOffense(row: TendencyRow): OffensiveTendencies | null {
-  if (OFFENSIVE_TENDENCY_KEYS.every((k) => row[k] === null)) return null;
-  const out = {} as OffensiveTendencies;
-  for (const k of OFFENSIVE_TENDENCY_KEYS) out[k] = (row[k] ?? 0) as number;
-  return out;
-}
-
-function pickDefense(row: TendencyRow): DefensiveTendencies | null {
-  if (DEFENSIVE_TENDENCY_KEYS.every((k) => row[k] === null)) return null;
-  const out = {} as DefensiveTendencies;
-  for (const k of DEFENSIVE_TENDENCY_KEYS) out[k] = (row[k] ?? 0) as number;
-  return out;
-}
-
-function toCoachTendencies(row: TendencyRow): CoachTendencies {
-  return {
-    coachId: row.coachId,
-    offense: pickOffense(row),
-    defense: pickDefense(row),
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
 
 export function createDepthChartPublisher(deps: {
   db: Database;

@@ -1,49 +1,13 @@
 import { eq } from "drizzle-orm";
 import type pino from "pino";
-import type {
-  CoachTendencies,
-  DefensiveTendencies,
-  OffensiveTendencies,
-} from "@zone-blitz/shared";
 import {
   DEFENSIVE_TENDENCY_KEYS,
   OFFENSIVE_TENDENCY_KEYS,
 } from "@zone-blitz/shared";
 import type { Database } from "../../db/connection.ts";
 import { coachTendencies } from "./coach-tendencies.schema.ts";
+import { toCoachTendencies } from "./tendency-row.ts";
 import type { CoachTendenciesRepository } from "./coach-tendencies.repository.interface.ts";
-
-type CoachTendencyRow = typeof coachTendencies.$inferSelect;
-
-function pickOffense(row: CoachTendencyRow): OffensiveTendencies | null {
-  const values = OFFENSIVE_TENDENCY_KEYS.map((key) => row[key]);
-  if (values.every((v) => v === null)) return null;
-  const out = {} as OffensiveTendencies;
-  for (const key of OFFENSIVE_TENDENCY_KEYS) {
-    out[key] = (row[key] ?? 0) as number;
-  }
-  return out;
-}
-
-function pickDefense(row: CoachTendencyRow): DefensiveTendencies | null {
-  const values = DEFENSIVE_TENDENCY_KEYS.map((key) => row[key]);
-  if (values.every((v) => v === null)) return null;
-  const out = {} as DefensiveTendencies;
-  for (const key of DEFENSIVE_TENDENCY_KEYS) {
-    out[key] = (row[key] ?? 0) as number;
-  }
-  return out;
-}
-
-function toCoachTendencies(row: CoachTendencyRow): CoachTendencies {
-  return {
-    coachId: row.coachId,
-    offense: pickOffense(row),
-    defense: pickDefense(row),
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
 
 export function createCoachTendenciesRepository(deps: {
   db: Database;
