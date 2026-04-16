@@ -18,6 +18,7 @@ import { scouts } from "../scouts/scout.schema.ts";
 import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";
 import { teams } from "../team/team.schema.ts";
 import type { FranchiseStaffMember, MarketTier } from "./preference-scoring.ts";
+import { PREFERENCE_NEUTRAL } from "./hiring-constants.ts";
 
 export type StaffType = "coach" | "scout";
 export type HiringInterestStatus = "active" | "withdrawn";
@@ -697,11 +698,11 @@ export function createHiringRepository(deps: {
           staffId,
           role: row.role as CoachRole,
           preferences: {
-            marketTierPref: row.marketTierPref ?? 50,
-            philosophyFitPref: row.philosophyFitPref ?? 50,
-            staffFitPref: row.staffFitPref ?? 50,
-            compensationPref: row.compensationPref ?? 50,
-            minimumThreshold: row.minimumThreshold ?? 50,
+            marketTierPref: row.marketTierPref ?? PREFERENCE_NEUTRAL,
+            philosophyFitPref: row.philosophyFitPref ?? PREFERENCE_NEUTRAL,
+            staffFitPref: row.staffFitPref ?? PREFERENCE_NEUTRAL,
+            compensationPref: row.compensationPref ?? PREFERENCE_NEUTRAL,
+            minimumThreshold: row.minimumThreshold ?? PREFERENCE_NEUTRAL,
           },
           offense,
           defense,
@@ -727,11 +728,11 @@ export function createHiringRepository(deps: {
         staffId,
         role: row.role as ScoutRole,
         preferences: {
-          marketTierPref: row.marketTierPref ?? 50,
-          philosophyFitPref: row.philosophyFitPref ?? 50,
-          staffFitPref: row.staffFitPref ?? 50,
-          compensationPref: row.compensationPref ?? 50,
-          minimumThreshold: row.minimumThreshold ?? 50,
+          marketTierPref: row.marketTierPref ?? PREFERENCE_NEUTRAL,
+          philosophyFitPref: row.philosophyFitPref ?? PREFERENCE_NEUTRAL,
+          staffFitPref: row.staffFitPref ?? PREFERENCE_NEUTRAL,
+          compensationPref: row.compensationPref ?? PREFERENCE_NEUTRAL,
+          minimumThreshold: row.minimumThreshold ?? PREFERENCE_NEUTRAL,
         },
         offense: null,
         defense: null,
