@@ -127,9 +127,7 @@ export function createDepthChartPublisher(deps: {
 
         const playersForAssignment: PlayerForAssignment[] = playerRows.map(
           (row) => {
-            const attributes = pickAttributes(
-              row as unknown as Record<string, unknown>,
-            );
+            const attributes = pickAttributes(row);
             const bucket = neutralBucket({
               attributes,
               heightInches: row.heightInches,
