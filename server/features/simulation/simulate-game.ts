@@ -4,7 +4,6 @@ import type {
   GameResult,
   InjurySeverity,
   PlayEvent,
-  PlayOutcome,
   PlayTag,
 } from "./events.ts";
 import type {
@@ -30,6 +29,7 @@ import {
 import { resolvePunt } from "./resolve-punt.ts";
 import { resolveFieldGoal } from "./resolve-field-goal.ts";
 import { resolveFourthDown } from "./resolve-fourth-down.ts";
+import { buildPlayEvent } from "./play-event.ts";
 
 export interface SimTeam {
   teamId: string;
@@ -406,7 +406,7 @@ export function simulateGame(input: SimulationInput): GameResult {
     if (choice === "xp") {
       const kicker = findKicker(isHome ? "home" : "away");
       const made = resolveExtraPoint(kicker, rng);
-      const xpEvent: PlayEvent = {
+      const xpEvent = buildPlayEvent({
         gameId,
         driveIndex: state.driveIndex,
         playIndex: state.playIndex,
@@ -433,10 +433,10 @@ export function simulateGame(input: SimulationInput): GameResult {
           playerId: kicker.playerId,
           tags: made ? ["xp_made"] : ["xp_missed"],
         }],
-        outcome: "xp" as PlayOutcome,
+        outcome: "xp",
         yardage: 0,
         tags: made ? [] : ["xp_missed" as PlayTag],
-      };
+      });
       events.push(xpEvent);
       state.playIndex++;
       state.globalPlayIndex++;
@@ -536,7 +536,7 @@ export function simulateGame(input: SimulationInput): GameResult {
       tags: [],
     }];
 
-    const fgEvent: PlayEvent = {
+    const fgEvent = buildPlayEvent({
       gameId,
       driveIndex: state.driveIndex,
       playIndex: state.playIndex,
@@ -563,8 +563,7 @@ export function simulateGame(input: SimulationInput): GameResult {
       participants,
       outcome: fgResult.outcome === "made" ? "field_goal" : "missed_field_goal",
       yardage: 0,
-      tags: [],
-    };
+    });
 
     if (fgResult.blocked) {
       fgEvent.tags.push("blocked_kick");
@@ -632,7 +631,7 @@ export function simulateGame(input: SimulationInput): GameResult {
     if (puntResult.outcome === "muffed_punt") puntTags.push("muff");
     if (puntResult.outcome === "blocked_punt") puntTags.push("blocked_kick");
 
-    const puntEvent: PlayEvent = {
+    const puntEvent = buildPlayEvent({
       gameId,
       driveIndex: state.driveIndex,
       playIndex: state.playIndex,
@@ -660,7 +659,7 @@ export function simulateGame(input: SimulationInput): GameResult {
       outcome: "punt",
       yardage: puntResult.netYards,
       tags: puntTags,
-    };
+    });
 
     events.push(puntEvent);
     state.drivePlays++;
@@ -789,7 +788,7 @@ export function simulateGame(input: SimulationInput): GameResult {
   }
 
   function emitKneel(): void {
-    const kneelEvent: PlayEvent = {
+    const kneelEvent = buildPlayEvent({
       gameId,
       driveIndex: state.driveIndex,
       playIndex: state.playIndex,
@@ -813,11 +812,10 @@ export function simulateGame(input: SimulationInput): GameResult {
         coverage: "none",
         pressure: "none",
       },
-      participants: [],
       outcome: "kneel",
       yardage: -1,
       tags: ["victory_formation"],
-    };
+    });
 
     events.push(kneelEvent);
     state.drivePlays++;
