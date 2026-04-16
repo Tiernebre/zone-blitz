@@ -7,7 +7,7 @@ import { type NeutralBucket, PLAYER_ATTRIBUTE_KEYS } from "@zone-blitz/shared";
 import * as schema from "../../db/schema.ts";
 import { players } from "../players/player.schema.ts";
 import { playerAttributes } from "../players/attributes.schema.ts";
-import { depthChartEntries } from "../players/depth-chart.schema.ts";
+import { depthChartEntries } from "./depth-chart.schema.ts";
 import {
   BUCKET_PROFILES,
   stubAttributesFor,
