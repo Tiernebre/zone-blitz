@@ -353,6 +353,8 @@ Deno.test("game-clock", async (t) => {
           return 0.1;
         },
         int: () => 0,
+        pick: <T>(arr: readonly T[]): T => arr[0],
+        gaussian: () => 0,
       };
       assertEquals(trySpendTimeout(state, rng), false);
       assertEquals(callCount, 0);
@@ -372,6 +374,8 @@ Deno.test("game-clock", async (t) => {
         const rng = {
           next: () => 0.1, // < 0.4 threshold
           int: () => 0,
+          pick: <T>(arr: readonly T[]): T => arr[0],
+          gaussian: () => 0,
         };
         assertEquals(trySpendTimeout(state, rng), true);
         assertEquals(state.homeTimeouts, 2);
@@ -393,6 +397,8 @@ Deno.test("game-clock", async (t) => {
         const rng = {
           next: () => 0.9, // > both thresholds
           int: () => 0,
+          pick: <T>(arr: readonly T[]): T => arr[0],
+          gaussian: () => 0,
         };
         assertEquals(trySpendTimeout(state, rng), false);
         assertEquals(state.homeTimeouts, 3);
@@ -421,6 +427,8 @@ Deno.test("game-clock", async (t) => {
             return callIdx === 1 ? 0.1 : 0.1; // offense trailing + has timeouts
           },
           int: () => 0,
+          pick: <T>(arr: readonly T[]): T => arr[0],
+          gaussian: () => 0,
         };
         // Away is trailing (7 < 14), so offense timeout is spent first
         assertEquals(trySpendTimeout(state, rng), true);
@@ -441,6 +449,8 @@ Deno.test("game-clock", async (t) => {
       const rng = {
         next: () => 0.1,
         int: () => 0,
+        pick: <T>(arr: readonly T[]): T => arr[0],
+        gaussian: () => 0,
       };
       assertEquals(trySpendTimeout(state, rng), false);
     });
