@@ -12,6 +12,12 @@ import {
 } from "./gates.ts";
 import { DEFAULT_PHASE_STEPS } from "./default-phase-steps.ts";
 import { leaguePhaseEnum } from "./league-clock.schema.ts";
+import type { PhaseStepListener } from "./phase-step-listener.ts";
+
+// The first phase of a Year-1 league. Exported so other features can
+// seed the clock at this phase without hardcoding the string.
+export const FIRST_INITIAL_PHASE: typeof leaguePhaseEnum.enumValues[number] =
+  "initial_staff_hiring";
 
 export interface Actor {
   userId: string;
@@ -72,14 +78,6 @@ export interface LeagueClockService {
     leagueId: string,
     teamId: string,
   ): Promise<VoteResult>;
-}
-
-export interface StepTransitionEffects {
-  onTransition(input: {
-    leagueId: string;
-    prevStepSlug: string;
-    nextStepSlug: string;
-  }): Promise<void>;
 }
 
 interface TargetStep {
@@ -236,7 +234,7 @@ export function createLeagueClockService(deps: {
   txRunner: TransactionRunner;
   leagueClockRepo: LeagueClockRepository;
   log: pino.Logger;
-  stepEffects?: StepTransitionEffects;
+  stepEffects?: PhaseStepListener;
 }): LeagueClockService {
   const log = deps.log.child({ module: "league-clock.service" });
   const phases = leaguePhaseEnum.enumValues;

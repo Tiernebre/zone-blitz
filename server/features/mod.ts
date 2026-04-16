@@ -57,6 +57,8 @@ import {
   createLeagueClockRepository,
   createLeagueClockRouter,
   createLeagueClockService,
+  createPhaseStepListenerFanout,
+  type PhaseStepListener,
 } from "./league-clock/mod.ts";
 import {
   createFranchiseRepository,
@@ -208,12 +210,15 @@ export function createFeatureRouters(
     log,
   });
 
-  // League Clock service
+  // Phase-step listener registry. Features subscribe here to react to
+  // clock transitions; the clock itself stays agnostic. Add new
+  // listeners (draft, trades, etc.) to this array as they arrive.
+  const phaseStepListeners: PhaseStepListener[] = [hiringStepEffects];
   const leagueClockService = createLeagueClockService({
     txRunner,
     leagueClockRepo,
     log,
-    stepEffects: hiringStepEffects,
+    stepEffects: createPhaseStepListenerFanout(phaseStepListeners),
   });
   const leagueClockRouter = createLeagueClockRouter(leagueClockService, {
     teamService,

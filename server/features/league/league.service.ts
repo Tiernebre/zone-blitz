@@ -9,9 +9,9 @@ import type { FranchiseService } from "../franchise/franchise.service.interface.
 import type { PersonnelService } from "../personnel/personnel.service.interface.ts";
 import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
 import type { LeagueClockRepository } from "../league-clock/league-clock.repository.ts";
+import { FIRST_INITIAL_PHASE } from "../league-clock/mod.ts";
 
 const INITIAL_TEAM_COUNT = 8;
-const FIRST_INITIAL_PHASE = "initial_staff_hiring";
 
 export function createLeagueService(deps: {
   txRunner: TransactionRunner;
