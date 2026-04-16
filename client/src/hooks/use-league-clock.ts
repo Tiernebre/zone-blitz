@@ -8,7 +8,12 @@ export function useLeagueClock(leagueId: string) {
       const res = await api.api["league-clock"][":leagueId"].$get({
         param: { leagueId },
       });
-      return res.json();
+      const data = await res.json();
+      const { hasCompletedGenesis, ...rest } = data;
+      return {
+        ...rest,
+        isInauguralSeason: !hasCompletedGenesis,
+      };
     },
     enabled: !!leagueId,
   });

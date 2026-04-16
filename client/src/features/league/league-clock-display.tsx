@@ -42,8 +42,8 @@ export function LeagueClockDisplay({
 
   if (!clock) return null;
 
-  const showInauguralYearNote = !clock.hasCompletedGenesis &&
-    !clock.phase.startsWith("genesis_");
+  const isSetupPhase = clock.phase.startsWith("genesis_");
+  const showInauguralYearNote = clock.isInauguralSeason && !isSetupPhase;
 
   const handleAdvance = () => {
     setError(null);

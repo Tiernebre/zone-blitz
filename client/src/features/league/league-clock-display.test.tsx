@@ -235,7 +235,7 @@ describe("LeagueClockDisplay", () => {
     });
   });
 
-  it("renders 'No preseason (inaugural year)' note in Year 1", async () => {
+  it("renders 'No preseason (inaugural year)' note in inaugural season", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -262,7 +262,7 @@ describe("LeagueClockDisplay", () => {
     ).toBeDefined();
   });
 
-  it("does not render inaugural year note when hasCompletedGenesis is true", async () => {
+  it("does not render inaugural year note after inaugural season", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -289,7 +289,7 @@ describe("LeagueClockDisplay", () => {
     ).toBeNull();
   });
 
-  it("does not render inaugural year note during genesis phases", async () => {
+  it("does not render inaugural year note during setup phases", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
