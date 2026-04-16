@@ -1,19 +1,18 @@
 /**
  * Seed data for US cities used as the domain reference for hometowns of
- * players, coaches, scouts, front-office staff, and locations of teams and
- * colleges.
+ * players, coaches, scouts, front-office staff, and locations of franchises
+ * and colleges.
  *
  * The set is a union of:
  *   1. The most populous US cities (Census-ranked).
  *   2. Every city referenced by a college in DEFAULT_COLLEGES.
- *   3. Every city referenced by a team in DEFAULT_TEAMS.
+ *   3. Every city referenced by a founding franchise.
  *
  * Entries are deduplicated by (name, stateCode). Each entry's `stateCode` must
  * match a `code` in DEFAULT_STATES.
  */
 import { DEFAULT_COLLEGES } from "../colleges/default-colleges.ts";
-import { DEFAULT_TEAMS } from "../team/default-teams.ts";
-import { FOUNDING_FRANCHISES } from "../team/founding-franchises.ts";
+import { FOUNDING_FRANCHISES } from "../franchise/founding-franchises.ts";
 
 export interface DefaultCity {
   name: string;
@@ -219,11 +218,6 @@ const COLLEGE_CITIES: DefaultCity[] = DEFAULT_COLLEGES.map((c) => ({
   stateCode: c.state,
 }));
 
-const TEAM_CITIES: DefaultCity[] = DEFAULT_TEAMS.map((t) => ({
-  name: t.city,
-  stateCode: t.state,
-}));
-
 const FOUNDING_CITIES: DefaultCity[] = FOUNDING_FRANCHISES.map((f) => ({
   name: f.city,
   stateCode: f.state,
@@ -232,6 +226,5 @@ const FOUNDING_CITIES: DefaultCity[] = FOUNDING_FRANCHISES.map((f) => ({
 export const DEFAULT_CITIES: DefaultCity[] = dedupe([
   ...TOP_US_CITIES,
   ...COLLEGE_CITIES,
-  ...TEAM_CITIES,
   ...FOUNDING_CITIES,
 ]);

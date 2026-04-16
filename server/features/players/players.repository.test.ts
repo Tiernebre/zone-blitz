@@ -14,6 +14,7 @@ import { playerSeasonStats } from "./player-career-log.schema.ts";
 import { playerAccolades } from "./player-accolades.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
+import { franchises } from "../franchise/franchise.schema.ts";
 import { cities } from "../cities/city.schema.ts";
 import { states } from "../states/state.schema.ts";
 import { seasons } from "../season/season.schema.ts";
@@ -74,9 +75,24 @@ async function setupFixtures(db: ReturnType<typeof createTestDb>["db"]) {
       stateId: state.id,
     })
     .returning();
+  const [franchise] = await db
+    .insert(franchises)
+    .values({
+      name: "Bengals Franchise",
+      cityId: city.id,
+      abbreviation: `T${crypto.randomUUID().slice(0, 2).toUpperCase()}`,
+      primaryColor: "#000000",
+      secondaryColor: "#FFFFFF",
+      accentColor: "#FF0000",
+      conference: "AFC",
+      division: "AFC North",
+    })
+    .returning();
   const [team] = await db
     .insert(teams)
     .values({
+      leagueId: league.id,
+      franchiseId: franchise.id,
       name: "Bengals",
       cityId: city.id,
       abbreviation: `T${crypto.randomUUID().slice(0, 2).toUpperCase()}`,
@@ -87,7 +103,7 @@ async function setupFixtures(db: ReturnType<typeof createTestDb>["db"]) {
       division: "AFC North",
     })
     .returning();
-  return { league, team, state, city };
+  return { league, team, state, city, franchise };
 }
 
 async function cleanup(
@@ -95,6 +111,7 @@ async function cleanup(
   ids: {
     players?: string[];
     teams?: string[];
+    franchises?: string[];
     cities?: string[];
     states?: string[];
     leagues?: string[];
@@ -105,6 +122,11 @@ async function cleanup(
   }
   for (const id of ids.teams ?? []) {
     await db.delete(teams).where(eq(teams.id, id));
+  }
+  if (ids.cities?.length) {
+    await db
+      .delete(franchises)
+      .where(inArray(franchises.cityId, ids.cities));
   }
   for (const id of ids.cities ?? []) {
     await db.delete(cities).where(eq(cities.id, id));
@@ -597,9 +619,24 @@ Deno.test({
         })
         .returning();
       citiesCreated.push(city2.id);
+      const [franchise2] = await db
+        .insert(franchises)
+        .values({
+          name: "Eagles Franchise",
+          cityId: city2.id,
+          abbreviation: `E${crypto.randomUUID().slice(0, 2).toUpperCase()}`,
+          primaryColor: "#004C54",
+          secondaryColor: "#A5ACAF",
+          accentColor: "#000000",
+          conference: "NFC",
+          division: "NFC East",
+        })
+        .returning();
       const [team2] = await db
         .insert(teams)
         .values({
+          leagueId: league.id,
+          franchiseId: franchise2.id,
           name: "Eagles",
           cityId: city2.id,
           abbreviation: `E${crypto.randomUUID().slice(0, 2).toUpperCase()}`,

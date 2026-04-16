@@ -17,6 +17,8 @@ function createTestLogger() {
 function createMockTeam(overrides: Partial<Team> = {}): Team {
   return {
     id: "1",
+    leagueId: "league-1",
+    franchiseId: "franchise-1",
     name: "Test Team",
     cityId: "city-1",
     city: "Test City",
@@ -37,36 +39,39 @@ function createMockTeamRepo(
   overrides: Partial<TeamRepository> = {},
 ): TeamRepository {
   return {
-    getAll: () => Promise.resolve([]),
+    createMany: () => Promise.resolve([]),
+    getByLeagueId: () => Promise.resolve([]),
     getById: () => Promise.resolve(undefined),
     ...overrides,
   };
 }
 
 Deno.test("team.service", async (t) => {
-  await t.step("getAll returns all teams from repository", async () => {
+  await t.step("getByLeagueId returns teams from repository", async () => {
     const teams = [
       createMockTeam({ id: "1", name: "Team A" }),
       createMockTeam({ id: "2", name: "Team B" }),
     ];
     const service = createTeamService({
-      teamRepo: createMockTeamRepo({ getAll: () => Promise.resolve(teams) }),
+      teamRepo: createMockTeamRepo({
+        getByLeagueId: () => Promise.resolve(teams),
+      }),
       log: createTestLogger(),
     });
 
-    const result = await service.getAll();
+    const result = await service.getByLeagueId("league-1");
     assertEquals(result.length, 2);
     assertEquals(result[0].name, "Team A");
     assertEquals(result[1].name, "Team B");
   });
 
-  await t.step("getAll returns empty array when no teams", async () => {
+  await t.step("getByLeagueId returns empty array when no teams", async () => {
     const service = createTeamService({
       teamRepo: createMockTeamRepo(),
       log: createTestLogger(),
     });
 
-    const result = await service.getAll();
+    const result = await service.getByLeagueId("league-1");
     assertEquals(result.length, 0);
   });
 
@@ -96,5 +101,32 @@ Deno.test("team.service", async (t) => {
       DomainError,
       "not found",
     );
+  });
+
+  await t.step("createMany delegates to repository", async () => {
+    const inserted = [createMockTeam({ id: "new-1", name: "Fresh" })];
+    const service = createTeamService({
+      teamRepo: createMockTeamRepo({
+        createMany: () => Promise.resolve(inserted),
+      }),
+      log: createTestLogger(),
+    });
+
+    const result = await service.createMany([
+      {
+        leagueId: "league-1",
+        franchiseId: "franchise-1",
+        name: "Fresh",
+        cityId: "city-1",
+        abbreviation: "FRH",
+        primaryColor: "#000000",
+        secondaryColor: "#FFFFFF",
+        accentColor: "#FF0000",
+        conference: "AFC",
+        division: "AFC East",
+      },
+    ]);
+    assertEquals(result.length, 1);
+    assertEquals(result[0].name, "Fresh");
   });
 });

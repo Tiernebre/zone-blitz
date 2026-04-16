@@ -22,7 +22,7 @@ import type {
 } from "@zone-blitz/shared";
 import type { PlayerInjuryStatus } from "@zone-blitz/shared/types/player.ts";
 import { useActiveRoster } from "../../../hooks/use-active-roster.ts";
-import { useTeams } from "../../../hooks/use-teams.ts";
+import { useLeagueTeams } from "../../../hooks/use-teams.ts";
 import { TeamLogo } from "../../../components/team-logo.tsx";
 
 const groupLabels: Record<NeutralBucketGroup, string> = {
@@ -145,7 +145,7 @@ export function OpponentRoster() {
     leagueId: string;
     teamId: string;
   };
-  const { data: teams } = useTeams();
+  const { data: teams } = useLeagueTeams(leagueId);
   const team = teams?.find((t: Team) => t.id === teamId) ?? null;
 
   return (

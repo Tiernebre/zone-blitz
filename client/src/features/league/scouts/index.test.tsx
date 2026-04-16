@@ -17,7 +17,11 @@ vi.mock("../../../api.ts", () => ({
         $post: vi.fn(),
       },
       teams: {
-        $get: (...args: unknown[]) => mockTeamsGet(...args),
+        league: {
+          [":leagueId"]: {
+            $get: (...args: unknown[]) => mockTeamsGet(...args),
+          },
+        },
       },
       coaches: {
         leagues: {

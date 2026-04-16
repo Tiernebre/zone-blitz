@@ -17,6 +17,7 @@ import { coaches } from "../coaches/coach.schema.ts";
 import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
+import { franchises } from "../franchise/franchise.schema.ts";
 import { cities } from "../cities/city.schema.ts";
 import { states } from "../states/state.schema.ts";
 import { seasons } from "../season/season.schema.ts";
@@ -75,9 +76,24 @@ async function setupFixtures(db: ReturnType<typeof createTestDb>["db"]) {
     .insert(cities)
     .values({ name: `TestCity-${crypto.randomUUID()}`, stateId: state.id })
     .returning();
+  const [franchise] = await db
+    .insert(franchises)
+    .values({
+      name: "Test Franchise",
+      cityId: city.id,
+      abbreviation: `T${crypto.randomUUID().slice(0, 2).toUpperCase()}`,
+      primaryColor: "#000000",
+      secondaryColor: "#FFFFFF",
+      accentColor: "#FF0000",
+      conference: "AFC",
+      division: "AFC East",
+    })
+    .returning();
   const [team] = await db
     .insert(teams)
     .values({
+      leagueId: league.id,
+      franchiseId: franchise.id,
       name: "Test Team",
       abbreviation: `T${crypto.randomUUID().slice(0, 2).toUpperCase()}`,
       cityId: city.id,
@@ -88,7 +104,7 @@ async function setupFixtures(db: ReturnType<typeof createTestDb>["db"]) {
       division: "AFC East",
     })
     .returning();
-  return { league, season, team, state, city };
+  return { league, season, team, state, city, franchise };
 }
 
 async function createCoachStaff(
@@ -219,6 +235,9 @@ async function cleanup(
     await db.delete(teams).where(inArray(teams.id, ids.teams));
   }
   if (ids.cities?.length) {
+    await db
+      .delete(franchises)
+      .where(inArray(franchises.cityId, ids.cities));
     await db.delete(cities).where(inArray(cities.id, ids.cities));
   }
   if (ids.states?.length) {

@@ -18,11 +18,15 @@ vi.mock("../../api.ts", () => ({
     api: {
       leagues: {
         ":id": {
-          franchises: {
-            $get: (...args: unknown[]) => mockFranchisesGet(...args),
-          },
           "user-team": {
             $patch: (...args: unknown[]) => mockAssignTeam(...args),
+          },
+        },
+      },
+      teams: {
+        league: {
+          ":leagueId": {
+            $get: (...args: unknown[]) => mockFranchisesGet(...args),
           },
         },
       },

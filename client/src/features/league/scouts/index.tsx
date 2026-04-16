@@ -3,14 +3,14 @@ import type { ScoutNode } from "@zone-blitz/shared";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useScoutStaffTree } from "../../../hooks/use-scout-staff-tree.ts";
-import { useTeams } from "../../../hooks/use-teams.ts";
+import { useLeagueTeams } from "../../../hooks/use-teams.ts";
 import { buildStaffTree } from "./build-tree.ts";
 import { StaffTreeNode } from "./staff-tree-node.tsx";
 
 export function Scouts() {
   const { leagueId: rawLeagueId } = useParams({ strict: false });
   const leagueId = rawLeagueId ?? "";
-  const { data: teams, isLoading: teamsLoading } = useTeams();
+  const { data: teams, isLoading: teamsLoading } = useLeagueTeams(leagueId);
   const teamId = (teams?.[0]?.id as string | undefined) ?? "";
   const { data, isLoading, error } = useScoutStaffTree(leagueId, teamId);
 

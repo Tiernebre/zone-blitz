@@ -1,6 +1,5 @@
 import { assertEquals } from "@std/assert";
 import { FOUNDING_FRANCHISES } from "./founding-franchises.ts";
-import { DEFAULT_TEAMS } from "./default-teams.ts";
 
 const NFL_METRO_CITIES = new Set([
   "New York",
@@ -60,30 +59,6 @@ Deno.test("FOUNDING_FRANCHISES cities do not overlap with NFL metros", () => {
       NFL_METRO_CITIES.has(franchise.city),
       false,
       `${franchise.city} overlaps with an NFL metro city`,
-    );
-  }
-});
-
-Deno.test("FOUNDING_FRANCHISES names do not collide with DEFAULT_TEAMS", () => {
-  const existingNames = new Set(DEFAULT_TEAMS.map((t) => t.name));
-  for (const franchise of FOUNDING_FRANCHISES) {
-    assertEquals(
-      existingNames.has(franchise.name),
-      false,
-      `${franchise.name} collides with an existing DEFAULT_TEAMS name`,
-    );
-  }
-});
-
-Deno.test("FOUNDING_FRANCHISES abbreviations do not collide with DEFAULT_TEAMS", () => {
-  const existingAbbreviations = new Set(
-    DEFAULT_TEAMS.map((t) => t.abbreviation),
-  );
-  for (const franchise of FOUNDING_FRANCHISES) {
-    assertEquals(
-      existingAbbreviations.has(franchise.abbreviation),
-      false,
-      `${franchise.abbreviation} collides with an existing DEFAULT_TEAMS abbreviation`,
     );
   }
 });

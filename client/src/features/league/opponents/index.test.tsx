@@ -33,7 +33,7 @@ vi.mock("../../../hooks/use-league.ts", () => ({
 }));
 
 vi.mock("../../../hooks/use-teams.ts", () => ({
-  useTeams: (...args: unknown[]) => mockUseTeams(...args),
+  useLeagueTeams: (...args: unknown[]) => mockUseTeams(...args),
 }));
 
 function renderOpponents() {

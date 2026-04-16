@@ -3,7 +3,7 @@ import type { CoachNode } from "@zone-blitz/shared";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useStaffTree } from "../../../hooks/use-staff-tree.ts";
-import { useTeams } from "../../../hooks/use-teams.ts";
+import { useLeagueTeams } from "../../../hooks/use-teams.ts";
 import { useSchemeFingerprint } from "../../../hooks/use-scheme-fingerprint.ts";
 import { buildStaffTree } from "./build-tree.ts";
 import { StaffTreeNode } from "./staff-tree-node.tsx";
@@ -15,7 +15,7 @@ export function Coaches() {
   // TODO: wire a proper "current team" selection once persisted. For now
   // the staff tree renders the first team returned by the teams endpoint
   // so the page has data to render end-to-end.
-  const { data: teams, isLoading: teamsLoading } = useTeams();
+  const { data: teams, isLoading: teamsLoading } = useLeagueTeams(leagueId);
   const teamId = (teams?.[0]?.id as string | undefined) ?? "";
   const { data, isLoading, error } = useStaffTree(leagueId, teamId);
   const {

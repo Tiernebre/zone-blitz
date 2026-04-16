@@ -1,8 +1,6 @@
 import { useNavigate, useParams } from "@tanstack/react-router";
-import {
-  useAssignUserTeam,
-  useFranchiseTeams,
-} from "../../hooks/use-leagues.ts";
+import { useAssignUserTeam } from "../../hooks/use-leagues.ts";
+import { useLeagueTeams } from "../../hooks/use-teams.ts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -75,7 +73,7 @@ function FranchiseCard({
 
 export function TeamSelect() {
   const { leagueId } = useParams({ strict: false });
-  const { data: teams, isLoading, error } = useFranchiseTeams(leagueId!);
+  const { data: teams, isLoading, error } = useLeagueTeams(leagueId!);
   const assignUserTeam = useAssignUserTeam();
   const navigate = useNavigate();
 

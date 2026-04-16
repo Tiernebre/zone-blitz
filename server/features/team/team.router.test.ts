@@ -6,6 +6,8 @@ import type { TeamService } from "./team.service.interface.ts";
 function createMockTeam(overrides: Partial<Team> = {}): Team {
   return {
     id: "1",
+    leagueId: "league-1",
+    franchiseId: "franchise-1",
     name: "Test Team",
     cityId: "city-1",
     city: "Test City",
@@ -26,23 +28,26 @@ function createMockTeamService(
   overrides: Partial<TeamService> = {},
 ): TeamService {
   return {
-    getAll: () => Promise.resolve([]),
+    getByLeagueId: () => Promise.resolve([]),
     getById: () => Promise.resolve(createMockTeam()),
+    createMany: () => Promise.resolve([]),
     ...overrides,
   };
 }
 
 Deno.test("team.router", async (t) => {
-  await t.step("GET / returns all teams", async () => {
+  await t.step("GET /league/:leagueId returns teams for league", async () => {
     const teams = [
       createMockTeam({ id: "1", name: "Team A" }),
       createMockTeam({ id: "2", name: "Team B" }),
     ];
     const router = createTeamRouter(
-      createMockTeamService({ getAll: () => Promise.resolve(teams) }),
+      createMockTeamService({
+        getByLeagueId: () => Promise.resolve(teams),
+      }),
     );
 
-    const res = await router.request("/");
+    const res = await router.request("/league/league-1");
     assertEquals(res.status, 200);
 
     const body = await res.json();
@@ -51,13 +56,29 @@ Deno.test("team.router", async (t) => {
     assertEquals(body[1].name, "Team B");
   });
 
-  await t.step("GET / returns empty array when no teams", async () => {
-    const router = createTeamRouter(createMockTeamService());
+  await t.step(
+    "GET /league/:leagueId returns empty array when no teams",
+    async () => {
+      const router = createTeamRouter(createMockTeamService());
 
-    const res = await router.request("/");
+      const res = await router.request("/league/league-1");
+      assertEquals(res.status, 200);
+
+      const body = await res.json();
+      assertEquals(body.length, 0);
+    },
+  );
+
+  await t.step("GET /:id returns the team", async () => {
+    const team = createMockTeam({ id: "42", name: "Found" });
+    const router = createTeamRouter(
+      createMockTeamService({ getById: () => Promise.resolve(team) }),
+    );
+
+    const res = await router.request("/42");
     assertEquals(res.status, 200);
-
     const body = await res.json();
-    assertEquals(body.length, 0);
+    assertEquals(body.id, "42");
+    assertEquals(body.name, "Found");
   });
 });

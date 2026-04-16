@@ -5,13 +5,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TeamLogo } from "../../../components/team-logo.tsx";
 import { useLeague } from "../../../hooks/use-league.ts";
-import { useTeams } from "../../../hooks/use-teams.ts";
+import { useLeagueTeams } from "../../../hooks/use-teams.ts";
 
 export function Opponents() {
   const { leagueId: rawLeagueId } = useParams({ strict: false });
   const leagueId = rawLeagueId ?? "";
   const { data: league } = useLeague(leagueId);
-  const { data: teams, isLoading, error } = useTeams();
+  const { data: teams, isLoading, error } = useLeagueTeams(leagueId);
   const userTeamId = league?.userTeamId ?? null;
 
   return (

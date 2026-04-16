@@ -2,11 +2,16 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
 import postgres from "postgres";
 import pino from "pino";
-import { cities, colleges, leaguePhaseStep, states, teams } from "./schema.ts";
+import {
+  cities,
+  colleges,
+  franchises,
+  leaguePhaseStep,
+  states,
+} from "./schema.ts";
 import { DEFAULT_STATES } from "../features/states/default-states.ts";
 import { DEFAULT_CITIES } from "../features/cities/default-cities.ts";
-import { DEFAULT_TEAMS } from "../features/team/default-teams.ts";
-import { FOUNDING_FRANCHISES } from "../features/team/founding-franchises.ts";
+import { FOUNDING_FRANCHISES } from "../features/franchise/founding-franchises.ts";
 import { DEFAULT_COLLEGES } from "../features/colleges/default-colleges.ts";
 import { DEFAULT_PHASE_STEPS } from "../features/league-clock/default-phase-steps.ts";
 
@@ -74,33 +79,9 @@ function resolveCityId(name: string, stateCode: string): string {
   return id;
 }
 
-log.info("Seeding default teams...");
-await db
-  .insert(teams)
-  .values(
-    DEFAULT_TEAMS.map((t) => ({
-      name: t.name,
-      cityId: resolveCityId(t.city, t.state),
-      abbreviation: t.abbreviation,
-      primaryColor: t.primaryColor,
-      secondaryColor: t.secondaryColor,
-      accentColor: t.accentColor,
-      conference: t.conference,
-      division: t.division,
-    })),
-  )
-  .onConflictDoUpdate({
-    target: teams.abbreviation,
-    set: {
-      cityId: sql`excluded.city_id`,
-      updatedAt: new Date(),
-    },
-  });
-log.info({ count: DEFAULT_TEAMS.length }, "Default teams seeded.");
-
 log.info("Seeding founding franchises...");
 await db
-  .insert(teams)
+  .insert(franchises)
   .values(
     FOUNDING_FRANCHISES.map((f) => ({
       name: f.name,
@@ -114,7 +95,7 @@ await db
     })),
   )
   .onConflictDoUpdate({
-    target: teams.abbreviation,
+    target: franchises.abbreviation,
     set: {
       cityId: sql`excluded.city_id`,
       updatedAt: new Date(),

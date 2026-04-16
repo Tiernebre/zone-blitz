@@ -2,7 +2,7 @@ import { assertEquals } from "@std/assert";
 import { DEFAULT_CITIES } from "./default-cities.ts";
 import { DEFAULT_STATES } from "../states/default-states.ts";
 import { DEFAULT_COLLEGES } from "../colleges/default-colleges.ts";
-import { DEFAULT_TEAMS } from "../team/default-teams.ts";
+import { FOUNDING_FRANCHISES } from "../franchise/founding-franchises.ts";
 
 Deno.test("DEFAULT_CITIES has unique (name, stateCode) pairs", () => {
   const keys = DEFAULT_CITIES.map((c) => `${c.name}|${c.stateCode}`);
@@ -40,19 +40,22 @@ Deno.test("DEFAULT_CITIES covers every city referenced by a college", () => {
   }
 });
 
-Deno.test("DEFAULT_CITIES covers every city referenced by a team", () => {
-  const cityKeys = new Set(
-    DEFAULT_CITIES.map((c) => `${c.name}|${c.stateCode}`),
-  );
-  for (const team of DEFAULT_TEAMS) {
-    const key = `${team.city}|${team.state}`;
-    assertEquals(
-      cityKeys.has(key),
-      true,
-      `team ${team.name} references uncovered city ${key}`,
+Deno.test(
+  "DEFAULT_CITIES covers every city referenced by a founding franchise",
+  () => {
+    const cityKeys = new Set(
+      DEFAULT_CITIES.map((c) => `${c.name}|${c.stateCode}`),
     );
-  }
-});
+    for (const franchise of FOUNDING_FRANCHISES) {
+      const key = `${franchise.city}|${franchise.state}`;
+      assertEquals(
+        cityKeys.has(key),
+        true,
+        `franchise ${franchise.name} references uncovered city ${key}`,
+      );
+    }
+  },
+);
 
 Deno.test("DEFAULT_CITIES has at least 350 entries", () => {
   assertEquals(

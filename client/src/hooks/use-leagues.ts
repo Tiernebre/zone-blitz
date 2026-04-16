@@ -66,19 +66,6 @@ export function useTouchLeague() {
   });
 }
 
-export function useFranchiseTeams(leagueId: string) {
-  return useQuery({
-    queryKey: ["leagues", leagueId, "franchises"],
-    queryFn: async () => {
-      const res = await api.api.leagues[":id"].franchises.$get({
-        param: { id: leagueId },
-      });
-      return res.json();
-    },
-    enabled: !!leagueId,
-  });
-}
-
 export function useFoundLeague() {
   const queryClient = useQueryClient();
   return useMutation({

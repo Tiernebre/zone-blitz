@@ -35,7 +35,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 vi.mock("../../../hooks/use-teams.ts", () => ({
-  useTeams: (...args: unknown[]) => mockUseTeams(...args),
+  useLeagueTeams: (...args: unknown[]) => mockUseTeams(...args),
 }));
 
 vi.mock("../../../hooks/use-active-roster.ts", () => ({

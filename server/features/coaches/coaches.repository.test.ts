@@ -16,6 +16,7 @@ import {
 import { colleges } from "../colleges/college.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
+import { franchises } from "../franchise/franchise.schema.ts";
 import { cities } from "../cities/city.schema.ts";
 import { states } from "../states/state.schema.ts";
 import { createCoachesRepository } from "./coaches.repository.ts";
@@ -54,9 +55,24 @@ async function setupFixtures(db: ReturnType<typeof createTestDb>["db"]) {
       stateId: state.id,
     })
     .returning();
+  const [franchise] = await db
+    .insert(franchises)
+    .values({
+      name: "Test Franchise",
+      cityId: city.id,
+      abbreviation: `T${crypto.randomUUID().slice(0, 2).toUpperCase()}`,
+      primaryColor: "#000000",
+      secondaryColor: "#FFFFFF",
+      accentColor: "#FF0000",
+      conference: "AFC",
+      division: "AFC East",
+    })
+    .returning();
   const [team] = await db
     .insert(teams)
     .values({
+      leagueId: league.id,
+      franchiseId: franchise.id,
       name: "Test Team",
       cityId: city.id,
       abbreviation: `T${crypto.randomUUID().slice(0, 2).toUpperCase()}`,
@@ -67,7 +83,7 @@ async function setupFixtures(db: ReturnType<typeof createTestDb>["db"]) {
       division: "AFC East",
     })
     .returning();
-  return { league, team, state, city };
+  return { league, team, state, city, franchise };
 }
 
 Deno.test({
@@ -83,14 +99,16 @@ Deno.test({
     });
     const created: string[] = [];
     const teamsCreated: string[] = [];
+    const franchisesCreated: string[] = [];
     const leaguesCreated: string[] = [];
     const citiesCreated: string[] = [];
     const statesCreated: string[] = [];
 
     try {
-      const { league, team, state, city } = await setupFixtures(db);
+      const { league, team, state, city, franchise } = await setupFixtures(db);
       leaguesCreated.push(league.id);
       teamsCreated.push(team.id);
+      franchisesCreated.push(franchise.id);
       citiesCreated.push(city.id);
       statesCreated.push(state.id);
 
@@ -150,6 +168,9 @@ Deno.test({
       for (const id of teamsCreated) {
         await db.delete(teams).where(eq(teams.id, id));
       }
+      for (const id of franchisesCreated) {
+        await db.delete(franchises).where(eq(franchises.id, id));
+      }
       for (const id of citiesCreated) {
         await db.delete(cities).where(eq(cities.id, id));
       }
@@ -178,14 +199,16 @@ Deno.test({
     });
     const coachesCreated: string[] = [];
     const teamsCreated: string[] = [];
+    const franchisesCreated: string[] = [];
     const leaguesCreated: string[] = [];
     const citiesCreated: string[] = [];
     const statesCreated: string[] = [];
 
     try {
-      const { league, team, state, city } = await setupFixtures(db);
+      const { league, team, state, city, franchise } = await setupFixtures(db);
       leaguesCreated.push(league.id);
       teamsCreated.push(team.id);
+      franchisesCreated.push(franchise.id);
       citiesCreated.push(city.id);
       statesCreated.push(state.id);
 
@@ -303,6 +326,9 @@ Deno.test({
       }
       for (const id of teamsCreated) {
         await db.delete(teams).where(eq(teams.id, id));
+      }
+      for (const id of franchisesCreated) {
+        await db.delete(franchises).where(eq(franchises.id, id));
       }
       for (const id of citiesCreated) {
         await db.delete(cities).where(eq(cities.id, id));

@@ -1,6 +1,12 @@
-import type { DefaultTeam } from "./default-teams.ts";
-
-export type FoundingFranchise = Omit<DefaultTeam, "conference" | "division">;
+export interface FoundingFranchise {
+  name: string;
+  city: string;
+  state: string;
+  abbreviation: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+}
 
 export const FOUNDING_FRANCHISES: FoundingFranchise[] = [
   {
