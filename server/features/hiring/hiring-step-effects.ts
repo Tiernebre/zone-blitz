@@ -1,14 +1,12 @@
 import type pino from "pino";
+import type { PhaseStepListener } from "../league-clock/phase-step-listener.ts";
 import type { HiringService } from "./hiring.service.ts";
 import type { NpcHiringAi } from "./npc-hiring-ai.ts";
 
-export interface HiringStepEffects {
-  onTransition(input: {
-    leagueId: string;
-    prevStepSlug: string;
-    nextStepSlug: string;
-  }): Promise<void>;
-}
+// Retained for public API compatibility — HiringStepEffects is just a
+// PhaseStepListener, so new features can implement the same contract
+// without depending on the hiring module.
+export type HiringStepEffects = PhaseStepListener;
 
 type HiringServiceSubset = Pick<
   HiringService,
