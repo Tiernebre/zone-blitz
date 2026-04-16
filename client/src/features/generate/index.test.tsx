@@ -26,9 +26,11 @@ vi.mock("../../api.ts", () => ({
   },
 }));
 
+const mockUseParams = vi.fn(() => ({ leagueId: "league-1" }));
+
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
-  useParams: () => ({ leagueId: "league-1" }),
+  useParams: () => mockUseParams(),
 }));
 
 function renderWithProviders() {
@@ -50,6 +52,7 @@ afterEach(() => {
   vi.useRealTimers();
   cleanup();
   vi.clearAllMocks();
+  mockUseParams.mockReturnValue({ leagueId: "league-1" });
 });
 
 describe("Generate", () => {
@@ -135,6 +138,29 @@ describe("Generate", () => {
     });
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: /try again/i })).toBeDefined();
+  });
+
+  it("does not call generate when no leagueId is present", () => {
+    mockUseParams.mockReturnValue(
+      {} as unknown as { leagueId: string },
+    );
+    renderWithProviders();
+    expect(mockGeneratePost).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when retry is clicked without a leagueId", async () => {
+    mockGeneratePost.mockReturnValueOnce(
+      Promise.resolve({ ok: false, status: 500 }),
+    );
+    renderWithProviders();
+    await vi.waitFor(() => {
+      expect(screen.getByText("Generation failed")).toBeDefined();
+    });
+    mockUseParams.mockReturnValue(
+      {} as unknown as { leagueId: string },
+    );
+    fireEvent.click(screen.getByRole("button", { name: /try again/i }));
+    expect(mockGeneratePost).toHaveBeenCalledTimes(1);
   });
 
   it("retries the generate call when the user clicks Try again", async () => {

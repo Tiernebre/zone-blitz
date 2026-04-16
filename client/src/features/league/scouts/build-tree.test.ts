@@ -67,6 +67,40 @@ describe("buildStaffTree", () => {
     expect(rootIds).toEqual(["dir", "orphan"]);
   });
 
+  it("falls back to last-name ordering when two scouts share a role", () => {
+    const tree = buildStaffTree([
+      node({ id: "dir", role: "DIRECTOR" }),
+      node({
+        id: "a2",
+        role: "AREA_SCOUT",
+        lastName: "Zebra",
+        reportsToId: "dir",
+      }),
+      node({
+        id: "a1",
+        role: "AREA_SCOUT",
+        lastName: "Adams",
+        reportsToId: "dir",
+      }),
+    ]);
+
+    expect(tree[0].reports.map((r) => r.id)).toEqual(["a1", "a2"]);
+  });
+
+  it("places scouts with unknown roles after canonical roles", () => {
+    const tree = buildStaffTree([
+      node({ id: "dir", role: "DIRECTOR" }),
+      node({
+        id: "unknown",
+        role: "MYSTERY" as ScoutRole,
+        reportsToId: "dir",
+      }),
+      node({ id: "cc", role: "NATIONAL_CROSS_CHECKER", reportsToId: "dir" }),
+    ]);
+
+    expect(tree[0].reports.map((r) => r.id)).toEqual(["cc", "unknown"]);
+  });
+
   it("sorts direct reports by canonical role order", () => {
     const tree = buildStaffTree([
       node({ id: "dir", role: "DIRECTOR" }),

@@ -126,6 +126,34 @@ describe("CandidateDetail", () => {
     );
   });
 
+  it("shows the unrevealed placeholder for reveal sections whose value is missing", () => {
+    mockUseHiringCandidateDetail.mockReturnValue({
+      data: {
+        id: "c1",
+        leagueId: "lg",
+        staffType: "coach",
+        firstName: "A",
+        lastName: "B",
+        role: "HC",
+        marketTierPref: null,
+        philosophyFitPref: null,
+        staffFitPref: null,
+        compensationPref: null,
+        minimumThreshold: null,
+        interviewReveal: {
+          philosophyReveal: null,
+          staffFitReveal: { conflictsWith: [] },
+        },
+      },
+      isLoading: false,
+    });
+    renderPage();
+    expect(screen.getByTestId("reveal-unlocked")).toBeTruthy();
+    expect(screen.getByTestId("philosophy-reveal").textContent).toContain(
+      "Not yet revealed",
+    );
+  });
+
   it("keeps the reveal locked when the reveal object has only null fields", () => {
     mockUseHiringCandidateDetail.mockReturnValue({
       data: {

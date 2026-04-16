@@ -63,6 +63,30 @@ describe("buildStaffTree", () => {
     expect(rootIds).toEqual(["hc", "orphan"]);
   });
 
+  it("falls back to last-name ordering when two reports share a role", () => {
+    const tree = buildStaffTree([
+      node({ id: "hc", role: "HC" }),
+      node({ id: "qb2", role: "QB", lastName: "Zebra", reportsToId: "hc" }),
+      node({ id: "qb1", role: "QB", lastName: "Adams", reportsToId: "hc" }),
+    ]);
+
+    expect(tree[0].reports.map((r) => r.id)).toEqual(["qb1", "qb2"]);
+  });
+
+  it("places coaches with unknown roles after canonical roles", () => {
+    const tree = buildStaffTree([
+      node({ id: "hc", role: "HC" }),
+      node({
+        id: "unknown",
+        role: "MYSTERY" as CoachRole,
+        reportsToId: "hc",
+      }),
+      node({ id: "oc", role: "OC", reportsToId: "hc" }),
+    ]);
+
+    expect(tree[0].reports.map((r) => r.id)).toEqual(["oc", "unknown"]);
+  });
+
   it("sorts direct reports by canonical role order", () => {
     const tree = buildStaffTree([
       node({ id: "hc", role: "HC" }),

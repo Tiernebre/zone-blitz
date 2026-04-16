@@ -5,6 +5,7 @@ import { Hiring } from "./index.tsx";
 
 const mockUseParams = vi.fn();
 const mockUseLeagueClock = vi.fn();
+const mockUseLeague = vi.fn();
 const mockUseTeamHiringState = vi.fn();
 const mockUseHiringCandidates = vi.fn();
 const mockUseHiringBlockers = vi.fn();
@@ -25,6 +26,10 @@ vi.mock("@tanstack/react-router", () => ({
 
 vi.mock("../../../hooks/use-league-clock.ts", () => ({
   useLeagueClock: (...args: unknown[]) => mockUseLeagueClock(...args),
+}));
+
+vi.mock("../../../hooks/use-league.ts", () => ({
+  useLeague: (...args: unknown[]) => mockUseLeague(...args),
 }));
 
 vi.mock("../../../hooks/use-hiring.ts", () => ({
@@ -91,6 +96,14 @@ beforeEach(() => {
     data: { slug: "hiring_market_survey" },
     isLoading: false,
   });
+  mockUseLeague.mockReturnValue({
+    data: {
+      interestCap: 10,
+      interviewsPerWeek: 5,
+      maxConcurrentOffers: 3,
+    },
+    isLoading: false,
+  });
 });
 
 afterEach(() => {
@@ -128,6 +141,12 @@ describe("Hiring page", () => {
   it("displays remaining staff budget", () => {
     renderPage();
     expect(screen.getByTestId("hiring-budget").textContent).toContain("$30M");
+  });
+
+  it("hides the interest counter when the league has no interest cap", () => {
+    mockUseLeague.mockReturnValue({ data: undefined, isLoading: false });
+    renderPage();
+    expect(screen.queryByTestId("hiring-interest-counter")).toBeNull();
   });
 });
 
@@ -232,6 +251,48 @@ describe("Interview view", () => {
   it("shows empty state when no interests are active", () => {
     renderPage();
     expect(screen.getByTestId("interview-empty")).toBeTruthy();
+  });
+
+  it("hides the interview counter when interviewsPerWeek is unknown", () => {
+    mockUseLeague.mockReturnValue({ data: undefined, isLoading: false });
+    mockUseHiringCandidates.mockReturnValue({
+      data: [
+        {
+          id: "c1",
+          leagueId: "lg",
+          staffType: "coach",
+          firstName: "Andy",
+          lastName: "Reid",
+          role: "HC",
+        },
+      ],
+      isLoading: false,
+    });
+    mockUseTeamHiringState.mockReturnValue({
+      data: {
+        leagueId: "lg",
+        teamId: "tm",
+        staffBudget: 0,
+        remainingBudget: 0,
+        interests: [
+          {
+            id: "i1",
+            leagueId: "lg",
+            teamId: "tm",
+            staffType: "coach",
+            staffId: "c1",
+            stepSlug: "hiring_market_survey",
+            status: "active",
+          },
+        ],
+        interviews: [],
+        offers: [],
+        decisions: [],
+      },
+      isLoading: false,
+    });
+    renderPage();
+    expect(screen.queryByTestId("hiring-interview-counter")).toBeNull();
   });
 
   it("shows loading state while candidates are loading", () => {
