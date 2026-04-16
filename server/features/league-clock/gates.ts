@@ -24,6 +24,7 @@ export interface LeagueGateState {
   draftOrderResolved: boolean;
   superBowlPlayed: boolean;
   priorPhaseComplete: boolean;
+  allTeamsHaveStaff: boolean;
 }
 
 export type GateFn = (state: LeagueGateState) => GateResult;
@@ -71,6 +72,21 @@ function enterDraft(state: LeagueGateState): GateResult {
   return blockers.length > 0 ? { ok: false, blockers } : GATE_OK;
 }
 
+function enterGenesisFoundingPool(state: LeagueGateState): GateResult {
+  if (!state.allTeamsHaveStaff) {
+    return {
+      ok: false,
+      blockers: [{
+        teamId: "",
+        reason:
+          "All teams must hire staff before generating the founding player pool",
+        autoResolvable: false,
+      }],
+    };
+  }
+  return GATE_OK;
+}
+
 function enterOffseasonRollover(state: LeagueGateState): GateResult {
   if (!state.superBowlPlayed) {
     return {
@@ -86,6 +102,7 @@ function enterOffseasonRollover(state: LeagueGateState): GateResult {
 }
 
 const PHASE_GATES: Partial<Record<string, GateFn>> = {
+  genesis_founding_pool: enterGenesisFoundingPool,
   regular_season: enterRegularSeason,
   draft: enterDraft,
   offseason_rollover: enterOffseasonRollover,

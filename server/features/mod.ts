@@ -172,7 +172,10 @@ export function createFeatureRouters(
     leagueClockRepo,
     log,
   });
-  const leagueClockRouter = createLeagueClockRouter(leagueClockService);
+  const leagueClockRouter = createLeagueClockRouter(leagueClockService, {
+    teamService,
+    coachesService,
+  });
 
   // Routers
   const leagueRouter = createLeagueRouter(leagueService);

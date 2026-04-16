@@ -43,6 +43,7 @@ export function useAdvanceLeagueClock() {
         draftOrderResolved: boolean;
         superBowlPlayed: boolean;
         priorPhaseComplete: boolean;
+        allTeamsHaveStaff: boolean;
       };
     }) => {
       const res = await api.api["league-clock"][":leagueId"].advance.$post({
