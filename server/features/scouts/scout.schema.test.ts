@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { scouts } from "./scout.schema.ts";
 
-Deno.test("scouts table exposes preference columns (ADR 0032)", () => {
+Deno.test("scouts table exposes preference columns", () => {
   const columns = Object.keys(scouts);
   for (
     const col of [

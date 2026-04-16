@@ -1,30 +1,30 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { Loader2Icon } from "lucide-react";
-import { useFoundLeague } from "../../hooks/use-leagues.ts";
+import { useGenerateLeague } from "../../hooks/use-leagues.ts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 export const MILESTONE_COPY = [
-  "Creating coaches and league foundation…",
-  "Assembling the founding player pool…",
-  "Founding the league…",
+  "Creating coaches and league structure…",
+  "Assembling the initial player pool…",
+  "Finishing up…",
 ] as const;
 
 const MILESTONE_INTERVAL_MS = 2500;
 
 export function Generate() {
   const { leagueId } = useParams({ strict: false });
-  const foundLeague = useFoundLeague();
+  const generateLeague = useGenerateLeague();
   const navigate = useNavigate();
   const [milestoneIndex, setMilestoneIndex] = useState(0);
 
   useEffect(() => {
     if (
-      !leagueId || foundLeague.isPending || foundLeague.isSuccess ||
-      foundLeague.isError
+      !leagueId || generateLeague.isPending || generateLeague.isSuccess ||
+      generateLeague.isError
     ) return;
-    foundLeague.mutate(leagueId, {
+    generateLeague.mutate(leagueId, {
       onSuccess: () => {
         navigate({
           to: "/leagues/$leagueId",
@@ -46,8 +46,8 @@ export function Generate() {
   const handleRetry = () => {
     if (!leagueId) return;
     setMilestoneIndex(0);
-    foundLeague.reset();
-    foundLeague.mutate(leagueId, {
+    generateLeague.reset();
+    generateLeague.mutate(leagueId, {
       onSuccess: () => {
         navigate({
           to: "/leagues/$leagueId",
@@ -57,14 +57,14 @@ export function Generate() {
     });
   };
 
-  if (foundLeague.isError) {
+  if (generateLeague.isError) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-8">
         <div className="max-w-md w-full space-y-4">
           <Alert variant="destructive">
             <AlertTitle>Generation failed</AlertTitle>
             <AlertDescription>
-              {foundLeague.error?.message ?? "Something went wrong."}
+              {generateLeague.error?.message ?? "Something went wrong."}
             </AlertDescription>
           </Alert>
           <Button onClick={handleRetry} className="w-full">
@@ -79,7 +79,7 @@ export function Generate() {
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center gap-6">
       <Loader2Icon className="size-12 animate-spin text-primary" />
       <div className="text-center space-y-2">
-        <p className="text-2xl font-semibold">Founding your league</p>
+        <p className="text-2xl font-semibold">Creating your league</p>
         <p className="text-muted-foreground" aria-live="polite">
           {MILESTONE_COPY[milestoneIndex]}
         </p>

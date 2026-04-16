@@ -812,34 +812,34 @@ On game day, the coaching staff's hidden attributes drive:
 
 ---
 
-## League Genesis
+## League Setup
 
 This document describes coaching in a mature Zone Blitz league — candidates
 cycling through the annual coaching carousel, reputations accrued across
 seasons, coaching trees traced through a league with real history.
 
-A brand-new genesis league starts without any of that. See
-[League Genesis](./league-genesis.md); the coaching-specific points:
+A brand-new league starts without any of that. See
+[League Setup](./league-setup.md); the coaching-specific points:
 
 - **Every coach is generated uniquely per league.** When a league is created,
   its entire coaching universe is generated alongside it. No recurring names
   across save files, no shared pool between leagues. The head coach you hire
   today exists in this league and only this league — a one-of-one with a career
   arc that will only ever play out here.
-- **Genesis hiring is contested.** A single shared candidate pool is released at
-  league founding, and every franchise (human-run and NPC alike) hires from it
-  at the same time. If you wait on an elite coordinator, an NPC franchise may
-  hire them first. Candidates have preferences — market tier, philosophy,
-  existing staff — and make real choices about where to sign. Multiplayer can
-  produce real-time bidding wars between two human operators for the same head
-  coach.
+- **Setup-phase hiring is contested.** A single shared candidate pool is
+  released at league setup, and every franchise (human-run and NPC alike) hires
+  from it at the same time. If you wait on an elite coordinator, an NPC
+  franchise may hire them first. Candidates have preferences — market tier,
+  philosophy, existing staff — and make real choices about where to sign.
+  Multiplayer can produce real-time bidding wars between two human operators for
+  the same head coach.
 - **Gems and busts apply to coaches too.** The uncertainty that shapes the
   allocation draft applies to staff. The acclaimed veteran may prove rigid. The
   unheralded position coach may become a future hall-of-fame head coach if
   someone takes the chance. Your front office is a draft pick, and it hits or
   misses the same way a first-round player selection does.
 - **No prior coaching tree yet.** The first league-generated coaches become the
-  founders of the league's coaching trees. Over decades, the next generations
+  owners of the league's coaching trees. Over decades, the next generations
   descend from them — but in Year 1, there are no "Shanahan disciples" or
   "Belichick branches" yet. That heritage has to be built.
 
@@ -871,8 +871,3 @@ agonizing decisions in the game:
 The deepest satisfaction comes from building a coaching staff that develops
 players, wins games, and sustains excellence over years — and from the hard
 calls you make when it stops working.
-
-## Related decisions
-
-- [0023 — Contested staff hiring market](../decisions/0023-contested-staff-hiring-market.md)
-- [0032 — Multi-week staff hiring process](../decisions/0032-multi-week-staff-hiring.md)

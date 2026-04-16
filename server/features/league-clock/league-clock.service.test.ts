@@ -39,7 +39,7 @@ function createMockClock(
     advancedByUserId: null,
     overrideReason: null,
     overrideBlockers: null,
-    hasCompletedGenesis: false,
+    hasCompletedInitial: false,
     ...overrides,
   };
 }
@@ -776,16 +776,16 @@ Deno.test("league-clock.service", async (t) => {
     );
 
     await t.step(
-      "Year 1 league advances within genesis_staff_hiring steps",
+      "Year 1 league advances within initial_staff_hiring steps",
       async () => {
         const service = createService({
           leagueClockRepo: {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_staff_hiring",
+                  phase: "initial_staff_hiring",
                   stepIndex: 0,
-                  hasCompletedGenesis: false,
+                  hasCompletedInitial: false,
                 }),
               ),
           },
@@ -796,22 +796,22 @@ Deno.test("league-clock.service", async (t) => {
           createActor(),
           createGateState(),
         );
-        assertEquals(result.phase, "genesis_staff_hiring");
+        assertEquals(result.phase, "initial_staff_hiring");
         assertEquals(result.stepIndex, 1);
       },
     );
 
     await t.step(
-      "Year 1 league transitions from the final genesis_staff_hiring step to genesis_founding_pool",
+      "Year 1 league transitions from the final initial_staff_hiring step to initial_pool",
       async () => {
         const service = createService({
           leagueClockRepo: {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_staff_hiring",
+                  phase: "initial_staff_hiring",
                   stepIndex: 7,
-                  hasCompletedGenesis: false,
+                  hasCompletedInitial: false,
                 }),
               ),
           },
@@ -822,22 +822,22 @@ Deno.test("league-clock.service", async (t) => {
           createActor(),
           createGateState(),
         );
-        assertEquals(result.phase, "genesis_founding_pool");
+        assertEquals(result.phase, "initial_pool");
         assertEquals(result.stepIndex, 0);
       },
     );
 
     await t.step(
-      "rejects advance into genesis phase when hasCompletedGenesis is true",
+      "rejects advance into initial phase when hasCompletedInitial is true",
       async () => {
         const service = createService({
           leagueClockRepo: {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_staff_hiring",
+                  phase: "initial_staff_hiring",
                   stepIndex: 0,
-                  hasCompletedGenesis: true,
+                  hasCompletedInitial: true,
                 }),
               ),
           },
@@ -851,22 +851,22 @@ Deno.test("league-clock.service", async (t) => {
               createGateState(),
             ),
           DomainError,
-          "Cannot re-enter genesis phases",
+          "Cannot re-enter initial phases",
         );
       },
     );
 
     await t.step(
-      "rejects commissioner override into genesis phase when hasCompletedGenesis is true",
+      "rejects commissioner override into initial phase when hasCompletedInitial is true",
       async () => {
         const service = createService({
           leagueClockRepo: {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_staff_hiring",
+                  phase: "initial_staff_hiring",
                   stepIndex: 0,
-                  hasCompletedGenesis: true,
+                  hasCompletedInitial: true,
                 }),
               ),
           },
@@ -878,27 +878,27 @@ Deno.test("league-clock.service", async (t) => {
               "league-1",
               createActor({
                 isCommissioner: true,
-                overrideReason: "Trying to force genesis",
+                overrideReason: "Trying to force initial",
               }),
               createGateState(),
             ),
           DomainError,
-          "Cannot re-enter genesis phases",
+          "Cannot re-enter initial phases",
         );
       },
     );
 
     await t.step(
-      "rejects ready_check advance into genesis phase when hasCompletedGenesis is true",
+      "rejects ready_check advance into initial phase when hasCompletedInitial is true",
       async () => {
         const service = createService({
           leagueClockRepo: {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_staff_hiring",
+                  phase: "initial_staff_hiring",
                   stepIndex: 0,
-                  hasCompletedGenesis: true,
+                  hasCompletedInitial: true,
                 }),
               ),
           },
@@ -917,13 +917,13 @@ Deno.test("league-clock.service", async (t) => {
               },
             ),
           DomainError,
-          "Cannot re-enter genesis phases",
+          "Cannot re-enter initial phases",
         );
       },
     );
 
     await t.step(
-      "transition out of genesis_kickoff sets hasCompletedGenesis atomically",
+      "transition out of initial_kickoff sets hasCompletedInitial atomically",
       async () => {
         let upsertedRow:
           | Parameters<LeagueClockRepository["upsert"]>[0]
@@ -934,9 +934,9 @@ Deno.test("league-clock.service", async (t) => {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_kickoff",
+                  phase: "initial_kickoff",
                   stepIndex: 0,
-                  hasCompletedGenesis: false,
+                  hasCompletedInitial: false,
                 }),
               ),
             upsert: (row) => {
@@ -945,7 +945,7 @@ Deno.test("league-clock.service", async (t) => {
                 createMockClock({
                   phase: row.phase,
                   stepIndex: row.stepIndex,
-                  hasCompletedGenesis: row.hasCompletedGenesis ?? false,
+                  hasCompletedInitial: row.hasCompletedInitial ?? false,
                 }),
               );
             },
@@ -960,21 +960,21 @@ Deno.test("league-clock.service", async (t) => {
 
         assertEquals(result.phase, "regular_season");
         assertEquals(result.stepIndex, 0);
-        assertEquals(upsertedRow?.hasCompletedGenesis, true);
+        assertEquals(upsertedRow?.hasCompletedInitial, true);
       },
     );
 
     await t.step(
-      "Year 1: genesis_kickoff skips preseason and lands in regular_season",
+      "Year 1: initial_kickoff skips preseason and lands in regular_season",
       async () => {
         const service = createService({
           leagueClockRepo: {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_kickoff",
+                  phase: "initial_kickoff",
                   stepIndex: 0,
-                  hasCompletedGenesis: false,
+                  hasCompletedInitial: false,
                 }),
               ),
           },
@@ -1001,7 +1001,7 @@ Deno.test("league-clock.service", async (t) => {
                 createMockClock({
                   phase: "offseason_program",
                   stepIndex: 0,
-                  hasCompletedGenesis: true,
+                  hasCompletedInitial: true,
                 }),
               ),
           },
@@ -1019,16 +1019,16 @@ Deno.test("league-clock.service", async (t) => {
     );
 
     await t.step(
-      "Year 1: commissioner override respects genesis_kickoff skip to regular_season",
+      "Year 1: commissioner override respects initial_kickoff skip to regular_season",
       async () => {
         const service = createService({
           leagueClockRepo: {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_kickoff",
+                  phase: "initial_kickoff",
                   stepIndex: 0,
-                  hasCompletedGenesis: false,
+                  hasCompletedInitial: false,
                 }),
               ),
           },
@@ -1049,16 +1049,16 @@ Deno.test("league-clock.service", async (t) => {
     );
 
     await t.step(
-      "Year 1: ready_check advance respects genesis_kickoff skip to regular_season",
+      "Year 1: ready_check advance respects initial_kickoff skip to regular_season",
       async () => {
         const service = createService({
           leagueClockRepo: {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_kickoff",
+                  phase: "initial_kickoff",
                   stepIndex: 0,
-                  hasCompletedGenesis: false,
+                  hasCompletedInitial: false,
                 }),
               ),
           },
@@ -1081,16 +1081,16 @@ Deno.test("league-clock.service", async (t) => {
     );
 
     await t.step(
-      "Year 1: genesis_kickoff skip to regular_season runs regular_season gate",
+      "Year 1: initial_kickoff skip to regular_season runs regular_season gate",
       async () => {
         const service = createService({
           leagueClockRepo: {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_kickoff",
+                  phase: "initial_kickoff",
                   stepIndex: 0,
-                  hasCompletedGenesis: false,
+                  hasCompletedInitial: false,
                 }),
               ),
           },
@@ -1114,7 +1114,7 @@ Deno.test("league-clock.service", async (t) => {
     );
 
     await t.step(
-      "non-genesis transition does not flip hasCompletedGenesis",
+      "non-initial transition does not flip hasCompletedInitial",
       async () => {
         let upsertedRow:
           | Parameters<LeagueClockRepository["upsert"]>[0]
@@ -1127,7 +1127,7 @@ Deno.test("league-clock.service", async (t) => {
                 createMockClock({
                   phase: "offseason_review",
                   stepIndex: 0,
-                  hasCompletedGenesis: true,
+                  hasCompletedInitial: true,
                 }),
               ),
             upsert: (row) => {
@@ -1136,7 +1136,7 @@ Deno.test("league-clock.service", async (t) => {
                 createMockClock({
                   phase: row.phase,
                   stepIndex: row.stepIndex,
-                  hasCompletedGenesis: row.hasCompletedGenesis ?? false,
+                  hasCompletedInitial: row.hasCompletedInitial ?? false,
                 }),
               );
             },
@@ -1149,7 +1149,7 @@ Deno.test("league-clock.service", async (t) => {
           createGateState(),
         );
 
-        assertEquals(upsertedRow?.hasCompletedGenesis, undefined);
+        assertEquals(upsertedRow?.hasCompletedInitial, undefined);
       },
     );
 
@@ -1255,7 +1255,7 @@ Deno.test("league-clock.service", async (t) => {
     });
 
     await t.step(
-      "includes hasCompletedGenesis false for Year 1 league",
+      "includes hasCompletedInitial false for Year 1 league",
       async () => {
         const service = createService({
           leagueClockRepo: {
@@ -1264,19 +1264,19 @@ Deno.test("league-clock.service", async (t) => {
                 createMockClock({
                   phase: "regular_season",
                   stepIndex: 0,
-                  hasCompletedGenesis: false,
+                  hasCompletedInitial: false,
                 }),
               ),
           },
         });
 
         const state = await service.getClockState("league-1");
-        assertEquals(state.hasCompletedGenesis, false);
+        assertEquals(state.hasCompletedInitial, false);
       },
     );
 
     await t.step(
-      "includes hasCompletedGenesis true for Year 2+ league",
+      "includes hasCompletedInitial true for Year 2+ league",
       async () => {
         const service = createService({
           leagueClockRepo: {
@@ -1285,14 +1285,14 @@ Deno.test("league-clock.service", async (t) => {
                 createMockClock({
                   phase: "preseason",
                   stepIndex: 0,
-                  hasCompletedGenesis: true,
+                  hasCompletedInitial: true,
                 }),
               ),
           },
         });
 
         const state = await service.getClockState("league-1");
-        assertEquals(state.hasCompletedGenesis, true);
+        assertEquals(state.hasCompletedInitial, true);
       },
     );
   });

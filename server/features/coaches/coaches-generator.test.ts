@@ -333,7 +333,7 @@ Deno.test("seeded generator is deterministic", () => {
   }
 });
 
-// ---- Mentor wiring (ADR 0022) ----
+// ---- Mentor wiring ----
 
 Deno.test("generate wires mentorCoachId to some coaches", () => {
   const result = makeGenerator().generate(INPUT);
@@ -363,7 +363,7 @@ Deno.test("generate HCs have no mentorCoachId", () => {
   }
 });
 
-// ---- Pool generation (ADR 0022) ----
+// ---- Pool generation ----
 
 const POOL_INPUT = {
   leagueId: "league-pool",

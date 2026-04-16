@@ -6,13 +6,12 @@ import type {
 } from "@zone-blitz/shared";
 
 /**
- * Minimal v1 archetype-weight table per ADR 0007. Each entry says
- * "when the fingerprint's `axis` sits toward `pole`, these player
- * attributes become important at this position". The ADR flags the
- * full table as multi-PR content work; this first cut covers the
- * positions and axes with the clearest signal so the fit pipeline
- * has something real to return. Positions not listed here fall
- * through to `neutral`.
+ * Minimal v1 archetype-weight table. Each entry says "when the
+ * fingerprint's `axis` sits toward `pole`, these player attributes
+ * become important at this position". The full table is multi-PR
+ * content work; this first cut covers the positions and axes with
+ * the clearest signal so the fit pipeline has something real to
+ * return. Positions not listed here fall through to `neutral`.
  */
 
 type OffensiveAxisKey = keyof OffensiveTendencies;

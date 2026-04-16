@@ -59,11 +59,7 @@ multiplayer is where the game reaches its potential.
 
 - **[`north-star/`](./north-star/)** — evergreen vision documents that describe
   _what each feature area is_ and the principles that guide it. Update these
-  when a decision materially changes the rules of a domain.
-- **[`decisions/`](./decisions/)** — short, dated ADR-style records of specific
-  product decisions ("we picked X over Y because…"). Numbered chronologically;
-  immutable once merged. Start here when you want to know _why_ something is the
-  way it is.
+  when something materially changes the rules of a domain.
 
 ## Feature Areas (north star)
 
@@ -94,11 +90,7 @@ Each of these has a dedicated vision document:
   coaching trees, the GM-coach relationship, and the coaching market
 - [Media](./north-star/media.md) — analysts, headlines, grades, narratives, and
   the mechanical effects of public perception
-- [League Genesis](./north-star/league-genesis.md) — startup-league vision:
-  founding small, growing via expansion, and the founder as owner-and-GM
+- [League Setup](./north-star/league-setup.md) — startup-league vision: setup
+  small, growing via expansion, and the owner as owner-and-GM
 - [Teams & Branding](./north-star/teams-and-branding.md) — fictional franchises,
   market size, relocation, divisions, visual identity, and custom team uploads
-
-## Decisions
-
-See [`decisions/README.md`](./decisions/README.md) for the full log.

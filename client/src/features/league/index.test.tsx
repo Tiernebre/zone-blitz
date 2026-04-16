@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LeagueHome } from "./index.tsx";
 
-let mockPhase: string | undefined = "genesis_staff_hiring";
+let mockPhase: string | undefined = "initial_staff_hiring";
 const mockClockGet = vi.fn();
 
 vi.mock("@tanstack/react-router", () => ({
@@ -56,8 +56,8 @@ afterEach(() => {
 });
 
 describe("LeagueHome", () => {
-  it("renders the dashboard view when phase is genesis_staff_hiring", async () => {
-    mockPhase = "genesis_staff_hiring";
+  it("renders the dashboard view when phase is initial_staff_hiring", async () => {
+    mockPhase = "initial_staff_hiring";
     renderWithProviders();
     await waitFor(() => {
       expect(
@@ -66,18 +66,18 @@ describe("LeagueHome", () => {
     });
   });
 
-  it("renders the founding-pool view when phase is genesis_founding_pool", async () => {
-    mockPhase = "genesis_founding_pool";
+  it("renders the initial-pool view when phase is initial_pool", async () => {
+    mockPhase = "initial_pool";
     renderWithProviders();
     await waitFor(() => {
       expect(
-        screen.getByRole("heading", { name: "Founding Pool" }),
+        screen.getByRole("heading", { name: "Initial Pool" }),
       ).toBeDefined();
     });
   });
 
-  it("renders the allocation-draft view when phase is genesis_allocation_draft", async () => {
-    mockPhase = "genesis_allocation_draft";
+  it("renders the allocation-draft view when phase is initial_draft", async () => {
+    mockPhase = "initial_draft";
     renderWithProviders();
     await waitFor(() => {
       expect(
@@ -86,7 +86,7 @@ describe("LeagueHome", () => {
     });
   });
 
-  it("falls back to League Home for non-genesis phases", async () => {
+  it("falls back to League Home for non-initial phases", async () => {
     mockPhase = "regular_season";
     renderWithProviders();
     await waitFor(() => {

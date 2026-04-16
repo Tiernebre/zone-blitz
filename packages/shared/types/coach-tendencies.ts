@@ -1,9 +1,7 @@
 /**
- * Coaching scheme tendencies live on coordinators per ADR 0007.
- * Each axis is a 0–100 integer position on a named spectrum. The poles
- * and meaning of every axis are documented in the ADR — values are only
- * numeric for storage/compute; the UI renders bar positions, never the
- * integer itself.
+ * Coaching scheme tendencies live on coordinators. Each axis is a 0–100
+ * integer position on a named spectrum. Values are only numeric for
+ * storage/compute; the UI renders bar positions, never the integer itself.
  *
  * Offensive tendencies belong to the OC (or the offense-side HC when he
  * holds the OC slot); defensive tendencies belong to the DC. Both sides

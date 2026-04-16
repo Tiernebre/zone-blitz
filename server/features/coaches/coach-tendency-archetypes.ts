@@ -4,7 +4,7 @@ import type {
 } from "@zone-blitz/shared";
 
 /**
- * Coordinator archetypes per ADR 0007. Vectors are deliberately
+ * Coordinator archetypes. Vectors are deliberately
  * recognizable "trees" (Shanahan / Air Raid / Fangio / etc.) rather
  * than uniform random so the hiring market is legible. Values are the
  * archetype's center; the generator applies a small deterministic

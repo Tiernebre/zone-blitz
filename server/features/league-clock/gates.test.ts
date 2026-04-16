@@ -185,8 +185,8 @@ Deno.test("gates", async (t) => {
     });
   });
 
-  await t.step("enterGenesisFoundingPool", async (t) => {
-    const gate = getGateForPhase("genesis_founding_pool")!;
+  await t.step("enterInitialPool", async (t) => {
+    const gate = getGateForPhase("initial_pool")!;
 
     await t.step("passes when all teams have staff", () => {
       const result = gate(createState({ allTeamsHaveStaff: true }));
@@ -200,7 +200,7 @@ Deno.test("gates", async (t) => {
         assertEquals(result.blockers.length, 1);
         assertEquals(
           result.blockers[0].reason,
-          "All teams must hire staff before generating the founding player pool",
+          "All teams must hire staff before generating the initial player pool",
         );
         assertEquals(result.blockers[0].autoResolvable, false);
       }
@@ -300,27 +300,27 @@ Deno.test("gates", async (t) => {
     });
 
     await t.step(
-      "walks through all 8 genesis_staff_hiring steps before advancing",
+      "walks through all 8 initial_staff_hiring steps before advancing",
       () => {
         for (let i = 0; i < 7; i++) {
           const next = computeNextStep(
-            { phase: "genesis_staff_hiring", stepIndex: i },
+            { phase: "initial_staff_hiring", stepIndex: i },
             DEFAULT_PHASE_STEPS,
             phases,
           );
           assertEquals(next, {
-            phase: "genesis_staff_hiring",
+            phase: "initial_staff_hiring",
             stepIndex: i + 1,
           });
         }
 
         const afterFinalization = computeNextStep(
-          { phase: "genesis_staff_hiring", stepIndex: 7 },
+          { phase: "initial_staff_hiring", stepIndex: 7 },
           DEFAULT_PHASE_STEPS,
           phases,
         );
         assertEquals(afterFinalization, {
-          phase: "genesis_founding_pool",
+          phase: "initial_pool",
           stepIndex: 0,
         });
       },

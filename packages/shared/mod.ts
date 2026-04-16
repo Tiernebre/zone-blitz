@@ -3,7 +3,7 @@ export type { HealthStatus } from "./types/health.ts";
 export type {
   AdvancePolicy,
   League,
-  LeagueFoundResult,
+  LeagueGenerateResult,
   LeagueListItem,
   LeagueSeasonSummary,
   LeagueUserTeamSummary,
@@ -226,6 +226,38 @@ export {
   attributeRatingSchema,
   playerAttributesSchema,
 } from "./schemas/player-attributes.ts";
+export {
+  expressInterestsSchema,
+  hiringIncentiveSchema,
+  hiringOfferInputSchema,
+  hiringStaffTypeSchema,
+  listCandidatesQuerySchema,
+  requestInterviewsSchema,
+  submitOffersSchema,
+} from "./schemas/staff-hiring.ts";
+export type {
+  ExpressInterestsInput,
+  RequestInterviewsInput,
+  SubmitOffersInput,
+} from "./schemas/staff-hiring.ts";
+
+// Staff hiring types
+export type {
+  HiringCandidateDetail,
+  HiringCandidateSummary,
+  HiringDecisionView,
+  HiringIncentive,
+  HiringInterestStatus,
+  HiringInterestView,
+  HiringInterviewReveal,
+  HiringInterviewStatus,
+  HiringInterviewView,
+  HiringOfferInput,
+  HiringOfferStatus,
+  HiringOfferView,
+  HiringStaffType,
+  HiringStateResponse,
+} from "./types/staff-hiring.ts";
 
 // Statistics
 export type { StatColumnDefinition } from "./statistics/position-stat-columns.ts";

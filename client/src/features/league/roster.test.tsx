@@ -322,7 +322,7 @@ describe("Roster — active roster tab (default)", () => {
     expect(within(row).getByText(/healthy/i)).toBeDefined();
   });
 
-  it("renders the Pos column from the coach-authored depth chart slot (ADR 0006)", () => {
+  it("renders the Pos column from the coach-authored depth chart slot", () => {
     renderRoster();
     expect(
       within(screen.getByTestId("roster-row-p2")).getByText("RB2"),
@@ -337,7 +337,7 @@ describe("Roster — active roster tab (default)", () => {
     ).toBeGreaterThanOrEqual(2);
   });
 
-  it("renders scheme fit as a qualitative badge (ADR 0005)", () => {
+  it("renders scheme fit as a qualitative badge", () => {
     renderRoster();
     expect(screen.getByTestId("roster-scheme-fit-p1").textContent).toMatch(
       /ideal fit/i,

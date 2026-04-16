@@ -35,7 +35,7 @@ describe("useLeagueClock", () => {
     const apiResponse = {
       phase: "regular-season",
       week: 3,
-      hasCompletedGenesis: true,
+      hasCompletedInitial: true,
     };
     mockGet.mockResolvedValue({
       json: () => Promise.resolve(apiResponse),

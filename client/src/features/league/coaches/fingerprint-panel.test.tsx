@@ -33,7 +33,7 @@ describe("FingerprintPanel", () => {
 
   it("renders a bar for each offensive axis when the OC is hired", () => {
     render(<FingerprintPanel fingerprint={offensiveFingerprint()} />);
-    // ADR 0007 names 9 offensive axes.
+    // 9 offensive axes.
     expect(screen.getByText(/Run \/ Pass lean/i)).toBeDefined();
     expect(screen.getByText(/RPO integration/i)).toBeDefined();
     expect(screen.getByText(/Passing depth/i)).toBeDefined();
@@ -51,7 +51,7 @@ describe("FingerprintPanel", () => {
 
   it("renders numbers as bar positions, never as text", () => {
     render(<FingerprintPanel fingerprint={offensiveFingerprint()} />);
-    // ADR 0005: no numeric value should be exposed to the user.
+    // No numeric value should be exposed to the user.
     expect(screen.queryByText("40")).toBeNull();
     expect(screen.queryByText("80")).toBeNull();
   });

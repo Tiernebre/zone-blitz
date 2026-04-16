@@ -23,7 +23,7 @@ export interface CoachesPoolInput {
 /**
  * Optional tendency payload emitted for coaches who carry a scheme
  * identity — OCs populate `offense`, DCs populate `defense`. Absent on
- * non-coordinator roles per ADR 0007 (v1 ships OC + DC only). The
+ * non-coordinator roles (v1 ships OC + DC only). The
  * service lifts this off the row before inserting into `coaches` and
  * upserts it into `coach_tendencies`.
  */

@@ -2,11 +2,12 @@ import { assertEquals } from "@std/assert";
 import { DEFAULT_PHASE_STEPS } from "./default-phase-steps.ts";
 
 const ALL_PHASES = [
-  "genesis_staff_hiring",
-  "genesis_founding_pool",
-  "genesis_allocation_draft",
-  "genesis_free_agency",
-  "genesis_kickoff",
+  "initial_staff_hiring",
+  "initial_pool",
+  "initial_scouting",
+  "initial_draft",
+  "initial_free_agency",
+  "initial_kickoff",
   "offseason_review",
   "coaching_carousel",
   "tag_window",
@@ -182,32 +183,33 @@ Deno.test("all steps have non-empty slugs", () => {
   }
 });
 
-Deno.test("each genesis phase has at least one step", () => {
-  const genesisPhases = [
-    "genesis_staff_hiring",
-    "genesis_founding_pool",
-    "genesis_allocation_draft",
-    "genesis_free_agency",
-    "genesis_kickoff",
+Deno.test("each initial phase has at least one step", () => {
+  const initialPhases = [
+    "initial_staff_hiring",
+    "initial_pool",
+    "initial_scouting",
+    "initial_draft",
+    "initial_free_agency",
+    "initial_kickoff",
   ];
   const phasesWithSteps = new Set(DEFAULT_PHASE_STEPS.map((s) => s.phase));
-  for (const phase of genesisPhases) {
+  for (const phase of initialPhases) {
     assertEquals(
       phasesWithSteps.has(phase),
       true,
-      `Genesis phase "${phase}" has no steps`,
+      `Initial phase "${phase}" has no steps`,
     );
   }
 });
 
-Deno.test("genesis steps appear before recurring steps in the catalog", () => {
-  const firstGenesisIdx = DEFAULT_PHASE_STEPS.findIndex((s) =>
-    s.phase.startsWith("genesis_")
+Deno.test("initial steps appear before recurring steps in the catalog", () => {
+  const firstInitialIdx = DEFAULT_PHASE_STEPS.findIndex((s) =>
+    s.phase.startsWith("initial_")
   );
   const firstRecurringIdx = DEFAULT_PHASE_STEPS.findIndex(
     (s) => s.phase === "offseason_review",
   );
-  assertEquals(firstGenesisIdx < firstRecurringIdx, true);
+  assertEquals(firstInitialIdx < firstRecurringIdx, true);
 });
 
 const HIRING_STEP_SLUGS = [
@@ -221,9 +223,9 @@ const HIRING_STEP_SLUGS = [
   "hiring_finalization",
 ] as const;
 
-Deno.test("genesis_staff_hiring has 8 hiring steps in the ADR 0032 order", () => {
+Deno.test("initial_staff_hiring has 8 hiring steps in the ADR 0032 order", () => {
   const steps = DEFAULT_PHASE_STEPS.filter(
-    (s) => s.phase === "genesis_staff_hiring",
+    (s) => s.phase === "initial_staff_hiring",
   ).sort((a, b) => a.stepIndex - b.stepIndex);
   assertEquals(steps.length, 8);
   for (let i = 0; i < HIRING_STEP_SLUGS.length; i++) {
@@ -285,4 +287,40 @@ Deno.test("legacy single-step hiring slugs are removed from the catalog", () => 
   const slugs = new Set(DEFAULT_PHASE_STEPS.map((s) => s.slug));
   assertEquals(slugs.has("hire_initial_staff"), false);
   assertEquals(slugs.has("coaching_hires"), false);
+});
+
+const INITIAL_SCOUTING_STEP_SLUGS = [
+  "scouting_pool_reveal",
+  "scouting_first_reports",
+  "scouting_deep_eval",
+  "scouting_board_lock",
+] as const;
+
+Deno.test("initial_scouting has the ADR 0034 four-step catalog in order", () => {
+  const steps = DEFAULT_PHASE_STEPS.filter(
+    (s) => s.phase === "initial_scouting",
+  ).sort((a, b) => a.stepIndex - b.stepIndex);
+  assertEquals(steps.length, 4);
+  for (let i = 0; i < INITIAL_SCOUTING_STEP_SLUGS.length; i++) {
+    assertEquals(steps[i].stepIndex, i);
+    assertEquals(steps[i].slug, INITIAL_SCOUTING_STEP_SLUGS[i]);
+    assertEquals(steps[i].kind, "event");
+  }
+});
+
+Deno.test("initial_scouting sits between initial_pool and initial_draft in the catalog", () => {
+  const lastInitialPoolIdx = DEFAULT_PHASE_STEPS.findLastIndex(
+    (s) => s.phase === "initial_pool",
+  );
+  const firstScoutingIdx = DEFAULT_PHASE_STEPS.findIndex(
+    (s) => s.phase === "initial_scouting",
+  );
+  const lastScoutingIdx = DEFAULT_PHASE_STEPS.findLastIndex(
+    (s) => s.phase === "initial_scouting",
+  );
+  const firstAllocationDraftIdx = DEFAULT_PHASE_STEPS.findIndex(
+    (s) => s.phase === "initial_draft",
+  );
+  assertEquals(lastInitialPoolIdx < firstScoutingIdx, true);
+  assertEquals(lastScoutingIdx < firstAllocationDraftIdx, true);
 });

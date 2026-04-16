@@ -20,12 +20,10 @@
 
 ## Documentation
 
-- **Product/domain docs:** [`docs/product/`](./docs/product/) — split into
-  [`north-star/`](./docs/product/north-star/) (evergreen vision per feature
-  area; ubiquitous language, entities, and rules) and
-  [`decisions/`](./docs/product/decisions/) (dated, ADR-style records of
-  specific product decisions). Read the relevant north-star doc before working
-  on a feature; check decisions for the _why_ behind specific rules.
+- **Product/domain docs:**
+  [`docs/product/north-star/`](./docs/product/north-star/) — evergreen vision
+  per feature area; ubiquitous language, entities, and rules. Read the relevant
+  north-star doc before working on a feature.
 - **Architecture:**
   [`docs/technical/architecture.md`](./docs/technical/architecture.md) — stack
   overview, monorepo structure, dependency rules, deployment model.
@@ -41,8 +39,6 @@
 - **Follow-ups:** track as GitHub Issues. When you notice a follow-up during a
   session (deferred cleanup, a rough edge spotted in passing, a decision we
   punted on), file an issue with `gh issue create` rather than letting it drop.
-  For ADR-derived work, use the `/file-adr-tickets` skill to slice an Accepted
-  ADR into claimable issues with `ready-for-agent` / `blocked` labels.
 
 ## Testing
 
@@ -65,21 +61,16 @@
 - Always work in a git worktree when making code changes. Use the
   `EnterWorktree` tool before starting implementation to avoid conflicts with
   parallel sessions.
-- **Never push directly to `main`.** Every change — even one-line fixes — goes
-  through a pull request so CI runs against it _before_ it can affect the deploy
-  pipeline.
+- Direct pushes to `main` are allowed. Use them for small, low-risk changes
+  (docs, trivial fixes) when a full PR cycle isn't worth the overhead.
 - Keep PRs small and frequent — one logical change per PR.
-- Standard PR flow for each change:
+- Standard PR flow when opening a PR:
   1. In the worktree, create a feature branch and push it:
      `git push -u origin HEAD:<branch-name>`.
   2. Open the PR against `main` with `gh pr create`.
-  3. Enable auto-merge immediately: `gh pr merge --auto --squash` (or `--merge`
-     if a linear history is preferred for that change). Auto-merge will merge
-     the PR the moment required checks pass, without requiring another
-     round-trip.
-  4. Watch CI with `gh run watch` / `gh pr checks --watch`. If checks fail, fix
+  3. Watch CI with `gh run watch` / `gh pr checks --watch`. If checks fail, fix
      on the same branch and push again — do not merge manually to bypass.
-  5. After the PR merges, run `git fetch origin main:main` locally so the
+  4. After the PR merges, run `git fetch origin main:main` locally so the
      worktree's `main` ref catches up.
 - After a PR is pushed, immediately exit/delete the worktree and return to
   `main`.

@@ -216,7 +216,7 @@ export function createScoutsGenerator(
             band.yearsMin,
             band.yearsMax,
           );
-          // 10k step so the tightened ADR 0032 bands (e.g. area scout
+          // 10k step so the tightened salary bands (e.g. area scout
           // $80K–$200K) can reach their ceiling with meaningful variance.
           const salarySteps = Math.max(
             1,

@@ -80,7 +80,7 @@ export const hiringOffers = pgTable("hiring_offers", {
   status: hiringOfferStatusEnum("status").notNull().default("pending"),
   salary: integer("salary").notNull(),
   contractYears: integer("contract_years").notNull(),
-  // ADR 0032: buyout multiplier between 0.5 and 1.0 governs firing cost
+  // Buyout multiplier between 0.5 and 1.0 governs firing cost
   // (`salary × remaining years × multiplier`). Stored as numeric(3,2) to
   // keep the two-decimal granularity plus the 1.00 ceiling.
   buyoutMultiplier: numeric("buyout_multiplier", { precision: 3, scale: 2 })

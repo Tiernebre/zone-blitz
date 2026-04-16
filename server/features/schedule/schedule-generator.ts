@@ -6,7 +6,7 @@ import type {
 } from "./schedule.generator.interface.ts";
 
 /**
- * Schedule generator for the founding 8-team league.
+ * Schedule generator for the initial 8-team league.
  *
  * Structure: 2 conferences × 1 division × 4 teams.
  * Each team plays `seasonLength` games across `seasonLength + 1` weeks

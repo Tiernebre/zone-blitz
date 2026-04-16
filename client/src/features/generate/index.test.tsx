@@ -53,11 +53,11 @@ afterEach(() => {
 });
 
 describe("Generate", () => {
-  it("shows the first ADR-0030 milestone copy on mount", () => {
+  it("shows the first milestone copy on mount", () => {
     mockFoundPost.mockReturnValue(new Promise(() => {}));
     renderWithProviders();
     expect(
-      screen.getByText("Creating coaches and league foundation…"),
+      screen.getByText("Creating coaches and league structure…"),
     ).toBeDefined();
   });
 
@@ -124,7 +124,7 @@ describe("Generate", () => {
     expect(mockFoundPost).toHaveBeenCalledTimes(1);
   });
 
-  it("shows error alert with retry control when founding fails", async () => {
+  it("shows error alert with retry control when generation fails", async () => {
     mockFoundPost.mockReturnValue(
       Promise.resolve({ ok: false, status: 500 }),
     );

@@ -19,9 +19,8 @@
 # with ties broken by creation date (oldest first). Regular issues follow
 # in the same creation-date order.
 #
-# Source of truth is GitHub Issues with the `ready-for-agent` label (filed
-# by /file-adr-tickets from an Accepted ADR, or opened ad-hoc for follow-up
-# work). Dependencies (`Depends on #N`) are honored via the
+# Source of truth is GitHub Issues with the `ready-for-agent` label (opened
+# ad-hoc for follow-up work). Dependencies (`Depends on #N`) are honored via the
 # `blocked` label: the dispatcher only picks up `ready-for-agent` issues,
 # and after a worker merges its PR it sweeps for open issues that depend
 # on the one it just closed, flipping `blocked` → `ready-for-agent` when
@@ -62,20 +61,18 @@ $issue_body
 Execute end-to-end without asking for confirmation:
 
 1. EnterWorktree off main so you do not clash with sibling workers.
-2. Read the ADR referenced in the issue body (under "ADR reference"), plus
-   any ADRs it links, before designing the change.
-3. Check "Dependencies". If it lists \`Depends on #N\` and #N is still
+2. Check "Dependencies". If it lists \`Depends on #N\` and #N is still
    open, stop: comment on the issue "Blocked by #N — re-label to
    \`blocked\` until resolved" and exit. Do NOT attempt the work.
-4. Implement following CLAUDE.md: strict TDD, one logical change, deno lint
+3. Implement following CLAUDE.md: strict TDD, one logical change, deno lint
    clean, relevant test suites green. The issue's Acceptance Criteria are
    the checklist — every box must be checkable when you're done.
-5. Commit with Conventional Commits, push the branch, open a PR against
+4. Commit with Conventional Commits, push the branch, open a PR against
    main with \`gh pr create\`. The PR body MUST include \`Closes #$issue_number\`
    so the issue auto-closes on merge. Summary section only, no test plan.
-6. \`gh pr merge --auto --squash\`, then \`gh pr checks --watch\`. If checks
+5. \`gh pr merge --auto --squash\`, then \`gh pr checks --watch\`. If checks
    fail, fix on the same branch and push again.
-7. When the PR is merged, the issue auto-closes via the \`Closes\` ref.
+6. When the PR is merged, the issue auto-closes via the \`Closes\` ref.
    Before exiting, unblock dependents: search for other open issues whose
    body contains \`Depends on #$issue_number\`, e.g.
    \`gh issue list --search "Depends on #$issue_number in:body" --state open --json number,body,labels\`.
@@ -85,7 +82,7 @@ Execute end-to-end without asking for confirmation:
    \`ready-for-agent\` (\`gh issue edit <n> --remove-label blocked --add-label ready-for-agent\`)
    and leave a short comment noting the unblock. If other blockers remain
    open, leave the labels alone.
-8. Exit the worktree and end the session.
+7. Exit the worktree and end the session.
 
 If investigation shows the issue is obsolete, superseded, or infeasible,
 close the issue with a comment explaining why. Do NOT open an empty PR.

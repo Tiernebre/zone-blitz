@@ -181,10 +181,6 @@ itself. A league full of gimmick deals is the signature sound of Cap Hell — a
 lot of noise in the press, a lot of short-term rentals on the field, a lot of
 bills coming due on the same day three years from now.
 
-See [ADR 0016](../decisions/0016-contract-structure.md) for the data model and
-pure-function shape — `computeCapHit`, `computeDeadCap`, `computeHeadlineValue`
-— that make this archetype expressible in v1.
-
 ---
 
 ## Cap Manipulation Tools
@@ -518,13 +514,12 @@ authentic.
 
 ---
 
-## League Genesis
+## League Setup
 
 The cap and contract structure described above applies to a mature Zone Blitz
-league. A brand-new genesis league operates under a deliberately compressed
-economic regime that evolves as the league proves itself. See
-[League Genesis](./league-genesis.md) for the full vision; the cap-specific
-points:
+league. A brand-new league operates under a deliberately compressed economic
+regime that evolves as the league proves itself. See
+[League Setup](./league-setup.md) for the full vision; the cap-specific points:
 
 - **Early-league economics are flat.** For the first several seasons, contracts
   are short, guaranteed money is modest, and no class of mega-deals distorts the
@@ -532,7 +527,7 @@ points:
   growth, players are taking bets on an unproven institution, and no one has
   accumulated the leverage that produces franchise-defining deals.
 - **The starting cap is level.** Every franchise enters Year 1 with the same cap
-  space. The allocation draft and founding free agency are the only moment in
+  space. The allocation draft and initial free agency are the only moment in
   league history when the financial playing field is perfectly even.
 - **The cap curve bends upward as the league matures.** Free-agency cycles
   produce stars with real leverage. Expansion and media interest grow league

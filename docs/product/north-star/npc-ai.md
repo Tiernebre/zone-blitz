@@ -185,17 +185,17 @@ Separate from the front office, coaching AI handles:
 - Development focus — coaches prioritize developing certain players based on the
   team's needs
 
-## League Genesis
+## League Setup
 
 In Zone Blitz, the owner and GM are a fused role (see
-[League Genesis](./league-genesis.md)). For NPC franchises, this means a
-**single AI persona** owns the franchise and runs football operations — no
-separate "owner AI" applying pressure to a separate "GM AI." That persona makes
-franchise-level calls (identity, relocation, expansion votes, non-cap spending)
-alongside football-operations calls (roster, cap, draft, trades, coaching hires)
-from the same personality model.
+[League Setup](./league-setup.md)). For NPC franchises, this means a **single AI
+persona** owns the franchise and runs football operations — no separate "owner
+AI" applying pressure to a separate "GM AI." That persona makes franchise-level
+calls (identity, relocation, expansion votes, non-cap spending) alongside
+football-operations calls (roster, cap, draft, trades, coaching hires) from the
+same personality model.
 
-Genesis-era NPC behavior adds specific responsibilities:
+Year-1 NPC behavior adds specific responsibilities:
 
 - **Expansion voting.** When an expansion proposal is tabled, every NPC persona
   casts a vote according to its personality and self-interest — a small-market,
@@ -203,14 +203,13 @@ Genesis-era NPC behavior adds specific responsibilities:
   may welcome a larger stage; a recently-successful persona may want to lock in
   structural advantages before new teams catch up.
 - **Contested staff hiring.** NPC personas compete against you and each other
-  for the shared candidate pool of coaches and scouts during Phase 3 of genesis.
+  for the shared candidate pool of coaches and scouts during Phase 3 of setup.
   They pursue hires with the same urgency you do — a good hire for them is one
   you don't get.
-- **Founding-era philosophy.** Each NPC franchise declares a build philosophy at
-  genesis (win-now, build-through-the-draft, balanced) that shapes
-  decision-making in the allocation draft and early free-agency windows.
-  Philosophy should feel like a consistent lens, not a switch that flips every
-  offseason.
+- **Year-1 philosophy.** Each NPC franchise declares a build philosophy at setup
+  (win-now, build-through-the-draft, balanced) that shapes decision-making in
+  the allocation draft and early free-agency windows. Philosophy should feel
+  like a consistent lens, not a switch that flips every offseason.
 
 ## What Makes Good NPC AI
 

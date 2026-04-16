@@ -1,0 +1,1 @@
+ALTER TYPE "public"."league_phase" ADD VALUE 'genesis_draft_scouting' BEFORE 'genesis_allocation_draft';

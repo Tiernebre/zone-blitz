@@ -1,5 +1,5 @@
 {
-  "id": "22d610bd-ad26-49f6-a218-a3a9420ac959",
+  "id": "70d67c88-1aab-4779-8820-21cdbcb66dd8",
   "prevId": "17f0573f-4870-4ccc-9da3-1c4ab9171e2a",
   "version": "7",
   "dialect": "postgresql",
@@ -1865,14 +1865,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "market_tier": {
-          "name": "market_tier",
-          "type": "market_tier",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'medium'"
         },
         "created_at": {
           "name": "created_at",
@@ -7570,14 +7562,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "market_tier": {
-          "name": "market_tier",
-          "type": "market_tier",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'medium'"
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -7925,6 +7909,7 @@
       "values": [
         "genesis_staff_hiring",
         "genesis_founding_pool",
+        "genesis_draft_scouting",
         "genesis_allocation_draft",
         "genesis_free_agency",
         "genesis_kickoff",
@@ -7942,15 +7927,6 @@
         "regular_season",
         "playoffs",
         "offseason_rollover"
-      ]
-    },
-    "public.market_tier": {
-      "name": "market_tier",
-      "schema": "public",
-      "values": [
-        "large",
-        "medium",
-        "small"
       ]
     },
     "public.offseason_stage": {

@@ -1,6 +1,6 @@
 import type { MarketTier } from "@zone-blitz/shared";
 
-export interface FoundingFranchise {
+export interface InitialFranchise {
   name: string;
   city: string;
   state: string;
@@ -14,7 +14,7 @@ export interface FoundingFranchise {
   backstory: string;
 }
 
-export const FOUNDING_FRANCHISES: FoundingFranchise[] = [
+export const INITIAL_FRANCHISES: InitialFranchise[] = [
   {
     name: "Aces",
     city: "Reno",

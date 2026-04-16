@@ -31,9 +31,9 @@ const COACHING_CAROUSEL_HIRING_FLAVOR_DATES: Record<
   hiring_finalization: "Mar 3",
 };
 
-const GENESIS_STAFF_HIRING_STEPS: DefaultPhaseStep[] = HIRING_STEP_SLUGS.map(
+const INITIAL_STAFF_HIRING_STEPS: DefaultPhaseStep[] = HIRING_STEP_SLUGS.map(
   (slug, index) => ({
-    phase: "genesis_staff_hiring",
+    phase: "initial_staff_hiring",
     stepIndex: index,
     slug,
     kind: "event",
@@ -58,36 +58,62 @@ const COACHING_CAROUSEL_STEPS: DefaultPhaseStep[] = [
 ];
 
 export const DEFAULT_PHASE_STEPS: DefaultPhaseStep[] = [
-  // genesis_staff_hiring (8-step hiring timeline — ADR 0032)
-  ...GENESIS_STAFF_HIRING_STEPS,
+  // initial_staff_hiring (8-step hiring timeline — ADR 0032)
+  ...INITIAL_STAFF_HIRING_STEPS,
 
-  // genesis_founding_pool
+  // initial_pool
   {
-    phase: "genesis_founding_pool",
+    phase: "initial_pool",
     stepIndex: 0,
-    slug: "generate_founding_player_pool",
+    slug: "generate_initial_player_pool",
     kind: "event",
   },
 
-  // genesis_allocation_draft
+  // initial_scouting (4-week scouting window — ADR 0034)
   {
-    phase: "genesis_allocation_draft",
+    phase: "initial_scouting",
+    stepIndex: 0,
+    slug: "scouting_pool_reveal",
+    kind: "event",
+  },
+  {
+    phase: "initial_scouting",
+    stepIndex: 1,
+    slug: "scouting_first_reports",
+    kind: "event",
+  },
+  {
+    phase: "initial_scouting",
+    stepIndex: 2,
+    slug: "scouting_deep_eval",
+    kind: "event",
+  },
+  {
+    phase: "initial_scouting",
+    stepIndex: 3,
+    slug: "scouting_board_lock",
+    kind: "event",
+  },
+
+  // initial_draft
+  {
+    phase: "initial_draft",
     stepIndex: 0,
     slug: "allocation_draft",
     kind: "event",
   },
 
-  // genesis_free_agency
+  // initial_free_agency
   {
-    phase: "genesis_free_agency",
+    phase: "initial_free_agency",
     stepIndex: 0,
-    slug: "genesis_fa_window",
+    slug: "initial_fa_window",
     kind: "window",
   },
 
-  // genesis_kickoff
+  // initial_kickoff
   {
-    phase: "genesis_kickoff",
+    phase: "initial_kickoff",
     stepIndex: 0,
     slug: "league_kickoff",
     kind: "event",

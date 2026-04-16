@@ -31,7 +31,7 @@ const LABEL_BUCKETS: { min: number; label: SchemeFitLabel }[] = [
 
 /**
  * Map a 0–100 weighted-attribute score to the qualitative bucket the
- * UI is allowed to show (per ADR 0005 — no numeric fit is leaked).
+ * UI is allowed to show (no numeric fit is leaked).
  */
 export function bucketScore(score: number): SchemeFitLabel {
   for (const bucket of LABEL_BUCKETS) {

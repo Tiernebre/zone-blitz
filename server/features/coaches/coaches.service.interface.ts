@@ -45,7 +45,7 @@ export interface CoachesService {
   getCoachDetail(id: string): Promise<CoachDetail>;
 
   /**
-   * Composed scheme fingerprint for the team, per ADR 0007. Never
+   * Composed scheme fingerprint for the team. Never
    * persisted — built on read from the current OC's offensive tendency
    * vector and DC's defensive tendency vector. Either side resolves to
    * `null` when the slot is vacant or the coordinator has no tendency
