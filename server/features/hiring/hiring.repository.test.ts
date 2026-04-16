@@ -1118,9 +1118,9 @@ Deno.test({
       const profile = await repo.getFranchiseScoringProfile(team.id);
       assertExists(profile);
       assertEquals(profile?.teamId, team.id);
-      // Test fixture cities are random — neither Large nor Medium tier — so
-      // the profile resolves to the small-market default.
-      assertEquals(profile?.marketTier, "small");
+      // Test fixtures don't set marketTier, so the team row carries the
+      // schema default of "medium".
+      assertEquals(profile?.marketTier, "medium");
       assertEquals(profile?.existingStaff.length, 1);
       assertEquals(profile?.existingStaff[0].role, "OC");
 

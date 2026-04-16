@@ -17,8 +17,6 @@ import { coaches } from "../coaches/coach.schema.ts";
 import { scouts } from "../scouts/scout.schema.ts";
 import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";
 import { teams } from "../team/team.schema.ts";
-import { cities } from "../cities/city.schema.ts";
-import { marketTierForCity } from "./preference-scoring.ts";
 import type { FranchiseStaffMember, MarketTier } from "./preference-scoring.ts";
 
 export type StaffType = "coach" | "scout";
@@ -743,18 +741,12 @@ export function createHiringRepository(deps: {
     async getFranchiseScoringProfile(teamId, tx) {
       const exec = tx ?? deps.db;
       const [team] = await exec
-        .select({ id: teams.id, cityId: teams.cityId })
+        .select({ id: teams.id, marketTier: teams.marketTier })
         .from(teams)
         .where(eq(teams.id, teamId))
         .limit(1);
       if (!team) return undefined;
-      const [city] = await exec
-        .select({ name: cities.name })
-        .from(cities)
-        .where(eq(cities.id, team.cityId))
-        .limit(1);
-      const cityName = city?.name ?? "";
-      const marketTier = marketTierForCity(cityName);
+      const marketTier = team.marketTier;
 
       const coachRows = await exec
         .select({
@@ -840,14 +832,13 @@ export function createHiringRepository(deps: {
       const rows = await exec
         .select({
           teamId: teams.id,
-          cityName: cities.name,
+          marketTier: teams.marketTier,
         })
         .from(teams)
-        .innerJoin(cities, eq(cities.id, teams.cityId))
         .where(eq(teams.leagueId, leagueId));
       return rows.map((row) => ({
         teamId: row.teamId,
-        marketTier: marketTierForCity(row.cityName),
+        marketTier: row.marketTier,
       }));
     },
 
