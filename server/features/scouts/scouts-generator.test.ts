@@ -159,22 +159,37 @@ Deno.test("hiredAt dates spread across multiple years", () => {
   assertEquals(years.size > 1, true);
 });
 
-Deno.test("contract salaries fall within sane per-role bounds", () => {
+Deno.test("contract salaries fall within ADR 0032 per-role bounds", () => {
   const result = makeGenerator().generate(INPUT);
   for (const s of result) {
     assertEquals(s.contractSalary > 0, true);
     assertEquals(s.contractBuyout >= 0, true);
     if (s.role === "DIRECTOR") {
-      assertEquals(s.contractSalary >= 800_000, true);
-      assertEquals(s.contractSalary <= 2_500_000, true);
+      assertEquals(s.contractSalary >= 250_000, true);
+      assertEquals(s.contractSalary <= 800_000, true);
     }
     if (s.role === "NATIONAL_CROSS_CHECKER") {
-      assertEquals(s.contractSalary >= 400_000, true);
-      assertEquals(s.contractSalary <= 1_200_000, true);
+      assertEquals(s.contractSalary >= 150_000, true);
+      assertEquals(s.contractSalary <= 400_000, true);
     }
     if (s.role === "AREA_SCOUT") {
-      assertEquals(s.contractSalary >= 120_000, true);
-      assertEquals(s.contractSalary <= 400_000, true);
+      assertEquals(s.contractSalary >= 80_000, true);
+      assertEquals(s.contractSalary <= 200_000, true);
+    }
+  }
+});
+
+Deno.test("contract years fall within ADR 0032 per-role bounds", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const s of result) {
+    if (s.role === "DIRECTOR") {
+      assertEquals(s.contractYears >= 3 && s.contractYears <= 5, true);
+    }
+    if (s.role === "NATIONAL_CROSS_CHECKER") {
+      assertEquals(s.contractYears >= 2 && s.contractYears <= 4, true);
+    }
+    if (s.role === "AREA_SCOUT") {
+      assertEquals(s.contractYears >= 1 && s.contractYears <= 3, true);
     }
   }
 });
