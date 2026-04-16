@@ -1,8 +1,12 @@
 import type { LeagueRepository } from "./league.repository.interface.ts";
 import type pino from "pino";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
+import type { LeagueListItem } from "@zone-blitz/shared";
 import type { Database } from "../../db/connection.ts";
 import { leagues } from "./league.schema.ts";
+import { seasons } from "../season/season.schema.ts";
+import { teams } from "../team/team.schema.ts";
+import { cities } from "../cities/city.schema.ts";
 
 export function createLeagueRepository(deps: {
   db: Database;
@@ -11,15 +15,64 @@ export function createLeagueRepository(deps: {
   const log = deps.log.child({ module: "league.repository" });
 
   return {
-    async getAll() {
-      log.debug("fetching all leagues");
-      return await deps.db
-        .select()
+    async listWithSummary() {
+      log.debug("fetching leagues with summary");
+      const leagueRows = await deps.db
+        .select({
+          league: leagues,
+          userTeamId: teams.id,
+          userTeamName: teams.name,
+          userTeamCity: cities.name,
+          userTeamAbbreviation: teams.abbreviation,
+          userTeamPrimaryColor: teams.primaryColor,
+        })
         .from(leagues)
+        .leftJoin(teams, eq(teams.id, leagues.userTeamId))
+        .leftJoin(cities, eq(cities.id, teams.cityId))
         .orderBy(
           sql`${leagues.lastPlayedAt} desc nulls last`,
           desc(leagues.createdAt),
         );
+
+      if (leagueRows.length === 0) return [];
+
+      const leagueIds = leagueRows.map((r) => r.league.id);
+      const seasonRows = await deps.db
+        .select()
+        .from(seasons)
+        .where(inArray(seasons.leagueId, leagueIds))
+        .orderBy(seasons.leagueId, desc(seasons.year));
+
+      // seasonRows are ordered by (leagueId, year desc), so the first
+      // row seen for each league is its latest season.
+      const latestByLeague = new Map<string, typeof seasonRows[number]>();
+      for (const s of seasonRows) {
+        if (!latestByLeague.has(s.leagueId)) latestByLeague.set(s.leagueId, s);
+      }
+
+      return leagueRows.map((row): LeagueListItem => {
+        const current = latestByLeague.get(row.league.id);
+        return {
+          ...row.league,
+          currentSeason: current
+            ? {
+              year: current.year,
+              phase: current.phase,
+              offseasonStage: current.offseasonStage,
+              week: current.week,
+            }
+            : null,
+          userTeam: row.userTeamId
+            ? {
+              id: row.userTeamId,
+              name: row.userTeamName!,
+              city: row.userTeamCity!,
+              abbreviation: row.userTeamAbbreviation!,
+              primaryColor: row.userTeamPrimaryColor!,
+            }
+            : null,
+        };
+      });
     },
 
     async getById(id) {

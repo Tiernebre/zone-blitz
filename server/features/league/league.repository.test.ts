@@ -22,7 +22,7 @@ function createTestLogger() {
 }
 
 Deno.test({
-  name: "leagueRepository.getAll: returns all leagues",
+  name: "leagueRepository.listWithSummary: returns all leagues",
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
@@ -37,10 +37,14 @@ Deno.test({
         .returning();
       inserted.push(a.id, b.id);
 
-      const result = await repo.getAll();
+      const result = await repo.listWithSummary();
       const names = result.map((l) => l.name);
       assertEquals(names.includes("League A"), true);
       assertEquals(names.includes("League B"), true);
+      // Leagues with no seasons or user team come back with nulls.
+      const justA = result.find((l) => l.name === "League A");
+      assertEquals(justA?.currentSeason, null);
+      assertEquals(justA?.userTeam, null);
     } finally {
       for (const id of inserted) {
         await db.delete(leagues).where(eq(leagues.id, id));
@@ -147,7 +151,7 @@ Deno.test({
 
 Deno.test({
   name:
-    "leagueRepository.getAll: orders by lastPlayedAt desc nulls last, then createdAt desc",
+    "leagueRepository.listWithSummary: orders by lastPlayedAt desc nulls last, then createdAt desc",
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
@@ -170,7 +174,7 @@ Deno.test({
         .returning();
       inserted.push(a.id, b.id, c.id);
 
-      const result = await repo.getAll();
+      const result = await repo.listWithSummary();
       const byName = result.filter((l) =>
         ["order-a", "order-b", "order-c"].includes(l.name)
       );
