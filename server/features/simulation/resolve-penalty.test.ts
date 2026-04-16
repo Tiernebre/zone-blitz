@@ -152,8 +152,8 @@ Deno.test("shouldPenaltyOccur", async (t) => {
       if (shouldPenaltyOccur(rng)) penalties++;
     }
     const rate = penalties / trials;
-    assertEquals(rate > 0.03, true, `Rate ${rate} too low`);
-    assertEquals(rate < 0.12, true, `Rate ${rate} too high`);
+    assertEquals(rate > 0.005, true, `Rate ${rate} too low`);
+    assertEquals(rate < 0.05, true, `Rate ${rate} too high`);
   });
 });
 

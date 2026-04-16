@@ -48,7 +48,7 @@ export interface SimulationInput {
 }
 
 const QUARTER_SECONDS = 900;
-const SECONDS_PER_PLAY = 35;
+const SECONDS_PER_PLAY = 34.5;
 const INJURY_SEVERITIES: InjurySeverity[] = [
   "shake_off",
   "miss_drive",

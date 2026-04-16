@@ -246,8 +246,13 @@ Deno.test("deriveTeamGameStats counts penalties", () => {
       },
     }),
   ];
-  const [home] = deriveTeamGameStats(makeGameResult(events), "home", "away");
-  assertEquals(home.penalties, 2);
+  const [home, away] = deriveTeamGameStats(
+    makeGameResult(events),
+    "home",
+    "away",
+  );
+  assertEquals(home.penalties, 1);
+  assertEquals(away.penalties, 1);
 });
 
 Deno.test("deriveTeamGameStats counts fumbles_lost and turnovers", () => {

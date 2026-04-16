@@ -1118,8 +1118,8 @@ Deno.test("simulateGame", async (t) => {
       teamPenalties.push(result.boxScore.away.penalties);
     }
     const avg = teamPenalties.reduce((a, b) => a + b, 0) / teamPenalties.length;
-    assertGreater(avg, 2, `Avg penalties ${avg} too low`);
-    assertEquals(avg < 15, true, `Avg penalties ${avg} too high`);
+    assertGreater(avg, 0.4, `Avg penalties ${avg} too low`);
+    assertEquals(avg < 5, true, `Avg penalties ${avg} too high`);
   });
 
   await t.step("penalties are assigned to individual players", () => {

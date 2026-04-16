@@ -169,11 +169,11 @@ export function drawOffensiveCall(
   const isShortYardage = situation.down >= 3 && situation.distance <= 3;
   const isLongYardage = situation.distance >= 7;
 
-  let runProbability = (100 - runPassLean) / 100;
-  if (isShortYardage) runProbability += 0.2;
-  if (isLongYardage) runProbability -= 0.2;
-  if (options?.twoMinute) runProbability -= 0.3;
-  runProbability = Math.max(0.1, Math.min(0.9, runProbability));
+  let runProbability = (100 - runPassLean) / 100 + 0.07;
+  if (isShortYardage) runProbability += 0.15;
+  if (isLongYardage) runProbability -= 0.08;
+  if (options?.twoMinute) runProbability -= 0.2;
+  runProbability = Math.max(0.15, Math.min(0.85, runProbability));
 
   const isRun = rng.next() < runProbability;
 
@@ -389,15 +389,15 @@ export function synthesizeOutcome(
     if (blockScore < -20) {
       yardage = rng.int(-3, 0);
     } else if (blockScore < -5) {
-      yardage = rng.int(0, 3);
+      yardage = rng.int(1, 5);
     } else if (blockScore > 15) {
-      yardage = rng.int(8, 25);
+      yardage = rng.int(9, 26);
       tags.push("big_play");
     } else {
-      yardage = rng.int(2, 7);
+      yardage = rng.int(2, 8);
     }
 
-    if (rng.next() < 0.015) {
+    if (rng.next() < 0.009) {
       outcome = "fumble";
       tags.push("fumble", "turnover");
     } else {
@@ -428,7 +428,8 @@ export function synthesizeOutcome(
         protectionContribs.length
       : avgScore;
 
-    if (protectionScore < -15) {
+    const sackProb = Math.max(0.01, 0.086 - protectionScore * 0.005);
+    if (rng.next() < sackProb) {
       outcome = "sack";
       yardage = rng.int(-10, -3);
       tags.push("sack", "pressure");
@@ -470,33 +471,24 @@ export function synthesizeOutcome(
           routeContribs.length
         : avgScore;
 
-      if (coverageScore > 10) {
-        outcome = "pass_complete";
-        yardage = rng.int(8, 30);
-        tags.push("big_play");
-        const target = routeContribs.find((c) => c.score > 0);
-        if (target) {
-          const idx = participants.findIndex(
-            (p) => p.playerId === target.matchup.attacker.playerId,
-          );
-          if (idx >= 0) participants[idx].tags.push("target", "reception");
-        }
-      } else if (coverageScore > -5) {
-        outcome = "pass_complete";
-        yardage = rng.int(3, 12);
-        const target = routeContribs[0];
-        if (target) {
-          const idx = participants.findIndex(
-            (p) => p.playerId === target.matchup.attacker.playerId,
-          );
-          if (idx >= 0) participants[idx].tags.push("target", "reception");
-        }
-      } else if (coverageScore < -15 && rng.next() < 0.15) {
+      const intProb = Math.max(0.003, 0.020 - coverageScore * 0.002);
+      const completionProb = Math.max(
+        0.18,
+        Math.min(0.92, 0.67 + coverageScore * 0.010),
+      );
+      const bigPlayProb = Math.max(
+        0.05,
+        Math.min(0.45, 0.20 + coverageScore * 0.008),
+      );
+
+      const roll = rng.next();
+      if (roll < intProb) {
         outcome = "interception";
         yardage = 0;
         tags.push("interception", "turnover");
 
-        const interceptor = routeContribs.find((c) => c.score < -10);
+        const interceptor = routeContribs.find((c) => c.score < -5) ??
+          routeContribs[0];
         if (interceptor) {
           const idx = participants.findIndex(
             (p) => p.playerId === interceptor.matchup.defender.playerId,
@@ -510,6 +502,23 @@ export function synthesizeOutcome(
               tags: ["interception"],
             });
           }
+        }
+      } else if (roll < intProb + completionProb) {
+        outcome = "pass_complete";
+        const isBigPlay = rng.next() < bigPlayProb;
+        if (isBigPlay) {
+          yardage = rng.int(13, 37);
+          tags.push("big_play");
+        } else {
+          yardage = rng.int(3, 14);
+        }
+        const target = routeContribs.find((c) => c.score > 0) ??
+          routeContribs[0];
+        if (target) {
+          const idx = participants.findIndex(
+            (p) => p.playerId === target.matchup.attacker.playerId,
+          );
+          if (idx >= 0) participants[idx].tags.push("target", "reception");
         }
       } else {
         outcome = "pass_incomplete";

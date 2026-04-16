@@ -25,6 +25,10 @@ const SKIP_OUTCOMES = new Set([
   "xp",
   "two_point",
   "spike",
+  "field_goal",
+  "missed_field_goal",
+  "punt",
+  "safety",
 ]);
 
 const RUN_CONCEPTS = new Set([
@@ -52,6 +56,10 @@ function deriveForTeam(
   let penalties = 0;
 
   for (const event of events) {
+    if (event.penalty?.accepted && event.penalty.againstTeamId === teamId) {
+      penalties++;
+    }
+
     if (event.offenseTeamId !== teamId) continue;
     if (SKIP_OUTCOMES.has(event.outcome)) continue;
 
@@ -93,10 +101,6 @@ function deriveForTeam(
           passYards += event.yardage;
         }
         break;
-    }
-
-    if (event.tags.includes("penalty") || event.penalty) {
-      penalties++;
     }
   }
 
