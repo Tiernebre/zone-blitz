@@ -90,14 +90,16 @@ await db
       primaryColor: f.primaryColor,
       secondaryColor: f.secondaryColor,
       accentColor: f.accentColor,
-      conference: "Founding",
-      division: "Founding",
+      conference: f.conference,
+      division: f.division,
     })),
   )
   .onConflictDoUpdate({
     target: franchises.abbreviation,
     set: {
       cityId: sql`excluded.city_id`,
+      conference: sql`excluded.conference`,
+      division: sql`excluded.division`,
       updatedAt: new Date(),
     },
   });

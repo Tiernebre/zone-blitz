@@ -108,8 +108,8 @@ async function seedFoundingFranchises(
         primaryColor: f.primaryColor,
         secondaryColor: f.secondaryColor,
         accentColor: f.accentColor,
-        conference: "Founding",
-        division: "Founding",
+        conference: f.conference,
+        division: f.division,
       })
       .returning();
     franchiseIds.push(franchise.id);

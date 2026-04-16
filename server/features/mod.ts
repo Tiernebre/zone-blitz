@@ -50,8 +50,8 @@ import {
   createFrontOfficeService,
 } from "./front-office/mod.ts";
 import {
+  createScheduleGenerator,
   createScheduleService,
-  createStubScheduleGenerator,
 } from "./schedule/mod.ts";
 import {
   createLeagueClockRepository,
@@ -143,7 +143,7 @@ export function createFeatureRouters(
     log,
   });
   const scheduleService = createScheduleService({
-    generator: createStubScheduleGenerator(),
+    generator: createScheduleGenerator(),
     db,
     log,
   });
