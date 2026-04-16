@@ -86,14 +86,6 @@ describe("LeagueHome", () => {
     });
   });
 
-  it("renders the charter view when phase is genesis_charter", async () => {
-    mockPhase = "genesis_charter";
-    renderWithProviders();
-    await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Charter" })).toBeDefined();
-    });
-  });
-
   it("falls back to League Home for non-genesis phases", async () => {
     mockPhase = "regular_season";
     renderWithProviders();

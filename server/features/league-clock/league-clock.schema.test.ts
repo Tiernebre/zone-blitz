@@ -8,8 +8,6 @@ import {
 } from "./league-clock.schema.ts";
 
 const EXPECTED_PHASES = [
-  "genesis_charter",
-  "genesis_franchise_establishment",
   "genesis_staff_hiring",
   "genesis_founding_pool",
   "genesis_allocation_draft",
@@ -33,20 +31,20 @@ const EXPECTED_PHASES = [
 
 const EXPECTED_STEP_KINDS = ["event", "week", "window"] as const;
 
-Deno.test("leaguePhaseEnum has all 21 phases in deterministic order", () => {
+Deno.test("leaguePhaseEnum has all 19 phases in deterministic order", () => {
   assertEquals(leaguePhaseEnum.enumValues, [...EXPECTED_PHASES]);
 });
 
 Deno.test("genesis phases are ordered before offseason_review", () => {
   const phases = leaguePhaseEnum.enumValues;
-  const genesisCharterIndex = phases.indexOf("genesis_charter");
+  const genesisStaffHiringIndex = phases.indexOf("genesis_staff_hiring");
   const offseasonReviewIndex = phases.indexOf("offseason_review");
-  assertEquals(genesisCharterIndex, 0);
-  assertEquals(genesisCharterIndex < offseasonReviewIndex, true);
+  assertEquals(genesisStaffHiringIndex, 0);
+  assertEquals(genesisStaffHiringIndex < offseasonReviewIndex, true);
 });
 
-Deno.test("first phase in enum is genesis_charter so new leagues start there", () => {
-  assertEquals(leaguePhaseEnum.enumValues[0], "genesis_charter");
+Deno.test("first phase in enum is genesis_staff_hiring so new leagues start there", () => {
+  assertEquals(leaguePhaseEnum.enumValues[0], "genesis_staff_hiring");
 });
 
 Deno.test("stepKindEnum has event, week, window", () => {

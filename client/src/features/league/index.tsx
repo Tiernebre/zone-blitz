@@ -6,16 +6,6 @@ import { StubPage } from "./stub-page.tsx";
 type PhaseView = { title: string; description: string };
 
 const PHASE_VIEWS: Partial<Record<LeaguePhase, PhaseView>> = {
-  genesis_charter: {
-    title: "Charter",
-    description:
-      "Set the league's founding rules — name, scoring, and roster shape.",
-  },
-  genesis_franchise_establishment: {
-    title: "Franchise Establishment",
-    description:
-      "The eight founding franchises take the field. Claim yours and meet your rivals.",
-  },
   genesis_founding_pool: {
     title: "Founding Pool",
     description:

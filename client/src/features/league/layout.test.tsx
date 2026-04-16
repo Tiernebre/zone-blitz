@@ -284,15 +284,14 @@ describe("LeagueLayout", () => {
     }
   });
 
-  it("hides phase-gated nav items in genesis_charter", async () => {
-    mockPhase = "genesis_charter";
+  it("hides phase-gated nav items in genesis_staff_hiring", async () => {
+    mockPhase = "genesis_staff_hiring";
     renderWithProviders();
 
     await waitFor(() => {
       expect(screen.getByRole("link", { name: "Home" })).toBeDefined();
     });
 
-    expect(screen.getByRole("link", { name: "Charter" })).toBeDefined();
     expect(screen.queryByRole("link", { name: "Roster" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Draft" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Standings" })).toBeNull();
@@ -307,7 +306,6 @@ describe("LeagueLayout", () => {
     });
 
     expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Charter" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Founding Pool" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Allocation Draft" })).toBeNull();
   });
@@ -322,7 +320,6 @@ describe("LeagueLayout", () => {
       ).toBeDefined();
     });
 
-    expect(screen.queryByRole("link", { name: "Charter" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
   });
 
@@ -336,7 +333,6 @@ describe("LeagueLayout", () => {
       ).toBeDefined();
     });
 
-    expect(screen.queryByRole("link", { name: "Charter" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Founding Pool" })).toBeNull();
   });
@@ -349,7 +345,6 @@ describe("LeagueLayout", () => {
       expect(screen.getByRole("link", { name: "Roster" })).toBeDefined();
     });
 
-    expect(screen.queryByRole("link", { name: "Charter" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Founding Pool" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Allocation Draft" })).toBeNull();
@@ -366,7 +361,7 @@ describe("LeagueLayout", () => {
   });
 
   it("collapses empty nav groups in early genesis phases", async () => {
-    mockPhase = "genesis_charter";
+    mockPhase = "genesis_staff_hiring";
     renderWithProviders();
 
     await waitFor(() => {

@@ -640,7 +640,7 @@ Deno.test("league.service", async (t) => {
           upsert: (row) => {
             clockUpserted = true;
             assertEquals(row.leagueId, leagueId);
-            assertEquals(row.phase, "genesis_charter");
+            assertEquals(row.phase, "genesis_staff_hiring");
             assertEquals(row.seasonYear, 1);
             assertEquals(row.stepIndex, 0);
             return Promise.resolve({

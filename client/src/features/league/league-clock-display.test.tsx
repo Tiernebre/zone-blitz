@@ -329,9 +329,9 @@ describe("LeagueClockDisplay", () => {
         Promise.resolve({
           leagueId: "lg-1",
           seasonYear: 2026,
-          phase: "genesis_charter",
+          phase: "genesis_staff_hiring",
           stepIndex: 0,
-          slug: "ratify_league_charter",
+          slug: "hire_initial_staff",
           kind: "event",
           flavorDate: null,
           advancedAt: "2026-01-01T00:00:00Z",
@@ -345,9 +345,9 @@ describe("LeagueClockDisplay", () => {
         Promise.resolve({
           leagueId: "lg-1",
           seasonYear: 2026,
-          phase: "genesis_franchise_establishment",
+          phase: "genesis_founding_pool",
           stepIndex: 0,
-          slug: "establish_franchises",
+          slug: "generate_founding_player_pool",
           flavorDate: null,
           advancedAt: "2026-01-01T00:00:00Z",
           overrideReason: null,
@@ -377,7 +377,7 @@ describe("LeagueClockDisplay", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Advanced to Establish Franchises/),
+        screen.getByText(/Advanced to Generate Founding Player Pool/),
       ).toBeDefined();
     });
   });
