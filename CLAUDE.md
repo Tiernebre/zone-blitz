@@ -62,8 +62,7 @@
   `EnterWorktree` tool before starting implementation to avoid conflicts with
   parallel sessions.
 - Direct pushes to `main` are allowed. Use them for small, low-risk changes
-  (docs, ADR status flips, trivial fixes) when a full PR cycle isn't worth the
-  overhead.
+  (docs, trivial fixes) when a full PR cycle isn't worth the overhead.
 - Keep PRs small and frequent — one logical change per PR.
 - Standard PR flow when opening a PR:
   1. In the worktree, create a feature branch and push it:
