@@ -298,5 +298,53 @@ Deno.test("gates", async (t) => {
       );
       assertEquals(next, { phase: "offseason_rollover", stepIndex: 0 });
     });
+
+    await t.step(
+      "walks through all 8 genesis_staff_hiring steps before advancing",
+      () => {
+        for (let i = 0; i < 7; i++) {
+          const next = computeNextStep(
+            { phase: "genesis_staff_hiring", stepIndex: i },
+            DEFAULT_PHASE_STEPS,
+            phases,
+          );
+          assertEquals(next, {
+            phase: "genesis_staff_hiring",
+            stepIndex: i + 1,
+          });
+        }
+
+        const afterFinalization = computeNextStep(
+          { phase: "genesis_staff_hiring", stepIndex: 7 },
+          DEFAULT_PHASE_STEPS,
+          phases,
+        );
+        assertEquals(afterFinalization, {
+          phase: "genesis_founding_pool",
+          stepIndex: 0,
+        });
+      },
+    );
+
+    await t.step(
+      "walks through all 9 coaching_carousel steps before advancing",
+      () => {
+        for (let i = 0; i < 8; i++) {
+          const next = computeNextStep(
+            { phase: "coaching_carousel", stepIndex: i },
+            DEFAULT_PHASE_STEPS,
+            phases,
+          );
+          assertEquals(next, { phase: "coaching_carousel", stepIndex: i + 1 });
+        }
+
+        const afterFinalization = computeNextStep(
+          { phase: "coaching_carousel", stepIndex: 8 },
+          DEFAULT_PHASE_STEPS,
+          phases,
+        );
+        assertEquals(afterFinalization, { phase: "tag_window", stepIndex: 0 });
+      },
+    );
   });
 });

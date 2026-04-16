@@ -34,9 +34,20 @@ Deno.test("every phase has at least one step", () => {
   }
 });
 
-Deno.test("all slugs are unique", () => {
-  const slugs = DEFAULT_PHASE_STEPS.map((s) => s.slug);
-  assertEquals(new Set(slugs).size, slugs.length);
+Deno.test("slugs are unique within each phase", () => {
+  const slugsByPhase = new Map<string, string[]>();
+  for (const step of DEFAULT_PHASE_STEPS) {
+    const list = slugsByPhase.get(step.phase) ?? [];
+    list.push(step.slug);
+    slugsByPhase.set(step.phase, list);
+  }
+  for (const [phase, slugs] of slugsByPhase) {
+    assertEquals(
+      new Set(slugs).size,
+      slugs.length,
+      `Phase "${phase}" has duplicate slugs`,
+    );
+  }
 });
 
 Deno.test("stepIndex values are sequential within each phase starting at 0", () => {
@@ -197,4 +208,81 @@ Deno.test("genesis steps appear before recurring steps in the catalog", () => {
     (s) => s.phase === "offseason_review",
   );
   assertEquals(firstGenesisIdx < firstRecurringIdx, true);
+});
+
+const HIRING_STEP_SLUGS = [
+  "hiring_market_survey",
+  "hiring_interview_1",
+  "hiring_interview_2",
+  "hiring_offers",
+  "hiring_decisions",
+  "hiring_second_wave_interview",
+  "hiring_second_wave_decisions",
+  "hiring_finalization",
+] as const;
+
+Deno.test("genesis_staff_hiring has 8 hiring steps in the ADR 0032 order", () => {
+  const steps = DEFAULT_PHASE_STEPS.filter(
+    (s) => s.phase === "genesis_staff_hiring",
+  ).sort((a, b) => a.stepIndex - b.stepIndex);
+  assertEquals(steps.length, 8);
+  for (let i = 0; i < HIRING_STEP_SLUGS.length; i++) {
+    assertEquals(steps[i].stepIndex, i);
+    assertEquals(steps[i].slug, HIRING_STEP_SLUGS[i]);
+    assertEquals(steps[i].kind, "event");
+  }
+});
+
+Deno.test("coaching_carousel has 9 steps: coaching_firings + 8 hiring steps", () => {
+  const steps = DEFAULT_PHASE_STEPS.filter(
+    (s) => s.phase === "coaching_carousel",
+  ).sort((a, b) => a.stepIndex - b.stepIndex);
+  assertEquals(steps.length, 9);
+
+  assertEquals(steps[0].stepIndex, 0);
+  assertEquals(steps[0].slug, "coaching_firings");
+  assertEquals(steps[0].kind, "event");
+  assertEquals(steps[0].flavorDate, "Feb 12");
+
+  for (let i = 0; i < HIRING_STEP_SLUGS.length; i++) {
+    const step = steps[i + 1];
+    assertEquals(step.stepIndex, i + 1);
+    assertEquals(step.slug, HIRING_STEP_SLUGS[i]);
+    assertEquals(step.kind, "event");
+    assertEquals(
+      typeof step.flavorDate === "string" && step.flavorDate.length > 0,
+      true,
+      `coaching_carousel step "${step.slug}" is missing a flavor date`,
+    );
+  }
+});
+
+Deno.test("coaching_carousel hiring step flavor dates are monotonically ordered", () => {
+  const steps = DEFAULT_PHASE_STEPS.filter(
+    (s) => s.phase === "coaching_carousel",
+  ).sort((a, b) => a.stepIndex - b.stepIndex);
+
+  const monthOrder: Record<string, number> = { Feb: 2, Mar: 3 };
+  const toOrdinal = (label: string): number => {
+    const [month, day] = label.split(" ");
+    return monthOrder[month] * 100 + Number(day);
+  };
+
+  for (let i = 1; i < steps.length; i++) {
+    const prev = toOrdinal(steps[i - 1].flavorDate!);
+    const curr = toOrdinal(steps[i].flavorDate!);
+    assertEquals(
+      curr >= prev,
+      true,
+      `step ${steps[i].slug} flavorDate ${steps[i].flavorDate} precedes ${
+        steps[i - 1].flavorDate
+      }`,
+    );
+  }
+});
+
+Deno.test("legacy single-step hiring slugs are removed from the catalog", () => {
+  const slugs = new Set(DEFAULT_PHASE_STEPS.map((s) => s.slug));
+  assertEquals(slugs.has("hire_initial_staff"), false);
+  assertEquals(slugs.has("coaching_hires"), false);
 });

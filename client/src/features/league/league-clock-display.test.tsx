@@ -331,7 +331,7 @@ describe("LeagueClockDisplay", () => {
           seasonYear: 2026,
           phase: "genesis_staff_hiring",
           stepIndex: 0,
-          slug: "hire_initial_staff",
+          slug: "hiring_market_survey",
           kind: "event",
           flavorDate: null,
           advancedAt: "2026-01-01T00:00:00Z",

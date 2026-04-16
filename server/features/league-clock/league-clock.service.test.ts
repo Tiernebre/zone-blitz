@@ -592,7 +592,7 @@ Deno.test("league-clock.service", async (t) => {
               Promise.resolve(
                 createMockClock({
                   phase: "coaching_carousel",
-                  stepIndex: 1,
+                  stepIndex: 8,
                 }),
               ),
           },
@@ -776,7 +776,7 @@ Deno.test("league-clock.service", async (t) => {
     );
 
     await t.step(
-      "Year 1 league advances through genesis phases normally",
+      "Year 1 league advances within genesis_staff_hiring steps",
       async () => {
         const service = createService({
           leagueClockRepo: {
@@ -785,6 +785,32 @@ Deno.test("league-clock.service", async (t) => {
                 createMockClock({
                   phase: "genesis_staff_hiring",
                   stepIndex: 0,
+                  hasCompletedGenesis: false,
+                }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+        );
+        assertEquals(result.phase, "genesis_staff_hiring");
+        assertEquals(result.stepIndex, 1);
+      },
+    );
+
+    await t.step(
+      "Year 1 league transitions from the final genesis_staff_hiring step to genesis_founding_pool",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "genesis_staff_hiring",
+                  stepIndex: 7,
                   hasCompletedGenesis: false,
                 }),
               ),

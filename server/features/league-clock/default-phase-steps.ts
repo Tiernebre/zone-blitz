@@ -6,14 +6,60 @@ export interface DefaultPhaseStep {
   flavorDate?: string;
 }
 
-export const DEFAULT_PHASE_STEPS: DefaultPhaseStep[] = [
-  // genesis_staff_hiring
-  {
+const HIRING_STEP_SLUGS = [
+  "hiring_market_survey",
+  "hiring_interview_1",
+  "hiring_interview_2",
+  "hiring_offers",
+  "hiring_decisions",
+  "hiring_second_wave_interview",
+  "hiring_second_wave_decisions",
+  "hiring_finalization",
+] as const;
+
+const COACHING_CAROUSEL_HIRING_FLAVOR_DATES: Record<
+  (typeof HIRING_STEP_SLUGS)[number],
+  string
+> = {
+  hiring_market_survey: "Feb 12",
+  hiring_interview_1: "Feb 14",
+  hiring_interview_2: "Feb 17",
+  hiring_offers: "Feb 20",
+  hiring_decisions: "Feb 24",
+  hiring_second_wave_interview: "Feb 28",
+  hiring_second_wave_decisions: "Mar 2",
+  hiring_finalization: "Mar 3",
+};
+
+const GENESIS_STAFF_HIRING_STEPS: DefaultPhaseStep[] = HIRING_STEP_SLUGS.map(
+  (slug, index) => ({
     phase: "genesis_staff_hiring",
-    stepIndex: 0,
-    slug: "hire_initial_staff",
+    stepIndex: index,
+    slug,
     kind: "event",
+  }),
+);
+
+const COACHING_CAROUSEL_STEPS: DefaultPhaseStep[] = [
+  {
+    phase: "coaching_carousel",
+    stepIndex: 0,
+    slug: "coaching_firings",
+    kind: "event",
+    flavorDate: "Feb 12",
   },
+  ...HIRING_STEP_SLUGS.map((slug, index): DefaultPhaseStep => ({
+    phase: "coaching_carousel",
+    stepIndex: index + 1,
+    slug,
+    kind: "event",
+    flavorDate: COACHING_CAROUSEL_HIRING_FLAVOR_DATES[slug],
+  })),
+];
+
+export const DEFAULT_PHASE_STEPS: DefaultPhaseStep[] = [
+  // genesis_staff_hiring (8-step hiring timeline — ADR 0032)
+  ...GENESIS_STAFF_HIRING_STEPS,
 
   // genesis_founding_pool
   {
@@ -63,21 +109,8 @@ export const DEFAULT_PHASE_STEPS: DefaultPhaseStep[] = [
     flavorDate: "Feb 10",
   },
 
-  // coaching_carousel
-  {
-    phase: "coaching_carousel",
-    stepIndex: 0,
-    slug: "coaching_firings",
-    kind: "event",
-    flavorDate: "Feb 12",
-  },
-  {
-    phase: "coaching_carousel",
-    stepIndex: 1,
-    slug: "coaching_hires",
-    kind: "event",
-    flavorDate: "Feb 18",
-  },
+  // coaching_carousel (firings + 8-step hiring timeline — ADR 0032)
+  ...COACHING_CAROUSEL_STEPS,
 
   // tag_window
   {
