@@ -7,6 +7,7 @@ export const SECONDS_PER_PLAY = 34.8;
 export const OT_SECONDS = 600;
 export const TIMEOUTS_PER_HALF = 3;
 export const KNEEL_CLOCK_BURN = 40;
+export const KICKOFF_STARTING_YARD_LINE = 35;
 
 export interface MutableGameState {
   quarter: 1 | 2 | 3 | 4 | "OT";

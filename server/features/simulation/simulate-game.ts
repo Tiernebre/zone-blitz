@@ -24,10 +24,19 @@ import {
 import { resolvePunt } from "./resolve-punt.ts";
 import { resolveFieldGoal } from "./resolve-field-goal.ts";
 import { resolveFourthDown } from "./resolve-fourth-down.ts";
+import { buildPlayEvent } from "./play-event.ts";
+import {
+  COVERAGE_UNIT_POSITIONS,
+  findEligiblePlayer,
+  findEligiblePlayers,
+  KICKER_POSITIONS,
+  RETURNER_POSITIONS,
+} from "./find-eligible-player.ts";
 
 import type { MutableGameState } from "./game-clock.ts";
 import {
   formatClock,
+  KICKOFF_STARTING_YARD_LINE,
   KNEEL_CLOCK_BURN,
   OT_SECONDS,
   QUARTER_SECONDS,
@@ -149,13 +158,13 @@ export function simulateGame(input: SimulationInput): GameResult {
     homeScore: 0,
     awayScore: 0,
     possession: "home",
-    yardLine: 35,
+    yardLine: KICKOFF_STARTING_YARD_LINE,
     down: 1,
     distance: 10,
     driveIndex: 0,
     playIndex: 0,
     globalPlayIndex: 0,
-    driveStartYardLine: 35,
+    driveStartYardLine: KICKOFF_STARTING_YARD_LINE,
     drivePlays: 0,
     driveYards: 0,
     homeTimeouts: TIMEOUTS_PER_HALF,
@@ -167,10 +176,10 @@ export function simulateGame(input: SimulationInput): GameResult {
     bucket: PlayerRuntime["neutralBucket"],
   ): PlayerRuntime | undefined {
     const active = side === "home" ? rosters.homeActive : rosters.awayActive;
-    return active.find(
-      (p) =>
-        p.neutralBucket === bucket && !rosters.injuredPlayerIds.has(p.playerId),
-    );
+    return findEligiblePlayer(active, {
+      positions: [bucket],
+      injuredIds: rosters.injuredPlayerIds,
+    });
   }
 
   function currentOffenseTeamId(): string {
@@ -184,38 +193,30 @@ export function simulateGame(input: SimulationInput): GameResult {
   function findKicker(side: "home" | "away"): PlayerRuntime {
     const team = side === "home" ? input.home : input.away;
     const active = side === "home" ? rosters.homeActive : rosters.awayActive;
-    const available = active.filter(
-      (p) => !rosters.injuredPlayerIds.has(p.playerId),
-    );
-    return (
-      available.find((p) => p.neutralBucket === "K") ??
-        team.starters.find((p) => p.neutralBucket === "K") ??
-        team.starters[0]
-    );
+    const fallback = team.starters.find((p) => p.neutralBucket === "K") ??
+      team.starters[0];
+    return findEligiblePlayer(active, {
+      positions: KICKER_POSITIONS,
+      injuredIds: rosters.injuredPlayerIds,
+      fallback,
+    })!;
   }
 
   function findReturner(side: "home" | "away"): PlayerRuntime | undefined {
     const active = side === "home" ? rosters.homeActive : rosters.awayActive;
-    const available = active.filter(
-      (p) => !rosters.injuredPlayerIds.has(p.playerId),
-    );
-    return (
-      available.find((p) => p.neutralBucket === "WR") ??
-        available.find((p) => p.neutralBucket === "RB")
-    );
+    return findEligiblePlayer(active, {
+      positions: RETURNER_POSITIONS,
+      injuredIds: rosters.injuredPlayerIds,
+    });
   }
 
   function findCoverageUnit(side: "home" | "away"): PlayerRuntime[] {
     const active = side === "home" ? rosters.homeActive : rosters.awayActive;
-    return active
-      .filter((p) => !rosters.injuredPlayerIds.has(p.playerId))
-      .filter(
-        (p) =>
-          p.neutralBucket === "LB" ||
-          p.neutralBucket === "S" ||
-          p.neutralBucket === "CB",
-      )
-      .slice(0, 4);
+    return findEligiblePlayers(active, {
+      positions: COVERAGE_UNIT_POSITIONS,
+      injuredIds: rosters.injuredPlayerIds,
+      limit: 4,
+    });
   }
 
   function performKickoff(
@@ -392,7 +393,7 @@ export function simulateGame(input: SimulationInput): GameResult {
       tags: [],
     }];
 
-    const fgEvent: PlayEvent = {
+    const fgEvent = buildPlayEvent({
       gameId,
       driveIndex: state.driveIndex,
       playIndex: state.playIndex,
@@ -419,8 +420,7 @@ export function simulateGame(input: SimulationInput): GameResult {
       participants,
       outcome: fgResult.outcome === "made" ? "field_goal" : "missed_field_goal",
       yardage: 0,
-      tags: [],
-    };
+    });
 
     if (fgResult.blocked) {
       fgEvent.tags.push("blocked_kick");
@@ -488,7 +488,7 @@ export function simulateGame(input: SimulationInput): GameResult {
     if (puntResult.outcome === "muffed_punt") puntTags.push("muff");
     if (puntResult.outcome === "blocked_punt") puntTags.push("blocked_kick");
 
-    const puntEvent: PlayEvent = {
+    const puntEvent = buildPlayEvent({
       gameId,
       driveIndex: state.driveIndex,
       playIndex: state.playIndex,
@@ -516,7 +516,7 @@ export function simulateGame(input: SimulationInput): GameResult {
       outcome: "punt",
       yardage: puntResult.netYards,
       tags: puntTags,
-    };
+    });
 
     events.push(puntEvent);
     state.drivePlays++;
@@ -570,7 +570,7 @@ export function simulateGame(input: SimulationInput): GameResult {
   }
 
   function emitKneel(): void {
-    const kneelEvent: PlayEvent = {
+    const kneelEvent = buildPlayEvent({
       gameId,
       driveIndex: state.driveIndex,
       playIndex: state.playIndex,
@@ -594,11 +594,10 @@ export function simulateGame(input: SimulationInput): GameResult {
         coverage: "none",
         pressure: "none",
       },
-      participants: [],
       outcome: "kneel",
       yardage: -1,
       tags: ["victory_formation"],
-    };
+    });
 
     events.push(kneelEvent);
     state.drivePlays++;

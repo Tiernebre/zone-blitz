@@ -98,6 +98,9 @@ await db
     target: franchises.abbreviation,
     set: {
       cityId: sql`excluded.city_id`,
+      primaryColor: sql`excluded.primary_color`,
+      secondaryColor: sql`excluded.secondary_color`,
+      accentColor: sql`excluded.accent_color`,
       conference: sql`excluded.conference`,
       division: sql`excluded.division`,
       updatedAt: new Date(),

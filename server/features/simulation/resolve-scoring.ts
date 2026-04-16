@@ -1,4 +1,4 @@
-import type { PlayEvent, PlayOutcome, PlayTag } from "./events.ts";
+import type { PlayEvent, PlayTag } from "./events.ts";
 import type { GameState, PlayerRuntime, TeamRuntime } from "./resolve-play.ts";
 import type { SeededRng } from "./rng.ts";
 import type { MutableGameState } from "./game-clock.ts";
@@ -10,6 +10,7 @@ import {
   resolveExtraPoint,
   resolveTwoPointConversion,
 } from "./scoring.ts";
+import { buildPlayEvent } from "./play-event.ts";
 
 export interface ScoringResult {
   scored: boolean;
@@ -108,7 +109,7 @@ export function resolveConversion(
   if (choice === "xp") {
     const kicker = ctx.findKicker(isHome ? "home" : "away");
     const made = resolveExtraPoint(kicker, rng);
-    const xpEvent: PlayEvent = {
+    const xpEvent = buildPlayEvent({
       gameId: ctx.gameId,
       driveIndex: state.driveIndex,
       playIndex: state.playIndex,
@@ -133,10 +134,10 @@ export function resolveConversion(
         playerId: kicker.playerId,
         tags: made ? ["xp_made"] : ["xp_missed"],
       }],
-      outcome: "xp" as PlayOutcome,
+      outcome: "xp",
       yardage: 0,
       tags: made ? [] : ["xp_missed" as PlayTag],
-    };
+    });
     events.push(xpEvent);
     state.playIndex++;
     state.globalPlayIndex++;
