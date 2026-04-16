@@ -1038,3 +1038,336 @@ Deno.test("getHiringState: aggregates league rows from the repository", async ()
   assertEquals(state.unassignedScouts, unassignedScouts);
   assertExists(state);
 });
+
+function makeUnassigned(
+  overrides: Partial<UnassignedCandidate> = {},
+): UnassignedCandidate {
+  return {
+    id: crypto.randomUUID(),
+    leagueId: "lg",
+    firstName: "First",
+    lastName: "Last",
+    role: "HC",
+    marketTierPref: 50,
+    philosophyFitPref: 50,
+    staffFitPref: 50,
+    compensationPref: 50,
+    minimumThreshold: 50,
+    ...overrides,
+  };
+}
+
+Deno.test("listCandidates: returns coaches and scouts tagged with staff type", async () => {
+  const coach = makeUnassigned({ role: "HC" });
+  const scout = makeUnassigned({ role: "DIRECTOR" });
+  const service = createHiringService({
+    repo: stubRepo({
+      listUnassignedCoaches: () => Promise.resolve([coach]),
+      listUnassignedScouts: () => Promise.resolve([scout]),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const rows = await service.listCandidates("lg");
+  assertEquals(rows.length, 2);
+  const coachRow = rows.find((r) => r.id === coach.id);
+  const scoutRow = rows.find((r) => r.id === scout.id);
+  assertEquals(coachRow?.staffType, "coach");
+  assertEquals(scoutRow?.staffType, "scout");
+  assertEquals(coachRow?.role, "HC");
+  assertEquals(scoutRow?.role, "DIRECTOR");
+});
+
+Deno.test("listCandidates: filters by staffType", async () => {
+  const coach = makeUnassigned({ role: "HC" });
+  const scout = makeUnassigned({ role: "DIRECTOR" });
+  const service = createHiringService({
+    repo: stubRepo({
+      listUnassignedCoaches: () => Promise.resolve([coach]),
+      listUnassignedScouts: () => Promise.resolve([scout]),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const rows = await service.listCandidates("lg", { staffType: "coach" });
+  assertEquals(rows.length, 1);
+  assertEquals(rows[0].id, coach.id);
+});
+
+Deno.test("listCandidates: filters by role", async () => {
+  const hc = makeUnassigned({ role: "HC" });
+  const oc = makeUnassigned({ role: "OC" });
+  const service = createHiringService({
+    repo: stubRepo({
+      listUnassignedCoaches: () => Promise.resolve([hc, oc]),
+      listUnassignedScouts: () => Promise.resolve([]),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const rows = await service.listCandidates("lg", { role: "OC" });
+  assertEquals(rows.length, 1);
+  assertEquals(rows[0].id, oc.id);
+});
+
+Deno.test("getCandidateDetail: returns undefined when candidate is not in either pool", async () => {
+  const service = createHiringService({
+    repo: stubRepo({
+      listUnassignedCoaches: () => Promise.resolve([]),
+      listUnassignedScouts: () => Promise.resolve([]),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const detail = await service.getCandidateDetail(
+    "lg",
+    crypto.randomUUID(),
+  );
+  assertEquals(detail, undefined);
+});
+
+Deno.test("getCandidateDetail: returns detail with null interview reveal when viewer has no completed interview", async () => {
+  const coach = makeUnassigned({ role: "HC" });
+  const service = createHiringService({
+    repo: stubRepo({
+      listUnassignedCoaches: () => Promise.resolve([coach]),
+      listUnassignedScouts: () => Promise.resolve([]),
+      findInterview: () => Promise.resolve(undefined),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const detail = await service.getCandidateDetail(
+    "lg",
+    coach.id,
+    "tm",
+  );
+  assertEquals(detail?.id, coach.id);
+  assertEquals(detail?.staffType, "coach");
+  assertEquals(detail?.interviewReveal, null);
+});
+
+Deno.test("getCandidateDetail: returns interview reveal when viewer has completed interview", async () => {
+  const scout = makeUnassigned({ role: "DIRECTOR" });
+  const interview = makeInterview({
+    teamId: "tm",
+    staffType: "scout",
+    staffId: scout.id,
+    status: "completed",
+    philosophyReveal: { tempo: "up" },
+    staffFitReveal: { chemistry: "high" },
+  });
+  const service = createHiringService({
+    repo: stubRepo({
+      listUnassignedCoaches: () => Promise.resolve([]),
+      listUnassignedScouts: () => Promise.resolve([scout]),
+      findInterview: (_l, teamId, staffType, staffId) => {
+        assertEquals(teamId, "tm");
+        assertEquals(staffType, "scout");
+        assertEquals(staffId, scout.id);
+        return Promise.resolve(interview);
+      },
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const detail = await service.getCandidateDetail(
+    "lg",
+    scout.id,
+    "tm",
+  );
+  assertEquals(detail?.interviewReveal?.philosophyReveal, { tempo: "up" });
+  assertEquals(detail?.interviewReveal?.staffFitReveal, { chemistry: "high" });
+});
+
+Deno.test("getCandidateDetail: omits interview reveal when interview is not completed", async () => {
+  const coach = makeUnassigned({ role: "QB" });
+  const interview = makeInterview({
+    teamId: "tm",
+    staffType: "coach",
+    staffId: coach.id,
+    status: "requested",
+  });
+  const service = createHiringService({
+    repo: stubRepo({
+      listUnassignedCoaches: () => Promise.resolve([coach]),
+      listUnassignedScouts: () => Promise.resolve([]),
+      findInterview: () => Promise.resolve(interview),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const detail = await service.getCandidateDetail(
+    "lg",
+    coach.id,
+    "tm",
+  );
+  assertEquals(detail?.interviewReveal, null);
+});
+
+Deno.test("resolveCandidate: returns staffType for a candidate in either pool", async () => {
+  const coach = makeUnassigned({ role: "HC" });
+  const scout = makeUnassigned({ role: "DIRECTOR" });
+  const service = createHiringService({
+    repo: stubRepo({
+      listUnassignedCoaches: () => Promise.resolve([coach]),
+      listUnassignedScouts: () => Promise.resolve([scout]),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  assertEquals(await service.resolveCandidate("lg", coach.id), {
+    staffType: "coach",
+    staffId: coach.id,
+  });
+  assertEquals(await service.resolveCandidate("lg", scout.id), {
+    staffType: "scout",
+    staffId: scout.id,
+  });
+  assertEquals(
+    await service.resolveCandidate("lg", crypto.randomUUID()),
+    undefined,
+  );
+});
+
+Deno.test("getTeamHiringState: aggregates team-scoped rows and computes remaining budget", async () => {
+  const interests = [makeInterest({ teamId: "tm" })];
+  const interviews = [makeInterview({ teamId: "tm" })];
+  const offers = [makeOffer({ teamId: "tm", salary: 5_000_000 })];
+  const decisions: HiringDecisionRow[] = [];
+
+  const service = createHiringService({
+    repo: stubRepo({
+      listInterestsByTeam: (leagueId, teamId) => {
+        assertEquals(leagueId, "lg");
+        assertEquals(teamId, "tm");
+        return Promise.resolve(interests);
+      },
+      listInterviewsByTeam: () => Promise.resolve(interviews),
+      listOffersByTeam: () => Promise.resolve(offers),
+      listDecisionsByLeague: () => Promise.resolve(decisions),
+      sumSignedStaffSalaries: (teamId) => {
+        assertEquals(teamId, "tm");
+        return Promise.resolve(20_000_000);
+      },
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const state = await service.getTeamHiringState("lg", "tm");
+  assertEquals(state.leagueId, "lg");
+  assertEquals(state.teamId, "tm");
+  assertEquals(state.interests, interests);
+  assertEquals(state.interviews, interviews);
+  assertEquals(state.offers, offers);
+  assertEquals(state.decisions, decisions);
+  assertEquals(state.staffBudget, baseLeague.staffBudget);
+  // 50M budget - 20M signed - 5M pending = 25M
+  assertEquals(state.remainingBudget, 25_000_000);
+});
+
+Deno.test("listDecisions: returns all decisions when no wave filter is given", async () => {
+  const decisions: HiringDecisionRow[] = [
+    {
+      id: "d-1",
+      leagueId: "lg",
+      staffType: "coach",
+      staffId: "s-1",
+      chosenOfferId: "o-1",
+      wave: 1,
+      decidedAt: new Date(0),
+      createdAt: new Date(0),
+      updatedAt: new Date(0),
+    },
+    {
+      id: "d-2",
+      leagueId: "lg",
+      staffType: "coach",
+      staffId: "s-2",
+      chosenOfferId: null,
+      wave: 2,
+      decidedAt: new Date(0),
+      createdAt: new Date(0),
+      updatedAt: new Date(0),
+    },
+  ];
+  const service = createHiringService({
+    repo: stubRepo({
+      listDecisionsByLeague: () => Promise.resolve(decisions),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const all = await service.listDecisions("lg");
+  assertEquals(all.length, 2);
+});
+
+Deno.test("listDecisions: filters by wave when given", async () => {
+  const decisions: HiringDecisionRow[] = [
+    {
+      id: "d-1",
+      leagueId: "lg",
+      staffType: "coach",
+      staffId: "s-1",
+      chosenOfferId: "o-1",
+      wave: 1,
+      decidedAt: new Date(0),
+      createdAt: new Date(0),
+      updatedAt: new Date(0),
+    },
+    {
+      id: "d-2",
+      leagueId: "lg",
+      staffType: "coach",
+      staffId: "s-2",
+      chosenOfferId: null,
+      wave: 2,
+      decidedAt: new Date(0),
+      createdAt: new Date(0),
+      updatedAt: new Date(0),
+    },
+  ];
+  const service = createHiringService({
+    repo: stubRepo({
+      listDecisionsByLeague: () => Promise.resolve(decisions),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const waveOne = await service.listDecisions("lg", 1);
+  assertEquals(waveOne.length, 1);
+  assertEquals(waveOne[0].wave, 1);
+});
