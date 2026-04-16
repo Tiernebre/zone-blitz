@@ -34,9 +34,8 @@ interface BucketRule {
   qualifies: (input: NeutralBucketInput) => boolean;
 }
 
-// Tie-break priority per ADR 0006 — specialists first, then position-specific
-// in fixed order so classification is deterministic when two signatures score
-// equally.
+// Tie-break priority: specialists first, then position-specific in fixed
+// order so classification is deterministic when two signatures score equally.
 const PRIORITY_ORDER: readonly NeutralBucket[] = [
   "LS",
   "K",

@@ -28,7 +28,7 @@ function fingerprint(
   };
 }
 
-Deno.test("bucketScore maps the 5 bands documented in ADR 0005", () => {
+Deno.test("bucketScore maps the 5 bands", () => {
   assertEquals(bucketScore(95), "ideal");
   assertEquals(bucketScore(85), "ideal");
   assertEquals(bucketScore(70), "fits");

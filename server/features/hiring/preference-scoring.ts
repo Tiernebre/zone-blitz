@@ -8,8 +8,8 @@ import {
 } from "@zone-blitz/shared";
 
 /**
- * Pure preference-scoring engine for the multi-week staff hiring phase
- * described in ADR 0032 and ADR 0023. A candidate evaluates each
+ * Pure preference-scoring engine for the multi-week staff hiring
+ * phase. A candidate evaluates each
  * competing offer against a weighted preference function; the highest
  * score above the candidate's minimum threshold wins. No DB access,
  * no IO — the caller supplies fully assembled inputs.

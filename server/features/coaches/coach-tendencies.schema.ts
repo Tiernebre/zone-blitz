@@ -2,11 +2,11 @@ import { integer, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 import { coaches } from "./coach.schema.ts";
 
 /**
- * Per ADR 0007, scheme tendency vectors live on coordinators (1:1 with
- * `coaches`). Offensive columns are populated only on OC / offense-side
- * HC rows; defensive columns only on DC / defense-side HC rows. All
- * tendency columns are nullable so a single DC does not carry empty
- * offensive fields (and vice versa).
+ * Scheme tendency vectors live on coordinators (1:1 with `coaches`).
+ * Offensive columns are populated only on OC / offense-side HC rows;
+ * defensive columns only on DC / defense-side HC rows. All tendency
+ * columns are nullable so a single DC does not carry empty offensive
+ * fields (and vice versa).
  */
 export const coachTendencies = pgTable("coach_tendencies", {
   coachId: uuid("coach_id")

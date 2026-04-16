@@ -32,7 +32,7 @@ describe("LEAGUE_PHASES", () => {
     expect([...LEAGUE_PHASES]).toEqual([...EXPECTED_PHASES]);
   });
 
-  it("places genesis_draft_scouting between genesis_founding_pool and genesis_allocation_draft (ADR 0034)", () => {
+  it("places genesis_draft_scouting between genesis_founding_pool and genesis_allocation_draft", () => {
     const foundingPoolIndex = LEAGUE_PHASES.indexOf("genesis_founding_pool");
     const draftScoutingIndex = LEAGUE_PHASES.indexOf("genesis_draft_scouting");
     const allocationDraftIndex = LEAGUE_PHASES.indexOf(

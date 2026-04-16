@@ -159,7 +159,7 @@ Deno.test("hiredAt dates spread across multiple years", () => {
   assertEquals(years.size > 1, true);
 });
 
-Deno.test("contract salaries fall within ADR 0032 per-role bounds", () => {
+Deno.test("contract salaries fall within per-role bounds", () => {
   const result = makeGenerator().generate(INPUT);
   for (const s of result) {
     assertEquals(s.contractSalary > 0, true);
@@ -179,7 +179,7 @@ Deno.test("contract salaries fall within ADR 0032 per-role bounds", () => {
   }
 });
 
-Deno.test("contract years fall within ADR 0032 per-role bounds", () => {
+Deno.test("contract years fall within per-role bounds", () => {
   const result = makeGenerator().generate(INPUT);
   for (const s of result) {
     if (s.role === "DIRECTOR") {

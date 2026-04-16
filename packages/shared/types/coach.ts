@@ -32,7 +32,7 @@ export type CoachSpecialty =
 /**
  * Minimal coach reference used where a full Coach would be overkill —
  * e.g. a mentor stub, a connection target, or a coaching-tree lineage
- * node. Contains nothing the ADR's non-goals forbid (no OVR, no grade,
+ * node. Contains nothing the non-goals forbid (no OVR, no grade,
  * no attribute reveals).
  */
 export interface CoachSummary {

@@ -58,7 +58,7 @@ const COACHING_CAROUSEL_STEPS: DefaultPhaseStep[] = [
 ];
 
 export const DEFAULT_PHASE_STEPS: DefaultPhaseStep[] = [
-  // genesis_staff_hiring (8-step hiring timeline — ADR 0032)
+  // genesis_staff_hiring (8-step hiring timeline)
   ...GENESIS_STAFF_HIRING_STEPS,
 
   // genesis_founding_pool
@@ -69,7 +69,7 @@ export const DEFAULT_PHASE_STEPS: DefaultPhaseStep[] = [
     kind: "event",
   },
 
-  // genesis_draft_scouting (4-week scouting window — ADR 0034)
+  // genesis_draft_scouting (4-week scouting window)
   {
     phase: "genesis_draft_scouting",
     stepIndex: 0,
@@ -135,7 +135,7 @@ export const DEFAULT_PHASE_STEPS: DefaultPhaseStep[] = [
     flavorDate: "Feb 10",
   },
 
-  // coaching_carousel (firings + 8-step hiring timeline — ADR 0032)
+  // coaching_carousel (firings + 8-step hiring timeline)
   ...COACHING_CAROUSEL_STEPS,
 
   // tag_window

@@ -27,7 +27,7 @@ interface DefensiveSpectrum {
   title: string;
 }
 
-// Spectrum labels are taken verbatim from ADR 0007's tendency table
+// Spectrum labels are taken verbatim from the tendency table
 // so the panel never drifts from the data model's defined poles.
 const OFFENSIVE_SPECTRUMS: readonly OffensiveSpectrum[] = [
   {

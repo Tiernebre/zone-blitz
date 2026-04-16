@@ -223,7 +223,7 @@ const HIRING_STEP_SLUGS = [
   "hiring_finalization",
 ] as const;
 
-Deno.test("genesis_staff_hiring has 8 hiring steps in the ADR 0032 order", () => {
+Deno.test("genesis_staff_hiring has 8 hiring steps in order", () => {
   const steps = DEFAULT_PHASE_STEPS.filter(
     (s) => s.phase === "genesis_staff_hiring",
   ).sort((a, b) => a.stepIndex - b.stepIndex);
@@ -296,7 +296,7 @@ const GENESIS_DRAFT_SCOUTING_STEP_SLUGS = [
   "scouting_board_lock",
 ] as const;
 
-Deno.test("genesis_draft_scouting has the ADR 0034 four-step catalog in order", () => {
+Deno.test("genesis_draft_scouting has the four-step catalog in order", () => {
   const steps = DEFAULT_PHASE_STEPS.filter(
     (s) => s.phase === "genesis_draft_scouting",
   ).sort((a, b) => a.stepIndex - b.stepIndex);

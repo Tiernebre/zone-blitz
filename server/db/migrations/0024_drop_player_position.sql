@@ -10,7 +10,7 @@ ALTER TABLE "scout_evaluations" DROP CONSTRAINT IF EXISTS "scout_evaluations_pro
 ALTER TABLE "scout_evaluations" DROP CONSTRAINT IF EXISTS "scout_evaluations_prospect_id_players_id_fk";--> statement-breakpoint
 ALTER TABLE "scout_evaluations" ADD CONSTRAINT "scout_evaluations_prospect_id_players_id_fk" FOREIGN KEY ("prospect_id") REFERENCES "public"."players"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 
--- ADR 0006: players are positionless. Drop the persisted position column.
+-- Players are positionless. Drop the persisted position column.
 -- The `player_position` postgres enum is retained because depth_chart_entries
 -- still uses it as a slot code.
 ALTER TABLE "players" DROP COLUMN "position";

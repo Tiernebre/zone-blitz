@@ -37,7 +37,7 @@ Deno.test("leaguePhaseEnum has all 20 phases in deterministic order", () => {
 });
 
 Deno.test(
-  "genesis_draft_scouting sits between genesis_founding_pool and genesis_allocation_draft (ADR 0034)",
+  "genesis_draft_scouting sits between genesis_founding_pool and genesis_allocation_draft",
   () => {
     const phases = leaguePhaseEnum.enumValues;
     const foundingPoolIndex = phases.indexOf("genesis_founding_pool");

@@ -315,7 +315,7 @@ Deno.test("all generated players have non-empty names", () => {
   }
 });
 
-// ---- Graduated-behaviour assertions (ADR 0009) ----
+// ---- Graduated-behaviour assertions ----
 
 Deno.test("attribute distribution produces a star-to-scrub gradient", () => {
   const result = makeGenerator().generate(INPUT);
@@ -451,7 +451,7 @@ Deno.test(
   },
 );
 
-// ---- Positional market value integration (ADR 0011) ----
+// ---- Positional market value integration ----
 
 Deno.test(
   "at equal quality, veteran QB salary base is roughly 2.75× veteran RB through the market value table",
@@ -588,7 +588,7 @@ Deno.test("rookie-age contracts are flagged as isRookieDeal", () => {
   }
 });
 
-// ---- Per-year shape distribution (ADR 0016 / issue #292) ----
+// ---- Per-year shape distribution (issue #292) ----
 
 Deno.test("cap-hit invariant: sum of cap hits equals total contract value for every bundle", () => {
   const generator = makeGenerator();

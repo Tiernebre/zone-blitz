@@ -236,7 +236,7 @@ Deno.test({
       assertEquals(idl?.contractYearsRemaining, 3);
       assertEquals(idl?.injuryStatus, "questionable");
 
-      // No coaches hired → no scheme to fit against → null per ADR 0005.
+      // No coaches hired → no scheme to fit against → null.
       assertEquals(qb?.schemeFit, null);
       assertEquals(idl?.schemeFit, null);
     } finally {

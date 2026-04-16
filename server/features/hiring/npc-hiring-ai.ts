@@ -26,7 +26,7 @@ import {
 } from "./preference-scoring.ts";
 
 // Priority tiers for role-need ranking. Lower value = higher priority.
-// Must match the ADR 0032 hierarchy: HC, then coordinators, then position
+// Must match the hiring hierarchy: HC, then coordinators, then position
 // coaches, then scout roles (director first, then other scouts).
 const COACH_ROLE_PRIORITY: Record<CoachRole, number> = {
   HC: 0,
@@ -205,7 +205,7 @@ export interface NpcHiringAi {
 }
 
 /**
- * Per-step NPC hiring AI described in ADR 0032. The strategy is to use the
+ * Per-step NPC hiring AI. The strategy is to use the
  * candidate preference function in reverse — for each NPC franchise, rank
  * still-needed candidates by how likely each would accept a probe offer from
  * that team, then express interest, request interviews, and submit offers in

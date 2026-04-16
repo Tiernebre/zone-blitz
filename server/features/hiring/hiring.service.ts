@@ -153,7 +153,7 @@ export interface HiringPoolGenerator {
   ): Promise<unknown>;
 }
 
-// Per ADR 0032 salary bands. The compensation component of the candidate
+// Salary bands. The compensation component of the candidate
 // preference function compares the offer against the role's market band
 // — a salary near the ceiling scores 100, near the floor scores 0.
 const COACH_SALARY_BANDS: Record<CoachRole, SalaryBand> = {

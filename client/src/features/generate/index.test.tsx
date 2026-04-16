@@ -53,7 +53,7 @@ afterEach(() => {
 });
 
 describe("Generate", () => {
-  it("shows the first ADR-0030 milestone copy on mount", () => {
+  it("shows the first milestone copy on mount", () => {
     mockFoundPost.mockReturnValue(new Promise(() => {}));
     renderWithProviders();
     expect(

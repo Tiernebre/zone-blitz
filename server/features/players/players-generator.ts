@@ -385,7 +385,7 @@ export const BUCKET_PROFILES: Record<NeutralBucket, BucketProfile> = {
 };
 
 // Target roster composition by neutral bucket. FB is intentionally absent —
-// lead-blocking fullbacks classify as RB under the neutral lens (ADR 0006).
+// lead-blocking fullbacks classify as RB under the neutral lens.
 export const ROSTER_BUCKET_COMPOSITION: readonly {
   bucket: NeutralBucket;
   count: number;
