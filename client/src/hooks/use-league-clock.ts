@@ -19,6 +19,20 @@ export function useLeagueClock(leagueId: string) {
   });
 }
 
+interface AdvanceResult {
+  leagueId: string;
+  seasonYear: number;
+  phase: string;
+  stepIndex: number;
+  slug: string;
+  flavorDate: string | null;
+  advancedAt: string;
+  overrideReason: string | null;
+  overrideBlockers: unknown;
+  autoResolved: unknown[];
+  looped: boolean;
+}
+
 export function useAdvanceLeagueClock() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -44,7 +58,7 @@ export function useAdvanceLeagueClock() {
         superBowlPlayed: boolean;
         priorPhaseComplete: boolean;
       };
-    }) => {
+    }): Promise<AdvanceResult> => {
       const res = await api.api["league-clock"][":leagueId"].advance.$post({
         param: { leagueId },
         json: { isCommissioner, overrideReason, gateState },
@@ -56,7 +70,7 @@ export function useAdvanceLeagueClock() {
             `Advance failed (${res.status})`,
         );
       }
-      return res.json();
+      return res.json() as Promise<AdvanceResult>;
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
