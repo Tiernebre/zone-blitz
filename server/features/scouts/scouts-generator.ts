@@ -101,8 +101,8 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
   DIRECTOR: {
     ageMin: 50,
     ageMax: 65,
-    salaryMin: 800_000,
-    salaryMax: 2_500_000,
+    salaryMin: 250_000,
+    salaryMax: 800_000,
     yearsMin: 3,
     yearsMax: 5,
     buyoutYearsMin: 1,
@@ -115,8 +115,8 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
   NATIONAL_CROSS_CHECKER: {
     ageMin: 42,
     ageMax: 58,
-    salaryMin: 400_000,
-    salaryMax: 1_200_000,
+    salaryMin: 150_000,
+    salaryMax: 400_000,
     yearsMin: 2,
     yearsMax: 4,
     buyoutYearsMin: 0,
@@ -129,8 +129,8 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
   AREA_SCOUT: {
     ageMin: 30,
     ageMax: 50,
-    salaryMin: 120_000,
-    salaryMax: 400_000,
+    salaryMin: 80_000,
+    salaryMax: 200_000,
     yearsMin: 1,
     yearsMax: 3,
     buyoutYearsMin: 0,
@@ -190,14 +190,14 @@ export function createScoutsGenerator(
             band.yearsMin,
             band.yearsMax,
           );
-          // 25k step so output reads as plausible salary numbers rather
-          // than arbitrary 6-digit values.
+          // 10k step so the tightened ADR 0032 bands (e.g. area scout
+          // $80K–$200K) can reach their ceiling with meaningful variance.
           const salarySteps = Math.max(
             1,
-            Math.floor((band.salaryMax - band.salaryMin) / 25_000),
+            Math.floor((band.salaryMax - band.salaryMin) / 10_000),
           );
           const contractSalary = band.salaryMin +
-            intInRange(random, 0, salarySteps) * 25_000;
+            intInRange(random, 0, salarySteps) * 10_000;
           const buyoutYears = intInRange(
             random,
             band.buyoutYearsMin,
@@ -261,10 +261,10 @@ export function createScoutsGenerator(
           );
           const salarySteps = Math.max(
             1,
-            Math.floor((band.salaryMax - band.salaryMin) / 25_000),
+            Math.floor((band.salaryMax - band.salaryMin) / 10_000),
           );
           const contractSalary = band.salaryMin +
-            intInRange(random, 0, salarySteps) * 25_000;
+            intInRange(random, 0, salarySteps) * 10_000;
           const buyoutYears = intInRange(
             random,
             band.buyoutYearsMin,
