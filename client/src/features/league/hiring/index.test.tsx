@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { toast } from "sonner";
 import { Hiring } from "./index.tsx";
 
 const mockUseParams = vi.fn();
@@ -239,6 +240,19 @@ describe("Market survey view", () => {
     renderPage();
     expect(screen.getByTestId("candidates-loading")).toBeTruthy();
   });
+
+  it("toasts on express-interest success and error callbacks", () => {
+    renderPage();
+    fireEvent.click(screen.getByTestId("express-interest-c1"));
+    const opts = expressInterestMutate.mock.calls[0][1] as {
+      onSuccess: () => void;
+      onError: (e: Error) => void;
+    };
+    opts.onSuccess();
+    opts.onError(new Error("nope"));
+    expect(toast.success).toHaveBeenCalledWith("Interest noted");
+    expect(toast.error).toHaveBeenCalledWith("nope");
+  });
 });
 
 describe("Interview view", () => {
@@ -348,6 +362,14 @@ describe("Interview view", () => {
       { leagueId: "lg", candidateIds: ["c1"] },
       expect.any(Object),
     );
+    const opts = requestInterviewsMutate.mock.calls[0][1] as {
+      onSuccess: () => void;
+      onError: (e: Error) => void;
+    };
+    opts.onSuccess();
+    opts.onError(new Error("declined"));
+    expect(toast.success).toHaveBeenCalledWith("Interview requested");
+    expect(toast.error).toHaveBeenCalledWith("declined");
   });
 
   it.each([
@@ -480,6 +502,14 @@ describe("Offers view", () => {
       },
       expect.any(Object),
     );
+    const opts = submitOffersMutate.mock.calls[0][1] as {
+      onSuccess: () => void;
+      onError: (e: Error) => void;
+    };
+    opts.onSuccess();
+    opts.onError(new Error("over budget"));
+    expect(toast.success).toHaveBeenCalledWith("Offer submitted");
+    expect(toast.error).toHaveBeenCalledWith("over budget");
   });
 
   it("warns when the salary exceeds remaining budget", () => {
@@ -851,6 +881,21 @@ describe("Staff result view", () => {
   });
 
   it("renders empty messages when no staff is on either tree", () => {
+    renderPage();
+    expect(screen.getByTestId("staff-result-coaches").textContent).toContain(
+      "No coaches",
+    );
+    expect(screen.getByTestId("staff-result-scouts").textContent).toContain(
+      "No scouts",
+    );
+  });
+
+  it("treats undefined staff trees as empty after loading completes", () => {
+    mockUseStaffTree.mockReturnValue({ data: undefined, isLoading: false });
+    mockUseScoutStaffTree.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    });
     renderPage();
     expect(screen.getByTestId("staff-result-coaches").textContent).toContain(
       "No coaches",
