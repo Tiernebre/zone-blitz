@@ -149,7 +149,7 @@ describe("navGroups", () => {
     it.each<[LeaguePhase, string[]]>([
       [
         "initial_staff_hiring",
-        ["Home", "Coaches", "Scouts", "Media"],
+        ["Home", "Coaches", "Scouts", "Hiring", "Media"],
       ],
       [
         "initial_draft",
@@ -252,10 +252,11 @@ describe("navGroups", () => {
 });
 
 describe("Hiring nav item", () => {
-  it("is visible only in coaching_carousel phase", () => {
+  it("is visible in initial_staff_hiring and coaching_carousel phases", () => {
+    const hiringPhases = new Set(["initial_staff_hiring", "coaching_carousel"]);
     for (const phase of LEAGUE_PHASES) {
       const visible = visibleLabels(phase).includes("Hiring");
-      expect(visible).toBe(phase === "coaching_carousel");
+      expect(visible).toBe(hiringPhases.has(phase));
     }
   });
 });

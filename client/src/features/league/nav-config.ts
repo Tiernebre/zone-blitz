@@ -71,7 +71,7 @@ const freeAgencyPhases = inPhases(
 
 const initialPool = inPhases("initial_pool");
 const initialDraft = inPhases("initial_draft");
-const coachingCarousel = inPhases("coaching_carousel");
+const hiringPhases = inPhases("initial_staff_hiring", "coaching_carousel");
 
 export const navGroups: NavGroup[] = [
   {
@@ -164,7 +164,7 @@ export const navGroups: NavGroup[] = [
         label: "Hiring",
         path: "hiring",
         Icon: BriefcaseIcon,
-        visibleInPhases: coachingCarousel,
+        visibleInPhases: hiringPhases,
       },
       {
         label: "Media",
