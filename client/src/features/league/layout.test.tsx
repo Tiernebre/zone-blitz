@@ -175,12 +175,12 @@ describe("LeagueLayout", () => {
     expect(settingsLink.getAttribute("href")).toBe("/leagues/1/settings");
   });
 
-  it("renders toggle buttons for the sidebar", () => {
+  it("renders exactly one toggle button for the sidebar", () => {
     renderWithProviders();
     const toggleButtons = screen.getAllByRole("button", {
       name: /toggle sidebar/i,
     });
-    expect(toggleButtons.length).toBeGreaterThanOrEqual(1);
+    expect(toggleButtons.length).toBe(1);
   });
 
   it("collapses the sidebar when toggle is clicked", () => {
