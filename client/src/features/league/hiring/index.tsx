@@ -246,7 +246,6 @@ function MarketSurveyView(
           renderAction={renderAction}
           testIdPrefix="market"
           tabsEnd={interestBadge}
-          searchable={false}
         />
       </CardContent>
     </Card>
@@ -385,7 +384,6 @@ function InterviewView(
           renderAction={renderAction}
           testIdPrefix="interview"
           tabsEnd={interviewBadge}
-          searchable={false}
         />
       </CardContent>
     </Card>
@@ -808,17 +806,13 @@ function StaffTypeTabs(
     candidates,
     renderAction,
     testIdPrefix,
-    toolbarEnd,
     tabsEnd,
-    searchable = true,
   }: {
     leagueId: string;
     candidates: HiringCandidateSummary[];
     renderAction: (c: HiringCandidateSummary) => React.ReactNode;
     testIdPrefix: string;
-    toolbarEnd?: React.ReactNode;
     tabsEnd?: React.ReactNode;
-    searchable?: boolean;
   },
 ) {
   const coaches = candidates.filter((c) => c.staffType === "coach");
@@ -844,8 +838,6 @@ function StaffTypeTabs(
           leagueId={leagueId}
           renderAction={renderAction}
           testId={`${testIdPrefix}-coach-table`}
-          toolbarEnd={toolbarEnd}
-          searchable={searchable}
         />
       </TabsContent>
       <TabsContent value="scout">
@@ -855,8 +847,6 @@ function StaffTypeTabs(
           leagueId={leagueId}
           renderAction={renderAction}
           testId={`${testIdPrefix}-scout-table`}
-          toolbarEnd={toolbarEnd}
-          searchable={searchable}
         />
       </TabsContent>
     </Tabs>
@@ -866,21 +856,17 @@ function StaffTypeTabs(
 type CandidateRow = HiringCandidateSummary & {
   fullName: string;
   displayRole: string;
-  background: string;
-  schemeLabel: string;
   bandMin: number;
   bandMax: number;
   medianSalary: number;
 };
 
-function schemeLabelFor(c: HiringCandidateSummary): string {
-  if (c.staffType !== "coach") return "—";
+export function coachSchemeLabel(c: HiringCandidateSummary): string {
   if (c.role === "HC" && c.specialty === "ceo") {
     return "Defers to coordinators";
   }
   const offense = offensiveArchetypeLabel(c.offensiveArchetype);
   const defense = defensiveArchetypeLabel(c.defensiveArchetype);
-  if (offense && defense) return `${defense}; ${offense}`;
   return offense ?? defense ?? "—";
 }
 
@@ -891,10 +877,6 @@ function toRows(candidates: HiringCandidateSummary[]): CandidateRow[] {
       ...c,
       fullName: `${c.firstName} ${c.lastName}`,
       displayRole: roleLabel(c.staffType, c.role),
-      background: c.staffType === "coach"
-        ? coachBackgroundLabel(c.role, c.specialty)
-        : "—",
-      schemeLabel: schemeLabelFor(c),
       bandMin: band.min,
       bandMax: band.max,
       medianSalary: medianSalary(c.staffType, c.role),
@@ -936,24 +918,20 @@ function buildCandidateColumns(
   if (staffType === "coach") {
     cols.push(
       {
-        accessorKey: "background",
-        header: ({ column }) => (
-          <SortableHeader column={column}>Background</SortableHeader>
-        ),
+        id: "background",
+        header: "Background",
         cell: ({ row }) => (
           <span data-testid={`candidate-background-${row.original.id}`}>
-            {row.original.background}
+            {coachBackgroundLabel(row.original.specialty)}
           </span>
         ),
       },
       {
-        accessorKey: "schemeLabel",
-        header: ({ column }) => (
-          <SortableHeader column={column}>Scheme</SortableHeader>
-        ),
+        id: "scheme",
+        header: "Scheme",
         cell: ({ row }) => (
           <span data-testid={`candidate-scheme-${row.original.id}`}>
-            {row.original.schemeLabel}
+            {coachSchemeLabel(row.original)}
           </span>
         ),
       },
@@ -997,16 +975,12 @@ function CandidateDataTable(
     renderAction,
     leagueId,
     testId,
-    toolbarEnd,
-    searchable = true,
   }: {
     candidates: HiringCandidateSummary[];
     staffType: "coach" | "scout";
     renderAction: (c: HiringCandidateSummary) => React.ReactNode;
     leagueId: string;
     testId?: string;
-    toolbarEnd?: React.ReactNode;
-    searchable?: boolean;
   },
 ) {
   const rows = useMemo(() => toRows(candidates), [candidates]);
@@ -1015,32 +989,12 @@ function CandidateDataTable(
     [leagueId, renderAction, staffType],
   );
 
-  const toolbar = (!searchable && !toolbarEnd)
-    ? undefined
-    : (table: import("@tanstack/react-table").Table<CandidateRow>) => (
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        {searchable
-          ? (
-            <Input
-              aria-label="Search candidates"
-              placeholder="Search by name or role…"
-              value={(table.getState().globalFilter as string) ?? ""}
-              onChange={(e) => table.setGlobalFilter(e.target.value)}
-              className="max-w-sm"
-            />
-          )
-          : <span />}
-        {toolbarEnd}
-      </div>
-    );
-
   return (
     <div data-testid={testId}>
       <DataTable
         columns={columns}
         data={rows}
         getRowTestId={(row) => `candidate-row-${row.id}`}
-        toolbar={toolbar}
       />
     </div>
   );

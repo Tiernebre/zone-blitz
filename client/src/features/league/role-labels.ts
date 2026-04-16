@@ -32,30 +32,28 @@ export function roleLabel(
   return SCOUT_ROLE_LABELS[role as ScoutRole] ?? role;
 }
 
+const COACH_BACKGROUND_LABELS: Record<string, string> = {
+  offense: "Offensive background",
+  defense: "Defensive background",
+  ceo: "CEO / manager",
+  special_teams: "Special teams background",
+  quarterbacks: "Quarterbacks background",
+  running_backs: "Running backs background",
+  wide_receivers: "Wide receivers background",
+  tight_ends: "Tight ends background",
+  offensive_line: "Offensive line background",
+  defensive_line: "Defensive line background",
+  linebackers: "Linebackers background",
+  defensive_backs: "Defensive backs background",
+};
+
 /**
  * The "Background" column on the coach hiring tab. Surfaces public
- * knowledge: which side of the ball this coach built his career on.
- * For HCs this comes from `specialty` (offense / defense / ceo). For
- * coordinators we derive it from the role itself so the column is
- * still meaningful during the coaching carousel.
+ * knowledge: the side of the ball or position group this coach
+ * built his career on. Driven entirely by `specialty` so HC, OC, DC,
+ * and position coaches all map through the same table.
  */
-export function coachBackgroundLabel(
-  role: string,
-  specialty: string | null,
-): string {
-  if (role === "HC") {
-    if (specialty === "offense") return "Offensive background";
-    if (specialty === "defense") return "Defensive background";
-    if (specialty === "ceo") return "CEO / manager";
-    return "—";
-  }
-  if (role === "OC") return "Offense";
-  if (role === "DC") return "Defense";
-  if (role === "STC" || role === "ST_ASSISTANT") return "Special teams";
-  if (role === "QB" || role === "RB" || role === "WR" || role === "TE") {
-    return "Offense";
-  }
-  if (role === "OL") return "Offense";
-  if (role === "DL" || role === "LB" || role === "DB") return "Defense";
-  return "—";
+export function coachBackgroundLabel(specialty: string | null): string {
+  if (!specialty) return "—";
+  return COACH_BACKGROUND_LABELS[specialty] ?? "—";
 }
