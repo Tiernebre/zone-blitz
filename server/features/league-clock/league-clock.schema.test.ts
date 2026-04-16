@@ -10,6 +10,7 @@ import {
 const EXPECTED_PHASES = [
   "genesis_staff_hiring",
   "genesis_founding_pool",
+  "genesis_draft_scouting",
   "genesis_allocation_draft",
   "genesis_free_agency",
   "genesis_kickoff",
@@ -31,9 +32,21 @@ const EXPECTED_PHASES = [
 
 const EXPECTED_STEP_KINDS = ["event", "week", "window"] as const;
 
-Deno.test("leaguePhaseEnum has all 19 phases in deterministic order", () => {
+Deno.test("leaguePhaseEnum has all 20 phases in deterministic order", () => {
   assertEquals(leaguePhaseEnum.enumValues, [...EXPECTED_PHASES]);
 });
+
+Deno.test(
+  "genesis_draft_scouting sits between genesis_founding_pool and genesis_allocation_draft (ADR 0034)",
+  () => {
+    const phases = leaguePhaseEnum.enumValues;
+    const foundingPoolIndex = phases.indexOf("genesis_founding_pool");
+    const draftScoutingIndex = phases.indexOf("genesis_draft_scouting");
+    const allocationDraftIndex = phases.indexOf("genesis_allocation_draft");
+    assertEquals(draftScoutingIndex, foundingPoolIndex + 1);
+    assertEquals(allocationDraftIndex, draftScoutingIndex + 1);
+  },
+);
 
 Deno.test("genesis phases are ordered before offseason_review", () => {
   const phases = leaguePhaseEnum.enumValues;

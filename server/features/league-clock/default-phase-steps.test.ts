@@ -1,7 +1,11 @@
 import { assertEquals } from "@std/assert";
 import { DEFAULT_PHASE_STEPS } from "./default-phase-steps.ts";
 
-const ALL_PHASES = [
+// genesis_draft_scouting is intentionally excluded from step-seeding
+// expectations in this test: ADR 0034 accepts the phase and enum value, but
+// the four-step catalog (scouting_pool_reveal, scouting_first_reports,
+// scouting_deep_eval, scouting_board_lock) is seeded in a follow-up ticket.
+const ALL_PHASES_WITH_STEPS = [
   "genesis_staff_hiring",
   "genesis_founding_pool",
   "genesis_allocation_draft",
@@ -23,9 +27,9 @@ const ALL_PHASES = [
   "offseason_rollover",
 ] as const;
 
-Deno.test("every phase has at least one step", () => {
+Deno.test("every seeded phase has at least one step", () => {
   const phasesWithSteps = new Set(DEFAULT_PHASE_STEPS.map((s) => s.phase));
-  for (const phase of ALL_PHASES) {
+  for (const phase of ALL_PHASES_WITH_STEPS) {
     assertEquals(
       phasesWithSteps.has(phase),
       true,
@@ -182,7 +186,9 @@ Deno.test("all steps have non-empty slugs", () => {
   }
 });
 
-Deno.test("each genesis phase has at least one step", () => {
+Deno.test("each seeded genesis phase has at least one step", () => {
+  // genesis_draft_scouting is defined in the enum (ADR 0034) but its step
+  // catalog is seeded in a follow-up ticket, so it is not yet required here.
   const genesisPhases = [
     "genesis_staff_hiring",
     "genesis_founding_pool",
