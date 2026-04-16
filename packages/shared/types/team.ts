@@ -10,6 +10,7 @@ export interface Team {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+  backstory: string;
   conference: string;
   division: string;
   createdAt: Date;

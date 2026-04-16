@@ -19,6 +19,7 @@ const teamColumns = {
   primaryColor: teams.primaryColor,
   secondaryColor: teams.secondaryColor,
   accentColor: teams.accentColor,
+  backstory: teams.backstory,
   conference: teams.conference,
   division: teams.division,
   createdAt: teams.createdAt,

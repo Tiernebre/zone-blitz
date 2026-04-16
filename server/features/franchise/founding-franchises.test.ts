@@ -97,6 +97,16 @@ Deno.test("FOUNDING_FRANCHISES all have non-empty required fields", () => {
   }
 });
 
+Deno.test("FOUNDING_FRANCHISES all have non-empty backstory", () => {
+  for (const franchise of FOUNDING_FRANCHISES) {
+    assertEquals(
+      typeof franchise.backstory === "string" && franchise.backstory.length > 0,
+      true,
+      `${franchise.name} must have a non-empty backstory`,
+    );
+  }
+});
+
 Deno.test("FOUNDING_FRANCHISES split evenly into Mountain and Pacific conferences", () => {
   const conferences = FOUNDING_FRANCHISES.map((f) => f.conference);
   const mountain = conferences.filter((c) => c === "Mountain");

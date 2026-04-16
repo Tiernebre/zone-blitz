@@ -38,6 +38,7 @@ function createMockTeam(overrides: Partial<Team> = {}): Team {
     primaryColor: "#000",
     secondaryColor: "#FFF",
     accentColor: "#F00",
+    backstory: "A test franchise backstory.",
     conference: "AFC",
     division: "AFC East",
     createdAt: new Date(),

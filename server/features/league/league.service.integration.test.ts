@@ -108,6 +108,7 @@ async function seedFoundingFranchises(
         primaryColor: f.primaryColor,
         secondaryColor: f.secondaryColor,
         accentColor: f.accentColor,
+        backstory: f.backstory,
         conference: f.conference,
         division: f.division,
       })

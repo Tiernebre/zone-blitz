@@ -15,6 +15,7 @@ interface FranchiseTeam {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+  backstory: string;
 }
 
 function FranchiseCard({
@@ -38,30 +39,35 @@ function FranchiseCard({
               `linear-gradient(to right, ${team.primaryColor}, ${team.secondaryColor})`,
           }}
         />
-        <CardContent className="flex items-center gap-4 p-4">
-          <TeamLogo team={team} className="size-12 text-base" decorative />
-          <div className="min-w-0 text-left">
-            <p className="text-base font-bold text-card-foreground truncate">
-              {team.city}
-            </p>
-            <p className="text-lg font-extrabold tracking-tight truncate text-muted-foreground">
-              {team.name}
-            </p>
+        <CardContent className="flex flex-col gap-3 p-4">
+          <div className="flex items-center gap-4">
+            <TeamLogo team={team} className="size-12 text-base" decorative />
+            <div className="min-w-0 text-left">
+              <p className="text-base font-bold text-card-foreground truncate">
+                {team.city}
+              </p>
+              <p className="text-lg font-extrabold tracking-tight truncate text-muted-foreground">
+                {team.name}
+              </p>
+            </div>
+            <div className="ml-auto flex gap-1">
+              <span
+                className="size-4 rounded-full ring-1 ring-inset ring-black/10"
+                style={{ backgroundColor: team.primaryColor }}
+              />
+              <span
+                className="size-4 rounded-full ring-1 ring-inset ring-black/10"
+                style={{ backgroundColor: team.secondaryColor }}
+              />
+              <span
+                className="size-4 rounded-full ring-1 ring-inset ring-black/10"
+                style={{ backgroundColor: team.accentColor }}
+              />
+            </div>
           </div>
-          <div className="ml-auto flex gap-1">
-            <span
-              className="size-4 rounded-full ring-1 ring-inset ring-black/10"
-              style={{ backgroundColor: team.primaryColor }}
-            />
-            <span
-              className="size-4 rounded-full ring-1 ring-inset ring-black/10"
-              style={{ backgroundColor: team.secondaryColor }}
-            />
-            <span
-              className="size-4 rounded-full ring-1 ring-inset ring-black/10"
-              style={{ backgroundColor: team.accentColor }}
-            />
-          </div>
+          <p className="text-sm text-muted-foreground text-left leading-relaxed">
+            {team.backstory}
+          </p>
         </CardContent>
       </Card>
     </Button>

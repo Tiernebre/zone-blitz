@@ -10,6 +10,7 @@ export interface NewTeamInput {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+  backstory: string;
   conference: string;
   division: string;
 }
