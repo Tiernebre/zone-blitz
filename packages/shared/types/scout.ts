@@ -97,7 +97,7 @@ export interface ScoutConnection {
 export interface ScoutDetail {
   id: string;
   leagueId: string;
-  teamId: string;
+  teamId: string | null;
   firstName: string;
   lastName: string;
   role: ScoutRole;
@@ -120,7 +120,7 @@ export interface ScoutDetail {
 export interface Scout {
   id: string;
   leagueId: string;
-  teamId: string;
+  teamId: string | null;
   firstName: string;
   lastName: string;
   role: ScoutRole;
