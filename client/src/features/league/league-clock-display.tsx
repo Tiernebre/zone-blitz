@@ -56,6 +56,7 @@ export function LeagueClockDisplay({
           draftOrderResolved: true,
           superBowlPlayed: true,
           priorPhaseComplete: true,
+          allTeamsHaveStaff: false,
         },
       },
       {

@@ -29,6 +29,7 @@ function createState(
     draftOrderResolved: true,
     superBowlPlayed: true,
     priorPhaseComplete: true,
+    allTeamsHaveStaff: true,
     ...overrides,
   };
 }
@@ -180,6 +181,28 @@ Deno.test("gates", async (t) => {
           result.blockers[0].reason,
           "Super Bowl has not been played",
         );
+      }
+    });
+  });
+
+  await t.step("enterGenesisFoundingPool", async (t) => {
+    const gate = getGateForPhase("genesis_founding_pool")!;
+
+    await t.step("passes when all teams have staff", () => {
+      const result = gate(createState({ allTeamsHaveStaff: true }));
+      assertEquals(result, { ok: true });
+    });
+
+    await t.step("blocks when not all teams have staff", () => {
+      const result = gate(createState({ allTeamsHaveStaff: false }));
+      assertEquals(result.ok, false);
+      if (!result.ok) {
+        assertEquals(result.blockers.length, 1);
+        assertEquals(
+          result.blockers[0].reason,
+          "All teams must hire staff before generating the founding player pool",
+        );
+        assertEquals(result.blockers[0].autoResolvable, false);
       }
     });
   });
