@@ -471,10 +471,10 @@ export function synthesizeOutcome(
           routeContribs.length
         : avgScore;
 
-      const intProb = Math.max(0.003, 0.020 - coverageScore * 0.002);
+      const intProb = Math.max(0.004, 0.022 - coverageScore * 0.002);
       const completionProb = Math.max(
         0.18,
-        Math.min(0.92, 0.67 + coverageScore * 0.010),
+        Math.min(0.92, 0.655 + coverageScore * 0.010),
       );
       const bigPlayProb = Math.max(
         0.05,
@@ -507,7 +507,7 @@ export function synthesizeOutcome(
         outcome = "pass_complete";
         const isBigPlay = rng.next() < bigPlayProb;
         if (isBigPlay) {
-          yardage = rng.int(13, 37);
+          yardage = rng.int(13, 35);
           tags.push("big_play");
         } else {
           yardage = rng.int(3, 14);
