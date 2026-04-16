@@ -41,11 +41,6 @@ export function createPersonnelService(deps: {
         "generated coaching candidate pool",
       );
 
-      const coachesResult = await deps.coachesService.generate({
-        leagueId: input.leagueId,
-        teamIds: input.teamIds,
-      }, tx);
-
       const depthChartResult = await deps.depthChartPublisher.publishForTeams({
         leagueId: input.leagueId,
         teamIds: input.teamIds,
@@ -69,7 +64,7 @@ export function createPersonnelService(deps: {
 
       return {
         playerCount: playersResult.playerCount,
-        coachCount: coachesResult.coachCount,
+        coachCount: poolResult.coachCount,
         scoutCount: scoutsResult.scoutCount,
         frontOfficeCount: frontOfficeResult.frontOfficeCount,
         draftProspectCount: playersResult.draftProspectCount,
