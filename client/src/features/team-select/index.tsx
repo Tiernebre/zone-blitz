@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useAssignUserTeam } from "../../hooks/use-leagues.ts";
 import { useLeagueTeams } from "../../hooks/use-teams.ts";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TeamLogo } from "../../components/team-logo.tsx";
@@ -16,6 +16,32 @@ interface FranchiseTeam {
   secondaryColor: string;
   accentColor: string;
   backstory: string;
+  conference: string;
+}
+
+const CONFERENCE_ORDER = ["Pacific", "Mountain"] as const;
+
+function groupByConference(
+  teams: FranchiseTeam[],
+): [string, FranchiseTeam[]][] {
+  const groups = new Map<string, FranchiseTeam[]>();
+  for (const team of teams) {
+    const bucket = groups.get(team.conference) ?? [];
+    bucket.push(team);
+    groups.set(team.conference, bucket);
+  }
+  for (const bucket of groups.values()) {
+    bucket.sort((a, b) => a.city.localeCompare(b.city));
+  }
+  const known = CONFERENCE_ORDER
+    .filter((name) => groups.has(name))
+    .map((name) => [name, groups.get(name)!] as [string, FranchiseTeam[]]);
+  const extras = [...groups.entries()]
+    .filter(([name]) =>
+      !CONFERENCE_ORDER.includes(name as typeof CONFERENCE_ORDER[number])
+    )
+    .sort(([a], [b]) => a.localeCompare(b));
+  return [...known, ...extras];
 }
 
 function FranchiseCard({
@@ -142,10 +168,25 @@ export function TeamSelect() {
           </Alert>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {(teams as FranchiseTeam[]).map((team) => (
-            <FranchiseCard key={team.id} team={team} onSelect={handleSelect} />
-          ))}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {groupByConference(teams as FranchiseTeam[]).map(
+            ([conference, conferenceTeams]) => (
+              <Card key={conference}>
+                <CardHeader>
+                  <CardTitle>{conference}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-4">
+                  {conferenceTeams.map((team) => (
+                    <FranchiseCard
+                      key={team.id}
+                      team={team}
+                      onSelect={handleSelect}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
+            ),
+          )}
         </div>
       </div>
     </div>
