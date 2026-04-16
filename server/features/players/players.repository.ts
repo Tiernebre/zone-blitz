@@ -20,6 +20,7 @@ import {
   pickAttributes,
   playerAttributes,
 } from "./attributes.schema.ts";
+import { ageFromBirthDate } from "./age.ts";
 import { contracts } from "../contracts/contract.schema.ts";
 import { contractHistory } from "../contracts/contract-history.schema.ts";
 import { playerTransactions } from "../contracts/player-transaction.schema.ts";
@@ -30,19 +31,6 @@ import { teams } from "../team/team.schema.ts";
 import { cities } from "../cities/city.schema.ts";
 import { alias } from "drizzle-orm/pg-core";
 import type { PlayersRepository } from "./players.repository.interface.ts";
-
-function ageFromBirthDate(birthDate: string, today: Date): number {
-  const birth = new Date(birthDate);
-  let age = today.getUTCFullYear() - birth.getUTCFullYear();
-  const monthDelta = today.getUTCMonth() - birth.getUTCMonth();
-  if (
-    monthDelta < 0 ||
-    (monthDelta === 0 && today.getUTCDate() < birth.getUTCDate())
-  ) {
-    age -= 1;
-  }
-  return Math.max(0, age);
-}
 
 export function createPlayersRepository(deps: {
   db: Database;
