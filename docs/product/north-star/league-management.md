@@ -215,3 +215,4 @@ made is recorded, and you can look back and trace the consequences.
 - [0018 — Genesis phase state machine](../decisions/0018-genesis-phase-state-machine.md)
 - [0019 — Inaugural Year 1 calendar (no preseason)](../decisions/0019-inaugural-year-one-calendar.md)
 - [0025 — Expansion by ownership vote](../decisions/0025-expansion-by-ownership-vote.md)
+- [0032 — League home page as contextual dashboard](../decisions/0032-league-home-page-contextual-dashboard.md)
