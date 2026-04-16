@@ -9,10 +9,10 @@ export function useLeagueClock(leagueId: string) {
         param: { leagueId },
       });
       const data = await res.json();
-      const { hasCompletedGenesis, ...rest } = data;
+      const { hasCompletedInitial, ...rest } = data;
       return {
         ...rest,
-        isInauguralSeason: !hasCompletedGenesis,
+        isInauguralSeason: !hasCompletedInitial,
       };
     },
     enabled: !!leagueId,

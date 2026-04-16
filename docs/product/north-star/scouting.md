@@ -789,33 +789,33 @@ your approach over time based on actual results.
 
 ---
 
-## League Genesis
+## League Setup
 
 This document describes scouting in a mature Zone Blitz league. In a brand-new
-genesis league, scouting starts from zero — no accuracy track record, no
+newly set-up league, scouting starts from zero — no accuracy track record, no
 long-tenured scouts, no prior draft classes to calibrate against. See
-[League Genesis](./league-genesis.md) for the full context; the scouting-
-specific points:
+[League Setup](./league-setup.md) for the full context; the scouting- specific
+points:
 
 - **Scouts are generated uniquely per league.** Same rule as coaches — the
   entire scouting universe is generated at league creation and never shared
-  across save files. The scouts you hire at founding are one-of-one evaluators
+  across save files. The scouts you hire during setup are one-of-one evaluators
   whose careers will only play out in this league.
-- **Genesis hiring is contested.** Scouts are part of the same shared candidate
-  pool as coaches and are hired in parallel across all franchises. See
-  [Coaches — League Genesis](./coaches.md#league-genesis) for how the bidding
-  works.
-- **Year 1 scouting covers the founding player pool.** The first evaluation work
+- **Setup-phase hiring is contested.** Scouts are part of the same shared
+  candidate pool as coaches and are hired in parallel across all franchises. See
+  [Coaches — League Setup](./coaches.md#league-setup) for how the bidding works.
+- **Year 1 scouting covers the initial player pool.** The first evaluation work
   your scouts do is on the veteran pool heading into the allocation draft — an
   unusual pool of archetypes (raw college athletes, practice- squad journeymen,
   back-end vets, middling pros) that no scouting methodology has ever calibrated
   against. Gems and busts are more frequent here than in any later evaluation
-  cycle. The scouting window between founding pool generation and the allocation
-  draft is a dedicated multi-week phase.
+  cycle. The scouting window between initial pool generation and the allocation
+  draft is a dedicated multi-week phase — see
+  [0034 — Initial scouting phase](../decisions/0034-initial-scouting-phase.md).
 - **The first rookie-class scouting cycle runs through Year 1.** While the
   league is playing its inaugural season, your scouts are evaluating the rookie
   class that will be drafted in the Year 2 offseason — the first true rookie
-  draft in league history. Scouting department investment made during genesis
+  draft in league history. Scouting department investment made during setup
   hiring directly shapes the quality of those reports.
 
 Scouting is fun because it's a **skill you develop as a player**, not just a

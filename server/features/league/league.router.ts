@@ -23,8 +23,8 @@ export function createLeagueRouter(leagueService: LeagueService) {
       const teams = await leagueService.getTeams(c.req.param("id"));
       return c.json(teams);
     })
-    .post("/:id/found", async (c) => {
-      const result = await leagueService.found(c.req.param("id"));
+    .post("/:id/generate", async (c) => {
+      const result = await leagueService.generate(c.req.param("id"));
       return c.json(result);
     })
     .patch(

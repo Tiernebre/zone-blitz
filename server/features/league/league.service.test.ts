@@ -12,10 +12,10 @@ import type { PersonnelService } from "../personnel/personnel.service.interface.
 import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
 import type { FranchiseService } from "../franchise/franchise.service.interface.ts";
 import type { LeagueClockRepository } from "../league-clock/league-clock.repository.ts";
-import { FOUNDING_FRANCHISES } from "../franchise/founding-franchises.ts";
+import { INITIAL_FRANCHISES } from "../franchise/initial-franchises.ts";
 
 const TX_MARKER = { __tx: true };
-const FOUNDING_TEAM_COUNT = 8;
+const INITIAL_TEAM_COUNT = 8;
 
 function createMockTxRunner(): TransactionRunner {
   return {
@@ -50,8 +50,8 @@ function createMockLeague(overrides: Partial<League> = {}): League {
   };
 }
 
-function foundingFranchiseFixtures(): Franchise[] {
-  return FOUNDING_FRANCHISES.map((f, i) => ({
+function initialFranchiseFixtures(): Franchise[] {
+  return INITIAL_FRANCHISES.map((f, i) => ({
     id: `f-${i + 1}`,
     name: f.name,
     cityId: `city-${i + 1}`,
@@ -69,8 +69,8 @@ function foundingFranchiseFixtures(): Franchise[] {
   }));
 }
 
-function foundingTeamFixtures(leagueId: string): Team[] {
-  return FOUNDING_FRANCHISES.map((f, i) => ({
+function initialTeamFixtures(leagueId: string): Team[] {
+  return INITIAL_FRANCHISES.map((f, i) => ({
     id: `team-${i + 1}`,
     leagueId,
     franchiseId: `f-${i + 1}`,
@@ -160,7 +160,7 @@ function createMockFranchiseService(
   overrides: Partial<FranchiseService> = {},
 ): FranchiseService {
   return {
-    getAll: () => Promise.resolve(foundingFranchiseFixtures()),
+    getAll: () => Promise.resolve(initialFranchiseFixtures()),
     getById: () => Promise.reject(new DomainError("NOT_FOUND", "not used")),
     ...overrides,
   };
@@ -207,7 +207,7 @@ function createMockLeagueClockRepo(
         advancedByUserId: row.advancedByUserId,
         overrideReason: row.overrideReason ?? null,
         overrideBlockers: row.overrideBlockers ?? null,
-        hasCompletedGenesis: row.hasCompletedGenesis ?? false,
+        hasCompletedInitial: row.hasCompletedInitial ?? false,
       }),
     castVote: () => Promise.reject(new Error("not used")),
     getVotesForStep: () => Promise.resolve([]),
@@ -488,8 +488,8 @@ Deno.test("league.service", async (t) => {
 
       const result = await service.create({ name: "New League" });
       assertEquals(result.league.id, "new-id");
-      assertEquals(result.teams.length, FOUNDING_TEAM_COUNT);
-      assertEquals(teamsCreated.length, FOUNDING_TEAM_COUNT);
+      assertEquals(result.teams.length, INITIAL_TEAM_COUNT);
+      assertEquals(teamsCreated.length, INITIAL_TEAM_COUNT);
       assertEquals(teamsCreated[0].leagueId, "new-id");
       assertEquals(personnelCalled, false);
       assertEquals(scheduleCalled, false);
@@ -497,7 +497,7 @@ Deno.test("league.service", async (t) => {
   );
 
   await t.step(
-    "create persists the founding franchises as teams",
+    "create persists the initial franchises as teams",
     async () => {
       let receivedFranchiseIds: string[] = [];
 
@@ -533,15 +533,15 @@ Deno.test("league.service", async (t) => {
       });
 
       await service.create({ name: "Test" });
-      assertEquals(receivedFranchiseIds.length, FOUNDING_TEAM_COUNT);
-      for (let i = 0; i < FOUNDING_TEAM_COUNT; i++) {
+      assertEquals(receivedFranchiseIds.length, INITIAL_TEAM_COUNT);
+      for (let i = 0; i < INITIAL_TEAM_COUNT; i++) {
         assertEquals(receivedFranchiseIds[i], `f-${i + 1}`);
       }
     },
   );
 
   await t.step(
-    "create throws PRECONDITION_FAILED when founding franchises are missing",
+    "create throws PRECONDITION_FAILED when initial franchises are missing",
     async () => {
       const service = createService({
         franchiseService: { getAll: () => Promise.resolve([]) },
@@ -550,7 +550,7 @@ Deno.test("league.service", async (t) => {
       await assertRejects(
         () => service.create({ name: "New League" }),
         DomainError,
-        "founding franchises",
+        "initial franchises",
       );
     },
   );
@@ -591,7 +591,7 @@ Deno.test("league.service", async (t) => {
       let scheduleCalled = false;
       let clockUpserted = false;
       const leagueId = "lg-1";
-      const mockTeams = foundingTeamFixtures(leagueId);
+      const mockTeams = initialTeamFixtures(leagueId);
 
       const service = createService({
         leagueRepo: {
@@ -621,7 +621,7 @@ Deno.test("league.service", async (t) => {
             personnelCalled = true;
             assertEquals(input.leagueId, leagueId);
             assertEquals(input.seasonId, "season-1");
-            assertEquals(input.teamIds.length, FOUNDING_TEAM_COUNT);
+            assertEquals(input.teamIds.length, INITIAL_TEAM_COUNT);
             return Promise.resolve({
               playerCount: 50,
               coachCount: 10,
@@ -644,7 +644,7 @@ Deno.test("league.service", async (t) => {
           upsert: (row) => {
             clockUpserted = true;
             assertEquals(row.leagueId, leagueId);
-            assertEquals(row.phase, "genesis_staff_hiring");
+            assertEquals(row.phase, "initial_staff_hiring");
             assertEquals(row.seasonYear, 1);
             assertEquals(row.stepIndex, 0);
             return Promise.resolve({
@@ -656,13 +656,13 @@ Deno.test("league.service", async (t) => {
               advancedByUserId: null,
               overrideReason: null,
               overrideBlockers: null,
-              hasCompletedGenesis: false,
+              hasCompletedInitial: false,
             });
           },
         },
       });
 
-      const result = await service.found(leagueId);
+      const result = await service.generate(leagueId);
       assertEquals(result.leagueId, leagueId);
       assertEquals(result.seasonId, "season-1");
       assertEquals(result.playerCount, 50);
@@ -683,7 +683,7 @@ Deno.test("league.service", async (t) => {
       });
 
       await assertRejects(
-        () => service.found("missing"),
+        () => service.generate("missing"),
         DomainError,
         "not found",
       );
@@ -698,26 +698,26 @@ Deno.test("league.service", async (t) => {
           getById: () => Promise.resolve(createMockLeague({ id: "lg-1" })),
         },
         teamService: {
-          getByLeagueId: () => Promise.resolve(foundingTeamFixtures("lg-1")),
+          getByLeagueId: () => Promise.resolve(initialTeamFixtures("lg-1")),
         },
         leagueClockRepo: {
           getByLeagueId: () =>
             Promise.resolve({
               leagueId: "lg-1",
               seasonYear: 1,
-              phase: "genesis_staff_hiring",
+              phase: "initial_staff_hiring",
               stepIndex: 0,
               advancedAt: new Date(),
               advancedByUserId: null,
               overrideReason: null,
               overrideBlockers: null,
-              hasCompletedGenesis: false,
+              hasCompletedInitial: false,
             }),
         },
       });
 
       await assertRejects(
-        () => service.found("lg-1"),
+        () => service.generate("lg-1"),
         DomainError,
         "already been founded",
       );
@@ -729,7 +729,7 @@ Deno.test("league.service", async (t) => {
     async () => {
       const received: Record<string, unknown> = {};
       const leagueId = "lg-1";
-      const mockTeams = foundingTeamFixtures(leagueId);
+      const mockTeams = initialTeamFixtures(leagueId);
 
       const service = createService({
         leagueRepo: {
@@ -785,13 +785,13 @@ Deno.test("league.service", async (t) => {
               advancedByUserId: null,
               overrideReason: null,
               overrideBlockers: null,
-              hasCompletedGenesis: false,
+              hasCompletedInitial: false,
             });
           },
         },
       });
 
-      await service.found(leagueId);
+      await service.generate(leagueId);
 
       assertEquals(received.season, TX_MARKER);
       assertEquals(received.personnel, TX_MARKER);
@@ -809,7 +809,7 @@ Deno.test("league.service", async (t) => {
           getById: () => Promise.resolve(createMockLeague({ id: leagueId })),
         },
         teamService: {
-          getByLeagueId: () => Promise.resolve(foundingTeamFixtures(leagueId)),
+          getByLeagueId: () => Promise.resolve(initialTeamFixtures(leagueId)),
         },
         scheduleService: {
           generate: () => Promise.reject(new Error("schedule boom")),
@@ -817,7 +817,7 @@ Deno.test("league.service", async (t) => {
       });
 
       await assertRejects(
-        () => service.found(leagueId),
+        () => service.generate(leagueId),
         Error,
         "schedule boom",
       );
@@ -830,7 +830,7 @@ Deno.test("league.service", async (t) => {
     "getTeams returns teams for a league",
     async () => {
       const leagueId = "lg-1";
-      const mockTeams = foundingTeamFixtures(leagueId).slice(0, 2);
+      const mockTeams = initialTeamFixtures(leagueId).slice(0, 2);
 
       const service = createService({
         leagueRepo: {

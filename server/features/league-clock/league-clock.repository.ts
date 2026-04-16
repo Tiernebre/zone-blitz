@@ -14,7 +14,7 @@ export interface LeagueClockRow {
   advancedByUserId: string | null;
   overrideReason: string | null;
   overrideBlockers: unknown;
-  hasCompletedGenesis: boolean;
+  hasCompletedInitial: boolean;
 }
 
 export interface LeagueAdvanceVoteRow {
@@ -40,7 +40,7 @@ export interface LeagueClockRepository {
       advancedByUserId: string | null;
       overrideReason?: string | null;
       overrideBlockers?: Blocker[] | null;
-      hasCompletedGenesis?: boolean;
+      hasCompletedInitial?: boolean;
     },
     tx?: Executor,
   ): Promise<LeagueClockRow>;
@@ -144,7 +144,7 @@ export function createLeagueClockRepository(deps: {
         advancedByUserId: row.advancedByUserId,
         overrideReason: row.overrideReason ?? null,
         overrideBlockers: row.overrideBlockers ?? null,
-        hasCompletedGenesis: row.hasCompletedGenesis ?? false,
+        hasCompletedInitial: row.hasCompletedInitial ?? false,
       };
 
       const [result] = await (tx ?? deps.db)
@@ -160,7 +160,7 @@ export function createLeagueClockRepository(deps: {
             advancedByUserId: values.advancedByUserId,
             overrideReason: values.overrideReason,
             overrideBlockers: values.overrideBlockers,
-            hasCompletedGenesis: values.hasCompletedGenesis,
+            hasCompletedInitial: values.hasCompletedInitial,
           },
         })
         .returning();

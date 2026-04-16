@@ -48,28 +48,28 @@ function always(): boolean {
   return true;
 }
 
-const fromStaffHiring = fromPhaseOnward("genesis_staff_hiring");
-const fromAllocationDraft = fromPhaseOnward("genesis_allocation_draft");
+const fromStaffHiring = fromPhaseOnward("initial_staff_hiring");
+const fromAllocationDraft = fromPhaseOnward("initial_draft");
 const fromPreseason = fromPhaseOnward("preseason");
 const fromRegularSeason = fromPhaseOnward("regular_season");
 
 const draftPhases = inPhases(
-  "genesis_allocation_draft",
+  "initial_draft",
   "pre_draft",
   "draft",
   "udfa",
 );
 
 const freeAgencyPhases = inPhases(
-  "genesis_free_agency",
+  "initial_free_agency",
   "legal_tampering",
   "free_agency",
   "udfa",
   "regular_season",
 );
 
-const genesisFoundingPool = inPhases("genesis_founding_pool");
-const genesisAllocationDraft = inPhases("genesis_allocation_draft");
+const initialPool = inPhases("initial_pool");
+const initialDraft = inPhases("initial_draft");
 
 export const navGroups: NavGroup[] = [
   {
@@ -109,13 +109,13 @@ export const navGroups: NavGroup[] = [
         label: "Allocation Draft",
         path: "allocation-draft",
         Icon: GavelIcon,
-        visibleInPhases: genesisAllocationDraft,
+        visibleInPhases: initialDraft,
       },
       {
-        label: "Founding Pool",
-        path: "founding-pool",
+        label: "Initial Pool",
+        path: "initial-pool",
         Icon: LayersIcon,
-        visibleInPhases: genesisFoundingPool,
+        visibleInPhases: initialPool,
       },
       {
         label: "Trades",

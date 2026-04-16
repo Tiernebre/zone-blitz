@@ -66,7 +66,7 @@ export function useTouchLeague() {
   });
 }
 
-export function useFoundLeague() {
+export function useGenerateLeague() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (leagueId: string) => {

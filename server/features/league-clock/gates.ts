@@ -72,14 +72,14 @@ function enterDraft(state: LeagueGateState): GateResult {
   return blockers.length > 0 ? { ok: false, blockers } : GATE_OK;
 }
 
-function enterGenesisFoundingPool(state: LeagueGateState): GateResult {
+function enterInitialPool(state: LeagueGateState): GateResult {
   if (!state.allTeamsHaveStaff) {
     return {
       ok: false,
       blockers: [{
         teamId: "",
         reason:
-          "All teams must hire staff before generating the founding player pool",
+          "All teams must hire staff before generating the initial player pool",
         autoResolvable: false,
       }],
     };
@@ -102,7 +102,7 @@ function enterOffseasonRollover(state: LeagueGateState): GateResult {
 }
 
 const PHASE_GATES: Partial<Record<string, GateFn>> = {
-  genesis_founding_pool: enterGenesisFoundingPool,
+  initial_pool: enterInitialPool,
   regular_season: enterRegularSeason,
   draft: enterDraft,
   offseason_rollover: enterOffseasonRollover,

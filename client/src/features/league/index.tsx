@@ -6,22 +6,22 @@ import { StubPage } from "./stub-page.tsx";
 type PhaseView = { title: string; description: string };
 
 const PHASE_VIEWS: Partial<Record<LeaguePhase, PhaseView>> = {
-  genesis_founding_pool: {
-    title: "Founding Pool",
+  initial_pool: {
+    title: "Initial Pool",
     description:
-      "Review the founding player pool — the talent that will feed the allocation draft.",
+      "Review the initial player pool — the talent that will feed the allocation draft.",
   },
-  genesis_allocation_draft: {
+  initial_draft: {
     title: "Allocation Draft",
     description:
-      "Build your founding roster, pick by pick, from the founding player pool.",
+      "Build your initial roster, pick by pick, from the initial player pool.",
   },
-  genesis_free_agency: {
-    title: "Founding Free Agency",
+  initial_free_agency: {
+    title: "Initial Free Agency",
     description:
-      "Round out your roster from the unsigned founding pool before the league kicks off.",
+      "Round out your roster from the unsigned initial pool before the league kicks off.",
   },
-  genesis_kickoff: {
+  initial_kickoff: {
     title: "Kickoff",
     description: "Final league checks before the inaugural season begins.",
   },

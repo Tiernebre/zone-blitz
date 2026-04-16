@@ -16,8 +16,8 @@ football. A 95 in your league is the best in your league, period — not a
 guarantee that the player would be a 95 in the NFL or any other reference
 league.
 
-In particular: a young [genesis league](./league-genesis.md) draws from a
-founding player pool that is genuinely more modest than the NFL's talent
+In particular: a young [newly set-up league](./league-setup.md) draws from a
+initial player pool that is genuinely more modest than the NFL's talent
 population — raw college athletes, practice-squad journeymen, back-end vets,
 middling pros looking for a new shot. The league normalizes attributes across
 that pool anyway, because that's the talent the league actually has. The
@@ -30,8 +30,7 @@ This matters because:
 
 - **The scale floats with the league's talent level.** A league that has
   accumulated twenty years of generational rookies has a different effective
-  ceiling than a Year 1 genesis league — even though both use the same 0-100
-  range.
+  ceiling than a Year 1 league — even though both use the same 0-100 range.
 - **Comparisons across saves are meaningless.** The 95 QB in your current save
   is not directly comparable to the 95 QB in your friend's save. Each league's
   attributes reflect that league's talent distribution.
@@ -636,3 +635,9 @@ attributes. This creates market inefficiencies:
   undervalued
 
 Exploiting these inefficiencies is a core GM skill.
+
+---
+
+## Related decisions
+
+- [0026 — Initial player pool composition and attribute normalization](../decisions/0026-initial-pool-composition-and-attribute-normalization.md)

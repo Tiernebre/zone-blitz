@@ -5,8 +5,8 @@ import type {
   TeamDivisionInfo,
 } from "./schedule.generator.interface.ts";
 
-// --- 8-team founding league (Mountain / Pacific, 1 division each) ---
-const FOUNDING_TEAMS: TeamDivisionInfo[] = [
+// --- 8-team initial league (Mountain / Pacific, 1 division each) ---
+const INITIAL_TEAMS: TeamDivisionInfo[] = [
   { teamId: "rno", conference: "Mountain", division: "Mountain" },
   { teamId: "slc", conference: "Mountain", division: "Mountain" },
   { teamId: "boi", conference: "Mountain", division: "Mountain" },
@@ -17,17 +17,17 @@ const FOUNDING_TEAMS: TeamDivisionInfo[] = [
   { teamId: "hnl", conference: "Pacific", division: "Pacific" },
 ];
 
-const FOUNDING_INPUT = {
+const INITIAL_INPUT = {
   seasonId: "season-1",
   seasonLength: 10,
-  teams: FOUNDING_TEAMS,
+  teams: INITIAL_TEAMS,
 };
 
 function generate(
-  overrides: Partial<typeof FOUNDING_INPUT> = {},
+  overrides: Partial<typeof INITIAL_INPUT> = {},
 ): GeneratedGame[] {
   const generator = createScheduleGenerator();
-  return generator.generate({ ...FOUNDING_INPUT, ...overrides });
+  return generator.generate({ ...INITIAL_INPUT, ...overrides });
 }
 
 // --- helpers ---
@@ -51,12 +51,12 @@ function weeksPerTeam(games: GeneratedGame[]): Map<string, Set<number>> {
   return map;
 }
 
-// --- core invariants (8-team founding) ---
+// --- core invariants (8-team initial) ---
 
 Deno.test("each team plays exactly seasonLength games", () => {
   const games = generate();
   const counts = countGamesPerTeam(games);
-  for (const team of FOUNDING_TEAMS) {
+  for (const team of INITIAL_TEAMS) {
     assertEquals(
       counts.get(team.teamId),
       10,
@@ -76,7 +76,7 @@ Deno.test("no team plays more than once per week", () => {
   // weeksPerTeam uses a Set, so if any week appeared twice it wouldn't
   // be added — but we also need to verify count matches total games.
   const counts = countGamesPerTeam(games);
-  for (const team of FOUNDING_TEAMS) {
+  for (const team of INITIAL_TEAMS) {
     assertEquals(
       tw.get(team.teamId)!.size,
       counts.get(team.teamId)!,
@@ -89,7 +89,7 @@ Deno.test("each team has exactly 1 bye week", () => {
   const games = generate();
   const tw = weeksPerTeam(games);
   const totalWeeks = 10 + 1; // seasonLength + 1
-  for (const team of FOUNDING_TEAMS) {
+  for (const team of INITIAL_TEAMS) {
     const played = tw.get(team.teamId)!.size;
     assertEquals(
       played,
@@ -138,7 +138,7 @@ Deno.test("no duplicate matchup in the same direction", () => {
 
 Deno.test("each team plays at least one cross-conference game", () => {
   const games = generate();
-  const teamConf = new Map(FOUNDING_TEAMS.map((t) => [t.teamId, t.conference]));
+  const teamConf = new Map(INITIAL_TEAMS.map((t) => [t.teamId, t.conference]));
   const crossConf = new Set<string>();
   for (const g of games) {
     if (teamConf.get(g.homeTeamId) !== teamConf.get(g.awayTeamId)) {
@@ -146,7 +146,7 @@ Deno.test("each team plays at least one cross-conference game", () => {
       crossConf.add(g.awayTeamId);
     }
   }
-  for (const team of FOUNDING_TEAMS) {
+  for (const team of INITIAL_TEAMS) {
     assertEquals(
       crossConf.has(team.teamId),
       true,

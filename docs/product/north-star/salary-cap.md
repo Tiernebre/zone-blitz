@@ -514,13 +514,12 @@ authentic.
 
 ---
 
-## League Genesis
+## League Setup
 
 The cap and contract structure described above applies to a mature Zone Blitz
-league. A brand-new genesis league operates under a deliberately compressed
-economic regime that evolves as the league proves itself. See
-[League Genesis](./league-genesis.md) for the full vision; the cap-specific
-points:
+league. A brand-new league operates under a deliberately compressed economic
+regime that evolves as the league proves itself. See
+[League Setup](./league-setup.md) for the full vision; the cap-specific points:
 
 - **Early-league economics are flat.** For the first several seasons, contracts
   are short, guaranteed money is modest, and no class of mega-deals distorts the
@@ -528,7 +527,7 @@ points:
   growth, players are taking bets on an unproven institution, and no one has
   accumulated the leverage that produces franchise-defining deals.
 - **The starting cap is level.** Every franchise enters Year 1 with the same cap
-  space. The allocation draft and founding free agency are the only moment in
+  space. The allocation draft and initial free agency are the only moment in
   league history when the financial playing field is perfectly even.
 - **The cap curve bends upward as the league matures.** Free-agency cycles
   produce stars with real leverage. Expansion and media interest grow league

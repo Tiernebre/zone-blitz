@@ -68,7 +68,7 @@ function createMockLeagueService(
     getAll: () => Promise.resolve([]),
     getById: () => Promise.resolve(createMockLeague()),
     create: () => Promise.resolve(defaultResult),
-    found: () =>
+    generate: () =>
       Promise.resolve({
         leagueId: "lg-1",
         seasonId: "s-1",
@@ -230,13 +230,13 @@ Deno.test("league.router", async (t) => {
   });
 
   await t.step(
-    "POST /:id/found runs founding generation and returns result",
+    "POST /:id/generate runs league generation and returns result",
     async () => {
-      let foundLeagueId: string | undefined;
+      let generatedLeagueId: string | undefined;
       const router = createLeagueRouter(
         createMockLeagueService({
-          found: (leagueId) => {
-            foundLeagueId = leagueId;
+          generate: (leagueId: string) => {
+            generatedLeagueId = leagueId;
             return Promise.resolve({
               leagueId,
               seasonId: "s-1",
@@ -248,13 +248,13 @@ Deno.test("league.router", async (t) => {
         }),
       );
 
-      const res = await router.request("/lg-1/found", { method: "POST" });
+      const res = await router.request("/lg-1/generate", { method: "POST" });
       assertEquals(res.status, 200);
       const body = await res.json();
       assertEquals(body.leagueId, "lg-1");
       assertEquals(body.seasonId, "s-1");
       assertEquals(body.playerCount, 50);
-      assertEquals(foundLeagueId, "lg-1");
+      assertEquals(generatedLeagueId, "lg-1");
     },
   );
 
