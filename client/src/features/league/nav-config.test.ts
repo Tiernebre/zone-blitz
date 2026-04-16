@@ -31,9 +31,11 @@ describe("navGroups", () => {
     }
   });
 
-  it("shows Coaches and Scouts from initial_staff_hiring onward", () => {
-    expect(visibleLabels("initial_staff_hiring")).toContain("Coaches");
-    expect(visibleLabels("initial_staff_hiring")).toContain("Scouts");
+  it("hides Coaches and Scouts during initial_staff_hiring, shows from initial_pool onward", () => {
+    expect(visibleLabels("initial_staff_hiring")).not.toContain("Coaches");
+    expect(visibleLabels("initial_staff_hiring")).not.toContain("Scouts");
+    expect(visibleLabels("initial_pool")).toContain("Coaches");
+    expect(visibleLabels("initial_pool")).toContain("Scouts");
     expect(visibleLabels("regular_season")).toContain("Coaches");
     expect(visibleLabels("regular_season")).toContain("Scouts");
   });
@@ -130,6 +132,7 @@ describe("navGroups", () => {
     const labels = visibleLabels("initial_scouting");
     expect(labels).toContain("Home");
     expect(labels).toContain("Scouts");
+    expect(labels).toContain("Coaches");
     expect(labels).not.toContain("Initial Pool");
     expect(labels).not.toContain("Allocation Draft");
     expect(labels).not.toContain("Roster");
@@ -149,7 +152,7 @@ describe("navGroups", () => {
     it.each<[LeaguePhase, string[]]>([
       [
         "initial_staff_hiring",
-        ["Home", "Coaches", "Scouts", "Hiring", "Media"],
+        ["Home", "Hiring", "Media"],
       ],
       [
         "initial_draft",
