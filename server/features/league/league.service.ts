@@ -11,7 +11,7 @@ import type { ScheduleService } from "../schedule/schedule.service.interface.ts"
 import type { LeagueClockRepository } from "../league-clock/league-clock.repository.ts";
 
 const FOUNDING_TEAM_COUNT = 8;
-const FIRST_INCOMPLETE_GENESIS_PHASE = "genesis_founding_pool";
+const FIRST_GENESIS_PHASE = "genesis_charter";
 
 export function createLeagueService(deps: {
   txRunner: TransactionRunner;
@@ -175,7 +175,7 @@ export function createLeagueService(deps: {
           {
             leagueId,
             seasonYear: 1,
-            phase: FIRST_INCOMPLETE_GENESIS_PHASE,
+            phase: FIRST_GENESIS_PHASE,
             stepIndex: 0,
             advancedByUserId: null,
           },
