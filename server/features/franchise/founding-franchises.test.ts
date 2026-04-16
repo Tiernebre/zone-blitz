@@ -1,4 +1,5 @@
 import { assertEquals } from "@std/assert";
+import { MARKET_TIERS } from "@zone-blitz/shared";
 import { FOUNDING_FRANCHISES } from "./founding-franchises.ts";
 
 const NFL_METRO_CITIES = new Set([
@@ -123,4 +124,23 @@ Deno.test("FOUNDING_FRANCHISES conference matches division name", () => {
       `${franchise.name} conference/division mismatch`,
     );
   }
+});
+
+Deno.test("FOUNDING_FRANCHISES each carry a valid marketTier", () => {
+  for (const franchise of FOUNDING_FRANCHISES) {
+    assertEquals(
+      MARKET_TIERS.includes(franchise.marketTier),
+      true,
+      `${franchise.name} has invalid marketTier: ${franchise.marketTier}`,
+    );
+  }
+});
+
+Deno.test("FOUNDING_FRANCHISES span more than one market tier", () => {
+  const distinct = new Set(FOUNDING_FRANCHISES.map((f) => f.marketTier));
+  assertEquals(
+    distinct.size > 1,
+    true,
+    "expected founding franchises to span multiple market tiers",
+  );
 });

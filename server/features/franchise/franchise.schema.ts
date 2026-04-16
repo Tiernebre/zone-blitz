@@ -1,5 +1,11 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { cities } from "../cities/city.schema.ts";
+
+export const marketTierEnum = pgEnum("market_tier", [
+  "large",
+  "medium",
+  "small",
+]);
 
 export const franchises = pgTable("franchises", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -14,6 +20,7 @@ export const franchises = pgTable("franchises", {
   backstory: text("backstory").notNull().default(""),
   conference: text("conference").notNull(),
   division: text("division").notNull(),
+  marketTier: marketTierEnum("market_tier").notNull().default("medium"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

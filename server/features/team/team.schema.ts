@@ -8,7 +8,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { cities } from "../cities/city.schema.ts";
 import { leagues } from "../league/league.schema.ts";
-import { franchises } from "../franchise/franchise.schema.ts";
+import { franchises, marketTierEnum } from "../franchise/franchise.schema.ts";
 
 export const teams = pgTable(
   "teams",
@@ -31,6 +31,7 @@ export const teams = pgTable(
     backstory: text("backstory").notNull().default(""),
     conference: text("conference").notNull(),
     division: text("division").notNull(),
+    marketTier: marketTierEnum("market_tier").notNull().default("medium"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

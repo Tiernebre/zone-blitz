@@ -1,3 +1,5 @@
+import type { MarketTier } from "./market-tier.ts";
+
 export interface Franchise {
   id: string;
   name: string;
@@ -11,6 +13,7 @@ export interface Franchise {
   backstory: string;
   conference: string;
   division: string;
+  marketTier: MarketTier;
   createdAt: Date;
   updatedAt: Date;
 }

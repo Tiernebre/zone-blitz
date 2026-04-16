@@ -11,6 +11,8 @@ export type {
 } from "./types/league.ts";
 export type { Team } from "./types/team.ts";
 export type { Franchise } from "./types/franchise.ts";
+export type { MarketTier } from "./types/market-tier.ts";
+export { MARKET_TIERS } from "./types/market-tier.ts";
 export type {
   NewSeason,
   OffseasonStage,

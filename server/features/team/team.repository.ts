@@ -22,6 +22,7 @@ const teamColumns = {
   backstory: teams.backstory,
   conference: teams.conference,
   division: teams.division,
+  marketTier: teams.marketTier,
   createdAt: teams.createdAt,
   updatedAt: teams.updatedAt,
 };

@@ -9,7 +9,6 @@ import {
   computePreferenceScore,
   type FranchiseProfile,
   type FranchiseStaffMember,
-  marketTierForCity,
   marketTierScore,
   type Offer,
   philosophyFitScore,
@@ -125,22 +124,6 @@ Deno.test("marketTierScore maps the 3 tiers", () => {
   assertEquals(marketTierScore("large"), 100);
   assertEquals(marketTierScore("medium"), 60);
   assertEquals(marketTierScore("small"), 25);
-});
-
-Deno.test("marketTierForCity classifies known large-market cities", () => {
-  assertEquals(marketTierForCity("New York"), "large");
-  assertEquals(marketTierForCity("Los Angeles"), "large");
-  assertEquals(marketTierForCity("Chicago"), "large");
-});
-
-Deno.test("marketTierForCity classifies medium and small markets", () => {
-  assertEquals(marketTierForCity("Portland"), "medium");
-  assertEquals(marketTierForCity("Reno"), "small");
-  assertEquals(marketTierForCity("Boise"), "small");
-});
-
-Deno.test("marketTierForCity falls back to small when city is unknown", () => {
-  assertEquals(marketTierForCity("Nonexistent Town"), "small");
 });
 
 Deno.test(
