@@ -9,8 +9,6 @@ import type {
   OffensiveCall,
   PenaltyInfo,
   PlayEvent,
-  PlayOutcome,
-  PlayTag,
 } from "./events.ts";
 import type { SeededRng } from "./rng.ts";
 import { computeSchemeFit } from "../schemes/fit.ts";
@@ -21,6 +19,8 @@ import {
   shouldPenaltyOccur,
 } from "./resolve-penalty.ts";
 import { resolveMatchups } from "./resolve-matchups.ts";
+import { synthesizeRunOutcome } from "./synthesize-run-outcome.ts";
+import { synthesizePassOutcome } from "./synthesize-pass-outcome.ts";
 
 export interface Situation {
   down: 1 | 2 | 3 | 4;
@@ -130,7 +130,7 @@ const PLAY_CALL = {
 } as const;
 
 // ── Pass-resolution calibration knobs ─────────────────────────────────
-const PASS_RESOLUTION = {
+export const PASS_RESOLUTION = {
   completion: {
     base: 0.655,
     coverageModifier: 0.010,
@@ -151,7 +151,7 @@ const PASS_RESOLUTION = {
 } as const;
 
 // ── Run-resolution calibration knobs ──────────────────────────────────
-const RUN_RESOLUTION = {
+export const RUN_RESOLUTION = {
   stuffThreshold: -20,
   stuffYards: { min: -3, max: 0 },
   shortGainThreshold: -5,
@@ -171,7 +171,7 @@ const RETURN_TD = {
   floor: 0.01,
   ceiling: 0.10,
 } as const;
-const SACK_YARDAGE = { min: -10, max: -3 } as const;
+export const SACK_YARDAGE = { min: -10, max: -3 } as const;
 
 const FIT_MODIFIER: Record<SchemeFitLabel, number> = {
   ideal: 10,
@@ -437,209 +437,14 @@ export function synthesizeOutcome(
   defensePlayerIds?: string[],
 ): PlayEvent {
   const isRunPlay = RUN_CONCEPTS.has(call.concept);
-  const avgScore = contributions.length > 0
-    ? contributions.reduce((sum, c) => sum + c.score, 0) / contributions.length
-    : 0;
 
-  const participants = contributions.map((c) => ({
-    role: c.matchup.type,
-    playerId: c.matchup.attacker.playerId,
-    tags: [] as string[],
-  }));
+  const result = isRunPlay
+    ? synthesizeRunOutcome(contributions, state.situation, rng)
+    : synthesizePassOutcome(contributions, state.situation, rng);
 
-  const tags: PlayTag[] = [];
-  let outcome: PlayOutcome;
-  let yardage: number;
-
-  if (isRunPlay) {
-    const blockingContribs = contributions.filter(
-      (c) => c.matchup.type === "run_block" || c.matchup.type === "run_defense",
-    );
-    const blockScore = blockingContribs.length > 0
-      ? blockingContribs.reduce((s, c) => s + c.score, 0) /
-        blockingContribs.length
-      : avgScore;
-
-    if (blockScore < RUN_RESOLUTION.stuffThreshold) {
-      yardage = rng.int(
-        RUN_RESOLUTION.stuffYards.min,
-        RUN_RESOLUTION.stuffYards.max,
-      );
-    } else if (blockScore < RUN_RESOLUTION.shortGainThreshold) {
-      yardage = rng.int(
-        RUN_RESOLUTION.shortGainYards.min,
-        RUN_RESOLUTION.shortGainYards.max,
-      );
-    } else if (blockScore > RUN_RESOLUTION.bigPlayThreshold) {
-      yardage = rng.int(
-        RUN_RESOLUTION.bigPlayYards.min,
-        RUN_RESOLUTION.bigPlayYards.max,
-      );
-      tags.push("big_play");
-    } else {
-      yardage = rng.int(
-        RUN_RESOLUTION.normalYards.min,
-        RUN_RESOLUTION.normalYards.max,
-      );
-    }
-
-    if (rng.next() < RUN_RESOLUTION.fumbleRate) {
-      outcome = "fumble";
-      tags.push("fumble", "turnover");
-    } else {
-      outcome = "rush";
-    }
-
-    if (yardage >= state.situation.distance) {
-      tags.push("first_down");
-    }
-
-    const rb = contributions.find(
-      (c) => c.matchup.attacker.neutralBucket === "RB",
-    );
-    if (rb) {
-      const idx = participants.findIndex(
-        (p) => p.playerId === rb.matchup.attacker.playerId,
-      );
-      if (idx >= 0) participants[idx].tags.push("ball_carrier");
-    }
-  } else {
-    const protectionContribs = contributions.filter(
-      (c) =>
-        c.matchup.type === "pass_protection" ||
-        c.matchup.type === "pass_rush",
-    );
-    const protectionScore = protectionContribs.length > 0
-      ? protectionContribs.reduce((s, c) => s + c.score, 0) /
-        protectionContribs.length
-      : avgScore;
-
-    const sackProb = Math.max(
-      PASS_RESOLUTION.sack.floor,
-      PASS_RESOLUTION.sack.base -
-        protectionScore * PASS_RESOLUTION.sack.protectionModifier,
-    );
-    if (rng.next() < sackProb) {
-      outcome = "sack";
-      yardage = rng.int(SACK_YARDAGE.min, SACK_YARDAGE.max);
-      tags.push("sack", "pressure");
-
-      const rusher = contributions.find((c) =>
-        c.matchup.type === "pass_rush" ||
-        (c.matchup.type === "pass_protection" &&
-          c.score < 0)
-      );
-      if (rusher) {
-        const idx = participants.findIndex(
-          (p) => p.playerId === rusher.matchup.defender.playerId,
-        );
-        if (idx >= 0) {
-          participants[idx].tags.push("sack");
-        } else {
-          participants.push({
-            role: "pass_rush",
-            playerId: rusher.matchup.defender.playerId,
-            tags: ["sack"],
-          });
-        }
-      }
-
-      if (rng.next() < PASS_RESOLUTION.fumbleOnSack) {
-        outcome = "fumble";
-        tags.push("fumble", "turnover");
-      }
-    } else {
-      if (protectionScore < -5) {
-        tags.push("pressure");
-      }
-
-      const routeContribs = contributions.filter(
-        (c) => c.matchup.type === "route_coverage",
-      );
-      const coverageScore = routeContribs.length > 0
-        ? routeContribs.reduce((s, c) => s + c.score, 0) /
-          routeContribs.length
-        : avgScore;
-
-      const intProb = Math.max(
-        PASS_RESOLUTION.interception.floor,
-        PASS_RESOLUTION.interception.base -
-          coverageScore * PASS_RESOLUTION.interception.coverageModifier,
-      );
-      const completionProb = Math.max(
-        PASS_RESOLUTION.completion.floor,
-        Math.min(
-          PASS_RESOLUTION.completion.ceiling,
-          PASS_RESOLUTION.completion.base +
-            coverageScore * PASS_RESOLUTION.completion.coverageModifier,
-        ),
-      );
-      const bigPlayProb = Math.max(
-        PASS_RESOLUTION.bigPlay.floor,
-        Math.min(
-          PASS_RESOLUTION.bigPlay.ceiling,
-          PASS_RESOLUTION.bigPlay.base +
-            coverageScore * PASS_RESOLUTION.bigPlay.coverageModifier,
-        ),
-      );
-
-      const roll = rng.next();
-      if (roll < intProb) {
-        outcome = "interception";
-        yardage = 0;
-        tags.push("interception", "turnover");
-
-        const interceptor = routeContribs.find((c) => c.score < -5) ??
-          routeContribs[0];
-        if (interceptor) {
-          const idx = participants.findIndex(
-            (p) => p.playerId === interceptor.matchup.defender.playerId,
-          );
-          if (idx >= 0) {
-            participants[idx].tags.push("interception");
-          } else {
-            participants.push({
-              role: "route_coverage",
-              playerId: interceptor.matchup.defender.playerId,
-              tags: ["interception"],
-            });
-          }
-        }
-      } else if (roll < intProb + completionProb) {
-        outcome = "pass_complete";
-        const isBigPlay = rng.next() < bigPlayProb;
-        if (isBigPlay) {
-          yardage = rng.int(
-            PASS_RESOLUTION.bigPlay.yards.min,
-            PASS_RESOLUTION.bigPlay.yards.max,
-          );
-          tags.push("big_play");
-        } else {
-          yardage = rng.int(
-            PASS_RESOLUTION.completionYards.min,
-            PASS_RESOLUTION.completionYards.max,
-          );
-        }
-        const target = routeContribs.find((c) => c.score > 0) ??
-          routeContribs[0];
-        if (target) {
-          const idx = participants.findIndex(
-            (p) => p.playerId === target.matchup.attacker.playerId,
-          );
-          if (idx >= 0) participants[idx].tags.push("target", "reception");
-        }
-      } else {
-        outcome = "pass_incomplete";
-        yardage = 0;
-      }
-
-      if (
-        outcome === "pass_complete" && yardage >= state.situation.distance
-      ) {
-        tags.push("first_down");
-      }
-    }
-  }
+  let { outcome } = result;
+  let { yardage } = result;
+  const { tags, participants } = result;
 
   if (rng.next() < INJURY_ON_PLAY) {
     tags.push("injury");
@@ -760,8 +565,8 @@ export function synthesizeOutcome(
     call,
     coverage,
     participants,
-    outcome: outcome!,
-    yardage: yardage!,
+    outcome,
+    yardage,
     tags,
     penalty,
   };
