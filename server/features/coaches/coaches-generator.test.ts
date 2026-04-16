@@ -1,5 +1,9 @@
 import { assertEquals, assertNotEquals } from "@std/assert";
-import { type CoachRole, mulberry32 } from "@zone-blitz/shared";
+import {
+  COACH_RATING_KEYS,
+  type CoachRole,
+  mulberry32,
+} from "@zone-blitz/shared";
 import {
   createCoachesGenerator,
   type NameGenerator,
@@ -634,6 +638,70 @@ Deno.test("generate sorts mentors before mentees for safe FK insertion", () => {
       );
     }
   }
+});
+
+// ---- Hidden ratings ----
+
+Deno.test("every generated coach carries hidden ratings payload", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const coach of result) {
+    assertNotEquals(coach.ratings, undefined);
+    for (const key of COACH_RATING_KEYS) {
+      const cur = coach.ratings.current[key];
+      const ceil = coach.ratings.ceiling[key];
+      assertEquals(Number.isInteger(cur), true);
+      assertEquals(Number.isInteger(ceil), true);
+      assertEquals(cur >= 1 && cur <= 99, true);
+      assertEquals(ceil >= cur && ceil <= 99, true);
+    }
+    assertEquals(Number.isInteger(coach.ratings.growthRate), true);
+    assertEquals(
+      coach.ratings.growthRate >= 10 && coach.ratings.growthRate <= 95,
+      true,
+    );
+  }
+});
+
+Deno.test("generatePool coaches carry hidden ratings payload", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  for (const coach of result) {
+    assertNotEquals(coach.ratings, undefined);
+    for (const key of COACH_RATING_KEYS) {
+      const cur = coach.ratings.current[key];
+      const ceil = coach.ratings.ceiling[key];
+      assertEquals(cur >= 1 && cur <= 99, true);
+      assertEquals(ceil >= cur, true);
+    }
+  }
+});
+
+Deno.test("ratings vary across the league (not a constant roll)", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  const leaderships = new Set(result.map((c) => c.ratings.current.leadership));
+  const growthRates = new Set(result.map((c) => c.ratings.growthRate));
+  assertEquals(leaderships.size > 1, true);
+  assertEquals(growthRates.size > 1, true);
+});
+
+Deno.test("HC tier ratings bias toward leadership/gameManagement on average", () => {
+  const result = makePoolGenerator().generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const hcs = result.filter((c) => c.role === "HC");
+  const positions = result.filter(
+    (c) =>
+      c.role === "QB" || c.role === "RB" || c.role === "WR" ||
+      c.role === "DL" || c.role === "LB" || c.role === "DB",
+  );
+  const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const hcLeadership = avg(hcs.map((c) => c.ratings.current.leadership));
+  const positionLeadership = avg(
+    positions.map((c) => c.ratings.current.leadership),
+  );
+  // HCs should, on average across 32 rolls, lead position coaches in
+  // leadership — calibration check, not a per-coach guarantee.
+  assertEquals(hcLeadership > positionLeadership, true);
 });
 
 Deno.test("generatePool two leagues produce independent pools with no shared ids", () => {

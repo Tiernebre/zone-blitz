@@ -6,6 +6,7 @@ import { coaches } from "./coach.schema.ts";
 import type { CoachesGenerator } from "./coaches.generator.interface.ts";
 import type { CoachesRepository } from "./coaches.repository.interface.ts";
 import type { CoachTendenciesRepository } from "./coach-tendencies.repository.interface.ts";
+import type { CoachRatingsRepository } from "./coach-ratings.repository.ts";
 import type { CoachesService } from "./coaches.service.interface.ts";
 import { computeFingerprint } from "../schemes/fingerprint.ts";
 
@@ -13,6 +14,7 @@ export function createCoachesService(deps: {
   generator: CoachesGenerator;
   repo: CoachesRepository;
   tendenciesRepo: CoachTendenciesRepository;
+  ratingsRepo: CoachRatingsRepository;
   db: Database;
   log: pino.Logger;
 }): CoachesService {
@@ -31,10 +33,18 @@ export function createCoachesService(deps: {
         return { coachCount: 0 };
       }
 
-      const coachRows = generated.map(({ tendencies: _t, ...row }) => row);
+      const coachRows = generated.map((
+        { tendencies: _t, ratings: _r, ...row },
+      ) => row);
       await chunkedInsert(tx ?? deps.db, coaches, coachRows);
 
       for (const coach of generated) {
+        await deps.ratingsRepo.upsert({
+          coachId: coach.id,
+          current: coach.ratings.current,
+          ceiling: coach.ratings.ceiling,
+          growthRate: coach.ratings.growthRate,
+        }, tx);
         if (!coach.tendencies) continue;
         await deps.tendenciesRepo.upsert({
           coachId: coach.id,
@@ -63,10 +73,18 @@ export function createCoachesService(deps: {
         return { coachCount: 0 };
       }
 
-      const coachRows = generated.map(({ tendencies: _t, ...row }) => row);
+      const coachRows = generated.map((
+        { tendencies: _t, ratings: _r, ...row },
+      ) => row);
       await chunkedInsert(tx ?? deps.db, coaches, coachRows);
 
       for (const coach of generated) {
+        await deps.ratingsRepo.upsert({
+          coachId: coach.id,
+          current: coach.ratings.current,
+          ceiling: coach.ratings.ceiling,
+          growthRate: coach.ratings.growthRate,
+        }, tx);
         if (!coach.tendencies) continue;
         await deps.tendenciesRepo.upsert({
           coachId: coach.id,

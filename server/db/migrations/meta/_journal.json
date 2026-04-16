@@ -344,6 +344,13 @@
       "when": 1776556800011,
       "tag": "0048_rename_riveters_to_roses",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1776556800012,
+      "tag": "0049_keen_scream",
+      "breakpoints": true
     }
   ]
 }

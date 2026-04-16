@@ -1,5 +1,6 @@
 import type {
   Coach,
+  CoachRatingValues,
   DefensiveTendencies,
   OffensiveTendencies,
 } from "@zone-blitz/shared";
@@ -33,6 +34,20 @@ export interface GeneratedCoachTendencies {
 }
 
 /**
+ * Hidden rating payload emitted for every coach. `current` is the
+ * present-day skill level; `ceiling` is the peak the coach can reach
+ * with growth — young coaches start with a wide gap, veterans sit near
+ * theirs. `growthRate` (0–100) modulates how fast the gap closes each
+ * offseason. These numbers never surface publicly; the service upserts
+ * them into `coach_ratings` and the sim/interview layers read them.
+ */
+export interface GeneratedCoachRatings {
+  current: CoachRatingValues;
+  ceiling: CoachRatingValues;
+  growthRate: number;
+}
+
+/**
  * A coach record as produced by the generator — the shape of a row ready
  * for insertion into the `coaches` table. `id` is pre-assigned so that
  * `reportsToId` and `mentorCoachId` can reference siblings without a
@@ -40,7 +55,10 @@ export interface GeneratedCoachTendencies {
  */
 export type GeneratedCoach =
   & Omit<Coach, "createdAt" | "updatedAt">
-  & { tendencies?: GeneratedCoachTendencies };
+  & {
+    tendencies?: GeneratedCoachTendencies;
+    ratings: GeneratedCoachRatings;
+  };
 
 export interface CoachesGenerator {
   generate(input: CoachesGeneratorInput): GeneratedCoach[];

@@ -1,8 +1,10 @@
 import type {
   CoachPlayCaller,
+  CoachRatingValues,
   CoachRole,
   CoachSpecialty,
 } from "@zone-blitz/shared";
+import { COACH_RATING_KEYS } from "@zone-blitz/shared";
 import {
   createNameGenerator,
   type NameGenerator,
@@ -12,6 +14,7 @@ import type {
   CoachesGeneratorInput,
   CoachesPoolInput,
   GeneratedCoach,
+  GeneratedCoachRatings,
   GeneratedCoachTendencies,
 } from "./coaches.generator.interface.ts";
 import {
@@ -172,6 +175,92 @@ const TIER_BANDS: Record<Tier, TierBand> = {
   },
 };
 
+// Role-tier-specific mean rating values. Each entry is the expected
+// midpoint for a tier; a roll spreads ±RATING_SPREAD around it, then is
+// clamped to 1..99. HCs emphasize leadership + gameManagement;
+// coordinators emphasize schemeMastery; position coaches emphasize
+// playerDevelopment. These are calibration handles — adjust as we tune.
+const RATING_MEANS: Record<Tier, CoachRatingValues> = {
+  HC: {
+    leadership: 66,
+    gameManagement: 64,
+    schemeMastery: 55,
+    playerDevelopment: 52,
+    adaptability: 58,
+  },
+  COORDINATOR: {
+    leadership: 55,
+    gameManagement: 58,
+    schemeMastery: 66,
+    playerDevelopment: 55,
+    adaptability: 56,
+  },
+  POSITION: {
+    leadership: 50,
+    gameManagement: 46,
+    schemeMastery: 52,
+    playerDevelopment: 62,
+    adaptability: 52,
+  },
+};
+const RATING_SPREAD = 22;
+const RATING_MIN = 1;
+const RATING_MAX = 99;
+
+function rollRatingAroundMean(random: () => number, mean: number): number {
+  const offset = Math.floor(random() * (RATING_SPREAD * 2 + 1)) - RATING_SPREAD;
+  const value = mean + offset;
+  if (value < RATING_MIN) return RATING_MIN;
+  if (value > RATING_MAX) return RATING_MAX;
+  return value;
+}
+
+/**
+ * Young-coach ceiling gap. Converts the coach's position within their
+ * tier age band into an age ratio (0 = youngest, 1 = oldest), then
+ * returns a max ceiling headroom — young coaches can have large hidden
+ * upside, vets sit near their current value. A small floor keeps even
+ * vets from being completely stagnant.
+ */
+function ceilingHeadroom(
+  random: () => number,
+  age: number,
+  band: TierBand,
+): number {
+  const span = Math.max(1, band.ageMax - band.ageMin);
+  const ageRatio = Math.min(1, Math.max(0, (age - band.ageMin) / span));
+  const maxGap = Math.round((1 - ageRatio) * 30) + 3; // 3..33
+  return Math.floor(random() * (maxGap + 1));
+}
+
+function rollRatings(
+  random: () => number,
+  tier: Tier,
+  age: number,
+  band: TierBand,
+): GeneratedCoachRatings {
+  const means = RATING_MEANS[tier];
+  const current = {} as CoachRatingValues;
+  const ceiling = {} as CoachRatingValues;
+  for (const key of COACH_RATING_KEYS) {
+    const c = rollRatingAroundMean(random, means[key]);
+    const gap = ceilingHeadroom(random, age, band);
+    const ceil = Math.min(RATING_MAX, c + gap);
+    current[key] = c;
+    ceiling[key] = ceil;
+  }
+
+  // growthRate: younger coaches tend to grow faster. Same age-ratio
+  // conversion — youngest get ~75, oldest get ~30, with noise.
+  const span = Math.max(1, band.ageMax - band.ageMin);
+  const ageRatio = Math.min(1, Math.max(0, (age - band.ageMin) / span));
+  const baseGrowth = Math.round(75 - ageRatio * 40);
+  const growthNoise = Math.floor(random() * 15) - 7;
+  const growthRate = Math.min(95, Math.max(10, baseGrowth + growthNoise));
+
+  return { current, ceiling, growthRate };
+}
+
 function buildTendencies(
   role: CoachRole,
   specialty: CoachSpecialty,
@@ -310,6 +399,7 @@ function generateCoach(
     ? rollHcSpecialty(random)
     : spec.specialty;
   const tendencies = buildTendencies(spec.role, specialty, id);
+  const ratings = rollRatings(random, spec.tier, age, band);
 
   return {
     id,
@@ -334,6 +424,7 @@ function generateCoach(
     staffFitPref: preferences?.staffFitPref ?? null,
     compensationPref: preferences?.compensationPref ?? null,
     minimumThreshold: preferences?.minimumThreshold ?? null,
+    ratings,
     ...(tendencies ? { tendencies } : {}),
   };
 }
