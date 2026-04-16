@@ -1371,3 +1371,188 @@ Deno.test("listDecisions: filters by wave when given", async () => {
   assertEquals(waveOne.length, 1);
   assertEquals(waveOne[0].wave, 1);
 });
+
+Deno.test("getTeamBlockers: returns missing mandatory coach and scout roles", async () => {
+  const service = createHiringService({
+    repo: stubRepo({
+      listSignedStaffByTeam: () => Promise.resolve([]),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const result = await service.getTeamBlockers("lg", "user-team");
+  assertEquals(result.missingCoachRoles, ["HC"]);
+  assertEquals(result.missingScoutRoles, ["DIRECTOR"]);
+});
+
+Deno.test("getTeamBlockers: returns empty when mandatory roles are filled", async () => {
+  const service = createHiringService({
+    repo: stubRepo({
+      listSignedStaffByTeam: () =>
+        Promise.resolve([
+          {
+            staffType: "coach",
+            staffId: "c-1",
+            role: "HC",
+            contractSalary: 1_000_000,
+          },
+          {
+            staffType: "scout",
+            staffId: "s-1",
+            role: "DIRECTOR",
+            contractSalary: 250_000,
+          },
+        ]),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const result = await service.getTeamBlockers("lg", "user-team");
+  assertEquals(result.missingCoachRoles, []);
+  assertEquals(result.missingScoutRoles, []);
+});
+
+Deno.test("resolveBlocker: assigns an unsigned coach with default terms", async () => {
+  const candidateId = crypto.randomUUID();
+  const hcCandidate: UnassignedCandidate = {
+    id: candidateId,
+    leagueId: "lg",
+    firstName: "Pick",
+    lastName: "Me",
+    role: "HC",
+    marketTierPref: 50,
+    philosophyFitPref: 50,
+    staffFitPref: 50,
+    compensationPref: 50,
+    minimumThreshold: 0,
+  };
+  const assignCalls: { coachId: string; patch: unknown }[] = [];
+  const decisionCalls: unknown[] = [];
+  const service = createHiringService({
+    repo: stubRepo({
+      listUnassignedCoaches: () => Promise.resolve([hcCandidate]),
+      listUnassignedScouts: () => Promise.resolve([]),
+      assignCoach: (coachId, patch) => {
+        assignCalls.push({ coachId, patch });
+        return Promise.resolve();
+      },
+      createDecision: (input) => {
+        decisionCalls.push(input);
+        return Promise.resolve({
+          id: crypto.randomUUID(),
+          leagueId: input.leagueId,
+          staffType: input.staffType,
+          staffId: input.staffId,
+          chosenOfferId: input.chosenOfferId,
+          wave: input.wave,
+          decidedAt: new Date(0),
+          createdAt: new Date(0),
+          updatedAt: new Date(0),
+        });
+      },
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const decision = await service.resolveBlocker({
+    leagueId: "lg",
+    teamId: "user-team",
+    candidateId,
+  });
+
+  assertEquals(assignCalls.length, 1);
+  assertEquals(assignCalls[0].coachId, candidateId);
+  assertEquals(
+    (assignCalls[0].patch as { teamId: string }).teamId,
+    "user-team",
+  );
+  assertEquals(decision.staffType, "coach");
+  assertEquals(decision.staffId, candidateId);
+  assertEquals(decision.wave, 99);
+});
+
+Deno.test("resolveBlocker: assigns an unsigned scout with default terms", async () => {
+  const candidateId = crypto.randomUUID();
+  const directorCandidate: UnassignedCandidate = {
+    id: candidateId,
+    leagueId: "lg",
+    firstName: "Scout",
+    lastName: "Director",
+    role: "DIRECTOR",
+    marketTierPref: 50,
+    philosophyFitPref: 50,
+    staffFitPref: 50,
+    compensationPref: 50,
+    minimumThreshold: 0,
+  };
+  const assignCalls: { scoutId: string; patch: unknown }[] = [];
+  const service = createHiringService({
+    repo: stubRepo({
+      listUnassignedCoaches: () => Promise.resolve([]),
+      listUnassignedScouts: () => Promise.resolve([directorCandidate]),
+      assignScout: (scoutId, patch) => {
+        assignCalls.push({ scoutId, patch });
+        return Promise.resolve();
+      },
+      createDecision: (input) =>
+        Promise.resolve({
+          id: crypto.randomUUID(),
+          leagueId: input.leagueId,
+          staffType: input.staffType,
+          staffId: input.staffId,
+          chosenOfferId: input.chosenOfferId,
+          wave: input.wave,
+          decidedAt: new Date(0),
+          createdAt: new Date(0),
+          updatedAt: new Date(0),
+        }),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const decision = await service.resolveBlocker({
+    leagueId: "lg",
+    teamId: "user-team",
+    candidateId,
+  });
+
+  assertEquals(assignCalls.length, 1);
+  assertEquals(decision.staffType, "scout");
+  assertEquals(decision.wave, 99);
+});
+
+Deno.test("resolveBlocker: throws INVALID_CANDIDATE when the candidate is not unassigned", async () => {
+  const service = createHiringService({
+    repo: stubRepo({
+      listUnassignedCoaches: () => Promise.resolve([]),
+      listUnassignedScouts: () => Promise.resolve([]),
+    }),
+    leagueRepo: stubLeagueRepo(baseLeague),
+    coachesService: stubGenerator(),
+    scoutsService: stubGenerator(),
+    log: silentLog(),
+  });
+
+  const err = await assertRejects(
+    () =>
+      service.resolveBlocker({
+        leagueId: "lg",
+        teamId: "user-team",
+        candidateId: "missing",
+      }),
+    DomainError,
+  );
+  assertEquals((err as DomainError).code, "INVALID_CANDIDATE");
+});

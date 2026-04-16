@@ -79,6 +79,17 @@ export interface FinalizeResult {
   blockers: FinalizeBlocker[];
 }
 
+export interface TeamBlockers {
+  missingCoachRoles: CoachRole[];
+  missingScoutRoles: ScoutRole[];
+}
+
+export interface ResolveBlockerInput {
+  leagueId: string;
+  teamId: string;
+  candidateId: string;
+}
+
 export interface HiringService {
   openMarket(leagueId: string): Promise<void>;
   expressInterest(input: {
@@ -109,6 +120,8 @@ export interface HiringService {
     wave: number,
   ): Promise<HiringDecisionRow[]>;
   finalize(leagueId: string): Promise<FinalizeResult>;
+  getTeamBlockers(leagueId: string, teamId: string): Promise<TeamBlockers>;
+  resolveBlocker(input: ResolveBlockerInput): Promise<HiringDecisionRow>;
   getHiringState(leagueId: string): Promise<HiringState>;
   getTeamHiringState(
     leagueId: string,
@@ -721,6 +734,79 @@ export function createHiringService(deps: {
       }
 
       return { decisions, blockers };
+    },
+
+    async getTeamBlockers(leagueId, teamId) {
+      const signed = await deps.repo.listSignedStaffByTeam(leagueId, teamId);
+      const signedCoachRoles = new Set(
+        signed.filter((m) => m.staffType === "coach").map((m) => m.role),
+      );
+      const signedScoutRoles = new Set(
+        signed.filter((m) => m.staffType === "scout").map((m) => m.role),
+      );
+      return {
+        missingCoachRoles: MANDATORY_COACH_ROLES.filter(
+          (r) => !signedCoachRoles.has(r),
+        ),
+        missingScoutRoles: MANDATORY_SCOUT_ROLES.filter(
+          (r) => !signedScoutRoles.has(r),
+        ),
+      };
+    },
+
+    async resolveBlocker(input) {
+      const [coaches, scouts] = await Promise.all([
+        deps.repo.listUnassignedCoaches(input.leagueId),
+        deps.repo.listUnassignedScouts(input.leagueId),
+      ]);
+      const coach = coaches.find((c) => c.id === input.candidateId);
+      const scout = scouts.find((s) => s.id === input.candidateId);
+      if (!coach && !scout) {
+        throw new DomainError(
+          "INVALID_CANDIDATE",
+          `Candidate ${input.candidateId} is not in the unassigned pool`,
+        );
+      }
+      const hiredAt = now();
+      const contractYears = 2;
+      const buyoutFactor = 0.5;
+      if (coach) {
+        const band = COACH_SALARY_BANDS[coach.role as CoachRole];
+        const salary = Math.round((band.min + band.max) / 2);
+        const buyout = Math.round(salary * contractYears * buyoutFactor);
+        await deps.repo.assignCoach(coach.id, {
+          teamId: input.teamId,
+          reportsToId: null,
+          contractSalary: salary,
+          contractYears,
+          contractBuyout: buyout,
+          hiredAt,
+        });
+        return await deps.repo.createDecision({
+          leagueId: input.leagueId,
+          staffType: "coach",
+          staffId: coach.id,
+          chosenOfferId: null,
+          wave: FINALIZE_WAVE,
+        });
+      }
+      const band = SCOUT_SALARY_BANDS[scout!.role as ScoutRole];
+      const salary = Math.round((band.min + band.max) / 2);
+      const buyout = Math.round(salary * contractYears * buyoutFactor);
+      await deps.repo.assignScout(scout!.id, {
+        teamId: input.teamId,
+        contractSalary: salary,
+        contractYears,
+        contractBuyout: buyout,
+        hiredAt,
+      });
+      return await deps.repo.createDecision({
+        leagueId: input.leagueId,
+        staffType: "scout",
+        staffId: scout!.id,
+        chosenOfferId: null,
+        wave: FINALIZE_WAVE,
+      });
     },
 
     async getHiringState(leagueId) {

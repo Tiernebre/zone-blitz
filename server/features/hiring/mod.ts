@@ -24,3 +24,8 @@ export { createHiringRouter } from "./hiring.router.ts";
 export type { HiringRouterDeps } from "./hiring.router.ts";
 export { createNpcHiringAi } from "./npc-hiring-ai.ts";
 export type { NpcHiringAi } from "./npc-hiring-ai.ts";
+export { createHiringStepEffects } from "./hiring-step-effects.ts";
+export type {
+  HiringStepEffects,
+  HiringStepEffectsDeps,
+} from "./hiring-step-effects.ts";

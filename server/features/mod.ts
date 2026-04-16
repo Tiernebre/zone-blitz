@@ -67,6 +67,8 @@ import {
   createHiringRepository,
   createHiringRouter,
   createHiringService,
+  createHiringStepEffects,
+  createNpcHiringAi,
 } from "./hiring/mod.ts";
 import { createTransactionRunner } from "../db/transaction-runner.ts";
 
@@ -168,6 +170,31 @@ export function createFeatureRouters(
     scoutsService,
     log,
   });
+  const npcHiringAi = createNpcHiringAi({
+    repo: hiringRepo,
+    leagueRepo,
+    service: hiringService,
+    log,
+  });
+  const hiringStepEffects = createHiringStepEffects({
+    hiringService,
+    npcAi: npcHiringAi,
+    listNpcTeamIds: async (leagueId) => {
+      const [league, teams] = await Promise.all([
+        leagueRepo.getById(leagueId),
+        hiringRepo.listTeamsForLeague(leagueId),
+      ]);
+      const userTeamId = league?.userTeamId ?? null;
+      return teams
+        .map((t) => t.teamId)
+        .filter((id) => id !== userTeamId);
+    },
+    hasGeneratedPool: async (leagueId) => {
+      const coaches = await hiringRepo.listUnassignedCoaches(leagueId);
+      return coaches.length > 0;
+    },
+    log,
+  });
 
   const leagueService = createLeagueService({
     txRunner,
@@ -186,6 +213,7 @@ export function createFeatureRouters(
     txRunner,
     leagueClockRepo,
     log,
+    stepEffects: hiringStepEffects,
   });
   const leagueClockRouter = createLeagueClockRouter(leagueClockService, {
     teamService,

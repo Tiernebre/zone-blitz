@@ -5,6 +5,7 @@ import {
   expressInterestsSchema,
   listCandidatesQuerySchema,
   requestInterviewsSchema,
+  resolveBlockerSchema,
   submitOffersSchema,
 } from "@zone-blitz/shared";
 import type {
@@ -202,5 +203,26 @@ export function createHiringRouter(
       const wave = waveParam !== undefined ? Number(waveParam) : undefined;
       const decisions = await service.listDecisions(leagueId, wave);
       return c.json(decisions);
-    });
+    })
+    .get("/:leagueId/hiring/blockers", async (c) => {
+      const leagueId = c.req.param("leagueId");
+      const teamId = await resolveActorTeamId(leagueId, deps);
+      const blockers = await service.getTeamBlockers(leagueId, teamId);
+      return c.json(blockers);
+    })
+    .post(
+      "/:leagueId/hiring/blockers/resolve",
+      zValidator("json", resolveBlockerSchema),
+      async (c) => {
+        const leagueId = c.req.param("leagueId");
+        const teamId = await resolveActorTeamId(leagueId, deps);
+        const { candidateId } = c.req.valid("json");
+        const decision = await service.resolveBlocker({
+          leagueId,
+          teamId,
+          candidateId,
+        });
+        return c.json(decision, 201);
+      },
+    );
 }

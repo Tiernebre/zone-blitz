@@ -74,10 +74,19 @@ export interface LeagueClockService {
   ): Promise<VoteResult>;
 }
 
+export interface StepTransitionEffects {
+  onTransition(input: {
+    leagueId: string;
+    prevStepSlug: string;
+    nextStepSlug: string;
+  }): Promise<void>;
+}
+
 export function createLeagueClockService(deps: {
   txRunner: TransactionRunner;
   leagueClockRepo: LeagueClockRepository;
   log: pino.Logger;
+  stepEffects?: StepTransitionEffects;
 }): LeagueClockService {
   const log = deps.log.child({ module: "league-clock.service" });
   const phases = leaguePhaseEnum.enumValues;
@@ -237,6 +246,17 @@ export function createLeagueClockService(deps: {
       const targetStep = DEFAULT_PHASE_STEPS.find(
         (s) => s.phase === targetPhase && s.stepIndex === targetStepIndex,
       );
+
+      if (deps.stepEffects) {
+        const prevStep = DEFAULT_PHASE_STEPS.find(
+          (s) => s.phase === clock.phase && s.stepIndex === clock.stepIndex,
+        );
+        await deps.stepEffects.onTransition({
+          leagueId,
+          prevStepSlug: prevStep?.slug ?? "",
+          nextStepSlug: targetStep?.slug ?? "",
+        });
+      }
 
       return await deps.txRunner.run(async (tx) => {
         const row = await deps.leagueClockRepo.upsert(

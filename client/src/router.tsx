@@ -28,6 +28,8 @@ import { SalaryCap } from "./features/league/salary-cap.tsx";
 import { Standings } from "./features/league/standings.tsx";
 import { Schedule } from "./features/league/schedule.tsx";
 import { Media } from "./features/league/media.tsx";
+import { Hiring } from "./features/league/hiring/index.tsx";
+import { CandidateDetail } from "./features/league/hiring/candidate-detail.tsx";
 import { TeamSelect } from "./features/team-select/index.tsx";
 import { Generate } from "./features/generate/index.tsx";
 
@@ -177,6 +179,18 @@ const mediaRoute = createRoute({
   component: Media,
 });
 
+const hiringRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "hiring",
+  component: Hiring,
+});
+
+const candidateDetailRoute = createRoute({
+  getParentRoute: () => leagueLayoutRoute,
+  path: "hiring/$candidateId",
+  component: CandidateDetail,
+});
+
 const opponentsRoute = createRoute({
   getParentRoute: () => leagueLayoutRoute,
   path: "opponents",
@@ -217,6 +231,8 @@ const routeTree = rootRoute.addChildren([
       standingsRoute,
       scheduleRoute,
       mediaRoute,
+      hiringRoute,
+      candidateDetailRoute,
       opponentsRoute,
       opponentDetailRoute,
       playerDetailRoute,

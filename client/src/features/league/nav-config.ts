@@ -1,5 +1,6 @@
 import {
   ArrowLeftRightIcon,
+  BriefcaseIcon,
   CalendarIcon,
   ClipboardListIcon,
   DollarSignIcon,
@@ -70,6 +71,7 @@ const freeAgencyPhases = inPhases(
 
 const initialPool = inPhases("initial_pool");
 const initialDraft = inPhases("initial_draft");
+const coachingCarousel = inPhases("coaching_carousel");
 
 export const navGroups: NavGroup[] = [
   {
@@ -157,6 +159,12 @@ export const navGroups: NavGroup[] = [
         path: "opponents",
         Icon: UsersIcon,
         visibleInPhases: fromPreseason,
+      },
+      {
+        label: "Hiring",
+        path: "hiring",
+        Icon: BriefcaseIcon,
+        visibleInPhases: coachingCarousel,
       },
       {
         label: "Media",
