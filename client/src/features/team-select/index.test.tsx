@@ -54,14 +54,14 @@ const MOCK_FRANCHISES = [
   },
   {
     id: "f2",
-    name: "Riveters",
+    name: "Roses",
     city: "Portland",
     abbreviation: "PDX",
-    primaryColor: "#2D4A3E",
-    secondaryColor: "#D4856B",
-    accentColor: "#F5F0E1",
+    primaryColor: "#B22247",
+    secondaryColor: "#FFFFFF",
+    accentColor: "#1F4D2B",
     backstory:
-      "Forged in Portland's shipyard heritage, the Riveters honor the workers who built the West.",
+      "Named for the City of Roses, Portland's franchise wears its bloom proudly.",
     conference: "Pacific",
   },
   {
@@ -135,7 +135,7 @@ describe("TeamSelect", () => {
       expect(screen.getByText("Reno")).toBeDefined();
       expect(screen.getByText("Aces")).toBeDefined();
       expect(screen.getByText("Portland")).toBeDefined();
-      expect(screen.getByText("Riveters")).toBeDefined();
+      expect(screen.getByText("Roses")).toBeDefined();
       expect(screen.getByText("San Diego")).toBeDefined();
       expect(screen.getByText("Admirals")).toBeDefined();
     });

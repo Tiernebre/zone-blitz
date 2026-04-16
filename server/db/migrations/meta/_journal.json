@@ -337,6 +337,13 @@
       "when": 1776556800010,
       "tag": "0047_backfill_franchise_backstory",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1776556800011,
+      "tag": "0048_rename_riveters_to_roses",
+      "breakpoints": true
     }
   ]
 }

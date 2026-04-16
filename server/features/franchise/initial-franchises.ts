@@ -30,18 +30,18 @@ export const INITIAL_FRANCHISES: InitialFranchise[] = [
       "Born from the neon glow and high-stakes spirit of the Biggest Little City, the Aces play every down like a winning hand. Their silver-and-black swagger reflects Reno's gritty reinvention from gaming town to mountain-sports hub.",
   },
   {
-    name: "Riveters",
+    name: "Roses",
     city: "Portland",
     state: "OR",
     abbreviation: "PDX",
-    primaryColor: "#004225",
+    primaryColor: "#B22247",
     secondaryColor: "#FFFFFF",
-    accentColor: "#A8A9AD",
+    accentColor: "#1F4D2B",
     conference: "Pacific",
     division: "Pacific",
     marketTier: "medium",
     backstory:
-      "Forged in Portland's shipyard heritage, the Riveters honor the workers who built the West. Rain or shine, they bring a blue-collar intensity wrapped in the city's famously independent streak.",
+      "Named for the City of Roses, Portland's franchise wears its bloom proudly. Rain or shine, the Roses play with thorns out — beautiful on the surface, brutal in the trenches.",
   },
   {
     name: "Republic",
