@@ -30,6 +30,13 @@ import { resolvePunt } from "./resolve-punt.ts";
 import { resolveFieldGoal } from "./resolve-field-goal.ts";
 import { resolveFourthDown } from "./resolve-fourth-down.ts";
 import { buildPlayEvent } from "./play-event.ts";
+import {
+  COVERAGE_UNIT_POSITIONS,
+  findEligiblePlayer,
+  findEligiblePlayers,
+  KICKER_POSITIONS,
+  RETURNER_POSITIONS,
+} from "./find-eligible-player.ts";
 
 export interface SimTeam {
   teamId: string;
@@ -202,10 +209,10 @@ export function simulateGame(input: SimulationInput): GameResult {
     bucket: PlayerRuntime["neutralBucket"],
   ): PlayerRuntime | undefined {
     const active = side === "home" ? rosters.homeActive : rosters.awayActive;
-    return active.find(
-      (p) =>
-        p.neutralBucket === bucket && !rosters.injuredPlayerIds.has(p.playerId),
-    );
+    return findEligiblePlayer(active, {
+      positions: [bucket],
+      injuredIds: rosters.injuredPlayerIds,
+    });
   }
 
   function currentOffenseTeamId(): string {
@@ -234,38 +241,30 @@ export function simulateGame(input: SimulationInput): GameResult {
   function findKicker(side: "home" | "away"): PlayerRuntime {
     const team = side === "home" ? input.home : input.away;
     const active = side === "home" ? rosters.homeActive : rosters.awayActive;
-    const available = active.filter(
-      (p) => !rosters.injuredPlayerIds.has(p.playerId),
-    );
-    return (
-      available.find((p) => p.neutralBucket === "K") ??
-        team.starters.find((p) => p.neutralBucket === "K") ??
-        team.starters[0]
-    );
+    const fallback = team.starters.find((p) => p.neutralBucket === "K") ??
+      team.starters[0];
+    return findEligiblePlayer(active, {
+      positions: KICKER_POSITIONS,
+      injuredIds: rosters.injuredPlayerIds,
+      fallback,
+    })!;
   }
 
   function findReturner(side: "home" | "away"): PlayerRuntime | undefined {
     const active = side === "home" ? rosters.homeActive : rosters.awayActive;
-    const available = active.filter(
-      (p) => !rosters.injuredPlayerIds.has(p.playerId),
-    );
-    return (
-      available.find((p) => p.neutralBucket === "WR") ??
-        available.find((p) => p.neutralBucket === "RB")
-    );
+    return findEligiblePlayer(active, {
+      positions: RETURNER_POSITIONS,
+      injuredIds: rosters.injuredPlayerIds,
+    });
   }
 
   function findCoverageUnit(side: "home" | "away"): PlayerRuntime[] {
     const active = side === "home" ? rosters.homeActive : rosters.awayActive;
-    return active
-      .filter((p) => !rosters.injuredPlayerIds.has(p.playerId))
-      .filter(
-        (p) =>
-          p.neutralBucket === "LB" ||
-          p.neutralBucket === "S" ||
-          p.neutralBucket === "CB",
-      )
-      .slice(0, 4);
+    return findEligiblePlayers(active, {
+      positions: COVERAGE_UNIT_POSITIONS,
+      injuredIds: rosters.injuredPlayerIds,
+      limit: 4,
+    });
   }
 
   function performKickoff(
