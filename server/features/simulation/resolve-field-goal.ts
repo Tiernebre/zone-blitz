@@ -18,6 +18,29 @@ export interface FieldGoalInput {
   rng: SeededRng;
 }
 
+// ── Field-goal calibration knobs ──────────────────────────────────────
+const FG_SNAP_DISTANCE = 17;
+const FG_TOUCHBACK_YARD_LINE = 20;
+const FG_RETURN_TO_SPOT_THRESHOLD = 50;
+
+const FG_BLOCK = {
+  floor: 0.005,
+  base: 0.04,
+  accuracyScale: 0.02,
+  powerScale: 0.01,
+} as const;
+
+const FG_SUCCESS_BANDS = [
+  { maxDistance: 27, base: 0.90, accuracyBonus: 0.08, powerBonus: 0 },
+  { maxDistance: 37, base: 0.80, accuracyBonus: 0.12, powerBonus: 0 },
+  { maxDistance: 47, base: 0.65, accuracyBonus: 0.15, powerBonus: 0.05 },
+  { maxDistance: 52, base: 0.45, accuracyBonus: 0.2, powerBonus: 0.1 },
+  { maxDistance: Infinity, base: 0.30, accuracyBonus: 0.15, powerBonus: 0.15 },
+] as const;
+
+const FG_SUCCESS_FLOOR = 0.01;
+const FG_SUCCESS_CEILING = 0.99;
+
 function getSuccessProbability(
   distance: number,
   kickingAccuracy: number,
@@ -27,26 +50,20 @@ function getSuccessProbability(
   const accuracyFactor = kickingAccuracy / 100;
   const powerFactor = kickingPower / 100;
 
-  let baseProb: number;
-  if (distance <= 27) {
-    baseProb = 0.90 + accuracyFactor * 0.08;
-  } else if (distance <= 37) {
-    baseProb = 0.80 + accuracyFactor * 0.12;
-  } else if (distance <= 47) {
-    baseProb = 0.65 + accuracyFactor * 0.15 + powerFactor * 0.05;
-  } else if (distance <= 52) {
-    baseProb = 0.45 + accuracyFactor * 0.2 + powerFactor * 0.1;
-  } else {
-    baseProb = 0.30 + accuracyFactor * 0.15 + powerFactor * 0.15;
-  }
+  const band = FG_SUCCESS_BANDS.find((b) => distance <= b.maxDistance)!;
+  const baseProb = band.base + accuracyFactor * band.accuracyBonus +
+    powerFactor * band.powerBonus;
 
-  return Math.max(0.01, Math.min(0.99, baseProb - weatherPenalty));
+  return Math.max(
+    FG_SUCCESS_FLOOR,
+    Math.min(FG_SUCCESS_CEILING, baseProb - weatherPenalty),
+  );
 }
 
 export function resolveFieldGoal(input: FieldGoalInput): FieldGoalResult {
   const { kicker, yardLine, weatherPenalty = 0, rng } = input;
-  const distance = 100 - yardLine + 17;
-  const defenseYardLine = Math.max(20, 100 - yardLine);
+  const distance = 100 - yardLine + FG_SNAP_DISTANCE;
+  const defenseYardLine = Math.max(FG_TOUCHBACK_YARD_LINE, 100 - yardLine);
 
   const kickingAccuracy =
     (kicker.attributes as unknown as Record<string, number>).kickingAccuracy ??
@@ -55,8 +72,9 @@ export function resolveFieldGoal(input: FieldGoalInput): FieldGoalResult {
     (kicker.attributes as unknown as Record<string, number>).kickingPower ?? 50;
 
   const blockChance = Math.max(
-    0.005,
-    0.04 - (kickingAccuracy / 100) * 0.02 - (kickingPower / 100) * 0.01,
+    FG_BLOCK.floor,
+    FG_BLOCK.base - (kickingAccuracy / 100) * FG_BLOCK.accuracyScale -
+      (kickingPower / 100) * FG_BLOCK.powerScale,
   );
   if (rng.next() < blockChance) {
     return {
@@ -85,7 +103,7 @@ export function resolveFieldGoal(input: FieldGoalInput): FieldGoalResult {
     };
   }
 
-  const returnToSpotOfKick = distance >= 50;
+  const returnToSpotOfKick = distance >= FG_RETURN_TO_SPOT_THRESHOLD;
   return {
     outcome: "missed",
     distance,

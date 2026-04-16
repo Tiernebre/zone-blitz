@@ -110,6 +110,69 @@ const PASS_CONCEPTS = new Set([
   "deep_shot",
 ]);
 
+// ── Play-call tuning knobs ────────────────────────────────────────────
+const PLAY_CALL = {
+  runBias: 0.07,
+  shortYardageRunBoost: 0.15,
+  longYardageRunPenalty: 0.08,
+  twoMinuteRunPenalty: 0.2,
+  runProbFloor: 0.15,
+  runProbCeiling: 0.85,
+  rpoIntegrationThreshold: 60,
+  passingDepthThreshold: 50,
+  personnelWeightThreshold: 60,
+  formationShotgunThreshold: 60,
+  formationUnderCenterThreshold: 40,
+  blitzPassSituationBoost: 0.15,
+  blitzTwoMinutePenalty: 0.2,
+  blitzFloor: 0.05,
+  blitzCeiling: 0.8,
+} as const;
+
+// ── Pass-resolution calibration knobs ─────────────────────────────────
+const PASS_RESOLUTION = {
+  completion: {
+    base: 0.655,
+    coverageModifier: 0.010,
+    floor: 0.18,
+    ceiling: 0.92,
+  },
+  interception: { base: 0.022, coverageModifier: 0.002, floor: 0.004 },
+  sack: { base: 0.086, protectionModifier: 0.005, floor: 0.01 },
+  bigPlay: {
+    base: 0.20,
+    coverageModifier: 0.008,
+    floor: 0.05,
+    ceiling: 0.45,
+    yards: { min: 13, max: 35 },
+  },
+  completionYards: { min: 3, max: 14 },
+  fumbleOnSack: 0.08,
+} as const;
+
+// ── Run-resolution calibration knobs ──────────────────────────────────
+const RUN_RESOLUTION = {
+  stuffThreshold: -20,
+  stuffYards: { min: -3, max: 0 },
+  shortGainThreshold: -5,
+  shortGainYards: { min: 1, max: 5 },
+  bigPlayThreshold: 15,
+  bigPlayYards: { min: 9, max: 26 },
+  normalYards: { min: 2, max: 8 },
+  fumbleRate: 0.009,
+} as const;
+
+// ── Miscellaneous play-outcome knobs ──────────────────────────────────
+const INJURY_ON_PLAY = 0.005;
+const RETURN_TD = {
+  base: 0.02,
+  attrScale: 0.06 / 60,
+  attrBaseline: 30,
+  floor: 0.01,
+  ceiling: 0.10,
+} as const;
+const SACK_YARDAGE = { min: -10, max: -3 } as const;
+
 const FIT_MODIFIER: Record<SchemeFitLabel, number> = {
   ideal: 10,
   fits: 5,
@@ -169,37 +232,45 @@ export function drawOffensiveCall(
   const isShortYardage = situation.down >= 3 && situation.distance <= 3;
   const isLongYardage = situation.distance >= 7;
 
-  let runProbability = (100 - runPassLean) / 100 + 0.07;
-  if (isShortYardage) runProbability += 0.15;
-  if (isLongYardage) runProbability -= 0.08;
-  if (options?.twoMinute) runProbability -= 0.2;
-  runProbability = Math.max(0.15, Math.min(0.85, runProbability));
+  let runProbability = (100 - runPassLean) / 100 + PLAY_CALL.runBias;
+  if (isShortYardage) runProbability += PLAY_CALL.shortYardageRunBoost;
+  if (isLongYardage) runProbability -= PLAY_CALL.longYardageRunPenalty;
+  if (options?.twoMinute) runProbability -= PLAY_CALL.twoMinuteRunPenalty;
+  runProbability = Math.max(
+    PLAY_CALL.runProbFloor,
+    Math.min(PLAY_CALL.runProbCeiling, runProbability),
+  );
 
   const isRun = rng.next() < runProbability;
 
   let concept: string;
   if (isRun) {
     const runConcepts = [...RUN_CONCEPTS];
-    if ((offense?.rpoIntegration ?? 50) > 60) runConcepts.push("rpo");
+    if ((offense?.rpoIntegration ?? 50) > PLAY_CALL.rpoIntegrationThreshold) {
+      runConcepts.push("rpo");
+    }
     concept = rng.pick(runConcepts);
   } else {
     const passConcepts = [...PASS_CONCEPTS];
-    if (isLongYardage && (offense?.passingDepth ?? 50) > 50) {
+    if (
+      isLongYardage &&
+      (offense?.passingDepth ?? 50) > PLAY_CALL.passingDepthThreshold
+    ) {
       passConcepts.push("deep_shot");
     }
     concept = rng.pick(passConcepts);
   }
 
   const personnelWeight = offense?.personnelWeight ?? 50;
-  const heavyPersonnel = personnelWeight > 60;
+  const heavyPersonnel = personnelWeight > PLAY_CALL.personnelWeightThreshold;
   const personnel = heavyPersonnel
     ? rng.pick(["12", "21", "22"] as const)
     : rng.pick(["11", "10"] as const);
 
   const formationLean = offense?.formationUnderCenterShotgun ?? 50;
-  const formation = formationLean > 60
+  const formation = formationLean > PLAY_CALL.formationShotgunThreshold
     ? rng.pick(["shotgun", "pistol"] as const)
-    : formationLean < 40
+    : formationLean < PLAY_CALL.formationUnderCenterThreshold
     ? rng.pick(["under_center", "singleback", "i_form"] as const)
     : rng.pick(FORMATIONS);
 
@@ -254,9 +325,12 @@ export function drawDefensiveCall(
   const pressureRate = defense?.pressureRate ?? 50;
   const isPassSituation = situation.down >= 3 && situation.distance >= 5;
   let blitzProb = pressureRate / 100;
-  if (isPassSituation) blitzProb += 0.15;
-  if (options?.twoMinute) blitzProb -= 0.2;
-  blitzProb = Math.max(0.05, Math.min(0.8, blitzProb));
+  if (isPassSituation) blitzProb += PLAY_CALL.blitzPassSituationBoost;
+  if (options?.twoMinute) blitzProb -= PLAY_CALL.blitzTwoMinutePenalty;
+  blitzProb = Math.max(
+    PLAY_CALL.blitzFloor,
+    Math.min(PLAY_CALL.blitzCeiling, blitzProb),
+  );
 
   let pressure: string;
   if (rng.next() < blitzProb) {
@@ -386,18 +460,30 @@ export function synthesizeOutcome(
         blockingContribs.length
       : avgScore;
 
-    if (blockScore < -20) {
-      yardage = rng.int(-3, 0);
-    } else if (blockScore < -5) {
-      yardage = rng.int(1, 5);
-    } else if (blockScore > 15) {
-      yardage = rng.int(9, 26);
+    if (blockScore < RUN_RESOLUTION.stuffThreshold) {
+      yardage = rng.int(
+        RUN_RESOLUTION.stuffYards.min,
+        RUN_RESOLUTION.stuffYards.max,
+      );
+    } else if (blockScore < RUN_RESOLUTION.shortGainThreshold) {
+      yardage = rng.int(
+        RUN_RESOLUTION.shortGainYards.min,
+        RUN_RESOLUTION.shortGainYards.max,
+      );
+    } else if (blockScore > RUN_RESOLUTION.bigPlayThreshold) {
+      yardage = rng.int(
+        RUN_RESOLUTION.bigPlayYards.min,
+        RUN_RESOLUTION.bigPlayYards.max,
+      );
       tags.push("big_play");
     } else {
-      yardage = rng.int(2, 8);
+      yardage = rng.int(
+        RUN_RESOLUTION.normalYards.min,
+        RUN_RESOLUTION.normalYards.max,
+      );
     }
 
-    if (rng.next() < 0.009) {
+    if (rng.next() < RUN_RESOLUTION.fumbleRate) {
       outcome = "fumble";
       tags.push("fumble", "turnover");
     } else {
@@ -428,10 +514,14 @@ export function synthesizeOutcome(
         protectionContribs.length
       : avgScore;
 
-    const sackProb = Math.max(0.01, 0.086 - protectionScore * 0.005);
+    const sackProb = Math.max(
+      PASS_RESOLUTION.sack.floor,
+      PASS_RESOLUTION.sack.base -
+        protectionScore * PASS_RESOLUTION.sack.protectionModifier,
+    );
     if (rng.next() < sackProb) {
       outcome = "sack";
-      yardage = rng.int(-10, -3);
+      yardage = rng.int(SACK_YARDAGE.min, SACK_YARDAGE.max);
       tags.push("sack", "pressure");
 
       const rusher = contributions.find((c) =>
@@ -454,7 +544,7 @@ export function synthesizeOutcome(
         }
       }
 
-      if (rng.next() < 0.08) {
+      if (rng.next() < PASS_RESOLUTION.fumbleOnSack) {
         outcome = "fumble";
         tags.push("fumble", "turnover");
       }
@@ -471,14 +561,26 @@ export function synthesizeOutcome(
           routeContribs.length
         : avgScore;
 
-      const intProb = Math.max(0.004, 0.022 - coverageScore * 0.002);
+      const intProb = Math.max(
+        PASS_RESOLUTION.interception.floor,
+        PASS_RESOLUTION.interception.base -
+          coverageScore * PASS_RESOLUTION.interception.coverageModifier,
+      );
       const completionProb = Math.max(
-        0.18,
-        Math.min(0.92, 0.655 + coverageScore * 0.010),
+        PASS_RESOLUTION.completion.floor,
+        Math.min(
+          PASS_RESOLUTION.completion.ceiling,
+          PASS_RESOLUTION.completion.base +
+            coverageScore * PASS_RESOLUTION.completion.coverageModifier,
+        ),
       );
       const bigPlayProb = Math.max(
-        0.05,
-        Math.min(0.45, 0.20 + coverageScore * 0.008),
+        PASS_RESOLUTION.bigPlay.floor,
+        Math.min(
+          PASS_RESOLUTION.bigPlay.ceiling,
+          PASS_RESOLUTION.bigPlay.base +
+            coverageScore * PASS_RESOLUTION.bigPlay.coverageModifier,
+        ),
       );
 
       const roll = rng.next();
@@ -507,10 +609,16 @@ export function synthesizeOutcome(
         outcome = "pass_complete";
         const isBigPlay = rng.next() < bigPlayProb;
         if (isBigPlay) {
-          yardage = rng.int(13, 35);
+          yardage = rng.int(
+            PASS_RESOLUTION.bigPlay.yards.min,
+            PASS_RESOLUTION.bigPlay.yards.max,
+          );
           tags.push("big_play");
         } else {
-          yardage = rng.int(3, 14);
+          yardage = rng.int(
+            PASS_RESOLUTION.completionYards.min,
+            PASS_RESOLUTION.completionYards.max,
+          );
         }
         const target = routeContribs.find((c) => c.score > 0) ??
           routeContribs[0];
@@ -533,7 +641,7 @@ export function synthesizeOutcome(
     }
   }
 
-  if (rng.next() < 0.005) {
+  if (rng.next() < INJURY_ON_PLAY) {
     tags.push("injury");
   }
 
@@ -566,8 +674,12 @@ export function synthesizeOutcome(
     const speed = defender?.attributes.speed ?? 50;
     const acceleration = defender?.attributes.acceleration ?? 50;
     const avgAttr = (speed + acceleration) / 2;
-    const returnTdProb = 0.02 + (avgAttr - 30) * (0.06 / 60);
-    if (rng.next() < Math.max(0.01, Math.min(0.10, returnTdProb))) {
+    const returnTdProb = RETURN_TD.base +
+      (avgAttr - RETURN_TD.attrBaseline) * RETURN_TD.attrScale;
+    if (
+      rng.next() <
+        Math.max(RETURN_TD.floor, Math.min(RETURN_TD.ceiling, returnTdProb))
+    ) {
       tags.push("return_td", "touchdown");
       if (defender) {
         const existingIdx = participants.findIndex(
