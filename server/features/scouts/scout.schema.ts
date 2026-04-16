@@ -39,6 +39,11 @@ export const scouts = pgTable("scouts", {
   contractBuyout: integer("contract_buyout").notNull().default(0),
   workCapacity: integer("work_capacity").notNull().default(100),
   isVacancy: boolean("is_vacancy").notNull().default(false),
+  marketTierPref: integer("market_tier_pref"),
+  philosophyFitPref: integer("philosophy_fit_pref"),
+  staffFitPref: integer("staff_fit_pref"),
+  compensationPref: integer("compensation_pref"),
+  minimumThreshold: integer("minimum_threshold"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

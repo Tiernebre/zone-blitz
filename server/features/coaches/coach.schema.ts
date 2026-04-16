@@ -78,6 +78,11 @@ export const coaches = pgTable("coaches", {
     (): AnyPgColumn => coaches.id,
     { onDelete: "set null" },
   ),
+  marketTierPref: integer("market_tier_pref"),
+  philosophyFitPref: integer("philosophy_fit_pref"),
+  staffFitPref: integer("staff_fit_pref"),
+  compensationPref: integer("compensation_pref"),
+  minimumThreshold: integer("minimum_threshold"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

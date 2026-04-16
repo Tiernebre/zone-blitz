@@ -212,6 +212,24 @@ const POOL_MULTIPLIER = 1.5;
 
 const COORDINATOR_ROLES = new Set<CoachRole>(["OC", "DC", "STC"]);
 
+interface CoachPreferences {
+  marketTierPref: number;
+  philosophyFitPref: number;
+  staffFitPref: number;
+  compensationPref: number;
+  minimumThreshold: number;
+}
+
+function rollPreferences(random: () => number): CoachPreferences {
+  return {
+    marketTierPref: intInRange(random, 0, 100),
+    philosophyFitPref: intInRange(random, 0, 100),
+    staffFitPref: intInRange(random, 0, 100),
+    compensationPref: intInRange(random, 0, 100),
+    minimumThreshold: intInRange(random, 0, 100),
+  };
+}
+
 function generateCoach(
   spec: RoleSpec,
   leagueId: string,
@@ -222,6 +240,7 @@ function generateCoach(
   anchor: Date,
   collegeIds: string[],
   collegeIndex: { value: number },
+  preferences: CoachPreferences | null,
 ): GeneratedCoach {
   const { firstName, lastName } = nameGenerator.next();
   const id = crypto.randomUUID();
@@ -273,6 +292,11 @@ function generateCoach(
     specialty: spec.specialty,
     isVacancy: false,
     mentorCoachId: null,
+    marketTierPref: preferences?.marketTierPref ?? null,
+    philosophyFitPref: preferences?.philosophyFitPref ?? null,
+    staffFitPref: preferences?.staffFitPref ?? null,
+    compensationPref: preferences?.compensationPref ?? null,
+    minimumThreshold: preferences?.minimumThreshold ?? null,
     ...(tendencies ? { tendencies } : {}),
   };
 }
@@ -350,6 +374,7 @@ export function createCoachesGenerator(
             anchor,
             collegeIds,
             collegeIndex,
+            null,
           );
 
           idsByRole.set(spec.role, coach.id);
@@ -399,6 +424,7 @@ export function createCoachesGenerator(
             anchor,
             collegeIds,
             collegeIndex,
+            rollPreferences(random),
           );
           coaches.push(coach);
         }

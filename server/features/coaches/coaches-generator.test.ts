@@ -564,3 +564,42 @@ Deno.test("generatePool two leagues produce independent pools with no shared ids
     assertEquals(idsA.has(coach.id), false, `shared id ${coach.id}`);
   }
 });
+
+Deno.test("generatePool populates preference columns in 0..100 range", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  for (const coach of result) {
+    for (
+      const key of [
+        "marketTierPref",
+        "philosophyFitPref",
+        "staffFitPref",
+        "compensationPref",
+        "minimumThreshold",
+      ] as const
+    ) {
+      const value = coach[key];
+      assertNotEquals(value, null, `pool coach missing ${key}`);
+      assertEquals(typeof value, "number");
+      assertEquals(value! >= 0 && value! <= 100, true);
+    }
+  }
+});
+
+Deno.test("generatePool preference values vary across the pool", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  const marketTiers = new Set(result.map((c) => c.marketTierPref));
+  const compensations = new Set(result.map((c) => c.compensationPref));
+  assertEquals(marketTiers.size > 1, true);
+  assertEquals(compensations.size > 1, true);
+});
+
+Deno.test("generate leaves preference columns null for assigned staff", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const coach of result) {
+    assertEquals(coach.marketTierPref, null);
+    assertEquals(coach.philosophyFitPref, null);
+    assertEquals(coach.staffFitPref, null);
+    assertEquals(coach.compensationPref, null);
+    assertEquals(coach.minimumThreshold, null);
+  }
+});

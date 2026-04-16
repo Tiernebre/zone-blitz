@@ -133,6 +133,11 @@ export interface Scout {
   contractBuyout: number;
   workCapacity: number;
   isVacancy: boolean;
+  marketTierPref: number | null;
+  philosophyFitPref: number | null;
+  staffFitPref: number | null;
+  compensationPref: number | null;
+  minimumThreshold: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

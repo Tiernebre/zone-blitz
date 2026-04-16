@@ -162,6 +162,11 @@ export interface Coach {
   specialty: CoachSpecialty | null;
   isVacancy: boolean;
   mentorCoachId: string | null;
+  marketTierPref: number | null;
+  philosophyFitPref: number | null;
+  staffFitPref: number | null;
+  compensationPref: number | null;
+  minimumThreshold: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

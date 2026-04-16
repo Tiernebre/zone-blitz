@@ -102,3 +102,13 @@ export {
   stepKindEnum,
 } from "../features/league-clock/league-clock.schema.ts";
 export { franchises } from "../features/franchise/franchise.schema.ts";
+export {
+  hiringDecisions,
+  hiringInterests,
+  hiringInterestStatusEnum,
+  hiringInterviews,
+  hiringInterviewStatusEnum,
+  hiringOffers,
+  hiringOfferStatusEnum,
+  staffTypeEnum,
+} from "../features/hiring/hiring.schema.ts";
