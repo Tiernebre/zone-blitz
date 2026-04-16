@@ -210,6 +210,31 @@ export function pickDefensiveArchetype(
   ];
 }
 
+/**
+ * Public-knowledge derivation: given a coach id + role + specialty,
+ * return the offensive/defensive archetype names this coach would have
+ * been assigned by `buildTendencies`. Used by the hiring service to
+ * surface a scheme label on candidates without re-reading the
+ * tendencies table or carrying the archetype as a separate column.
+ *
+ * Returns null on the side the coach doesn't carry (e.g. a defense-HC
+ * has no offensive archetype; a CEO HC has neither).
+ */
+export function archetypeNamesFor(
+  role: string,
+  specialty: string | null,
+  coachId: string,
+): { offensive: string | null; defensive: string | null } {
+  const offensiveSide = role === "OC" ||
+    (role === "HC" && specialty === "offense");
+  const defensiveSide = role === "DC" ||
+    (role === "HC" && specialty === "defense");
+  return {
+    offensive: offensiveSide ? pickOffensiveArchetype(coachId).name : null,
+    defensive: defensiveSide ? pickDefensiveArchetype(coachId).name : null,
+  };
+}
+
 export function offensiveVectorFromArchetype(
   archetype: OffensiveArchetype,
   seed: string,

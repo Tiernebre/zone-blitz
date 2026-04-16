@@ -20,6 +20,16 @@ export type {
   SeasonPhase,
 } from "./types/season.ts";
 export type { FrontOfficeStaff } from "./types/front-office.ts";
+export {
+  DEFENSIVE_ARCHETYPE_NAMES,
+  defensiveArchetypeLabel,
+  OFFENSIVE_ARCHETYPE_NAMES,
+  offensiveArchetypeLabel,
+} from "./types/scheme-archetypes.ts";
+export type {
+  DefensiveArchetypeName,
+  OffensiveArchetypeName,
+} from "./types/scheme-archetypes.ts";
 export type {
   Coach,
   CoachAccolade,

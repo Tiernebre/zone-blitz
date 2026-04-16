@@ -163,6 +163,9 @@ describe("Market survey view", () => {
           firstName: "Andy",
           lastName: "Reid",
           role: "HC",
+          specialty: "offense",
+          offensiveArchetype: "pro_style_timing",
+          defensiveArchetype: null,
         },
         {
           id: "c2",
@@ -171,6 +174,31 @@ describe("Market survey view", () => {
           firstName: "Kyle",
           lastName: "Shanahan",
           role: "OC",
+          specialty: "offense",
+          offensiveArchetype: "shanahan_wide_zone",
+          defensiveArchetype: null,
+        },
+        {
+          id: "c3",
+          leagueId: "lg",
+          staffType: "coach",
+          firstName: "Bill",
+          lastName: "Belichick",
+          role: "HC",
+          specialty: "defense",
+          offensiveArchetype: null,
+          defensiveArchetype: "fangio_two_high",
+        },
+        {
+          id: "c4",
+          leagueId: "lg",
+          staffType: "coach",
+          firstName: "Andy",
+          lastName: "Manager",
+          role: "HC",
+          specialty: "ceo",
+          offensiveArchetype: null,
+          defensiveArchetype: null,
         },
       ],
       isLoading: false,
@@ -187,6 +215,36 @@ describe("Market survey view", () => {
   it("does not render a search bar in the market survey", () => {
     renderPage();
     expect(screen.queryByLabelText("Search candidates")).toBeNull();
+  });
+
+  it("shows an offensive HC's background and scheme", () => {
+    renderPage();
+    expect(
+      screen.getByTestId("candidate-background-c1").textContent,
+    ).toBe("Offensive background");
+    expect(
+      screen.getByTestId("candidate-scheme-c1").textContent,
+    ).toBe("Pro Style");
+  });
+
+  it("shows a defensive HC's background and scheme", () => {
+    renderPage();
+    expect(
+      screen.getByTestId("candidate-background-c3").textContent,
+    ).toBe("Defensive background");
+    expect(
+      screen.getByTestId("candidate-scheme-c3").textContent,
+    ).toBe("Fangio Two-High");
+  });
+
+  it("calls out CEO HCs as deferring to coordinators", () => {
+    renderPage();
+    expect(
+      screen.getByTestId("candidate-background-c4").textContent,
+    ).toBe("CEO / manager");
+    expect(
+      screen.getByTestId("candidate-scheme-c4").textContent,
+    ).toBe("Defers to coordinators");
   });
 
   it("invokes expressInterest on Express Interest click", () => {

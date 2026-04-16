@@ -1,4 +1,8 @@
-import type { CoachRole, CoachSpecialty } from "@zone-blitz/shared";
+import type {
+  CoachPlayCaller,
+  CoachRole,
+  CoachSpecialty,
+} from "@zone-blitz/shared";
 import {
   createNameGenerator,
   type NameGenerator,
@@ -170,9 +174,14 @@ const TIER_BANDS: Record<Tier, TierBand> = {
 
 function buildTendencies(
   role: CoachRole,
+  specialty: CoachSpecialty,
   seed: string,
 ): GeneratedCoachTendencies | null {
-  if (role === "OC") {
+  const offensiveSide = role === "OC" ||
+    (role === "HC" && specialty === "offense");
+  const defensiveSide = role === "DC" ||
+    (role === "HC" && specialty === "defense");
+  if (offensiveSide) {
     return {
       offense: offensiveVectorFromArchetype(
         pickOffensiveArchetype(seed),
@@ -180,7 +189,7 @@ function buildTendencies(
       ),
     };
   }
-  if (role === "DC") {
+  if (defensiveSide) {
     return {
       defense: defensiveVectorFromArchetype(
         pickDefensiveArchetype(seed),
@@ -189,6 +198,31 @@ function buildTendencies(
     };
   }
   return null;
+}
+
+const HC_SPECIALTY_DISTRIBUTION: ReadonlyArray<
+  { specialty: CoachSpecialty; weight: number }
+> = [
+  { specialty: "offense", weight: 0.4 },
+  { specialty: "defense", weight: 0.4 },
+  { specialty: "ceo", weight: 0.2 },
+];
+
+function rollHcSpecialty(random: () => number): CoachSpecialty {
+  const r = random();
+  let cumulative = 0;
+  for (const entry of HC_SPECIALTY_DISTRIBUTION) {
+    cumulative += entry.weight;
+    if (r < cumulative) return entry.specialty;
+  }
+  return HC_SPECIALTY_DISTRIBUTION[HC_SPECIALTY_DISTRIBUTION.length - 1]
+    .specialty;
+}
+
+function playCallerForHc(specialty: CoachSpecialty): CoachPlayCaller {
+  if (specialty === "offense") return "offense";
+  if (specialty === "defense") return "defense";
+  return "ceo";
 }
 
 export interface CoachesGeneratorOptions {
@@ -272,7 +306,10 @@ function generateCoach(
     ? collegeIds[collegeIndex.value++ % collegeIds.length]
     : null;
 
-  const tendencies = buildTendencies(spec.role, id);
+  const specialty = spec.role === "HC"
+    ? rollHcSpecialty(random)
+    : spec.specialty;
+  const tendencies = buildTendencies(spec.role, specialty, id);
 
   return {
     id,
@@ -282,14 +319,14 @@ function generateCoach(
     lastName,
     role: spec.role,
     reportsToId,
-    playCaller: spec.role === "HC" ? "offense" : null,
+    playCaller: spec.role === "HC" ? playCallerForHc(specialty) : null,
     age,
     hiredAt,
     contractYears,
     contractSalary,
     contractBuyout,
     collegeId,
-    specialty: spec.specialty,
+    specialty,
     isVacancy: false,
     mentorCoachId: null,
     marketTierPref: preferences?.marketTierPref ?? null,

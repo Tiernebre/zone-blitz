@@ -35,6 +35,7 @@ import {
   PROBE_OFFER_ID_PREFIX,
   salaryMidpoint,
 } from "./hiring-constants.ts";
+import { archetypeNamesFor } from "../coaches/coach-tendency-archetypes.ts";
 import { type SignedCoachRef, signedCoachRefs } from "./hiring-signed-staff.ts";
 import {
   assembleCoachingStaff,
@@ -769,6 +770,11 @@ export function createHiringService(deps: {
         for (const coach of coaches) {
           if (!LEADERSHIP_COACH_ROLES.has(coach.role)) continue;
           if (filter?.role && coach.role !== filter.role) continue;
+          const archetypes = archetypeNamesFor(
+            coach.role,
+            coach.specialty,
+            coach.id,
+          );
           all.push({
             id: coach.id,
             leagueId: coach.leagueId,
@@ -776,6 +782,9 @@ export function createHiringService(deps: {
             firstName: coach.firstName,
             lastName: coach.lastName,
             role: coach.role,
+            specialty: coach.specialty,
+            offensiveArchetype: archetypes.offensive,
+            defensiveArchetype: archetypes.defensive,
           });
         }
       }
@@ -790,6 +799,9 @@ export function createHiringService(deps: {
             firstName: scout.firstName,
             lastName: scout.lastName,
             role: scout.role,
+            specialty: null,
+            offensiveArchetype: null,
+            defensiveArchetype: null,
           });
         }
       }
@@ -826,6 +838,13 @@ export function createHiringService(deps: {
         }
       }
 
+      const archetypes = hit.staffType === "coach"
+        ? archetypeNamesFor(
+          hit.candidate.role,
+          hit.candidate.specialty,
+          hit.candidate.id,
+        )
+        : { offensive: null, defensive: null };
       return {
         id: hit.candidate.id,
         leagueId: hit.candidate.leagueId,
@@ -833,6 +852,9 @@ export function createHiringService(deps: {
         firstName: hit.candidate.firstName,
         lastName: hit.candidate.lastName,
         role: hit.candidate.role,
+        specialty: hit.staffType === "coach" ? hit.candidate.specialty : null,
+        offensiveArchetype: archetypes.offensive,
+        defensiveArchetype: archetypes.defensive,
         marketTierPref: hit.candidate.marketTierPref,
         philosophyFitPref: hit.candidate.philosophyFitPref,
         staffFitPref: hit.candidate.staffFitPref,

@@ -205,14 +205,95 @@ Deno.test("every DC carries a populated defensive tendency vector only", () => {
   }
 });
 
-Deno.test("non-coordinator coaches have no tendencies (v1 scope: OC + DC only)", () => {
+Deno.test("position coaches and STC carry no tendencies", () => {
   const result = makeGenerator().generate(INPUT);
-  const nonCoordinators = result.filter(
-    (c) => c.role !== "OC" && c.role !== "DC",
-  );
-  assertEquals(nonCoordinators.length > 0, true);
-  for (const coach of nonCoordinators) {
+  const noTendencyRoles = new Set<CoachRole>([
+    "STC",
+    "QB",
+    "RB",
+    "WR",
+    "TE",
+    "OL",
+    "DL",
+    "LB",
+    "DB",
+    "ST_ASSISTANT",
+  ]);
+  const noTendencyCoaches = result.filter((c) => noTendencyRoles.has(c.role));
+  assertEquals(noTendencyCoaches.length > 0, true);
+  for (const coach of noTendencyCoaches) {
     assertEquals(coach.tendencies, undefined);
+  }
+});
+
+Deno.test("HC specialty is rolled across offense/defense/ceo", () => {
+  const result = makeGenerator(99).generate({
+    leagueId: "lg",
+    teamIds: Array.from({ length: 60 }, (_, i) => `team-${i}`),
+  });
+  const hcs = result.filter((c) => c.role === "HC");
+  const specialties = new Set(hcs.map((hc) => hc.specialty));
+  assertEquals(specialties.has("offense"), true);
+  assertEquals(specialties.has("defense"), true);
+  assertEquals(specialties.has("ceo"), true);
+});
+
+Deno.test("HC playCaller follows specialty", () => {
+  const result = makeGenerator(99).generate({
+    leagueId: "lg",
+    teamIds: Array.from({ length: 60 }, (_, i) => `team-${i}`),
+  });
+  const hcs = result.filter((c) => c.role === "HC");
+  for (const hc of hcs) {
+    if (hc.specialty === "offense") assertEquals(hc.playCaller, "offense");
+    if (hc.specialty === "defense") assertEquals(hc.playCaller, "defense");
+    if (hc.specialty === "ceo") assertEquals(hc.playCaller, "ceo");
+  }
+});
+
+Deno.test("offense-oriented HCs carry offensive tendencies only", () => {
+  const result = makeGenerator(99).generate({
+    leagueId: "lg",
+    teamIds: Array.from({ length: 60 }, (_, i) => `team-${i}`),
+  });
+  const offenseHcs = result.filter(
+    (c) => c.role === "HC" && c.specialty === "offense",
+  );
+  assertEquals(offenseHcs.length > 0, true);
+  for (const hc of offenseHcs) {
+    assertNotEquals(hc.tendencies, undefined);
+    assertNotEquals(hc.tendencies?.offense, undefined);
+    assertEquals(hc.tendencies?.defense, undefined);
+  }
+});
+
+Deno.test("defense-oriented HCs carry defensive tendencies only", () => {
+  const result = makeGenerator(99).generate({
+    leagueId: "lg",
+    teamIds: Array.from({ length: 60 }, (_, i) => `team-${i}`),
+  });
+  const defenseHcs = result.filter(
+    (c) => c.role === "HC" && c.specialty === "defense",
+  );
+  assertEquals(defenseHcs.length > 0, true);
+  for (const hc of defenseHcs) {
+    assertNotEquals(hc.tendencies, undefined);
+    assertNotEquals(hc.tendencies?.defense, undefined);
+    assertEquals(hc.tendencies?.offense, undefined);
+  }
+});
+
+Deno.test("CEO HCs defer to coordinators (no tendencies)", () => {
+  const result = makeGenerator(99).generate({
+    leagueId: "lg",
+    teamIds: Array.from({ length: 60 }, (_, i) => `team-${i}`),
+  });
+  const ceoHcs = result.filter(
+    (c) => c.role === "HC" && c.specialty === "ceo",
+  );
+  assertEquals(ceoHcs.length > 0, true);
+  for (const hc of ceoHcs) {
+    assertEquals(hc.tendencies, undefined);
   }
 });
 
