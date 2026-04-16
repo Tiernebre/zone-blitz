@@ -84,6 +84,7 @@ describe("useAdvanceLeagueClock", () => {
       draftOrderResolved: true,
       superBowlPlayed: false,
       priorPhaseComplete: true,
+      allTeamsHaveStaff: false,
     },
   };
 

@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { AlertTriangleIcon, ChevronRightIcon, InfoIcon } from "lucide-react";
+import { ChevronRightIcon, InfoIcon } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   useAdvanceLeagueClock,
   useLeagueClock,
@@ -40,7 +39,6 @@ export function LeagueClockDisplay({
 }: LeagueClockDisplayProps) {
   const { data: clock } = useLeagueClock(leagueId);
   const advanceMutation = useAdvanceLeagueClock();
-  const [error, setError] = useState<string | null>(null);
 
   if (!clock) return null;
 
@@ -48,7 +46,6 @@ export function LeagueClockDisplay({
   const showInauguralYearNote = clock.isInauguralSeason && !isSetupPhase;
 
   const handleAdvance = () => {
-    setError(null);
     advanceMutation.mutate(
       {
         leagueId,
@@ -58,11 +55,19 @@ export function LeagueClockDisplay({
           draftOrderResolved: true,
           superBowlPlayed: true,
           priorPhaseComplete: true,
+          allTeamsHaveStaff: false,
         },
       },
       {
+        onSuccess: (data) => {
+          const stepName = formatSlug(data.slug);
+          const description = data.flavorDate
+            ? `${formatPhase(data.phase)} — ${data.flavorDate}`
+            : formatPhase(data.phase);
+          toast.success(`Advanced to ${stepName}`, { description });
+        },
         onError: (err) => {
-          setError(err.message);
+          toast.error("Cannot Advance", { description: err.message });
         },
       },
     );
@@ -98,13 +103,6 @@ export function LeagueClockDisplay({
           <InfoIcon className="size-3" />
           <span>No preseason (inaugural year)</span>
         </div>
-      )}
-      {error && (
-        <Alert variant="destructive">
-          <AlertTriangleIcon />
-          <AlertTitle>Cannot Advance</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
       )}
     </div>
   );

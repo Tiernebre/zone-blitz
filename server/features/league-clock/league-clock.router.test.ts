@@ -1,5 +1,8 @@
 import { assertEquals } from "@std/assert";
-import { createLeagueClockRouter } from "./league-clock.router.ts";
+import {
+  createLeagueClockRouter,
+  type LeagueClockRouterDeps,
+} from "./league-clock.router.ts";
 import type {
   AdvanceResult,
   ClockState,
@@ -32,6 +35,8 @@ function createMockAdvanceResult(
     seasonYear: 2026,
     phase: "offseason_review",
     stepIndex: 1,
+    slug: "end_of_year_recap",
+    flavorDate: "Feb 10",
     advancedAt: new Date("2026-01-01T00:00:00Z"),
     overrideReason: null,
     overrideBlockers: null,
@@ -65,6 +70,38 @@ function createMockService(
   };
 }
 
+function createMockDeps(
+  overrides: Partial<LeagueClockRouterDeps> = {},
+): LeagueClockRouterDeps {
+  return {
+    teamService: {
+      getByLeagueId: () => Promise.resolve([]),
+      getById: () => {
+        throw new Error("not implemented");
+      },
+      createMany: () => {
+        throw new Error("not implemented");
+      },
+    },
+    coachesService: {
+      generate: () => {
+        throw new Error("not implemented");
+      },
+      generatePool: () => {
+        throw new Error("not implemented");
+      },
+      getStaffTree: () => Promise.resolve([]),
+      getCoachDetail: () => {
+        throw new Error("not implemented");
+      },
+      getFingerprint: () => {
+        throw new Error("not implemented");
+      },
+    },
+    ...overrides,
+  };
+}
+
 Deno.test("league-clock.router", async (t) => {
   await t.step("GET /:leagueId returns current clock state", async () => {
     const state = createMockClockState({
@@ -76,6 +113,7 @@ Deno.test("league-clock.router", async (t) => {
     });
     const router = createLeagueClockRouter(
       createMockService({ getClockState: () => Promise.resolve(state) }),
+      createMockDeps(),
     );
 
     const res = await router.request("/league-1");
@@ -101,6 +139,7 @@ Deno.test("league-clock.router", async (t) => {
             return Promise.resolve(createMockClockState());
           },
         }),
+        createMockDeps(),
       );
 
       await router.request("/my-league-id");
@@ -117,6 +156,7 @@ Deno.test("league-clock.router", async (t) => {
       });
       const router = createLeagueClockRouter(
         createMockService({ advance: () => Promise.resolve(result) }),
+        createMockDeps(),
       );
 
       const res = await router.request("/league-1/advance", {
@@ -151,6 +191,7 @@ Deno.test("league-clock.router", async (t) => {
             return Promise.resolve(createMockAdvanceResult());
           },
         }),
+        createMockDeps(),
       );
 
       await router.request("/league-1/advance", {
@@ -178,6 +219,140 @@ Deno.test("league-clock.router", async (t) => {
   );
 
   await t.step(
+    "POST /:leagueId/advance computes allTeamsHaveStaff server-side",
+    async () => {
+      let receivedGateState: unknown;
+      const router = createLeagueClockRouter(
+        createMockService({
+          advance: (_id, _actor, gateState) => {
+            receivedGateState = gateState;
+            return Promise.resolve(createMockAdvanceResult());
+          },
+        }),
+        createMockDeps({
+          teamService: {
+            getByLeagueId: () =>
+              Promise.resolve([
+                { id: "t-1", leagueId: "league-1", name: "Team 1" },
+                { id: "t-2", leagueId: "league-1", name: "Team 2" },
+              ] as import("@zone-blitz/shared").Team[]),
+            getById: () => {
+              throw new Error("not implemented");
+            },
+            createMany: () => {
+              throw new Error("not implemented");
+            },
+          },
+          coachesService: {
+            generate: () => {
+              throw new Error("not implemented");
+            },
+            generatePool: () => {
+              throw new Error("not implemented");
+            },
+            getStaffTree: (_leagueId: string, teamId: string) =>
+              Promise.resolve(
+                teamId === "t-1"
+                  ? [{ id: "c-1" } as import("@zone-blitz/shared").CoachNode]
+                  : [{ id: "c-2" } as import("@zone-blitz/shared").CoachNode],
+              ),
+            getCoachDetail: () => {
+              throw new Error("not implemented");
+            },
+            getFingerprint: () => {
+              throw new Error("not implemented");
+            },
+          },
+        }),
+      );
+
+      await router.request("/league-1/advance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          isCommissioner: true,
+          gateState: {
+            teams: [],
+            draftOrderResolved: true,
+            superBowlPlayed: true,
+            priorPhaseComplete: true,
+          },
+        }),
+      });
+
+      const gs = receivedGateState as Record<string, unknown>;
+      assertEquals(gs.allTeamsHaveStaff, true);
+    },
+  );
+
+  await t.step(
+    "POST /:leagueId/advance sets allTeamsHaveStaff to false when a team has no staff",
+    async () => {
+      let receivedGateState: unknown;
+      const router = createLeagueClockRouter(
+        createMockService({
+          advance: (_id, _actor, gateState) => {
+            receivedGateState = gateState;
+            return Promise.resolve(createMockAdvanceResult());
+          },
+        }),
+        createMockDeps({
+          teamService: {
+            getByLeagueId: () =>
+              Promise.resolve([
+                { id: "t-1", leagueId: "league-1", name: "Team 1" },
+                { id: "t-2", leagueId: "league-1", name: "Team 2" },
+              ] as import("@zone-blitz/shared").Team[]),
+            getById: () => {
+              throw new Error("not implemented");
+            },
+            createMany: () => {
+              throw new Error("not implemented");
+            },
+          },
+          coachesService: {
+            generate: () => {
+              throw new Error("not implemented");
+            },
+            generatePool: () => {
+              throw new Error("not implemented");
+            },
+            getStaffTree: (_leagueId: string, teamId: string) =>
+              Promise.resolve(
+                teamId === "t-1"
+                  ? [{ id: "c-1" } as import("@zone-blitz/shared").CoachNode]
+                  : [],
+              ),
+            getCoachDetail: () => {
+              throw new Error("not implemented");
+            },
+            getFingerprint: () => {
+              throw new Error("not implemented");
+            },
+          },
+        }),
+      );
+
+      await router.request("/league-1/advance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          isCommissioner: true,
+          gateState: {
+            teams: [],
+            draftOrderResolved: true,
+            superBowlPlayed: true,
+            priorPhaseComplete: true,
+          },
+        }),
+      });
+
+      const gs = receivedGateState as Record<string, unknown>;
+      assertEquals(gs.allTeamsHaveStaff, false);
+    },
+  );
+
+  await t.step(
     "POST /:leagueId/votes casts a vote and returns 201",
     async () => {
       const teamId = crypto.randomUUID();
@@ -198,6 +373,7 @@ Deno.test("league-clock.router", async (t) => {
             return Promise.resolve(voteResult);
           },
         }),
+        createMockDeps(),
       );
 
       const res = await router.request(`/${leagueId}/votes`, {
@@ -220,7 +396,10 @@ Deno.test("league-clock.router", async (t) => {
   await t.step(
     "POST /:leagueId/votes returns 400 when teamId is missing",
     async () => {
-      const router = createLeagueClockRouter(createMockService());
+      const router = createLeagueClockRouter(
+        createMockService(),
+        createMockDeps(),
+      );
 
       const res = await router.request("/lg-1/votes", {
         method: "POST",
@@ -235,7 +414,10 @@ Deno.test("league-clock.router", async (t) => {
   await t.step(
     "POST /:leagueId/votes returns 400 when teamId is not a uuid",
     async () => {
-      const router = createLeagueClockRouter(createMockService());
+      const router = createLeagueClockRouter(
+        createMockService(),
+        createMockDeps(),
+      );
 
       const res = await router.request("/lg-1/votes", {
         method: "POST",

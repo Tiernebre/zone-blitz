@@ -116,6 +116,7 @@ function createGateState(
     draftOrderResolved: true,
     superBowlPlayed: true,
     priorPhaseComplete: true,
+    allTeamsHaveStaff: true,
     ...overrides,
   };
 }
@@ -166,6 +167,31 @@ Deno.test("league-clock.service", async (t) => {
       assertEquals(result.stepIndex, 1);
       assertEquals(result.looped, false);
     });
+
+    await t.step(
+      "returns slug and flavorDate of the target step",
+      async () => {
+        const service = createService({
+          leagueClockRepo: {
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "regular_season",
+                  stepIndex: 0,
+                }),
+              ),
+          },
+        });
+
+        const result = await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+        );
+        assertEquals(result.slug, "week_2");
+        assertEquals(result.flavorDate, "Sep 14");
+      },
+    );
 
     await t.step("advances to next phase when at last step", async () => {
       const service = createService({
