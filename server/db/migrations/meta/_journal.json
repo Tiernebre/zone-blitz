@@ -281,6 +281,13 @@
       "when": 1776556800002,
       "tag": "0039_tough_senator_kelly",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1776556800003,
+      "tag": "0040_rare_landau",
+      "breakpoints": true
     }
   ]
 }

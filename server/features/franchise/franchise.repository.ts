@@ -16,6 +16,7 @@ const franchiseColumns = {
   primaryColor: franchises.primaryColor,
   secondaryColor: franchises.secondaryColor,
   accentColor: franchises.accentColor,
+  backstory: franchises.backstory,
   conference: franchises.conference,
   division: franchises.division,
   createdAt: franchises.createdAt,

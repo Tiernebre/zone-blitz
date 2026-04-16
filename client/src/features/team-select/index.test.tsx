@@ -48,6 +48,8 @@ const MOCK_FRANCHISES = [
     primaryColor: "#1A1A2E",
     secondaryColor: "#C9A227",
     accentColor: "#E74C3C",
+    backstory:
+      "Born from the neon glow and high-stakes spirit of the Biggest Little City.",
   },
   {
     id: "f2",
@@ -57,6 +59,8 @@ const MOCK_FRANCHISES = [
     primaryColor: "#2D4A3E",
     secondaryColor: "#D4856B",
     accentColor: "#F5F0E1",
+    backstory:
+      "Forged in Portland's shipyard heritage, the Riveters honor the workers who built the West.",
   },
   {
     id: "f3",
@@ -66,6 +70,8 @@ const MOCK_FRANCHISES = [
     primaryColor: "#003459",
     secondaryColor: "#D4AF37",
     accentColor: "#FFFFFF",
+    backstory:
+      "With a naval heritage stretching back generations, the Admirals command San Diego's waterfront.",
   },
 ];
 
@@ -193,6 +199,19 @@ describe("TeamSelect", () => {
       expect(screen.getByText("Failed to assign team")).toBeDefined();
     });
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("renders backstory text for each franchise", async () => {
+    mockFranchisesGet.mockReturnValue(
+      Promise.resolve({ json: () => Promise.resolve(MOCK_FRANCHISES) }),
+    );
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText("Aces")).toBeDefined();
+    });
+    for (const franchise of MOCK_FRANCHISES) {
+      expect(screen.getByText(franchise.backstory)).toBeDefined();
+    }
   });
 
   it("does not expose identity-override controls", async () => {

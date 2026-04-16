@@ -58,6 +58,7 @@ async function setupFixtures(db: ReturnType<typeof createTestDb>["db"]) {
       primaryColor: "#000000",
       secondaryColor: "#FFFFFF",
       accentColor: "#FF0000",
+      backstory: "A test franchise backstory.",
       conference: "AFC",
       division: "AFC East",
     })
@@ -112,6 +113,7 @@ function buildTeamInput(
     primaryColor: "#000000",
     secondaryColor: "#FFFFFF",
     accentColor: "#FF0000",
+    backstory: "A test franchise backstory.",
     conference: overrides.conference ?? "AFC",
     division: overrides.division ?? "AFC East",
   };
