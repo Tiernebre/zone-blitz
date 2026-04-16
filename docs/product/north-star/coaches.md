@@ -870,3 +870,4 @@ calls you make when it stops working.
 ## Related decisions
 
 - [0023 — Contested staff hiring market](../decisions/0023-contested-staff-hiring-market.md)
+- [0032 — Multi-week staff hiring process](../decisions/0032-multi-week-staff-hiring.md)
