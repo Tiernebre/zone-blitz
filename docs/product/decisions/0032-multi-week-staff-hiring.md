@@ -1,7 +1,7 @@
 # 0032 — Multi-week staff hiring process
 
 - **Date:** 2026-04-16
-- **Status:** Proposed
+- **Status:** Accepted
 - **Area:** [Coaches](../north-star/coaches.md),
   [Scouting](../north-star/scouting.md),
   [League Genesis](../north-star/league-genesis.md),
@@ -110,6 +110,74 @@ Between hiring steps, NPC franchises execute their hiring AI: expressing
 interest, requesting interviews, and submitting offers according to their
 personality and philosophy (per ADR 0023's NPC behavior rules).
 
+### Staff covered
+
+This hiring process applies to both **coaches** (HC, coordinators, position
+coaches) and **scouts** (scouting director, national cross-checkers, area
+scouts). Both staff types are hired from the same shared candidate pool during
+the same 8-step timeline. A franchise manages both coaching and scouting hires
+simultaneously within each step — expressing interest in coaches and scouts,
+interviewing both, offering both.
+
+A "candidate" is any coach or scout not currently signed to a team (`teamId` is
+null). No separate candidate entity is needed.
+
+### Staff budget
+
+All coaching and scouting salaries are funded from a fixed **staff budget** — a
+league-wide setting, identical for every team, completely separate from the
+player salary cap. Spending less on staff does not free up player cap room, and
+vice versa. The level playing field ensures that franchise success in the hiring
+market is driven by prioritization and philosophy fit, not by outspending
+opponents.
+
+- **Default staff budget:** $50,000,000 per team per season (configurable league
+  setting).
+- **What counts:** Annual base salaries of all coaches and scouts on the team's
+  payroll, plus buyouts for fired staff in the year they are triggered.
+- **Offer validation:** A franchise cannot submit an offer whose salary, when
+  added to existing staff obligations, would exceed the staff budget.
+
+### Salary bands
+
+Salary ranges for offer validation and NPC AI behavior, aligned to real NFL
+2025–26 coaching market data:
+
+| Role                      | Floor | Ceiling | Contract years |
+| ------------------------- | ----- | ------- | -------------- |
+| HC (elite / established)  | $12M  | $20M    | 4–6            |
+| HC (first-time)           | $5M   | $10M    | 3–5            |
+| Offensive coordinator     | $1.5M | $6M     | 2–4            |
+| Defensive coordinator     | $1.5M | $5M     | 2–4            |
+| Special teams coordinator | $800K | $2M     | 2–3            |
+| QB coach                  | $500K | $1.5M   | 1–3            |
+| Other position coach      | $300K | $1.2M   | 1–3            |
+| ST assistant              | $250K | $600K   | 1–2            |
+| Director of scouting      | $250K | $800K   | 3–5            |
+| National cross-checker    | $150K | $400K   | 2–4            |
+| Area scout                | $80K  | $200K   | 1–3            |
+
+A full staff (13 coaches + 7 scouts) at mid-range salaries totals roughly
+$25M–$35M, leaving headroom in a $50M budget for elite hires or buyout
+absorption. A team that goes all-in on an elite HC and top coordinators will
+feel real pressure on position coach and scout spending.
+
+### Offer structure
+
+When a franchise submits a binding offer during the offer window, the offer
+includes:
+
+- **Salary** — annual base compensation.
+- **Contract years** — length of the deal.
+- **Buyout multiplier** — a value between 0.5 and 1.0 that determines the firing
+  cost: `salary × remaining years × multiplier`. A higher multiplier means more
+  protection for the coach (and more risk for the franchise).
+- **Incentives** — an optional set of performance bonuses: playoff appearance,
+  division title, championship, player development milestones, and win
+  thresholds. Incentives factor into the candidate's preference evaluation — a
+  candidate with a high compensation preference values a rich incentive package
+  on a contending team more than base salary alone.
+
 ### Season vs. offseason constraints
 
 - **Offseason coaching carousel:** The full multi-week hiring timeline runs.
@@ -177,15 +245,28 @@ personality and philosophy (per ADR 0023's NPC behavior rules).
   mirrors real NFL dynamics and makes the firing decision weightier.
 
 - **Follow-up work:**
+  - Add preference columns (`market_tier_pref`, `philosophy_fit_pref`,
+    `staff_fit_pref`, `compensation_pref`, `minimum_threshold`) to both the
+    `coaches` and `scouts` tables. Add hiring workflow tables
+    (`hiring_interests`, `hiring_interviews`, `hiring_offers`,
+    `hiring_decisions`) with a `staff_type` discriminator for polymorphic
+    references.
   - Seed the `league_phase_step` rows for both `coaching_carousel` and
-    `GENESIS_STAFF_HIRING` phases.
+    `GENESIS_STAFF_HIRING` phases with the 8-step hiring timeline.
+  - Add `staff_budget`, `interest_cap`, `interviews_per_week`, and
+    `max_concurrent_offers` as league settings.
+  - Implement the candidate preference function (ADR 0023: market tier,
+    philosophy fit, staff fit, compensation weighted scoring).
+  - Implement per-step hiring service logic with staff budget validation.
   - Implement per-step NPC hiring AI (interest → interview → offer decisions).
   - Design the hiring UI: candidate browsing, interview request, offer builder,
     decision-reveal screen.
-  - Define the interview bandwidth and offer caps as league settings with
-    sensible defaults.
+  - Wire step-advance hooks so NPC actions and candidate decisions execute
+    automatically on clock advance.
   - Wire the `hiring_finalization` step's gate function to enforce mandatory
     staff requirements before phase advance.
+  - Adjust scout salary bands in the generator to match realistic NFL ranges
+    (current bands are significantly inflated).
 
 ## Related decisions
 

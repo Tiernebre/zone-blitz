@@ -663,29 +663,34 @@ package is rich — because he thinks he can earn it back by winning. A rebuildi
 team might need to offer more guaranteed money because the incentives are
 unlikely to pay out in year one.
 
-### Coaching budget
+### Staff budget
 
-Coaching salaries count against the salary cap — the same cap that pays your
-players. This means every dollar spent on coaches is a dollar not available for
-roster construction. An elite coaching staff is an investment that competes
-directly with player acquisitions for cap space.
+Every team operates under a fixed **staff budget** — a league-wide cap on
+combined coaching and scouting salaries. The staff budget is completely separate
+from the player salary cap: spending less on staff does not free up player cap
+room, and vice versa. Every team gets the same budget, ensuring a level playing
+field for football operations spending.
 
-- **Total coaching spend** — the sum of all coaching salaries, buyouts, and
-  incentive payouts; this comes out of the same cap as player contracts
-- **Coaching vs. roster** — an expensive coaching staff reduces flexibility for
-  player acquisitions; a team paying top dollar for an elite HC, two star
-  coordinators, and a deep position coaching staff has meaningfully less cap
-  room for players than a team running a cheap, unproven staff
+- **What counts** — annual base salaries of all coaches and scouts on the team's
+  payroll, plus buyouts for fired staff in the year they're triggered
+- **What doesn't count** — the player salary cap is entirely separate; the staff
+  budget is an operating-expense ceiling, not a roster-construction tool
 - **The diminishing returns question** — is the difference between a $3M OL
   coach and a $1.5M OL coach worth the extra spend? Maybe. You won't know until
   you've seen both work. And by then, the cheaper one might have been poached.
 - **Staff depth vs. star power** — do you pay top dollar for an elite DC and
   fill the rest of the staff with cheap unknowns? Or do you spread the budget
   evenly for a solid-across-the-board staff?
-- **The rebuild calculus** — a rebuilding team with a cheap roster has cap room
-  to invest in elite coaches who develop young talent. A contending team pushing
-  the cap ceiling might be forced to let a great coordinator walk because they
-  can't afford both his salary and the roster upgrades they need
+- **The buyout tax** — firing a coach mid-contract means absorbing the buyout
+  against your staff budget that year. A team that fires an expensive HC with
+  three years left on a rich contract might not have room to hire a premium
+  replacement until the buyout clears. This makes the firing decision weightier
+  — you're not just losing a coach, you're burning budget.
+- **Scouting vs. coaching tradeoff** — the same budget covers both scouts and
+  coaches. A team that invests heavily in elite coordinators has less room for a
+  deep scouting department, and vice versa. Elite scouting finds better draft
+  talent; elite coaching develops it. The budget forces you to choose your
+  organizational identity.
 
 ### College coaches
 
