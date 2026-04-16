@@ -286,6 +286,21 @@ function stubService(overrides: Partial<HiringService> = {}): {
         unassignedCoaches: [],
         unassignedScouts: [],
       }),
+    getTeamHiringState: (leagueId, teamId) =>
+      Promise.resolve({
+        leagueId,
+        teamId,
+        staffBudget: 50_000_000,
+        remainingBudget: 50_000_000,
+        interests: [],
+        interviews: [],
+        offers: [],
+        decisions: [],
+      }),
+    listCandidates: () => Promise.resolve([]),
+    getCandidateDetail: () => Promise.resolve(undefined),
+    resolveCandidate: () => Promise.resolve(undefined),
+    listDecisions: () => Promise.resolve([]),
   };
   return { service: { ...base, ...overrides }, calls };
 }
