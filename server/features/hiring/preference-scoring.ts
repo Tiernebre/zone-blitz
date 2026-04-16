@@ -2,6 +2,7 @@ import {
   type CoachRole,
   DEFENSIVE_TENDENCY_KEYS,
   type DefensiveTendencies,
+  type MarketTier,
   OFFENSIVE_TENDENCY_KEYS,
   type OffensiveTendencies,
   type ScoutRole,
@@ -17,7 +18,7 @@ import {
 
 export type StaffType = "coach" | "scout";
 
-export type MarketTier = "large" | "medium" | "small";
+export type { MarketTier };
 
 interface StaffCandidateBase {
   id: string;
@@ -77,57 +78,6 @@ export interface CompetingOffer {
   franchise: FranchiseProfile;
   offer: Offer;
   roleBand: SalaryBand;
-}
-
-// v1 hardcoded 3-tier mapping by city name. Any city not listed falls
-// back to "small" — an NPC franchise in a tiny market should not score
-// as glamorous as a top-10 US metro without explicit confirmation.
-const LARGE_MARKET_CITIES: ReadonlySet<string> = new Set([
-  "New York",
-  "Los Angeles",
-  "Chicago",
-  "Houston",
-  "Dallas",
-  "Philadelphia",
-  "Phoenix",
-  "San Antonio",
-  "San Diego",
-  "San Jose",
-  "Washington",
-  "Miami",
-  "Atlanta",
-  "Boston",
-  "Detroit",
-]);
-
-const MEDIUM_MARKET_CITIES: ReadonlySet<string> = new Set([
-  "Seattle",
-  "Denver",
-  "Minneapolis",
-  "Portland",
-  "Sacramento",
-  "Nashville",
-  "Charlotte",
-  "Indianapolis",
-  "Columbus",
-  "Austin",
-  "Baltimore",
-  "Las Vegas",
-  "Kansas City",
-  "Cleveland",
-  "Pittsburgh",
-  "Cincinnati",
-  "Tampa",
-  "Orlando",
-  "New Orleans",
-  "Milwaukee",
-  "St. Louis",
-]);
-
-export function marketTierForCity(cityName: string): MarketTier {
-  if (LARGE_MARKET_CITIES.has(cityName)) return "large";
-  if (MEDIUM_MARKET_CITIES.has(cityName)) return "medium";
-  return "small";
 }
 
 const MARKET_TIER_SCORES: Record<MarketTier, number> = {

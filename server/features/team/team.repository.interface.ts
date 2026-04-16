@@ -1,4 +1,4 @@
-import type { Team } from "@zone-blitz/shared";
+import type { MarketTier, Team } from "@zone-blitz/shared";
 import type { Executor } from "../../db/connection.ts";
 
 export interface NewTeamInput {
@@ -13,6 +13,7 @@ export interface NewTeamInput {
   backstory: string;
   conference: string;
   division: string;
+  marketTier: MarketTier;
 }
 
 export interface TeamRepository {

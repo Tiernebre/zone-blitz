@@ -1,3 +1,5 @@
+import type { MarketTier } from "./market-tier.ts";
+
 export interface Team {
   id: string;
   leagueId: string;
@@ -13,6 +15,7 @@ export interface Team {
   backstory: string;
   conference: string;
   division: string;
+  marketTier: MarketTier;
   createdAt: Date;
   updatedAt: Date;
 }

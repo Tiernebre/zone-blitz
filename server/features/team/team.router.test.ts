@@ -19,6 +19,7 @@ function createMockTeam(overrides: Partial<Team> = {}): Team {
     backstory: "A test franchise backstory.",
     conference: "AFC",
     division: "AFC East",
+    marketTier: "medium",
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

@@ -105,6 +105,7 @@ export function createLeagueService(deps: {
             backstory: f.backstory,
             conference: f.conference,
             division: f.division,
+            marketTier: f.marketTier,
           })),
           tx,
         );

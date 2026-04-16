@@ -19,6 +19,7 @@ const franchiseColumns = {
   backstory: franchises.backstory,
   conference: franchises.conference,
   division: franchises.division,
+  marketTier: franchises.marketTier,
   createdAt: franchises.createdAt,
   updatedAt: franchises.updatedAt,
 };

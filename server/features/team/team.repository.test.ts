@@ -116,6 +116,7 @@ function buildTeamInput(
     backstory: "A test franchise backstory.",
     conference: overrides.conference ?? "AFC",
     division: overrides.division ?? "AFC East",
+    marketTier: "medium" as const,
   };
 }
 
