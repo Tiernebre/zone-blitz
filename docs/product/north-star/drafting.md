@@ -358,29 +358,29 @@ story that evolves.
 
 ---
 
-## League Genesis
+## League Setup
 
 This document describes drafting in a mature Zone Blitz league — rookie classes
 scouted over the preceding year, draft order seeded by prior-season standings, a
 full rookie-draft cycle slotted into the offseason.
 
 Year 1 of a newly founded league is different. See
-[League Genesis](./league-genesis.md) for the canonical rules; the draft-
-specific points:
+[League Setup](./league-setup.md) for the canonical rules; the draft- specific
+points:
 
 - **No Year 1 rookie draft.** Every player — including rookie-age talent —
-  enters the league through the founding player pool and the **allocation
+  enters the league through the initial player pool and the **allocation
   draft**, which is Year 1's only draft. Draft order is randomized, since no
   prior standings exist to seed from.
 - **Year 2 is the first real rookie draft.** It uses the core mechanics
   documented here, with draft order set by Year 1 standings. Every subsequent
   offseason follows the standard cycle.
-- **Founding-era uncertainty is amplified.** Scouts are brand new, the player
-  pool is a mix of unconventional archetypes (raw college athletes,
-  practice-squad journeymen, back-end vets, middling pros with something to
-  prove), and attributes are normalized to the league's own scale. Gems and
-  busts are more frequent in the allocation draft than in any later rookie draft
-  because no one has evaluation history yet.
+- **Year-1 uncertainty is amplified.** Scouts are brand new, the player pool is
+  a mix of unconventional archetypes (raw college athletes, practice-squad
+  journeymen, back-end vets, middling pros with something to prove), and
+  attributes are normalized to the league's own scale. Gems and busts are more
+  frequent in the allocation draft than in any later rookie draft because no one
+  has evaluation history yet.
 
 ---
 

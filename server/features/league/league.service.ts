@@ -10,8 +10,8 @@ import type { PersonnelService } from "../personnel/personnel.service.interface.
 import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
 import type { LeagueClockRepository } from "../league-clock/league-clock.repository.ts";
 
-const FOUNDING_TEAM_COUNT = 8;
-const FIRST_GENESIS_PHASE = "genesis_staff_hiring";
+const INITIAL_TEAM_COUNT = 8;
+const FIRST_INITIAL_PHASE = "initial_staff_hiring";
 
 export function createLeagueService(deps: {
   txRunner: TransactionRunner;
@@ -79,10 +79,10 @@ export function createLeagueService(deps: {
 
       const franchises = await deps.franchiseService.getAll();
 
-      if (franchises.length !== FOUNDING_TEAM_COUNT) {
+      if (franchises.length !== INITIAL_TEAM_COUNT) {
         throw new DomainError(
           "PRECONDITION_FAILED",
-          `Expected ${FOUNDING_TEAM_COUNT} founding franchises but found ${franchises.length}. Run \`deno task db:seed\` to seed founding franchises.`,
+          `Expected ${INITIAL_TEAM_COUNT} initial franchises but found ${franchises.length}. Run \`deno task db:seed\` to seed initial franchises.`,
         );
       }
 
@@ -118,8 +118,8 @@ export function createLeagueService(deps: {
       });
     },
 
-    async found(leagueId) {
-      log.info({ leagueId }, "founding league");
+    async generate(leagueId) {
+      log.info({ leagueId }, "generating league");
 
       const league = await deps.leagueRepo.getById(leagueId);
       if (!league) {
@@ -176,7 +176,7 @@ export function createLeagueService(deps: {
           {
             leagueId,
             seasonYear: 1,
-            phase: FIRST_GENESIS_PHASE,
+            phase: FIRST_INITIAL_PHASE,
             stepIndex: 0,
             advancedByUserId: null,
           },
@@ -191,7 +191,7 @@ export function createLeagueService(deps: {
             coachCount: personnelResult.coachCount,
             scoutCount: personnelResult.scoutCount,
           },
-          "league founding complete",
+          "league generation complete",
         );
 
         return {

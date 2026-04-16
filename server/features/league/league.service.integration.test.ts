@@ -22,9 +22,9 @@ import { createFranchiseService } from "../franchise/franchise.service.ts";
 import type { PersonnelService } from "../personnel/personnel.service.interface.ts";
 import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
 import type { LeagueClockRepository } from "../league-clock/league-clock.repository.ts";
-import { FOUNDING_FRANCHISES } from "../franchise/founding-franchises.ts";
+import { INITIAL_FRANCHISES } from "../franchise/initial-franchises.ts";
 
-const FOUNDING_TEAM_COUNT = 8;
+const INITIAL_TEAM_COUNT = 8;
 
 function createTestDb() {
   const connectionString = Deno.env.get("DATABASE_URL");
@@ -53,7 +53,7 @@ function createStubLeagueClockRepo(): LeagueClockRepository {
         advancedByUserId: row.advancedByUserId,
         overrideReason: row.overrideReason ?? null,
         overrideBlockers: row.overrideBlockers ?? null,
-        hasCompletedGenesis: row.hasCompletedGenesis ?? false,
+        hasCompletedInitial: row.hasCompletedInitial ?? false,
       }),
     castVote: () => Promise.reject(new Error("not used")),
     getVotesForStep: () => Promise.resolve([]),
@@ -64,7 +64,7 @@ function uniqAbbr(seed: string) {
   return `${seed}${crypto.randomUUID().slice(0, 2).toUpperCase()}`.slice(0, 6);
 }
 
-async function seedFoundingFranchises(
+async function seedInitialFranchises(
   db: ReturnType<typeof createTestDb>["db"],
 ): Promise<{
   franchiseIds: string[];
@@ -81,7 +81,7 @@ async function seedFoundingFranchises(
   const cityIds: string[] = [];
   const stateIds: string[] = [];
 
-  for (const [i, f] of FOUNDING_FRANCHISES.entries()) {
+  for (const [i, f] of INITIAL_FRANCHISES.entries()) {
     const [state] = await db
       .insert(states)
       .values({
@@ -153,7 +153,7 @@ Deno.test({
     const franchiseService = createFranchiseService({ franchiseRepo, log });
 
     const leagueName = `Shell Test ${crypto.randomUUID()}`;
-    const seedIds = await seedFoundingFranchises(db);
+    const seedIds = await seedInitialFranchises(db);
 
     const service = createLeagueService({
       txRunner: createTransactionRunner(db),
@@ -185,7 +185,7 @@ Deno.test({
       const result = await service.create({ name: leagueName });
       createdLeagueId = result.league.id;
       assertEquals(result.league.name, leagueName);
-      assertEquals(result.teams.length, FOUNDING_TEAM_COUNT);
+      assertEquals(result.teams.length, INITIAL_TEAM_COUNT);
 
       const leagueRows = await db.select().from(leagues).where(
         eq(leagues.name, leagueName),
@@ -214,7 +214,7 @@ Deno.test({
 
 Deno.test({
   name:
-    "league.service.found rolls back all writes when a downstream service throws",
+    "league.service.generate rolls back all writes when a downstream service throws",
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
@@ -230,7 +230,7 @@ Deno.test({
     const franchiseService = createFranchiseService({ franchiseRepo, log });
 
     const leagueName = `Rollback Test ${crypto.randomUUID()}`;
-    const seedIds = await seedFoundingFranchises(db);
+    const seedIds = await seedInitialFranchises(db);
 
     const throwingSchedule: ScheduleService = {
       generate: () => Promise.reject(new Error("synthetic schedule failure")),
@@ -268,7 +268,7 @@ Deno.test({
 
       let caught: unknown;
       try {
-        await service.found(createdLeagueId);
+        await service.generate(createdLeagueId);
       } catch (err) {
         caught = err;
       }

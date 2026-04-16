@@ -42,7 +42,7 @@ export interface ClockState {
   kind: string;
   flavorDate: string | null;
   advancedAt: Date;
-  hasCompletedGenesis: boolean;
+  hasCompletedInitial: boolean;
 }
 
 export interface ReadyCheckState {
@@ -91,7 +91,7 @@ export function createLeagueClockService(deps: {
   const log = deps.log.child({ module: "league-clock.service" });
   const phases = leaguePhaseEnum.enumValues;
   const firstRecurringPhase = phases.find(
-    (p) => !p.startsWith("genesis_"),
+    (p) => !p.startsWith("initial_"),
   )!;
 
   return {
@@ -118,7 +118,7 @@ export function createLeagueClockService(deps: {
         kind: step?.kind ?? "",
         flavorDate: step?.flavorDate ?? null,
         advancedAt: clock.advancedAt,
-        hasCompletedGenesis: clock.hasCompletedGenesis,
+        hasCompletedInitial: clock.hasCompletedInitial,
       };
     },
 
@@ -189,19 +189,19 @@ export function createLeagueClockService(deps: {
       }
 
       if (
-        targetPhase.startsWith("genesis_") && clock.hasCompletedGenesis
+        targetPhase.startsWith("initial_") && clock.hasCompletedInitial
       ) {
         throw new DomainError(
-          "GENESIS_COMPLETED",
-          "Cannot re-enter genesis phases after Year 1",
+          "INITIAL_COMPLETED",
+          "Cannot re-enter initial phases after Year 1",
         );
       }
 
-      const isLeavingGenesis = clock.phase === "genesis_kickoff" &&
-        !targetPhase.startsWith("genesis_");
-      const setGenesisComplete = isLeavingGenesis ? true : undefined;
+      const isLeavingInitial = clock.phase === "initial_kickoff" &&
+        !targetPhase.startsWith("initial_");
+      const setInitialComplete = isLeavingInitial ? true : undefined;
 
-      if (isLeavingGenesis) {
+      if (isLeavingInitial) {
         targetPhase = "regular_season";
         targetStepIndex = 0;
       }
@@ -268,7 +268,7 @@ export function createLeagueClockService(deps: {
             advancedByUserId: actor.userId,
             overrideReason,
             overrideBlockers,
-            hasCompletedGenesis: setGenesisComplete,
+            hasCompletedInitial: setInitialComplete,
           },
           tx,
         );

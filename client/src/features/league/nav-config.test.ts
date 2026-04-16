@@ -31,31 +31,31 @@ describe("navGroups", () => {
     }
   });
 
-  it("shows Coaches and Scouts from genesis_staff_hiring onward", () => {
-    expect(visibleLabels("genesis_staff_hiring")).toContain("Coaches");
-    expect(visibleLabels("genesis_staff_hiring")).toContain("Scouts");
+  it("shows Coaches and Scouts from initial_staff_hiring onward", () => {
+    expect(visibleLabels("initial_staff_hiring")).toContain("Coaches");
+    expect(visibleLabels("initial_staff_hiring")).toContain("Scouts");
     expect(visibleLabels("regular_season")).toContain("Coaches");
     expect(visibleLabels("regular_season")).toContain("Scouts");
   });
 
-  it("shows Roster from genesis_allocation_draft onward", () => {
-    expect(visibleLabels("genesis_staff_hiring")).not.toContain("Roster");
-    expect(visibleLabels("genesis_allocation_draft")).toContain("Roster");
+  it("shows Roster from initial_draft onward", () => {
+    expect(visibleLabels("initial_staff_hiring")).not.toContain("Roster");
+    expect(visibleLabels("initial_draft")).toContain("Roster");
     expect(visibleLabels("regular_season")).toContain("Roster");
   });
 
-  it("shows Salary Cap from genesis_allocation_draft onward", () => {
-    expect(visibleLabels("genesis_founding_pool")).not.toContain("Salary Cap");
-    expect(visibleLabels("genesis_allocation_draft")).toContain("Salary Cap");
+  it("shows Salary Cap from initial_draft onward", () => {
+    expect(visibleLabels("initial_pool")).not.toContain("Salary Cap");
+    expect(visibleLabels("initial_draft")).toContain("Salary Cap");
   });
 
-  it("shows Media from genesis_staff_hiring onward", () => {
-    expect(visibleLabels("genesis_staff_hiring")).toContain("Media");
+  it("shows Media from initial_staff_hiring onward", () => {
+    expect(visibleLabels("initial_staff_hiring")).toContain("Media");
     expect(visibleLabels("regular_season")).toContain("Media");
   });
 
   it("shows Draft only in draft-relevant phases", () => {
-    expect(visibleLabels("genesis_allocation_draft")).toContain("Draft");
+    expect(visibleLabels("initial_draft")).toContain("Draft");
     expect(visibleLabels("pre_draft")).toContain("Draft");
     expect(visibleLabels("draft")).toContain("Draft");
     expect(visibleLabels("udfa")).toContain("Draft");
@@ -64,16 +64,16 @@ describe("navGroups", () => {
   });
 
   it("shows Free Agency in free-agency-relevant phases", () => {
-    expect(visibleLabels("genesis_free_agency")).toContain("Free Agency");
+    expect(visibleLabels("initial_free_agency")).toContain("Free Agency");
     expect(visibleLabels("legal_tampering")).toContain("Free Agency");
     expect(visibleLabels("free_agency")).toContain("Free Agency");
     expect(visibleLabels("udfa")).toContain("Free Agency");
     expect(visibleLabels("regular_season")).toContain("Free Agency");
-    expect(visibleLabels("genesis_staff_hiring")).not.toContain("Free Agency");
+    expect(visibleLabels("initial_staff_hiring")).not.toContain("Free Agency");
   });
 
   it("shows Trades from preseason onward", () => {
-    expect(visibleLabels("genesis_free_agency")).not.toContain("Trades");
+    expect(visibleLabels("initial_free_agency")).not.toContain("Trades");
     expect(visibleLabels("preseason")).toContain("Trades");
     expect(visibleLabels("regular_season")).toContain("Trades");
   });
@@ -102,35 +102,35 @@ describe("navGroups", () => {
     }
   });
 
-  it("shows Founding Pool only in genesis_founding_pool", () => {
-    expect(visibleLabels("genesis_founding_pool")).toContain("Founding Pool");
-    expect(visibleLabels("genesis_staff_hiring")).not.toContain(
-      "Founding Pool",
+  it("shows Initial Pool only in initial_pool", () => {
+    expect(visibleLabels("initial_pool")).toContain("Initial Pool");
+    expect(visibleLabels("initial_staff_hiring")).not.toContain(
+      "Initial Pool",
     );
-    expect(visibleLabels("genesis_allocation_draft")).not.toContain(
-      "Founding Pool",
+    expect(visibleLabels("initial_draft")).not.toContain(
+      "Initial Pool",
     );
-    expect(visibleLabels("regular_season")).not.toContain("Founding Pool");
+    expect(visibleLabels("regular_season")).not.toContain("Initial Pool");
   });
 
-  it("shows Allocation Draft only in genesis_allocation_draft", () => {
-    expect(visibleLabels("genesis_allocation_draft")).toContain(
+  it("shows Allocation Draft only in initial_draft", () => {
+    expect(visibleLabels("initial_draft")).toContain(
       "Allocation Draft",
     );
-    expect(visibleLabels("genesis_staff_hiring")).not.toContain(
+    expect(visibleLabels("initial_staff_hiring")).not.toContain(
       "Allocation Draft",
     );
-    expect(visibleLabels("genesis_free_agency")).not.toContain(
+    expect(visibleLabels("initial_free_agency")).not.toContain(
       "Allocation Draft",
     );
     expect(visibleLabels("regular_season")).not.toContain("Allocation Draft");
   });
 
-  it("accommodates genesis_draft_scouting without showing Founding Pool or Allocation Draft", () => {
-    const labels = visibleLabels("genesis_draft_scouting");
+  it("accommodates initial_scouting without showing Initial Pool or Allocation Draft", () => {
+    const labels = visibleLabels("initial_scouting");
     expect(labels).toContain("Home");
     expect(labels).toContain("Scouts");
-    expect(labels).not.toContain("Founding Pool");
+    expect(labels).not.toContain("Initial Pool");
     expect(labels).not.toContain("Allocation Draft");
     expect(labels).not.toContain("Roster");
     expect(labels).not.toContain("Salary Cap");
@@ -148,11 +148,11 @@ describe("navGroups", () => {
   describe("exact visible set per representative phase", () => {
     it.each<[LeaguePhase, string[]]>([
       [
-        "genesis_staff_hiring",
+        "initial_staff_hiring",
         ["Home", "Coaches", "Scouts", "Media"],
       ],
       [
-        "genesis_allocation_draft",
+        "initial_draft",
         [
           "Home",
           "Roster",
@@ -165,7 +165,7 @@ describe("navGroups", () => {
         ],
       ],
       [
-        "genesis_free_agency",
+        "initial_free_agency",
         [
           "Home",
           "Roster",
@@ -226,15 +226,15 @@ describe("navGroups", () => {
   });
 
   describe("NavGroup visibility per phase", () => {
-    it("hides Team Building group in genesis_staff_hiring", () => {
-      expect(visibleGroupLabels("genesis_staff_hiring")).toEqual([
+    it("hides Team Building group in initial_staff_hiring", () => {
+      expect(visibleGroupLabels("initial_staff_hiring")).toEqual([
         "Team",
         "League",
       ]);
     });
 
-    it("shows all groups in genesis_allocation_draft", () => {
-      expect(visibleGroupLabels("genesis_allocation_draft")).toEqual([
+    it("shows all groups in initial_draft", () => {
+      expect(visibleGroupLabels("initial_draft")).toEqual([
         "Team",
         "Team Building",
         "League",

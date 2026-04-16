@@ -22,7 +22,7 @@ function createMockClockState(
     kind: "event",
     flavorDate: null,
     advancedAt: new Date("2026-01-01T00:00:00Z"),
-    hasCompletedGenesis: true,
+    hasCompletedInitial: true,
     ...overrides,
   };
 }

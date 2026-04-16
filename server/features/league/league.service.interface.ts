@@ -1,6 +1,6 @@
 import type {
   League,
-  LeagueFoundResult,
+  LeagueGenerateResult,
   LeagueListItem,
   NewLeague,
   Team,
@@ -15,7 +15,7 @@ export interface LeagueService {
   getAll(): Promise<LeagueListItem[]>;
   getById(id: string): Promise<League>;
   create(input: NewLeague): Promise<CreateLeagueResult>;
-  found(leagueId: string): Promise<LeagueFoundResult>;
+  generate(leagueId: string): Promise<LeagueGenerateResult>;
   getTeams(leagueId: string): Promise<Team[]>;
   assignUserTeam(id: string, userTeamId: string): Promise<League>;
   touchLastPlayed(id: string): Promise<League>;

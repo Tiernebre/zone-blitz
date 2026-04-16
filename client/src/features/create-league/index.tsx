@@ -94,7 +94,7 @@ export function CreateLeague() {
 
                 <div className="space-y-4">
                   <p className="text-sm font-medium text-muted-foreground">
-                    League settings — 8 founding franchises
+                    League settings — 8 franchises
                   </p>
 
                   <div className="grid grid-cols-2 gap-4">

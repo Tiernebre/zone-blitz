@@ -5,12 +5,12 @@ and structure within which all the strategic decisions play out. It needs to
 support both single-player franchise experiences and online multiplayer leagues
 seamlessly.
 
-> **The canonical creation flow is League Genesis** — a brand-new startup league
-> that founds small (8 teams by default), runs a one-time genesis sequence, and
-> grows via expansion over many seasons. See
-> [League Genesis](./league-genesis.md) for the full vision. This document
-> covers the league **as a running system** from Year 2 onward, once genesis has
-> completed and the league has entered its recurring annual rhythm.
+> **The canonical creation flow is League Setup** — a brand-new startup league
+> that starts small (8 teams by default), runs a one-time setup sequence, and
+> grows via expansion over many seasons. See [League Setup](./league-setup.md)
+> for the full vision. This document covers the league **as a running system**
+> from Year 2 onward, once setup has completed and the league has entered its
+> recurring annual rhythm.
 
 ## League Modes
 
@@ -38,11 +38,10 @@ Multiple human owner/GMs, with NPC franchises filling remaining slots:
 
 ### League Creation Options
 
-When creating a league, the commissioner (or single-player founder) configures:
+When creating a league, the commissioner (or single-player owner) configures:
 
-- **Founding franchise count**: genesis default is **8**, configurable. The
-  league grows from there via expansion over many seasons — see
-  [Expansion](#expansion) below
+- **Initial franchise count**: default is **8**, configurable. The league grows
+  from there via expansion over many seasons — see [Expansion](#expansion) below
 - **Schedule length**: scales with league size. An 8-team league defaults to a
   shorter regular season (~10–12 games); 32 teams gets the standard 17-game
   season
@@ -54,13 +53,12 @@ When creating a league, the commissioner (or single-player founder) configures:
 
 ## Expansion
 
-A genesis-founded league is explicitly designed to grow. Expansion happens
-through an **ownership vote** — every franchise (human-run and NPC alike) gets
-one vote on any expansion proposal. Proposals can originate from any owner,
-including you. If the vote passes, the league runs an expansion cycle
-(establishment of new franchises, an expansion draft protecting/exposing
-existing players, rookie-draft adjustments, and schedule/division realignment)
-between seasons.
+A newly set-up league is explicitly designed to grow. Expansion happens through
+an **ownership vote** — every franchise (human-run and NPC alike) gets one vote
+on any expansion proposal. Proposals can originate from any owner, including
+you. If the vote passes, the league runs an expansion cycle (establishment of
+new franchises, an expansion draft protecting/exposing existing players,
+rookie-draft adjustments, and schedule/division realignment) between seasons.
 
 Natural scaling milestones unlock structural features as the league grows:
 
@@ -71,21 +69,20 @@ Natural scaling milestones unlock structural features as the league grows:
 - **32 teams**: the canonical "mature league" size
 - **Beyond 32**: expansion can continue for leagues that want a larger footprint
 
-See
-[League Genesis — Expansion Over Time](./league-genesis.md#expansion-over-time)
+See [League Setup — Expansion Over Time](./league-setup.md#expansion-over-time)
 for the full narrative and voting mechanics.
 
 ## Season Structure
 
 The season follows a calendar that creates natural pacing and drama.
 
-> **Year 1 of a genesis league uses a different calendar.** The founding
-> sequence (charter, franchise establishment, staff hiring, founding pool,
-> allocation draft, free agency) replaces the normal offseason, and **Year 1 has
-> no preseason** — the league doesn't yet have the infrastructure for exhibition
+> **Year 1 of a new league uses a different calendar.** The setup sequence
+> (charter, franchise establishment, staff hiring, initial pool, allocation
+> draft, free agency) replaces the normal offseason, and **Year 1 has no
+> preseason** — the league doesn't yet have the infrastructure for exhibition
 > games. Starting in Year 2, the league settles into the calendar described
 > below. See
-> [League Genesis — The Inaugural Calendar](./league-genesis.md#the-inaugural-calendar).
+> [League Setup — The Inaugural Calendar](./league-setup.md#the-inaugural-calendar).
 
 ### Offseason
 
@@ -207,3 +204,12 @@ A narrative history of the league:
 
 This history is what gives a 20-season franchise its weight. Every decision you
 made is recorded, and you can look back and trace the consequences.
+
+## Related decisions
+
+- [0014 — Season calendar and phase state machine](../decisions/0014-season-calendar-phase-state-machine.md)
+- [0017 — League setup as the default creation flow](../decisions/0017-league-setup-default-creation-flow.md)
+- [0018 — Initial phase state machine](../decisions/0018-setup-phase-state-machine.md)
+- [0019 — Inaugural Year 1 calendar (no preseason)](../decisions/0019-inaugural-year-one-calendar.md)
+- [0025 — Expansion by ownership vote](../decisions/0025-expansion-by-ownership-vote.md)
+- [0032 — League home page as contextual dashboard](../decisions/0032-league-home-page-contextual-dashboard.md)

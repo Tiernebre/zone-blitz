@@ -7,6 +7,6 @@ export { createFranchiseService } from "./franchise.service.ts";
 export type { FranchiseService } from "./franchise.service.interface.ts";
 export { createFranchiseRouter } from "./franchise.router.ts";
 export {
-  FOUNDING_FRANCHISES,
-  type FoundingFranchise,
-} from "./founding-franchises.ts";
+  INITIAL_FRANCHISES,
+  type InitialFranchise,
+} from "./initial-franchises.ts";

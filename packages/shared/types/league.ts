@@ -46,7 +46,7 @@ export interface NewLeague {
   name: string;
 }
 
-export interface LeagueFoundResult {
+export interface LeagueGenerateResult {
   leagueId: string;
   seasonId: string;
   playerCount: number;

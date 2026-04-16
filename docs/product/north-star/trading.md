@@ -183,13 +183,13 @@ In multiplayer, the system should discourage but not over-police:
 - NPC teams never make lopsided trades, so the AI sets a baseline for
   "reasonable"
 
-## League Genesis
+## League Setup
 
-Every league starts at genesis, so trading's baseline is the inaugural year. A
-few genesis-specific notes worth flagging (see
-[League Genesis](./league-genesis.md) for full context):
+Every league starts at setup, so trading's baseline is the inaugural year. A few
+setup-specific notes worth flagging (see [League Setup](./league-setup.md) for
+full context):
 
-- **There are no trades during Year 1's allocation draft or founding free
+- **There are no trades during Year 1's allocation draft or initial free
   agency.** Trade markets open once the regular season begins and operate
   normally from there.
 - **Draft-pick trading for the Year 2 rookie draft is live during Year 1.** The

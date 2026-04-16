@@ -6,13 +6,13 @@
  * The set is a union of:
  *   1. The most populous US cities (Census-ranked).
  *   2. Every city referenced by a college in DEFAULT_COLLEGES.
- *   3. Every city referenced by a founding franchise.
+ *   3. Every city referenced by a initial franchise.
  *
  * Entries are deduplicated by (name, stateCode). Each entry's `stateCode` must
  * match a `code` in DEFAULT_STATES.
  */
 import { DEFAULT_COLLEGES } from "../colleges/default-colleges.ts";
-import { FOUNDING_FRANCHISES } from "../franchise/founding-franchises.ts";
+import { INITIAL_FRANCHISES } from "../franchise/initial-franchises.ts";
 
 export interface DefaultCity {
   name: string;
@@ -218,7 +218,7 @@ const COLLEGE_CITIES: DefaultCity[] = DEFAULT_COLLEGES.map((c) => ({
   stateCode: c.state,
 }));
 
-const FOUNDING_CITIES: DefaultCity[] = FOUNDING_FRANCHISES.map((f) => ({
+const INITIAL_CITIES: DefaultCity[] = INITIAL_FRANCHISES.map((f) => ({
   name: f.city,
   stateCode: f.state,
 }));
@@ -226,5 +226,5 @@ const FOUNDING_CITIES: DefaultCity[] = FOUNDING_FRANCHISES.map((f) => ({
 export const DEFAULT_CITIES: DefaultCity[] = dedupe([
   ...TOP_US_CITIES,
   ...COLLEGE_CITIES,
-  ...FOUNDING_CITIES,
+  ...INITIAL_CITIES,
 ]);

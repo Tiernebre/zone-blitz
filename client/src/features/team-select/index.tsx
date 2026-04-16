@@ -131,7 +131,7 @@ export function TeamSelect() {
             Choose Your Franchise
           </h1>
           <p className="text-muted-foreground">
-            Pick one of the eight founding franchises to lead.
+            Pick one of the eight franchises to lead.
           </p>
         </div>
 
