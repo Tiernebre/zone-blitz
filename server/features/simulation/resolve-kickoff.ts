@@ -1,4 +1,5 @@
 import type { PlayEvent, PlayTag } from "./events.ts";
+import { buildPlayEvent } from "./play-event.ts";
 import type { PlayerRuntime } from "./resolve-play.ts";
 import type { SeededRng } from "./rng.ts";
 
@@ -106,7 +107,7 @@ export function resolveKickoff(
     const recovered = rng.next() < ONSIDE_RECOVERY_RATE;
     const yardLine = kickYardLine + rng.int(8, 15);
 
-    const event = buildEvent(ctx, tags, participants, 0, kickYardLine);
+    const event = buildKickoffEvent(ctx, tags, participants, 0, kickYardLine);
 
     return {
       event,
@@ -120,7 +121,7 @@ export function resolveKickoff(
   const touchbackRate = computeTouchbackRate(kickingPower);
 
   if (rng.next() < OOB_RATE) {
-    const event = buildEvent(ctx, tags, participants, 0, kickYardLine);
+    const event = buildKickoffEvent(ctx, tags, participants, 0, kickYardLine);
     return {
       event,
       startingYardLine: OOB_YARD_LINE,
@@ -139,7 +140,13 @@ export function resolveKickoff(
       });
     }
     const startYard = Math.min(99, Math.max(1, 30 + returnDist));
-    const event = buildEvent(ctx, tags, participants, returnDist, kickYardLine);
+    const event = buildKickoffEvent(
+      ctx,
+      tags,
+      participants,
+      returnDist,
+      kickYardLine,
+    );
     return {
       event,
       startingYardLine: startYard,
@@ -149,7 +156,7 @@ export function resolveKickoff(
   }
 
   if (rng.next() < touchbackRate) {
-    const event = buildEvent(ctx, tags, participants, 0, kickYardLine);
+    const event = buildKickoffEvent(ctx, tags, participants, 0, kickYardLine);
     return {
       event,
       startingYardLine: TOUCHBACK_YARD_LINE,
@@ -159,7 +166,7 @@ export function resolveKickoff(
   }
 
   if (!ctx.returner) {
-    const event = buildEvent(ctx, tags, participants, 0, kickYardLine);
+    const event = buildKickoffEvent(ctx, tags, participants, 0, kickYardLine);
     return {
       event,
       startingYardLine: TOUCHBACK_YARD_LINE,
@@ -193,7 +200,7 @@ export function resolveKickoff(
 
   if (rng.next() < returnTDChance) {
     tags.push("touchdown");
-    const event = buildEvent(
+    const event = buildKickoffEvent(
       ctx,
       tags,
       participants,
@@ -208,7 +215,13 @@ export function resolveKickoff(
     };
   }
 
-  const event = buildEvent(ctx, tags, participants, returnDist, kickYardLine);
+  const event = buildKickoffEvent(
+    ctx,
+    tags,
+    participants,
+    returnDist,
+    kickYardLine,
+  );
   return {
     event,
     startingYardLine: startYard,
@@ -217,14 +230,14 @@ export function resolveKickoff(
   };
 }
 
-function buildEvent(
+function buildKickoffEvent(
   ctx: KickoffContext,
   tags: PlayTag[],
   participants: { role: string; playerId: string; tags: string[] }[],
   yardage: number,
   kickYardLine: number,
-): PlayEvent {
-  return {
+) {
+  return buildPlayEvent({
     gameId: ctx.gameId,
     driveIndex: ctx.driveIndex,
     playIndex: ctx.playIndex,
@@ -252,5 +265,5 @@ function buildEvent(
     outcome: "kickoff",
     yardage,
     tags,
-  };
+  });
 }
