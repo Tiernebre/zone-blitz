@@ -18,3 +18,5 @@ export type {
   HiringState,
   InterestTarget,
 } from "./hiring.service.ts";
+export { createNpcHiringAi } from "./npc-hiring-ai.ts";
+export type { NpcHiringAi } from "./npc-hiring-ai.ts";
