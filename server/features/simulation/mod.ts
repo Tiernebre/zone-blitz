@@ -34,7 +34,38 @@ export {
   deriveInjuryReport,
 } from "./derive-game-views.ts";
 export { simulateGame } from "./simulate-game.ts";
-export type { SimTeam, SimulationInput } from "./simulate-game.ts";
+export type {
+  ActiveRosters,
+  SimTeam,
+  SimulationInput,
+} from "./simulate-game.ts";
+
+export {
+  formatClock,
+  KNEEL_CLOCK_BURN,
+  OT_SECONDS,
+  QUARTER_SECONDS,
+  SECONDS_PER_PLAY,
+  shouldClockStop,
+  shouldKneel,
+  TIMEOUTS_PER_HALF,
+  trySpendTimeout,
+} from "./game-clock.ts";
+export type { MutableGameState } from "./game-clock.ts";
+
+export {
+  advanceDowns,
+  applyAcceptedPenalty,
+  handleTurnover,
+  startNewDrive,
+  switchPossession,
+} from "./possession.ts";
+
+export {
+  determineScoringOutcome,
+  resolveConversion,
+} from "./resolve-scoring.ts";
+export type { ConversionContext, ScoringResult } from "./resolve-scoring.ts";
 export {
   drawDefensiveCall,
   drawOffensiveCall,
