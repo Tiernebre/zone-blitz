@@ -815,3 +815,4 @@ season coverage patterns. See [Media](./media.md).
 - [0029 — Default 8 founding franchises with no count selector in MVP](../decisions/0029-eight-team-default-no-count-selector.md)
 - [0030 — Synchronous league generation with progress UI](../decisions/0030-synchronous-league-generation-with-progress-ui.md)
 - [0031 — Post-generation landing on the first in-dashboard genesis phase](../decisions/0031-post-generation-land-in-first-genesis-phase.md)
+- [0034 — Genesis draft scouting phase](../decisions/0034-genesis-draft-scouting-phase.md)

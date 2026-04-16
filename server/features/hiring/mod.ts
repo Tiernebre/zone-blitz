@@ -22,3 +22,5 @@ export type {
 } from "./hiring.service.ts";
 export { createHiringRouter } from "./hiring.router.ts";
 export type { HiringRouterDeps } from "./hiring.router.ts";
+export { createNpcHiringAi } from "./npc-hiring-ai.ts";
+export type { NpcHiringAi } from "./npc-hiring-ai.ts";
