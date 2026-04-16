@@ -63,6 +63,7 @@ import {
   createFranchiseRouter,
   createFranchiseService,
 } from "./franchise/mod.ts";
+import { createHiringRepository, createHiringService } from "./hiring/mod.ts";
 import { createTransactionRunner } from "../db/transaction-runner.ts";
 
 export function createFeatureRouters(
@@ -154,6 +155,10 @@ export function createFeatureRouters(
   const franchiseRepo = createFranchiseRepository({ db, log });
   const franchiseService = createFranchiseService({ franchiseRepo, log });
 
+  // Hiring (staff-hiring feature) — skeleton wired in; per-step logic lands in a follow-up.
+  const hiringRepo = createHiringRepository({ db, log });
+  const hiringService = createHiringService({ repo: hiringRepo, log });
+
   const leagueService = createLeagueService({
     txRunner,
     leagueRepo,
@@ -201,5 +206,6 @@ export function createFeatureRouters(
     scoutsRouter,
     rosterRouter,
     playersRouter,
+    hiringService,
   };
 }
