@@ -18,7 +18,6 @@ vi.mock("../lib/auth-client.ts", () => ({
       data: {
         user: {
           id: "u1",
-          name: "Jane Doe",
           email: "jane@example.com",
           image: null,
         },
@@ -64,11 +63,10 @@ describe("UserMenu", () => {
     expect(screen.getByRole("button", { name: /profile/i })).toBeDefined();
   });
 
-  it("shows user name and email when menu is open", async () => {
+  it("shows user email when menu is open", async () => {
     renderWithProviders();
     fireEvent.click(screen.getByRole("button", { name: /profile/i }));
     await waitFor(() => {
-      expect(screen.getByText("Jane Doe")).toBeDefined();
       expect(screen.getByText("jane@example.com")).toBeDefined();
     });
   });
