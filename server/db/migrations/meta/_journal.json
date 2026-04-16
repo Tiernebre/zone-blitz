@@ -267,6 +267,13 @@
       "when": 1776556800000,
       "tag": "0037_update_franchise_colors",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1776556800001,
+      "tag": "0038_bizarre_epoch",
+      "breakpoints": true
     }
   ]
 }

@@ -15,7 +15,7 @@ function createMockUserService(
 
 function createAppWithUser(
   userService: UserService,
-  user: { id: string; name: string } | null = { id: "user-1", name: "Test" },
+  user: { id: string } | null = { id: "user-1" },
 ) {
   const app = new Hono<AppEnv>();
   app.use("*", async (c, next) => {
