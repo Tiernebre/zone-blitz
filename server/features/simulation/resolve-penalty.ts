@@ -174,7 +174,7 @@ export const PENALTY_CATALOG: PenaltyCandidate[] = [
   },
 ];
 
-const PER_PLAY_PENALTY_RATE = 0.065;
+const PER_PLAY_PENALTY_RATE = 0.017;
 
 export function shouldPenaltyOccur(rng: SeededRng): boolean {
   return rng.next() < PER_PLAY_PENALTY_RATE;
