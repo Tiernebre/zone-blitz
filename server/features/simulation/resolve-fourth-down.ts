@@ -53,8 +53,20 @@ function getDistanceBucket(distance: number): DistanceBucket {
   return "long_6_plus";
 }
 
+const FIELD_GOAL_SNAP_DISTANCE = 17;
+const FIELD_GOAL_MAX_RANGE = 55;
+
+const FOURTH_DOWN = {
+  aggrBase: 0.5,
+  aggrScale: 100,
+  urgencyDeficitCap: 21,
+  urgencyTimeCap: 1800,
+  urgencyBoost: 0.3,
+  quarterSeconds: 900,
+} as const;
+
 function isInFieldGoalRange(yardsToEndzone: number): boolean {
-  return yardsToEndzone + 17 <= 55;
+  return yardsToEndzone + FIELD_GOAL_SNAP_DISTANCE <= FIELD_GOAL_MAX_RANGE;
 }
 
 export function resolveFourthDown(
@@ -65,7 +77,8 @@ export function resolveFourthDown(
   const bucket = getDistanceBucket(input.distance);
   let goRate = BASE_GO_RATES[zone][bucket];
 
-  const aggrMultiplier = 0.5 + input.aggressiveness / 100;
+  const aggrMultiplier = FOURTH_DOWN.aggrBase +
+    input.aggressiveness / FOURTH_DOWN.aggrScale;
   goRate *= aggrMultiplier;
 
   const isLateGame = input.quarter === "OT" || input.quarter >= 3;
@@ -73,10 +86,10 @@ export function resolveFourthDown(
     const deficit = Math.abs(input.scoreDifferential);
     const timeLeft = input.quarter === 4 || input.quarter === "OT"
       ? input.clockSeconds
-      : input.clockSeconds + 900;
-    const urgency = Math.min(deficit / 21, 1) *
-      Math.max(0, 1 - timeLeft / 1800);
-    goRate += urgency * 0.3;
+      : input.clockSeconds + FOURTH_DOWN.quarterSeconds;
+    const urgency = Math.min(deficit / FOURTH_DOWN.urgencyDeficitCap, 1) *
+      Math.max(0, 1 - timeLeft / FOURTH_DOWN.urgencyTimeCap);
+    goRate += urgency * FOURTH_DOWN.urgencyBoost;
   }
 
   goRate = Math.max(0, Math.min(1, goRate));

@@ -24,6 +24,32 @@ export interface PuntInput {
   rng: SeededRng;
 }
 
+// ── Punt calibration knobs ────────────────────────────────────────────
+const PUNT_DISTANCE = {
+  baseMean: 35,
+  powerScale: 20,
+  baseStddev: 8,
+  accuracyScale: 4,
+  floor: 20,
+  ceiling: 65,
+} as const;
+
+const PUNT_OUTCOME = {
+  block: { floor: 0.005, base: 0.03, accuracyScale: 0.025 },
+  muff: { base: 0.02, agilityScale: 0.03 },
+  downedInside10: { base: 0.3, accuracyScale: 0.3, zoneThreshold: 90 },
+  fairCatch: { base: 0.3, coverageScale: 0.3, floor: 0.1, ceiling: 0.7 },
+  return: {
+    baseMean: 5,
+    ratingScale: 15,
+    coveragePenaltyScale: 8,
+    meanFloor: 2,
+    stddev: 5,
+    floor: 1,
+    ceiling: 40,
+  },
+} as const;
+
 function averageAttribute(
   players: PlayerRuntime[],
   attr: string,
@@ -41,9 +67,16 @@ function computePuntDistance(punter: PlayerRuntime, rng: SeededRng): number {
     .puntingPower ?? 50;
   const accuracy = (punter.attributes as unknown as Record<string, number>)
     .puntingAccuracy ?? 50;
-  const baseMean = 35 + (power / 100) * 20;
-  const baseStddev = 8 - (accuracy / 100) * 4;
-  return rng.gaussian(baseMean, baseStddev, 20, 65);
+  const baseMean = PUNT_DISTANCE.baseMean +
+    (power / 100) * PUNT_DISTANCE.powerScale;
+  const baseStddev = PUNT_DISTANCE.baseStddev -
+    (accuracy / 100) * PUNT_DISTANCE.accuracyScale;
+  return rng.gaussian(
+    baseMean,
+    baseStddev,
+    PUNT_DISTANCE.floor,
+    PUNT_DISTANCE.ceiling,
+  );
 }
 
 function selectOutcome(
@@ -62,28 +95,36 @@ function selectOutcome(
   const returnerAgility =
     (returner.attributes as unknown as Record<string, number>).agility ?? 50;
 
-  const blockChance = Math.max(0.005, 0.03 - (punterAccuracy / 100) * 0.025);
+  const blockChance = Math.max(
+    PUNT_OUTCOME.block.floor,
+    PUNT_OUTCOME.block.base -
+      (punterAccuracy / 100) * PUNT_OUTCOME.block.accuracyScale,
+  );
   const roll = rng.next();
 
   if (roll < blockChance) return "blocked_punt";
 
-  const muffBase = 0.02;
-  const muffChance = muffBase + (1 - returnerAgility / 100) * 0.03;
+  const muffChance = PUNT_OUTCOME.muff.base +
+    (1 - returnerAgility / 100) * PUNT_OUTCOME.muff.agilityScale;
   if (roll < blockChance + muffChance) return "muffed_punt";
 
   if (rawLanding >= 100) return "touchback";
 
-  if (rawLanding >= 90) {
-    const downedChance = 0.3 + (punterAccuracy / 100) * 0.3;
+  if (rawLanding >= PUNT_OUTCOME.downedInside10.zoneThreshold) {
+    const downedChance = PUNT_OUTCOME.downedInside10.base +
+      (punterAccuracy / 100) * PUNT_OUTCOME.downedInside10.accuracyScale;
     if (rng.next() < downedChance) return "downed_inside_10";
     return "touchback";
   }
 
-  const fairCatchBase = 0.3;
-  const coverageBonus = (coverageRating - 50) / 100 * 0.3;
+  const coverageBonus = (coverageRating - 50) / 100 *
+    PUNT_OUTCOME.fairCatch.coverageScale;
   const fairCatchChance = Math.max(
-    0.1,
-    Math.min(0.7, fairCatchBase + coverageBonus),
+    PUNT_OUTCOME.fairCatch.floor,
+    Math.min(
+      PUNT_OUTCOME.fairCatch.ceiling,
+      PUNT_OUTCOME.fairCatch.base + coverageBonus,
+    ),
   );
   if (rng.next() < fairCatchChance) return "fair_catch";
 
@@ -152,11 +193,21 @@ export function resolvePunt(input: PuntInput): PuntResult {
       const returnerRating = (returnerSpeed + returnerAccel) / 2;
       const coverageSpeed = averageAttribute(coverageUnit, "speed");
 
-      const returnBase = 5 + (returnerRating / 100) * 15;
-      const coveragePenalty = (coverageSpeed / 100) * 8;
-      const returnMean = Math.max(2, returnBase - coveragePenalty);
+      const returnBase = PUNT_OUTCOME.return.baseMean +
+        (returnerRating / 100) * PUNT_OUTCOME.return.ratingScale;
+      const coveragePenalty = (coverageSpeed / 100) *
+        PUNT_OUTCOME.return.coveragePenaltyScale;
+      const returnMean = Math.max(
+        PUNT_OUTCOME.return.meanFloor,
+        returnBase - coveragePenalty,
+      );
 
-      const returnYards = rng.gaussian(returnMean, 5, 1, 40);
+      const returnYards = rng.gaussian(
+        returnMean,
+        PUNT_OUTCOME.return.stddev,
+        PUNT_OUTCOME.return.floor,
+        PUNT_OUTCOME.return.ceiling,
+      );
       const netLanding = Math.max(1, landing - returnYards);
       const netYards = netLanding - yardLine;
 

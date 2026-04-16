@@ -63,6 +63,12 @@ const INJURY_WEIGHTS = [0.35, 0.25, 0.15, 0.10, 0.08, 0.05, 0.02];
 const OT_SECONDS = 600;
 const TIMEOUTS_PER_HALF = 3;
 const KNEEL_CLOCK_BURN = 40;
+const CLOCK_STOP_RUNOFF = { min: 5, max: 15 } as const;
+const TIMEOUT_USAGE = {
+  offenseTrailingProb: 0.4,
+  defenseLeadingProb: 0.3,
+} as const;
+const KICKOFF_STARTING_YARD_LINE = 35;
 
 interface MutableGameState {
   quarter: 1 | 2 | 3 | 4 | "OT";
@@ -178,13 +184,13 @@ export function simulateGame(input: SimulationInput): GameResult {
     homeScore: 0,
     awayScore: 0,
     possession: "home",
-    yardLine: 35,
+    yardLine: KICKOFF_STARTING_YARD_LINE,
     down: 1,
     distance: 10,
     driveIndex: 0,
     playIndex: 0,
     globalPlayIndex: 0,
-    driveStartYardLine: 35,
+    driveStartYardLine: KICKOFF_STARTING_YARD_LINE,
     drivePlays: 0,
     driveYards: 0,
     homeTimeouts: TIMEOUTS_PER_HALF,
@@ -849,13 +855,19 @@ export function simulateGame(input: SimulationInput): GameResult {
     const offenseTrailing = offenseScore < defenseScore;
     const defenseLeading = defenseScore > offenseScore;
 
-    if (offenseTrailing && offenseTimeouts > 0 && rng.next() < 0.4) {
+    if (
+      offenseTrailing && offenseTimeouts > 0 &&
+      rng.next() < TIMEOUT_USAGE.offenseTrailingProb
+    ) {
       if (state.possession === "home") state.homeTimeouts--;
       else state.awayTimeouts--;
       return true;
     }
 
-    if (defenseLeading && defenseTimeouts > 0 && rng.next() < 0.3) {
+    if (
+      defenseLeading && defenseTimeouts > 0 &&
+      rng.next() < TIMEOUT_USAGE.defenseLeadingProb
+    ) {
       if (state.possession === "home") state.awayTimeouts--;
       else state.homeTimeouts--;
       return true;
@@ -909,7 +921,7 @@ export function simulateGame(input: SimulationInput): GameResult {
     if (!shouldClockStop(event)) {
       state.clock -= SECONDS_PER_PLAY;
     } else {
-      state.clock -= rng.int(5, 15);
+      state.clock -= rng.int(CLOCK_STOP_RUNOFF.min, CLOCK_STOP_RUNOFF.max);
     }
 
     if (event.penalty?.accepted && !event.tags.includes("return_td")) {
