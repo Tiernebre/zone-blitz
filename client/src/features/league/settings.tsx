@@ -104,6 +104,22 @@ export function LeagueSettings() {
                   value={ADVANCE_POLICY_LABELS[league.advancePolicy] ??
                     league.advancePolicy}
                 />
+                <ConfigItem
+                  label="Staff Budget"
+                  value={formatCurrency(league.staffBudget)}
+                />
+                <ConfigItem
+                  label="Interest Cap"
+                  value={String(league.interestCap)}
+                />
+                <ConfigItem
+                  label="Interviews / Week"
+                  value={String(league.interviewsPerWeek)}
+                />
+                <ConfigItem
+                  label="Max Concurrent Offers"
+                  value={String(league.maxConcurrentOffers)}
+                />
               </dl>
             </CardContent>
           </Card>

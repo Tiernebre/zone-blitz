@@ -29,6 +29,10 @@ export const leagues = pgTable("leagues", {
   advancePolicy: advancePolicyEnum("advance_policy")
     .notNull()
     .default("commissioner"),
+  staffBudget: integer("staff_budget").notNull().default(50_000_000),
+  interestCap: integer("interest_cap").notNull().default(10),
+  interviewsPerWeek: integer("interviews_per_week").notNull().default(4),
+  maxConcurrentOffers: integer("max_concurrent_offers").notNull().default(5),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastPlayedAt: timestamp("last_played_at"),
