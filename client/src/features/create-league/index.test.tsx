@@ -190,11 +190,11 @@ describe("CreateLeague", () => {
       );
     });
 
-    it("does not render a founding franchise count input", () => {
+    it("does not render a franchise count input", () => {
       renderWithProviders();
       expect(screen.queryByLabelText(/franchise count/i)).toBeNull();
       expect(screen.queryByLabelText(/number of teams/i)).toBeNull();
-      expect(screen.queryByLabelText(/founding franchises/i)).toBeNull();
+      expect(screen.queryByLabelText(/franchises/i)).toBeNull();
     });
 
     it("renders the league name input as editable above the settings", () => {

@@ -8,12 +8,12 @@ import {
 } from "./league-clock.schema.ts";
 
 const EXPECTED_PHASES = [
-  "genesis_staff_hiring",
-  "genesis_founding_pool",
-  "genesis_draft_scouting",
-  "genesis_allocation_draft",
-  "genesis_free_agency",
-  "genesis_kickoff",
+  "initial_staff_hiring",
+  "initial_pool",
+  "initial_scouting",
+  "initial_draft",
+  "initial_free_agency",
+  "initial_kickoff",
   "offseason_review",
   "coaching_carousel",
   "tag_window",
@@ -37,27 +37,27 @@ Deno.test("leaguePhaseEnum has all 20 phases in deterministic order", () => {
 });
 
 Deno.test(
-  "genesis_draft_scouting sits between genesis_founding_pool and genesis_allocation_draft",
+  "initial_scouting sits between initial_pool and initial_draft (ADR 0034)",
   () => {
     const phases = leaguePhaseEnum.enumValues;
-    const foundingPoolIndex = phases.indexOf("genesis_founding_pool");
-    const draftScoutingIndex = phases.indexOf("genesis_draft_scouting");
-    const allocationDraftIndex = phases.indexOf("genesis_allocation_draft");
-    assertEquals(draftScoutingIndex, foundingPoolIndex + 1);
+    const initialPoolIndex = phases.indexOf("initial_pool");
+    const draftScoutingIndex = phases.indexOf("initial_scouting");
+    const allocationDraftIndex = phases.indexOf("initial_draft");
+    assertEquals(draftScoutingIndex, initialPoolIndex + 1);
     assertEquals(allocationDraftIndex, draftScoutingIndex + 1);
   },
 );
 
-Deno.test("genesis phases are ordered before offseason_review", () => {
+Deno.test("initial phases are ordered before offseason_review", () => {
   const phases = leaguePhaseEnum.enumValues;
-  const genesisStaffHiringIndex = phases.indexOf("genesis_staff_hiring");
+  const initialStaffHiringIndex = phases.indexOf("initial_staff_hiring");
   const offseasonReviewIndex = phases.indexOf("offseason_review");
-  assertEquals(genesisStaffHiringIndex, 0);
-  assertEquals(genesisStaffHiringIndex < offseasonReviewIndex, true);
+  assertEquals(initialStaffHiringIndex, 0);
+  assertEquals(initialStaffHiringIndex < offseasonReviewIndex, true);
 });
 
-Deno.test("first phase in enum is genesis_staff_hiring so new leagues start there", () => {
-  assertEquals(leaguePhaseEnum.enumValues[0], "genesis_staff_hiring");
+Deno.test("first phase in enum is initial_staff_hiring so new leagues start there", () => {
+  assertEquals(leaguePhaseEnum.enumValues[0], "initial_staff_hiring");
 });
 
 Deno.test("stepKindEnum has event, week, window", () => {
@@ -74,7 +74,7 @@ Deno.test("league_clock table has expected columns", () => {
   assertEquals(columns.includes("advancedByUserId"), true);
   assertEquals(columns.includes("overrideReason"), true);
   assertEquals(columns.includes("overrideBlockers"), true);
-  assertEquals(columns.includes("hasCompletedGenesis"), true);
+  assertEquals(columns.includes("hasCompletedInitial"), true);
 });
 
 Deno.test("league_phase_step table has expected columns", () => {

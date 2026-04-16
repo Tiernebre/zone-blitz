@@ -169,11 +169,11 @@ Each city/market falls into a tier:
   narrative cycles. A two-game losing streak in a large market is a "crisis." In
   a small market, it's a "rough stretch." See [Media](./media.md).
 - **Peer and fan pressure**: Because Zone Blitz franchises are run by a fused
-  owner/GM (see [League Genesis](./league-genesis.md)), there is no separate
-  owner pressuring you from above. Market size instead shapes how loudly fans
-  and media react: a large-market franchise operates under constant scrutiny,
-  while a small-market franchise has more runway before league peers and the fan
-  base begin applying pressure.
+  owner/GM (see [League Setup](./league-setup.md)), there is no separate owner
+  pressuring you from above. Market size instead shapes how loudly fans and
+  media react: a large-market franchise operates under constant scrutiny, while
+  a small-market franchise has more runway before league peers and the fan base
+  begin applying pressure.
 - **Fan expectations**: Large-market fans expect contention. Small-market fans
   are more tolerant of rebuilds but more devastated by relocation rumors.
 - **Revenue and non-cap spending**: While the salary cap is the same for
@@ -202,8 +202,8 @@ painful, and permanent.
 ### Who decides
 
 **You do — because you're the owner.** In Zone Blitz, every franchise is run by
-a fused owner/GM (see [League Genesis](./league-genesis.md)), so relocation is
-an owner-level call the franchise's operator makes for themselves. For human-run
+a fused owner/GM (see [League Setup](./league-setup.md)), so relocation is an
+owner-level call the franchise's operator makes for themselves. For human-run
 franchises, that's you. For NPC franchises, the franchise's AI persona makes the
 call based on its market, finances, and personality.
 
@@ -401,13 +401,13 @@ uploads use — they're just the ones that ship with the game.
 
 ## Interaction with Other Systems
 
-### League Genesis
+### League Setup
 
-Every franchise is run by a fused owner/GM — a founding operator who makes both
+Every franchise is run by a fused owner/GM — an initial operator who makes both
 ownership-level calls (identity, relocation, expansion votes) and
 football-operations calls. Market size, brand, and relocation dynamics
 documented here all apply to that single role, not to a separate owner-above-GM
-layer. See [League Genesis](./league-genesis.md).
+layer. See [League Setup](./league-setup.md).
 
 ### Free Agency
 

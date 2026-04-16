@@ -329,13 +329,13 @@ describe("LeagueClockDisplay", () => {
         Promise.resolve({
           leagueId: "lg-1",
           seasonYear: 2026,
-          phase: "genesis_staff_hiring",
+          phase: "initial_staff_hiring",
           stepIndex: 0,
           slug: "hiring_market_survey",
           kind: "event",
           flavorDate: null,
           advancedAt: "2026-01-01T00:00:00Z",
-          hasCompletedGenesis: false,
+          hasCompletedInitial: false,
         }),
     });
 
@@ -345,9 +345,9 @@ describe("LeagueClockDisplay", () => {
         Promise.resolve({
           leagueId: "lg-1",
           seasonYear: 2026,
-          phase: "genesis_founding_pool",
+          phase: "initial_pool",
           stepIndex: 0,
-          slug: "generate_founding_player_pool",
+          slug: "generate_initial_player_pool",
           flavorDate: null,
           advancedAt: "2026-01-01T00:00:00Z",
           overrideReason: null,
@@ -377,7 +377,7 @@ describe("LeagueClockDisplay", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Advanced to Generate Founding Player Pool/),
+        screen.getByText(/Advanced to Generate Initial Player Pool/),
       ).toBeDefined();
     });
   });
@@ -445,7 +445,7 @@ describe("LeagueClockDisplay", () => {
           kind: "event",
           flavorDate: "Apr 24",
           advancedAt: "2026-01-01T00:00:00Z",
-          hasCompletedGenesis: true,
+          hasCompletedInitial: true,
         }),
     });
 
@@ -471,7 +471,7 @@ describe("LeagueClockDisplay", () => {
           kind: "week",
           flavorDate: "Sep 7",
           advancedAt: "2026-01-01T00:00:00Z",
-          hasCompletedGenesis: false,
+          hasCompletedInitial: false,
         }),
     });
 
@@ -500,7 +500,7 @@ describe("LeagueClockDisplay", () => {
           kind: "week",
           flavorDate: "Aug 10",
           advancedAt: "2026-01-01T00:00:00Z",
-          hasCompletedGenesis: true,
+          hasCompletedInitial: true,
         }),
     });
 
@@ -523,13 +523,13 @@ describe("LeagueClockDisplay", () => {
         Promise.resolve({
           leagueId: "lg-1",
           seasonYear: 1,
-          phase: "genesis_kickoff",
+          phase: "initial_kickoff",
           stepIndex: 0,
           slug: "kickoff",
           kind: "event",
           flavorDate: null,
           advancedAt: "2026-01-01T00:00:00Z",
-          hasCompletedGenesis: false,
+          hasCompletedInitial: false,
         }),
     });
 
@@ -537,7 +537,7 @@ describe("LeagueClockDisplay", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Genesis Kickoff — Kickoff, Year 1"),
+        screen.getByText("Initial Kickoff — Kickoff, Year 1"),
       ).toBeDefined();
     });
     expect(

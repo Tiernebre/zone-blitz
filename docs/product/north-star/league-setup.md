@@ -1,10 +1,10 @@
-# League Genesis
+# League Setup
 
 Most franchise sims hand you a league that has already existed for fifty years.
 Hall of Famers are already enshrined, dynasties have already risen and fallen,
 and your "franchise" is just the latest GM slotting into a long chain of
 predecessors. It's a fine starting point, but it means the most dramatic moment
-in any league's life — its founding — is something you read about in a
+in any league's life — its setup — is something you read about in a
 retrospective rather than something you live through.
 
 Zone Blitz takes the opposite approach. When you create a league, you are
@@ -20,7 +20,7 @@ exists.
 
 The league also starts **small**. A new professional league doesn't launch with
 thirty-two franchises, a seventeen-game schedule, and a full continental
-footprint. It launches with a handful of founding franchises, a compressed
+footprint. It launches with a handful of initial franchises, a compressed
 schedule, and an uncertain future — and if it survives its early seasons, it
 grows. Zone Blitz models this growth as a core part of the long-term experience.
 Year 1 is not the league at its final scale. Year 1 is the league at its
@@ -37,13 +37,13 @@ traded the pick that became the league's first Hall of Famer — that's not flav
 text. That's your save file.
 
 Faking decades of pre-generated history is a shortcut to a feeling of weight,
-but it's a borrowed feeling. Genesis gives you the real one, earned over seasons
-actually played.
+but it's a borrowed feeling. A real setup phase gives you the real one, earned
+over seasons actually played.
 
-### Genesis is a distinct phase, not a menu
+### Setup is a distinct phase, not a menu
 
-League creation isn't "pick 32 teams and click Start." It's a multi-step
-founding sequence that mirrors how a real start-up league comes into existence:
+League creation isn't "pick 32 teams and click Start." It's a multi-step setup
+sequence that mirrors how a real start-up league comes into existence:
 franchises are established, territories are claimed, a player pool is assembled,
 an allocation draft distributes talent, and only then does the first regular
 season kick off. Each step is a decision point with consequences that shape the
@@ -52,7 +52,7 @@ first several seasons.
 ### You are the owner _and_ the GM
 
 In Zone Blitz, there is no separate "owner" sitting above you. You are a
-**founding owner** who is also running football operations. That fusion is
+**initial owner** who is also running football operations. That fusion is
 canonical — it is how every franchise in a Zone Blitz league is run, yours and
 every NPC's alike, for the life of the league.
 
@@ -78,33 +78,36 @@ This is a deliberate departure from the "GM works for an opaque owner" model
 common to other franchise sims. In Zone Blitz, there is no such layer — and that
 is the design, not a gap to fill later.
 
-### Genesis is about declaration, not management
+### Setup is about declaration, not management
 
 Later-league GMs manage what they already have: a roster, a cap situation, a fan
-base with expectations. During genesis, you _found_: name the stadium, pick the
+base with expectations. During setup, you _found_: name the stadium, pick the
 colors, choose a build philosophy, select the franchise cornerstone. The tone of
-decision-making is different, and the UI should reflect that — genesis screens
-are about declaration, not management.
+decision-making is different, and the UI should reflect that — setup screens are
+about declaration, not management.
 
-### Genesis is the only way a league begins
+### Initial setup is the only way a league begins
 
 There is no alternate creation flow. Zone Blitz does not offer a "jump into a
 mature league with fictional history" mode. Every league — single-player or
-multiplayer — begins at genesis and earns its history one season at a time.
+multiplayer — begins during setup and earns its history one season at a time.
+See
+[0021 — Deprecate established mode](../decisions/0021-deprecate-established-mode.md)
+for the decision that retired the old dual-path framing.
 
 ---
 
-## The Founder's Journey
+## The Owner's Journey
 
 Before diving into the phases as a system, it's worth walking the experience as
-a player lives it. The following narrative is the canonical genesis flow for a
-single-player founder. Multiplayer flows differ only in who is making which
+a player lives it. The following narrative is the canonical setup flow for a
+single-player owner. Multiplayer flows differ only in who is making which
 decisions — the structure is the same.
 
 ### Creating the league
 
 You click "Create League." The first screens ask who the league _is_: pick a
-name, set a tagline if you want one, decide how many founding franchises sit at
+name, set a tagline if you want one, decide how many initial franchises sit at
 the table (8 is the default and recommended number). The league's scale implies
 its shape — an 8-team league gets a shorter schedule, two divisions, a tight
 playoff bracket. You can customize any of it, but the defaults are the intended
@@ -112,7 +115,7 @@ experience.
 
 ### Choosing your franchise
 
-You're presented with the founding markets. Each is a pool entry — city, default
+You're presented with the initial markets. Each is a pool entry — city, default
 identity, market tier, a thumbnail brand package. You pick one and make it
 yours: override the team name if you want, pick your colors, name your stadium.
 The decisions you make here stick to this franchise for the life of the league.
@@ -166,7 +169,7 @@ staff they just hired and the philosophy they declared.
 
 ### Free agency and roster finalization
 
-Everyone unsigned from the founding pool becomes a free agent — including the
+Everyone unsigned from the initial pool becomes a free agent — including the
 young players who, in a mature league, would have been rookies. In Year 1 there
 is no separate rookie draft; the allocation draft was the one distribution
 event, and free agency mops up everyone who didn't get picked. You round out
@@ -209,26 +212,27 @@ around. None of it was pre-generated. All of it happened at your table.
 
 ---
 
-## Genesis Phases
+## Initial Phases
 
-The founding of a league proceeds through an ordered sequence of phases. Each
-phase unlocks the next. Phases are distinct from the regular-season state
-machine — they run exactly once, before the league's first preseason.
+The setup of a league proceeds through an ordered sequence of phases. Each phase
+unlocks the next. Phases are distinct from the regular-season state machine (see
+[0014 — Season calendar and phase state machine](../decisions/0014-season-calendar-phase-state-machine.md))
+— they run exactly once, before the league's first preseason.
 
 ### Phase 1: League charter
 
-The commissioner (or single-player founder) defines the league itself:
+The commissioner (or single-player owner) defines the league itself:
 
 - **League name** and optional motto/tagline
-- **Founding franchise count**: defaults to **8**, configurable down to as few
-  as 4 or up to a larger custom number. The canonical genesis experience is a
-  small league — big enough for divisional play, small enough that every
-  franchise matters and expansion has somewhere to grow into
+- **Initial franchise count**: defaults to **8**, configurable down to as few as
+  4 or up to a larger custom number. The canonical setup experience is a small
+  league — big enough for divisional play, small enough that every franchise
+  matters and expansion has somewhere to grow into
 - **Initial schedule length**: scales with league size. An 8-team league plays a
   shorter regular season (e.g. 10–12 games) than a mature 32-team league.
   Schedule length grows as the league expands (see
   [Expansion Over Time](#expansion-over-time))
-- **Conference and division structure**: for small founding leagues, a single
+- **Conference and division structure**: for small initial leagues, a single
   conference with two divisions of four is the default. Richer structures unlock
   as the league expands
 - **Rules package**: cap, roster limits, draft rounds — the full set of knobs
@@ -244,17 +248,17 @@ Each franchise slot is filled, in order:
   from the default pool, expansion pool, or community team packs (see
   [Teams & Branding](./teams-and-branding.md))
 - **Identity declaration**: team name, colors, mascot, stadium name. Defaults
-  come from the selected pool entry but the founder may override any of them
+  come from the selected pool entry but the owner may override any of them
 - **Conference/division assignment**: placed into the structure from Phase 1,
   with geographic suggestions surfaced but not enforced
-- **Ownership**: each franchise's founding owner _is_ the GM — a fused role, not
+- **Ownership**: each franchise's initial owner _is_ the GM — a fused role, not
   an owner above a separate GM. For human-claimed franchises, that's you. For
   NPC franchises, a single AI persona is generated that handles both
   ownership-level decisions (identity, expansion votes, non-cap spending) and
   football operations (roster, draft, trades, coaching)
 
 In multiplayer, this phase is where human owner/GMs claim their franchise. In
-single-player, the founder picks their team and the remaining slots are
+single-player, the owner picks their team and the remaining slots are
 auto-filled with NPC-controlled franchises.
 
 ### Phase 3: Staff hiring
@@ -284,7 +288,7 @@ particular market tier, a specific philosophy, or a specific head coach already
 in place — and they make choices about where to sign based on those preferences
 plus the compensation on offer.
 
-This creates a real bidding game during genesis. You can try to lock in your
+This creates a real bidding game during setup. You can try to lock in your
 coordinator early with an aggressive offer, gamble on later rounds to preserve
 budget, or chase a named talent you know an NPC owner is also after. NPC owners
 pursue hires with the same urgency you do — a good hire for them is one you
@@ -306,10 +310,10 @@ Staff hires made here directly affect the allocation draft that follows and the
 first rookie draft in Year 2 — scouting reports, positional grades, and
 scheme-fit evaluations all flow from the staff in place.
 
-### Phase 4: Founding player pool
+### Phase 4: Initial player pool
 
-Before any draft can happen, a pool of available players has to exist. In a
-genesis league, there is no prior season to draw veterans from, so the pool is
+Before any draft can happen, a pool of available players has to exist. In a new
+league, there is no prior season to draw veterans from, so the pool is
 constructed from people who weren't part of existing pro football pipelines, or
 who were but want a different shot. The lore categories:
 
@@ -326,14 +330,14 @@ These categories are narrative — they shape how a player is presented in
 scouting reports, profiles, and media coverage — but they don't create separate
 mechanical systems. Every player in the pool shares the same attribute model.
 
-**Attributes are normalized to the Zone Blitz scale.** A founding-era player's
-ratings reflect their value within _this league_, not within some external
-real-world football hierarchy. If the pool were measured against a top-tier
-established league, most of these players would rate poorly — but they're not
-being measured against that. They're being measured against each other and
-against every player who will ever appear in this league. The league's top
-quarterback in Year 1 is a top quarterback, full stop. Whether he would have
-started in the NFL is not a question the game needs to answer.
+**Attributes are normalized to the Zone Blitz scale.** A year-1 player's ratings
+reflect their value within _this league_, not within some external real-world
+football hierarchy. If the pool were measured against a top-tier established
+league, most of these players would rate poorly — but they're not being measured
+against that. They're being measured against each other and against every player
+who will ever appear in this league. The league's top quarterback in Year 1 is a
+top quarterback, full stop. Whether he would have started in the NFL is not a
+question the game needs to answer.
 
 This normalization is critical to the feel of the early league: the league takes
 itself seriously, the stars are stars, and the attribute spread is calibrated so
@@ -341,19 +345,18 @@ that scheme fit, development, and front-office quality actually differentiate
 teams.
 
 **There is no inaugural rookie draft.** Young players — the age cohort that
-would become rookies in a mature league — exist inside the founding pool
+would become rookies in a mature league — exist inside the initial pool
 alongside every other archetype, undifferentiated from the rest of the talent.
 Every player in Year 1 arrives through a single door: the allocation draft and
 the free agency that follows it.
 
 The first true rookie draft happens in **Year 2**, once the league has played a
 season, established standings, and generated a real rookie class on the regular
-offseason cadence. Deferring the rookie draft keeps genesis focused on the one
+offseason cadence. Deferring the rookie draft keeps setup focused on the one
 distribution event that matters — the allocation draft — and gives the first
 rookie class the weight it deserves: it's the first time the league picks
 between high-school-to-pro-pipeline young talent and everyone else, and it
-happens against a real competitive backdrop instead of a randomized founding
-order.
+happens against a real competitive backdrop instead of a randomized setup order.
 
 Pool size and talent distribution are league settings — a deep pool produces an
 immediately competitive league, a thin pool produces scrappier early seasons
@@ -372,7 +375,7 @@ opening drafts.
   roster from scratch — every pick is meaningful
 
 The allocation draft is the **only draft in Year 1**. It distributes every
-player in the founding pool — veterans, journeymen, and rookie-age talent alike.
+player in the initial pool — veterans, journeymen, and rookie-age talent alike.
 The first true rookie draft, drawing on a fresh rookie class with Year 1
 standings setting the order, happens the following offseason (see
 [Drafting](./drafting.md)).
@@ -381,7 +384,7 @@ standings setting the order, happens the following offseason (see
 Nobody has played a down of Zone Blitz football yet. A 34-year-old
 back-end-of-career journeyman and an 22-year-old raw college athlete are both,
 in this league's record book, first-year players. That framing matters: it means
-every founding-pool player is eligible for the league's first-ever rookie-ish
+every initial-pool player is eligible for the league's first-ever rookie-ish
 awards, every one of them has a clean record with this league, and every one of
 them is a fresh evaluation problem for the scouts you just hired.
 
@@ -399,14 +402,14 @@ scouts — knows yet which of these people are built for this league.
 
 ### Phase 6: Free agency and roster finalization
 
-After the allocation draft, any unsigned members of the founding pool become
+After the allocation draft, any unsigned members of the initial pool become
 available as free agents. Franchises round out their rosters up to the league's
 roster limits, respecting the cap.
 
 ### Phase 7: Kickoff
 
-The league transitions from genesis into its standard season state machine. The
-founding is over. History starts being written.
+The league transitions from setup into its standard season state machine. The
+initial setup is over. History starts being written.
 
 ---
 
@@ -420,16 +423,16 @@ doesn't work for Year 1, because Year 1 has a whole front-loaded sequence —
 league charter, franchise establishment, staff hiring, allocation draft — that
 doesn't exist in subsequent offseasons.
 
-The inaugural calendar is its own thing. It anchors on a founder-chosen kickoff
-date and runs the genesis phases in the months before, compressing some beats
+The inaugural calendar is its own thing. It anchors on an owner-chosen kickoff
+date and runs the initial phases in the months before, compressing some beats
 and eliminating others entirely:
 
 ### Year 1 timeline (illustrative)
 
-- **Founding window** (weeks before kickoff, founder-paced): charter, franchise
-  establishment, staff hiring, founding pool generation, allocation draft, free
-  agency. The whole genesis sequence is compressed into this window. In
-  single-player it runs at the founder's pace. In multiplayer it runs on
+- **Setup window** (weeks before kickoff, owner-paced): charter, franchise
+  establishment, staff hiring, initial pool generation, allocation draft, free
+  agency. The whole setup sequence is compressed into this window. In
+  single-player it runs at the owner's pace. In multiplayer it runs on
   commissioner-set deadlines or ready-checks
 - **Training camp** (brief, abstracted): the league's first ever training camp.
   Franchises finalize roster cuts down to the active limit. Because there is no
@@ -443,25 +446,27 @@ and eliminating others entirely:
 - **Playoffs and championship**: the first-ever playoffs and the first league
   championship
 - **First real offseason** (post-Year-1): the league's normal offseason rhythm
-  begins — awards, coaching carousel (if any franchises fire their genesis
+  begins — awards, coaching carousel (if any franchises fire their initial
   hires), free agency, and the **first true rookie draft** ahead of Year 2
 
 ### Year 2 and beyond
 
 Starting in Year 2, the league settles into the standard calendar from
 [League Management](./league-management.md) — including preseason, which the
-league now has the institutional infrastructure to run. The founding-window
-phases do not recur. Expansion cycles, when they happen, insert themselves into
-the normal offseason rather than creating a special founding-like window.
+league now has the institutional infrastructure to run. The setup-window phases
+do not recur. Expansion cycles, when they happen, insert themselves into the
+normal offseason rather than creating a special setup-like window.
 
 This distinction matters for the UI and the state machine: Year 1's phases are a
-one-time sequence, not a recurring offseason template.
+one-time sequence, not a recurring offseason template. See
+[0014 — Season calendar and phase state machine](../decisions/0014-season-calendar-phase-state-machine.md)
+for how this should be modeled.
 
 ---
 
 ## Expansion Over Time
 
-Genesis is the beginning, not the end. A league that founds at 8 teams is
+The setup is the beginning, not the end. A league that starts at 8 teams is
 explicitly designed to _grow_. Expansion is how the league evolves from a
 scrappy start-up into a mature professional institution, and the path from 8 to
 32 (or beyond) is meant to span many seasons and produce narrative beats of its
@@ -469,7 +474,7 @@ own.
 
 ### Why start small
 
-A small founding league is not a compromise — it's a design choice with several
+A small initial league is not a compromise — it's a design choice with several
 benefits:
 
 - **Every franchise matters**: In an 8-team league, every team is a playoff
@@ -481,14 +486,14 @@ benefits:
 - **Expansion has somewhere to go**: If the league starts at its final size,
   growth stops being part of the story. Starting small keeps expansion on the
   table for decades of play.
-- **Onboarding is lighter**: A founder managing a genesis phase for 8 franchises
+- **Onboarding is lighter**: A owner managing a initial phase for 8 franchises
   is making a manageable number of identity, roster, and draft decisions.
   Thirty-two is a lot of setup before you play a single game.
 
 ### How expansion happens
 
 Expansion is a **league-level event triggered by an ownership vote**. It is not
-a commissioner diktat and it is not automatic. Because every founding franchise
+a commissioner diktat and it is not automatic. Because every initial franchise
 is owner-operated, the decision to grow the league is made collectively by the
 people who actually own the teams — you and every NPC owner alongside you.
 
@@ -509,14 +514,14 @@ a meta-game of its own in multiplayer leagues.
 Each expansion cycle adds a defined number of new franchises, typically 2 or 4
 at a time to preserve scheduling symmetry.
 
-The expansion cycle is structurally similar to genesis but scoped to the new
-franchises:
+The expansion cycle is structurally similar to the initial setup but scoped to
+the new franchises:
 
 1. **Expansion charter**: the commissioner decides how many teams to add, where
    they sit in conference/division structure, and whether the schedule length or
    playoff format should change to reflect the new size
 2. **Franchise establishment**: each new franchise is founded the same way
-   genesis franchises were — market, identity, ownership. In multiplayer, this
+   setup-era franchises were — market, identity, ownership. In multiplayer, this
    is the moment new human GMs can join an existing league
 3. **Expansion draft**: existing franchises expose a portion of their roster to
    an expansion pool, and the new franchises draft from it. This is a real cost
@@ -556,7 +561,7 @@ Expansion is not a quiet administrative event. It's a league moment:
   pool and their geographic territory
 - Existing GMs have to make hard decisions about which players to protect and
   which to expose to the expansion draft
-- The new franchises arrive with the same "firsts" energy that the founding
+- The new franchises arrive with the same "firsts" energy that the initial setup
   franchises had — first pick, first win, first playoff berth, first time
   beating an original franchise
 - Media coverage (see [Media](./media.md)) treats expansion as a multi-week
@@ -567,9 +572,9 @@ a league that was 16 the whole time. The growth itself is part of the record.
 
 ---
 
-## Franchise Identity During Genesis
+## Franchise Identity During Setup
 
-A franchise created during genesis isn't just a team — it's a declaration.
+A franchise created during setup isn't just a team — it's a declaration.
 
 ### Identity decisions are load-bearing
 
@@ -584,13 +589,13 @@ aren't cosmetic:
   franchise will ever accrue — "The Miracle at Cascade Stadium" is only a phrase
   the media can coin if the stadium got named first
 
-Unlike relocation — where the owner decides — genesis identity is the GM's to
-declare. This is the one moment a GM has full creative control over who the
+Unlike relocation — where the owner decides — setup-phase identity is the GM's
+to declare. This is the one moment a GM has full creative control over who the
 franchise _is_.
 
 ### Build philosophy
 
-During genesis, each franchise declares a high-level build philosophy that
+During setup, each franchise declares a high-level build philosophy that
 influences how its NPC systems behave in the early seasons:
 
 - **Win now**: emphasize veterans in allocation draft, spend aggressively in
@@ -607,8 +612,8 @@ allocation draft and first few free agency windows.
 
 ## Narrative Stakes
 
-Genesis creates a dense cluster of "firsts" that the game should recognize and
-surface through [Media](./media.md) and the league history system:
+League setup creates a dense cluster of "firsts" that the game should recognize
+and surface through [Media](./media.md) and the league history system:
 
 - First overall pick in the allocation draft
 - First trade ever executed
@@ -622,7 +627,7 @@ surface through [Media](./media.md) and the league history system:
   after
 - First Rookie of the Year (Year 2, from that first rookie class)
 - First franchise to reach ten wins, twenty wins, a hundred wins
-- First Hall of Fame class (years later — founding-pool players and the Year 2
+- First Hall of Fame class (years later — initial-pool players and the Year 2
   rookie class, inducted at the end of their careers, become the charter Hall of
   Fame class)
 
@@ -631,30 +636,30 @@ and they only get to be set once. Every save file has its own pantheon.
 
 ---
 
-## Single-Player vs Multiplayer Genesis
+## Single-Player vs Multiplayer Setup
 
 ### Single-player
 
-The founder picks their franchise, establishes its identity, and the remaining
-founding franchises (seven, by default) are auto-generated with NPC owners, GMs,
-and identities drawn from the default pool. The founder advances through each
-genesis phase at their own pace. The allocation draft runs live with NPC
+The owner picks their franchise, establishes its identity, and the remaining
+initial franchises (seven, by default) are auto-generated with NPC owners, GMs,
+and identities drawn from the default pool. The owner advances through each
+initial phase at their own pace. The allocation draft runs live with NPC
 opponents making picks in real time; the first rookie draft follows in the Year
 2 offseason. Future expansion cycles are decided by ownership votes across the
-founder and the NPC owners, with the founder casting a single vote like everyone
+owner and the NPC owners, with the owner casting a single vote like everyone
 else.
 
 ### Multiplayer
 
-Each human GM claims a franchise during Phase 2. Genesis phases advance via the
+Each human GM claims a franchise during Phase 2. Initial phases advance via the
 same ready-check / commissioner-advancement system used during the regular
 season (see [League Management](./league-management.md)). The allocation draft
 is a live, real-time event run in the same draft room future rookie drafts will
 use. The first rookie draft itself doesn't happen until the Year 2 offseason.
 
-The commissioner has elevated control during genesis: they set the rules
-package, lock franchise assignments, and run the allocation draft room. Once
-kickoff occurs, the commissioner role settles into its standard shape.
+The commissioner has elevated control during setup: they set the rules package,
+lock franchise assignments, and run the allocation draft room. Once kickoff
+occurs, the commissioner role settles into its standard shape.
 
 ---
 
@@ -662,27 +667,27 @@ kickoff occurs, the commissioner role settles into its standard shape.
 
 ### Teams & Branding
 
-Genesis is where franchise identity is first declared. Everything in
+Setup is where franchise identity is first declared. Everything in
 [Teams & Branding](./teams-and-branding.md) applies from the moment a franchise
 is established — colors theme the dashboard, market tier shapes appeal and
 pressure, stadium name anchors lore. Relocation is a later-league event; it does
-not occur during genesis.
+not occur during setup.
 
 ### Drafting
 
 The allocation draft uses the core draft mechanics defined in
-[Drafting](./drafting.md), run against the founding player pool with randomized
-initial order. Genesis does not introduce a new draft system. The first true
-rookie draft happens in the Year 2 offseason, using the same mechanics, seeded
-by Year 1 standings — no more randomization after the league has played real
-football.
+[Drafting](./drafting.md), run against the initial player pool with randomized
+initial order. The setup sequence does not introduce a new draft system. The
+first true rookie draft happens in the Year 2 offseason, using the same
+mechanics, seeded by Year 1 standings — no more randomization after the league
+has played real football.
 
 ### Salary Cap
 
 The cap is live from Phase 5 onward. Every contract signed in the allocation
-draft and founding free agency period is cap-compliant. All franchises start
-with the same cap space, which is the only moment in league history when the
-playing field is perfectly level. See [Salary Cap](./salary-cap.md).
+draft and initial free agency period is cap-compliant. All franchises start with
+the same cap space, which is the only moment in league history when the playing
+field is perfectly level. See [Salary Cap](./salary-cap.md).
 
 **Early-league economics are intentionally flat.** For the first several
 seasons, the league's salary structure stays compressed — contracts are short,
@@ -694,9 +699,8 @@ record-setting contracts.
 
 Over time, the economics evolve naturally:
 
-- As **free agency cycles** accumulate, players who outperformed their
-  founding-era deals gain real leverage and start commanding market-rate
-  contracts
+- As **free agency cycles** accumulate, players who outperformed their year-1
+  deals gain real leverage and start commanding market-rate contracts
 - As the **league matures and revenues grow** (via expansion, media interest,
   and fan growth), the cap itself grows
 - As **stars emerge** and put together sustained careers, the league produces
@@ -709,23 +713,23 @@ generation of football has been played.
 
 ### Coaches
 
-Every coach available in the genesis candidate pool is generated uniquely for
-this league. There is no recurring cast of named coaches shared across save
+Every coach available in the initial-setup candidate pool is generated uniquely
+for this league. There is no recurring cast of named coaches shared across save
 files. When you hire a head coach, you're hiring a one-of-one person with a
 tendency profile, a scheme preference, and a career arc that will only ever play
 out in this league. See [Coaches](./coaches.md) for how coach generation works —
-genesis simply front-loads a full candidate pool before Phase 3 begins.
+setup simply front-loads a full candidate pool before Phase 3 begins.
 
 ### Scouting
 
 Scouts follow the same uniqueness rule as coaches — generated per league, never
-shared across saves. Scouting reports on the founding player pool are available
-during genesis, generated by the scouting staff each franchise hired in Phase 3.
+shared across saves. Scouting reports on the initial player pool are available
+during setup, generated by the scouting staff each franchise hired in Phase 3.
 The first _rookie-class_ scouting cycle begins during Year 1 and feeds into the
 Year 2 rookie draft — scouts spend the league's inaugural season evaluating the
 next generation of talent while the franchise is still finding its feet.
-Scouting department investment is one of the genesis-phase decisions available
-to each franchise. See [Scouting](./scouting.md).
+Scouting department investment is one of the setup-phase decisions available to
+each franchise. See [Scouting](./scouting.md).
 
 ### Ownership
 
@@ -735,18 +739,18 @@ that wears both hats. There is no separate owner-above-GM layer anywhere in the
 game. Ownership personality still matters as a concept — it drives expansion
 votes, relocation decisions, and inter-franchise dynamics — but it is fused with
 football operations, not layered above them. This is a core design choice, not a
-genesis-era simplification.
+year-1 simplification.
 
 ### Media
 
-Media coverage during genesis leans on the novelty of the league itself:
-founding features, franchise previews, allocation-draft grades, rookie-draft
-grades. Once the first game kicks off, media transitions into its standard
-season coverage patterns. See [Media](./media.md).
+Media coverage during setup leans on the novelty of the league itself: launch
+features, franchise previews, allocation-draft grades, rookie-draft grades. Once
+the first game kicks off, media transitions into its standard season coverage
+patterns. See [Media](./media.md).
 
 ---
 
-## What Makes League Genesis Fun
+## What Makes League Setup Fun
 
 - "I just drafted the first pick in league history. In twenty seasons, people
   will still be comparing every #1 overall to him."
@@ -760,7 +764,7 @@ season coverage patterns. See [Media](./media.md).
   book. Every name on it is a player I either drafted, signed, traded for, or
   watched another GM build around. None of it was pre-generated. All of it
   happened at this table."
-- "My friend group spun up a new league last week. Genesis phase took us two
+- "My friend group spun up a new league last week. Initial phase took us two
   evenings. The allocation draft went four hours. We have not stopped talking
   about the picks."
 - "We founded the league at 8 teams. Six seasons in we expanded to 12 and I lost
@@ -784,10 +788,29 @@ season coverage patterns. See [Media](./media.md).
   measured as somewhere else."
 - "Contracts in year one felt modest — short deals, not a lot of guaranteed
   money. By year six, my best pass rusher is commanding a deal that would have
-  been unthinkable at founding. The economy grew up with the league."
+  been unthinkable at league setup. The economy grew up with the league."
 - "I lost the bidding war for the coordinator I wanted. He went to a division
   rival and designed the defense that beat me in Week 3. I'm going to be
   thinking about that hiring phase for the next ten seasons."
 - "There was no preseason in Year 1 — the league didn't have one yet. We went
   straight from training camp into a Week 1 that nobody had a read on. Half the
   league's depth charts looked nothing like what people expected."
+
+## Related decisions
+
+- [0017 — League setup as the default creation flow](../decisions/0017-league-setup-default-creation-flow.md)
+  (superseded by 0021)
+- [0018 — Initial phase state machine](../decisions/0018-setup-phase-state-machine.md)
+- [0019 — Inaugural Year 1 calendar (no preseason)](../decisions/0019-inaugural-year-one-calendar.md)
+- [0021 — Deprecate established mode; setup is the only creation flow](../decisions/0021-deprecate-established-mode.md)
+- [0022 — Fused owner/GM role as canonical](../decisions/0022-fused-owner-gm-role.md)
+- [0023 — Contested staff hiring market](../decisions/0023-contested-staff-hiring-market.md)
+- [0024 — Allocation draft as Year 1's only draft](../decisions/0024-allocation-draft-as-year-one-only-draft.md)
+- [0025 — Expansion by ownership vote](../decisions/0025-expansion-by-ownership-vote.md)
+- [0026 — Initial player pool composition and attribute normalization](../decisions/0026-initial-pool-composition-and-attribute-normalization.md)
+- [0027 — MVP league creation wizard scope](../decisions/0027-mvp-league-creation-wizard.md)
+- [0028 — Readonly league settings in MVP creation wizard](../decisions/0028-readonly-league-settings-mvp.md)
+- [0029 — Default 8 initial franchises with no count selector in MVP](../decisions/0029-eight-team-default-no-count-selector.md)
+- [0030 — Synchronous league generation with progress UI](../decisions/0030-synchronous-league-generation-with-progress-ui.md)
+- [0031 — Post-generation landing on the first in-dashboard initial phase](../decisions/0031-post-generation-land-in-first-setup-phase.md)
+- [0034 — Initial scouting phase](../decisions/0034-initial-scouting-phase.md)

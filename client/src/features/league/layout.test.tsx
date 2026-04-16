@@ -284,8 +284,8 @@ describe("LeagueLayout", () => {
     }
   });
 
-  it("hides phase-gated nav items in genesis_staff_hiring", async () => {
-    mockPhase = "genesis_staff_hiring";
+  it("hides phase-gated nav items in initial_staff_hiring", async () => {
+    mockPhase = "initial_staff_hiring";
     renderWithProviders();
 
     await waitFor(() => {
@@ -297,8 +297,8 @@ describe("LeagueLayout", () => {
     expect(screen.queryByRole("link", { name: "Standings" })).toBeNull();
   });
 
-  it("shows genesis-only items only in their respective phases", async () => {
-    mockPhase = "genesis_staff_hiring";
+  it("shows initial-only items only in their respective phases", async () => {
+    mockPhase = "initial_staff_hiring";
     renderWithProviders();
 
     await waitFor(() => {
@@ -306,25 +306,25 @@ describe("LeagueLayout", () => {
     });
 
     expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Founding Pool" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Initial Pool" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Allocation Draft" })).toBeNull();
   });
 
-  it("shows Founding Pool only during genesis_founding_pool", async () => {
-    mockPhase = "genesis_founding_pool";
+  it("shows Initial Pool only during initial_pool", async () => {
+    mockPhase = "initial_pool";
     renderWithProviders();
 
     await waitFor(() => {
       expect(
-        screen.getByRole("link", { name: "Founding Pool" }),
+        screen.getByRole("link", { name: "Initial Pool" }),
       ).toBeDefined();
     });
 
     expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
   });
 
-  it("shows Allocation Draft only during genesis_allocation_draft", async () => {
-    mockPhase = "genesis_allocation_draft";
+  it("shows Allocation Draft only during initial_draft", async () => {
+    mockPhase = "initial_draft";
     renderWithProviders();
 
     await waitFor(() => {
@@ -334,10 +334,10 @@ describe("LeagueLayout", () => {
     });
 
     expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Founding Pool" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Initial Pool" })).toBeNull();
   });
 
-  it("hides all genesis-only items in regular_season", async () => {
+  it("hides all initial-only items in regular_season", async () => {
     mockPhase = "regular_season";
     renderWithProviders();
 
@@ -346,7 +346,7 @@ describe("LeagueLayout", () => {
     });
 
     expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Founding Pool" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Initial Pool" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Allocation Draft" })).toBeNull();
   });
 
@@ -360,8 +360,8 @@ describe("LeagueLayout", () => {
     expect(screen.getByRole("link", { name: "Standings" })).toBeDefined();
   });
 
-  it("collapses empty nav groups in early genesis phases", async () => {
-    mockPhase = "genesis_staff_hiring";
+  it("collapses empty nav groups in early initial phases", async () => {
+    mockPhase = "initial_staff_hiring";
     renderWithProviders();
 
     await waitFor(() => {

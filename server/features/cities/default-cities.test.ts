@@ -2,7 +2,7 @@ import { assertEquals } from "@std/assert";
 import { DEFAULT_CITIES } from "./default-cities.ts";
 import { DEFAULT_STATES } from "../states/default-states.ts";
 import { DEFAULT_COLLEGES } from "../colleges/default-colleges.ts";
-import { FOUNDING_FRANCHISES } from "../franchise/founding-franchises.ts";
+import { INITIAL_FRANCHISES } from "../franchise/initial-franchises.ts";
 
 Deno.test("DEFAULT_CITIES has unique (name, stateCode) pairs", () => {
   const keys = DEFAULT_CITIES.map((c) => `${c.name}|${c.stateCode}`);
@@ -41,12 +41,12 @@ Deno.test("DEFAULT_CITIES covers every city referenced by a college", () => {
 });
 
 Deno.test(
-  "DEFAULT_CITIES covers every city referenced by a founding franchise",
+  "DEFAULT_CITIES covers every city referenced by a initial franchise",
   () => {
     const cityKeys = new Set(
       DEFAULT_CITIES.map((c) => `${c.name}|${c.stateCode}`),
     );
-    for (const franchise of FOUNDING_FRANCHISES) {
+    for (const franchise of INITIAL_FRANCHISES) {
       const key = `${franchise.city}|${franchise.state}`;
       assertEquals(
         cityKeys.has(key),

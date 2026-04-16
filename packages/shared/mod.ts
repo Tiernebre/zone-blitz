@@ -3,7 +3,7 @@ export type { HealthStatus } from "./types/health.ts";
 export type {
   AdvancePolicy,
   League,
-  LeagueFoundResult,
+  LeagueGenerateResult,
   LeagueListItem,
   LeagueSeasonSummary,
   LeagueUserTeamSummary,

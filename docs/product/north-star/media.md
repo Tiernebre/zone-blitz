@@ -369,7 +369,7 @@ Media coverage shapes how free agents perceive your organization:
 ### Fan and league-peer sentiment
 
 Zone Blitz has no opaque owner layer pressuring you from above — every franchise
-is run by a fused owner/GM (see [League Genesis](./league-genesis.md)). Media
+is run by a fused owner/GM (see [League Setup](./league-setup.md)). Media
 coverage instead shapes **fan and league-peer sentiment**: the pressure you feel
 from the base you answer to (fans, city, sponsors) and from the other owner/GMs
 you share the league with.
