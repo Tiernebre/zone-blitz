@@ -31,21 +31,7 @@ describe("navGroups", () => {
     }
   });
 
-  it("shows only genesis-appropriate items in genesis_charter", () => {
-    const visible = visibleLabels("genesis_charter");
-    expect(visible).toContain("Home");
-    expect(visible).not.toContain("Roster");
-    expect(visible).not.toContain("Coaches");
-    expect(visible).not.toContain("Draft");
-    expect(visible).not.toContain("Standings");
-    expect(visible).not.toContain("Schedule");
-  });
-
   it("shows Coaches and Scouts from genesis_staff_hiring onward", () => {
-    expect(visibleLabels("genesis_charter")).not.toContain("Coaches");
-    expect(visibleLabels("genesis_franchise_establishment")).not.toContain(
-      "Coaches",
-    );
     expect(visibleLabels("genesis_staff_hiring")).toContain("Coaches");
     expect(visibleLabels("genesis_staff_hiring")).toContain("Scouts");
     expect(visibleLabels("regular_season")).toContain("Coaches");
@@ -63,9 +49,8 @@ describe("navGroups", () => {
     expect(visibleLabels("genesis_allocation_draft")).toContain("Salary Cap");
   });
 
-  it("shows Media from genesis_franchise_establishment onward", () => {
-    expect(visibleLabels("genesis_charter")).not.toContain("Media");
-    expect(visibleLabels("genesis_franchise_establishment")).toContain("Media");
+  it("shows Media from genesis_staff_hiring onward", () => {
+    expect(visibleLabels("genesis_staff_hiring")).toContain("Media");
     expect(visibleLabels("regular_season")).toContain("Media");
   });
 
@@ -84,7 +69,7 @@ describe("navGroups", () => {
     expect(visibleLabels("free_agency")).toContain("Free Agency");
     expect(visibleLabels("udfa")).toContain("Free Agency");
     expect(visibleLabels("regular_season")).toContain("Free Agency");
-    expect(visibleLabels("genesis_charter")).not.toContain("Free Agency");
+    expect(visibleLabels("genesis_staff_hiring")).not.toContain("Free Agency");
   });
 
   it("shows Trades from preseason onward", () => {
@@ -111,14 +96,6 @@ describe("navGroups", () => {
     expect(visibleLabels("regular_season")).toContain("Opponents");
   });
 
-  it("shows Charter only in genesis_charter", () => {
-    expect(visibleLabels("genesis_charter")).toContain("Charter");
-    expect(visibleLabels("genesis_franchise_establishment")).not.toContain(
-      "Charter",
-    );
-    expect(visibleLabels("regular_season")).not.toContain("Charter");
-  });
-
   it("does not include a Staff Hiring nav item", () => {
     for (const phase of LEAGUE_PHASES) {
       expect(visibleLabels(phase)).not.toContain("Staff Hiring");
@@ -127,7 +104,9 @@ describe("navGroups", () => {
 
   it("shows Founding Pool only in genesis_founding_pool", () => {
     expect(visibleLabels("genesis_founding_pool")).toContain("Founding Pool");
-    expect(visibleLabels("genesis_charter")).not.toContain("Founding Pool");
+    expect(visibleLabels("genesis_staff_hiring")).not.toContain(
+      "Founding Pool",
+    );
     expect(visibleLabels("genesis_allocation_draft")).not.toContain(
       "Founding Pool",
     );
@@ -138,7 +117,9 @@ describe("navGroups", () => {
     expect(visibleLabels("genesis_allocation_draft")).toContain(
       "Allocation Draft",
     );
-    expect(visibleLabels("genesis_charter")).not.toContain("Allocation Draft");
+    expect(visibleLabels("genesis_staff_hiring")).not.toContain(
+      "Allocation Draft",
+    );
     expect(visibleLabels("genesis_free_agency")).not.toContain(
       "Allocation Draft",
     );
@@ -156,7 +137,6 @@ describe("navGroups", () => {
 
   describe("exact visible set per representative phase", () => {
     it.each<[LeaguePhase, string[]]>([
-      ["genesis_charter", ["Home", "Charter"]],
       [
         "genesis_staff_hiring",
         ["Home", "Coaches", "Scouts", "Media"],
@@ -236,10 +216,6 @@ describe("navGroups", () => {
   });
 
   describe("NavGroup visibility per phase", () => {
-    it("hides Team Building group in genesis_charter", () => {
-      expect(visibleGroupLabels("genesis_charter")).toEqual(["Team", "League"]);
-    });
-
     it("hides Team Building group in genesis_staff_hiring", () => {
       expect(visibleGroupLabels("genesis_staff_hiring")).toEqual([
         "Team",

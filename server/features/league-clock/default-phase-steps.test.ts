@@ -2,8 +2,6 @@ import { assertEquals } from "@std/assert";
 import { DEFAULT_PHASE_STEPS } from "./default-phase-steps.ts";
 
 const ALL_PHASES = [
-  "genesis_charter",
-  "genesis_franchise_establishment",
   "genesis_staff_hiring",
   "genesis_founding_pool",
   "genesis_allocation_draft",
@@ -175,8 +173,6 @@ Deno.test("all steps have non-empty slugs", () => {
 
 Deno.test("each genesis phase has at least one step", () => {
   const genesisPhases = [
-    "genesis_charter",
-    "genesis_franchise_establishment",
     "genesis_staff_hiring",
     "genesis_founding_pool",
     "genesis_allocation_draft",

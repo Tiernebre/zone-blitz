@@ -14,8 +14,6 @@ import { users } from "../auth/auth.schema.ts";
 import { teams } from "../team/team.schema.ts";
 
 export const leaguePhaseEnum = pgEnum("league_phase", [
-  "genesis_charter",
-  "genesis_franchise_establishment",
   "genesis_staff_hiring",
   "genesis_founding_pool",
   "genesis_allocation_draft",

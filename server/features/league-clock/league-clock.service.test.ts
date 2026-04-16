@@ -783,7 +783,7 @@ Deno.test("league-clock.service", async (t) => {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_charter",
+                  phase: "genesis_staff_hiring",
                   stepIndex: 0,
                   hasCompletedGenesis: false,
                 }),
@@ -796,7 +796,7 @@ Deno.test("league-clock.service", async (t) => {
           createActor(),
           createGateState(),
         );
-        assertEquals(result.phase, "genesis_franchise_establishment");
+        assertEquals(result.phase, "genesis_founding_pool");
         assertEquals(result.stepIndex, 0);
       },
     );
@@ -809,7 +809,7 @@ Deno.test("league-clock.service", async (t) => {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_charter",
+                  phase: "genesis_staff_hiring",
                   stepIndex: 0,
                   hasCompletedGenesis: true,
                 }),
@@ -838,7 +838,7 @@ Deno.test("league-clock.service", async (t) => {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_charter",
+                  phase: "genesis_staff_hiring",
                   stepIndex: 0,
                   hasCompletedGenesis: true,
                 }),
@@ -870,7 +870,7 @@ Deno.test("league-clock.service", async (t) => {
             getByLeagueId: () =>
               Promise.resolve(
                 createMockClock({
-                  phase: "genesis_charter",
+                  phase: "genesis_staff_hiring",
                   stepIndex: 0,
                   hasCompletedGenesis: true,
                 }),

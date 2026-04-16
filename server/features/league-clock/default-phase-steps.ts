@@ -7,22 +7,6 @@ export interface DefaultPhaseStep {
 }
 
 export const DEFAULT_PHASE_STEPS: DefaultPhaseStep[] = [
-  // genesis_charter
-  {
-    phase: "genesis_charter",
-    stepIndex: 0,
-    slug: "ratify_league_charter",
-    kind: "event",
-  },
-
-  // genesis_franchise_establishment
-  {
-    phase: "genesis_franchise_establishment",
-    stepIndex: 0,
-    slug: "establish_franchises",
-    kind: "event",
-  },
-
   // genesis_staff_hiring
   {
     phase: "genesis_staff_hiring",

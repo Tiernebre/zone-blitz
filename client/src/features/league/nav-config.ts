@@ -8,7 +8,6 @@ import {
   LayersIcon,
   ListOrderedIcon,
   NewspaperIcon,
-  ScrollTextIcon,
   SearchIcon,
   TrophyIcon,
   UserPlusIcon,
@@ -51,7 +50,6 @@ function always(): boolean {
 
 const fromStaffHiring = fromPhaseOnward("genesis_staff_hiring");
 const fromAllocationDraft = fromPhaseOnward("genesis_allocation_draft");
-const fromEstablishment = fromPhaseOnward("genesis_franchise_establishment");
 const fromPreseason = fromPhaseOnward("preseason");
 const fromRegularSeason = fromPhaseOnward("regular_season");
 
@@ -70,7 +68,6 @@ const freeAgencyPhases = inPhases(
   "regular_season",
 );
 
-const genesisCharter = inPhases("genesis_charter");
 const genesisFoundingPool = inPhases("genesis_founding_pool");
 const genesisAllocationDraft = inPhases("genesis_allocation_draft");
 
@@ -144,12 +141,6 @@ export const navGroups: NavGroup[] = [
     label: "League",
     items: [
       {
-        label: "Charter",
-        path: "charter",
-        Icon: ScrollTextIcon,
-        visibleInPhases: genesisCharter,
-      },
-      {
         label: "Standings",
         path: "standings",
         Icon: TrophyIcon,
@@ -171,7 +162,7 @@ export const navGroups: NavGroup[] = [
         label: "Media",
         path: "media",
         Icon: NewspaperIcon,
-        visibleInPhases: fromEstablishment,
+        visibleInPhases: fromStaffHiring,
       },
     ],
   },
