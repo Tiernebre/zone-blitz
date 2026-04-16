@@ -102,12 +102,12 @@ Deno.test("personnel.service", async (t) => {
         },
       });
 
-      let coachesServiceInput:
-        | { leagueId: string; teamIds: string[] }
+      let poolInput:
+        | { leagueId: string; numberOfTeams: number }
         | undefined;
       const coachesService = createMockCoachesService({
-        generate: (input) => {
-          coachesServiceInput = input;
+        generatePool: (input) => {
+          poolInput = input;
           return Promise.resolve({ coachCount: 5 });
         },
       });
@@ -162,8 +162,8 @@ Deno.test("personnel.service", async (t) => {
       assertEquals(playersServiceInput?.rosterSize, 2);
       assertEquals(playersServiceInput?.salaryCap, 255_000_000);
 
-      assertEquals(coachesServiceInput?.leagueId, "l1");
-      assertEquals(coachesServiceInput?.teamIds, ["t1"]);
+      assertEquals(poolInput?.leagueId, "l1");
+      assertEquals(poolInput?.numberOfTeams, 1);
 
       assertEquals(scoutsServiceInput?.leagueId, "l1");
       assertEquals(scoutsServiceInput?.teamIds, ["t1"]);
@@ -190,7 +190,7 @@ Deno.test("personnel.service", async (t) => {
           },
         }),
         coachesService: createMockCoachesService({
-          generate: (_input, tx) => {
+          generatePool: (_input, tx) => {
             received.coaches = tx;
             return Promise.resolve({ coachCount: 0 });
           },
@@ -236,20 +236,19 @@ Deno.test("personnel.service", async (t) => {
   );
 
   await t.step(
-    "generate calls generatePool before team-assigned generation",
+    "generate creates only an unassigned candidate pool — does not pre-assign coaches to teams",
     async () => {
-      const callOrder: string[] = [];
+      let generateCalled = false;
       let poolInput:
         | { leagueId: string; numberOfTeams: number }
         | undefined;
       const coachesService = createMockCoachesService({
         generatePool: (input) => {
-          callOrder.push("pool");
           poolInput = input;
           return Promise.resolve({ coachCount: 10 });
         },
         generate: () => {
-          callOrder.push("generate");
+          generateCalled = true;
           return Promise.resolve({ coachCount: 5 });
         },
       });
@@ -263,7 +262,7 @@ Deno.test("personnel.service", async (t) => {
         log: createTestLogger(),
       });
 
-      await service.generate({
+      const result = await service.generate({
         leagueId: "l1",
         seasonId: "s1",
         teamIds: ["t1", "t2"],
@@ -271,9 +270,18 @@ Deno.test("personnel.service", async (t) => {
         salaryCap: 255_000_000,
       });
 
-      assertEquals(callOrder, ["pool", "generate"]);
+      assertEquals(
+        generateCalled,
+        false,
+        "coachesService.generate() must not be called — coaches should remain unassigned until explicitly hired",
+      );
       assertEquals(poolInput?.leagueId, "l1");
       assertEquals(poolInput?.numberOfTeams, 2);
+      assertEquals(
+        result.coachCount,
+        10,
+        "coachCount should reflect the candidate pool size",
+      );
     },
   );
 
