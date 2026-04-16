@@ -44,10 +44,7 @@ function FranchiseCard({
             <p className="text-base font-bold text-card-foreground truncate">
               {team.city}
             </p>
-            <p
-              className="text-lg font-extrabold tracking-tight truncate"
-              style={{ color: team.primaryColor }}
-            >
+            <p className="text-lg font-extrabold tracking-tight truncate text-muted-foreground">
               {team.name}
             </p>
           </div>
