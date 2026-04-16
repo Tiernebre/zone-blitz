@@ -61,6 +61,13 @@ export const submitOffersSchema: ZodObject<{
   offers: z.array(hiringOfferInputSchema).min(1),
 });
 
+export const resolveBlockerSchema: ZodObject<{
+  candidateId: ZodString;
+}> = z.object({
+  candidateId: z.string().uuid(),
+});
+
 export type ExpressInterestsInput = z.infer<typeof expressInterestsSchema>;
 export type RequestInterviewsInput = z.infer<typeof requestInterviewsSchema>;
 export type SubmitOffersInput = z.infer<typeof submitOffersSchema>;
+export type ResolveBlockerInput = z.infer<typeof resolveBlockerSchema>;

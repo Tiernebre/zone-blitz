@@ -231,11 +231,13 @@ export {
   hiringStaffTypeSchema,
   listCandidatesQuerySchema,
   requestInterviewsSchema,
+  resolveBlockerSchema,
   submitOffersSchema,
 } from "./schemas/staff-hiring.ts";
 export type {
   ExpressInterestsInput,
   RequestInterviewsInput,
+  ResolveBlockerInput,
   SubmitOffersInput,
 } from "./schemas/staff-hiring.ts";
 

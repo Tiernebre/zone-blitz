@@ -250,3 +250,12 @@ describe("navGroups", () => {
     });
   });
 });
+
+describe("Hiring nav item", () => {
+  it("is visible only in coaching_carousel phase", () => {
+    for (const phase of LEAGUE_PHASES) {
+      const visible = visibleLabels(phase).includes("Hiring");
+      expect(visible).toBe(phase === "coaching_carousel");
+    }
+  });
+});

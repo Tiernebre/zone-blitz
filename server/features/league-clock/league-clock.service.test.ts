@@ -1196,6 +1196,89 @@ Deno.test("league-clock.service", async (t) => {
         assertEquals(upsertedRow?.overrideBlockers, null);
       },
     );
+
+    await t.step(
+      "fires stepEffects.onTransition with prev and next slugs",
+      async () => {
+        const calls: Array<
+          { leagueId: string; prevStepSlug: string; nextStepSlug: string }
+        > = [];
+        const service = createLeagueClockService({
+          txRunner: createMockTxRunner(),
+          leagueClockRepo: createMockRepo({
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "coaching_carousel",
+                  stepIndex: 0,
+                }),
+              ),
+          }),
+          log: createTestLogger(),
+          stepEffects: {
+            onTransition: (input) => {
+              calls.push(input);
+              return Promise.resolve();
+            },
+          },
+        });
+
+        await service.advance(
+          "league-1",
+          createActor(),
+          createGateState(),
+        );
+
+        assertEquals(calls.length, 1);
+        assertEquals(calls[0].leagueId, "league-1");
+        assertEquals(calls[0].prevStepSlug, "coaching_firings");
+        assertEquals(calls[0].nextStepSlug, "hiring_market_survey");
+      },
+    );
+
+    await t.step(
+      "does not advance the clock when stepEffects throws",
+      async () => {
+        let upsertCalled = false;
+        const service = createLeagueClockService({
+          txRunner: createMockTxRunner(),
+          leagueClockRepo: createMockRepo({
+            getByLeagueId: () =>
+              Promise.resolve(
+                createMockClock({
+                  phase: "coaching_carousel",
+                  stepIndex: 0,
+                }),
+              ),
+            upsert: (row) => {
+              upsertCalled = true;
+              return Promise.resolve(
+                createMockClock({
+                  phase: row.phase,
+                  stepIndex: row.stepIndex,
+                }),
+              );
+            },
+          }),
+          log: createTestLogger(),
+          stepEffects: {
+            onTransition: () => Promise.reject(new Error("effect failed")),
+          },
+        });
+
+        await assertRejects(
+          () =>
+            service.advance(
+              "league-1",
+              createActor(),
+              createGateState(),
+            ),
+          Error,
+          "effect failed",
+        );
+        assertEquals(upsertCalled, false);
+      },
+    );
   });
 
   await t.step("getClockState", async (t) => {

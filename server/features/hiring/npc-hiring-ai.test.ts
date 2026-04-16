@@ -301,6 +301,20 @@ function stubService(overrides: Partial<HiringService> = {}): {
     getCandidateDetail: () => Promise.resolve(undefined),
     resolveCandidate: () => Promise.resolve(undefined),
     listDecisions: () => Promise.resolve([]),
+    getTeamBlockers: () =>
+      Promise.resolve({ missingCoachRoles: [], missingScoutRoles: [] }),
+    resolveBlocker: () =>
+      Promise.resolve({
+        id: crypto.randomUUID(),
+        leagueId: "lg",
+        staffType: "coach",
+        staffId: crypto.randomUUID(),
+        chosenOfferId: null,
+        wave: 99,
+        decidedAt: new Date(0),
+        createdAt: new Date(0),
+        updatedAt: new Date(0),
+      }),
   };
   return { service: { ...base, ...overrides }, calls };
 }
