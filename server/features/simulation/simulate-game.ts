@@ -1,3 +1,5 @@
+import type { SimLogger } from "./simulation-logger.ts";
+import { noopLogger } from "./simulation-logger.ts";
 import type { SeededRng } from "./rng.ts";
 import { createSeededRng } from "./rng.ts";
 import type {
@@ -85,6 +87,7 @@ export interface SimulationInput {
   seed: number;
   gameId?: string;
   isPlayoff?: boolean;
+  log?: SimLogger;
 }
 
 export interface ActiveRosters {
@@ -151,8 +154,19 @@ function promoteNextManUp(
 }
 
 export function simulateGame(input: SimulationInput): GameResult {
+  const log = (input.log ?? noopLogger).child({ module: "simulate-game" });
   const rng = createSeededRng(input.seed);
   const gameId = input.gameId ?? `game-${input.seed}`;
+
+  log.info(
+    {
+      gameId,
+      homeTeamId: input.home.teamId,
+      awayTeamId: input.away.teamId,
+      seed: input.seed,
+    },
+    "game started",
+  );
 
   const events: PlayEvent[] = [];
 
@@ -254,7 +268,29 @@ export function simulateGame(input: SimulationInput): GameResult {
     events.push(result.event);
     incrementGlobalPlayIndex(state);
 
+    log.debug(
+      {
+        gameId,
+        quarter: state.quarter,
+        kickingTeamId,
+        receivingTeamId,
+        startingYardLine: result.startingYardLine,
+        isReturnTd: result.isReturnTouchdown,
+        isOnsideRecovery: result.isOnsideRecovery,
+      },
+      "kickoff",
+    );
+
     if (result.isReturnTouchdown) {
+      log.info(
+        {
+          gameId,
+          quarter: state.quarter,
+          teamId: receivingTeamId,
+          type: "kickoff_return_td",
+        },
+        "touchdown scored",
+      );
       addScore(state, receivingSide, 6);
 
       doConversion(receivingTeamId);
@@ -267,11 +303,30 @@ export function simulateGame(input: SimulationInput): GameResult {
     if (result.isOnsideRecovery) {
       setPossession(state, kickingSide);
       startNewDrive(state, result.startingYardLine);
+      log.debug(
+        {
+          gameId,
+          driveIndex: state.driveIndex,
+          teamId: kickingTeamId,
+          yardLine: result.startingYardLine,
+          onsideRecovery: true,
+        },
+        "drive started",
+      );
       return;
     }
 
     setPossession(state, receivingSide);
     startNewDrive(state, result.startingYardLine);
+    log.debug(
+      {
+        gameId,
+        driveIndex: state.driveIndex,
+        teamId: receivingTeamId,
+        yardLine: result.startingYardLine,
+      },
+      "drive started",
+    );
   }
 
   function buildGameState(): GameState {
@@ -351,6 +406,16 @@ export function simulateGame(input: SimulationInput): GameResult {
     };
     const conversionEvents = resolveConversion(ctx, rng);
     events.push(...conversionEvents);
+
+    log.debug(
+      {
+        gameId,
+        quarter: state.quarter,
+        scoringTeamId,
+        type: conversionEvents[0]?.outcome ?? "unknown",
+      },
+      "conversion attempt",
+    );
   }
 
   function handleScoring(event: PlayEvent): boolean {
@@ -360,11 +425,33 @@ export function simulateGame(input: SimulationInput): GameResult {
     addScore(state, result.scoringTeamSide!, result.points!);
 
     if (result.type === "safety") {
+      log.info(
+        {
+          gameId,
+          quarter: state.quarter,
+          teamId: result.scoringTeamId,
+          homeScore: state.homeScore,
+          awayScore: state.awayScore,
+        },
+        "safety scored",
+      );
       performKickoff(result.kickoffSide!, { isSafetyKick: result.safetyKick });
       return true;
     }
 
     // TD or return TD
+    const tdType = result.type === "return_td" ? "return_td" : "touchdown";
+    log.info(
+      {
+        gameId,
+        quarter: state.quarter,
+        teamId: result.scoringTeamId,
+        type: tdType,
+        homeScore: state.homeScore,
+        awayScore: state.awayScore,
+      },
+      "touchdown scored",
+    );
     doConversion(result.scoringTeamId!);
     performKickoff(result.kickoffSide!);
     return true;
@@ -427,8 +514,29 @@ export function simulateGame(input: SimulationInput): GameResult {
       const kickingSide: "home" | "away" =
         currentOffenseTeamId() === input.home.teamId ? "home" : "away";
       addScore(state, kickingSide, 3);
+      log.info(
+        {
+          gameId,
+          quarter: state.quarter,
+          teamId: currentOffenseTeamId(),
+          yardLine: state.yardLine,
+          homeScore: state.homeScore,
+          awayScore: state.awayScore,
+        },
+        "field goal made",
+      );
       performKickoff(kickingSide);
     } else {
+      log.debug(
+        {
+          gameId,
+          quarter: state.quarter,
+          teamId: currentOffenseTeamId(),
+          yardLine: state.yardLine,
+          blocked: fgResult.blocked,
+        },
+        "field goal missed",
+      );
       switchPossession(state);
       startNewDrive(state, fgResult.defenseYardLine);
     }
@@ -542,6 +650,19 @@ export function simulateGame(input: SimulationInput): GameResult {
       aggressiveness: offenseTeam.coachingMods.aggressiveness,
     }, rng);
 
+    log.debug(
+      {
+        gameId,
+        quarter: state.quarter,
+        decision,
+        yardsToEndzone,
+        distance: state.distance,
+        scoreDifferential: offenseScore - defenseScore,
+        teamId: currentOffenseTeamId(),
+      },
+      "fourth down decision",
+    );
+
     if (decision === "go") {
       return false;
     }
@@ -624,11 +745,50 @@ export function simulateGame(input: SimulationInput): GameResult {
       if (timeoutSide) {
         useTimeout(state, timeoutSide);
         event.tags.push("timeout");
+        log.debug(
+          {
+            gameId,
+            quarter: state.quarter,
+            side: timeoutSide,
+            clock: formatClock(state.clock),
+          },
+          "timeout called",
+        );
       }
     }
 
     processInjury(event);
     events.push(event);
+
+    log.debug(
+      {
+        gameId,
+        quarter: state.quarter,
+        clock: formatClock(state.clock),
+        down: state.down,
+        distance: state.distance,
+        yardLine: state.yardLine,
+        outcome: event.outcome,
+        yardage: event.yardage,
+        offenseTeamId: event.offenseTeamId,
+        concept: event.call.concept,
+      },
+      "play resolved",
+    );
+
+    if (event.penalty) {
+      log.debug(
+        {
+          gameId,
+          quarter: state.quarter,
+          type: event.penalty.type,
+          yardage: event.penalty.yardage,
+          accepted: event.penalty.accepted,
+          againstTeamId: event.penalty.againstTeamId,
+        },
+        "penalty",
+      );
+    }
 
     recordPlay(state);
 
@@ -644,7 +804,20 @@ export function simulateGame(input: SimulationInput): GameResult {
     }
 
     if (handleScoring(event)) return true;
-    if (handleTurnover(state, event)) return true;
+
+    if (handleTurnover(state, event)) {
+      log.debug(
+        {
+          gameId,
+          quarter: state.quarter,
+          outcome: event.outcome,
+          offenseTeamId: event.offenseTeamId,
+          yardLine: state.yardLine,
+        },
+        "turnover",
+      );
+      return true;
+    }
 
     advanceDowns(state, event.yardage);
 
@@ -652,6 +825,15 @@ export function simulateGame(input: SimulationInput): GameResult {
     // Cast needed: advanceDowns mutates down through the state-manager,
     // but TypeScript narrows state.down to 4 inside the isFourthDownAttempt guard.
     if (isFourthDownAttempt && (state.down as number) !== 1) {
+      log.debug(
+        {
+          gameId,
+          quarter: state.quarter,
+          offenseTeamId: event.offenseTeamId,
+          yardLine: state.yardLine,
+        },
+        "turnover on downs",
+      );
       const turnoverYardLine = Math.max(
         1,
         Math.min(99, state.yardLine),
@@ -672,6 +854,15 @@ export function simulateGame(input: SimulationInput): GameResult {
     q = (q + 1) as 1 | 2 | 3 | 4
   ) {
     setQuarter(state, q, QUARTER_SECONDS);
+    log.info(
+      {
+        gameId,
+        quarter: q,
+        homeScore: state.homeScore,
+        awayScore: state.awayScore,
+      },
+      "quarter started",
+    );
 
     if (q === 3) {
       resetHalfTimeouts(state);
@@ -690,6 +881,15 @@ export function simulateGame(input: SimulationInput): GameResult {
   if (state.homeScore === state.awayScore) {
     const isPlayoff = input.isPlayoff ?? false;
     setQuarter(state, "OT", OT_SECONDS);
+    log.info(
+      {
+        gameId,
+        homeScore: state.homeScore,
+        awayScore: state.awayScore,
+        isPlayoff,
+      },
+      "overtime started",
+    );
 
     const otCoinFlip: "home" | "away" = rng.next() < 0.5 ? "home" : "away";
     setPossession(state, otCoinFlip);
@@ -739,6 +939,16 @@ export function simulateGame(input: SimulationInput): GameResult {
       }
     }
   }
+
+  log.info(
+    {
+      gameId,
+      homeScore: state.homeScore,
+      awayScore: state.awayScore,
+      totalPlays: events.length,
+    },
+    "game ended",
+  );
 
   return {
     gameId,

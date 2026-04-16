@@ -1,6 +1,12 @@
-import { assertEquals, assertGreater, assertLessOrEqual } from "@std/assert";
+import {
+  assertEquals,
+  assertExists,
+  assertGreater,
+  assertLessOrEqual,
+} from "@std/assert";
 import { simulateSeason } from "./simulate-season.ts";
 import { computeSeasonAggregates } from "./season-aggregates.ts";
+import { createSpyLogger } from "./simulation-logger.test.ts";
 
 // NFL target bands from game-simulation north-star.
 // Current engine does not hit all targets; these serve as the tuning yardstick.
@@ -144,6 +150,78 @@ Deno.test("simulateSeason aggregates land inside regression bands", () => {
     REGRESSION_BANDS.turnoversPerTeamPerGame,
     "TO/team/game",
   );
+});
+
+Deno.test("simulateSeason logging: accepts optional logger without changing results", () => {
+  const { logger } = createSpyLogger();
+  const without = simulateSeason({
+    leagueSeed: 42,
+    teamCount: 4,
+    gamesPerTeam: 3,
+  });
+  const withLog = simulateSeason({
+    leagueSeed: 42,
+    teamCount: 4,
+    gamesPerTeam: 3,
+    log: logger,
+  });
+
+  assertEquals(withLog.results.length, without.results.length);
+  for (let i = 0; i < without.results.length; i++) {
+    assertEquals(withLog.results[i].finalScore, without.results[i].finalScore);
+  }
+});
+
+Deno.test("simulateSeason logging: emits season start and end info logs", () => {
+  const { logger, calls } = createSpyLogger();
+  simulateSeason({
+    leagueSeed: 42,
+    teamCount: 4,
+    gamesPerTeam: 3,
+    log: logger,
+  });
+
+  const startLogs = calls.filter((c) => c.msg === "season simulation started");
+  const endLogs = calls.filter((c) => c.msg === "season simulation ended");
+  assertEquals(startLogs.length, 1);
+  assertEquals(startLogs[0].level, "info");
+  assertExists(startLogs[0].obj.teamCount);
+  assertEquals(endLogs.length, 1);
+  assertEquals(endLogs[0].level, "info");
+  assertExists(endLogs[0].obj.elapsedMs);
+  assertExists(endLogs[0].obj.totalGames);
+});
+
+Deno.test("simulateSeason logging: emits week progress debug logs", () => {
+  const { logger, calls } = createSpyLogger();
+  simulateSeason({
+    leagueSeed: 42,
+    teamCount: 4,
+    gamesPerTeam: 3,
+    log: logger,
+  });
+
+  const weekLogs = calls.filter((c) => c.msg === "week simulated");
+  assertGreater(weekLogs.length, 0);
+  assertEquals(weekLogs[0].level, "debug");
+  assertExists(weekLogs[0].obj.week);
+  assertExists(weekLogs[0].obj.gamesInWeek);
+});
+
+Deno.test("simulateSeason logging: passes logger to individual games", () => {
+  const { logger, calls } = createSpyLogger();
+  simulateSeason({
+    leagueSeed: 42,
+    teamCount: 4,
+    gamesPerTeam: 3,
+    log: logger,
+  });
+
+  // Each game should emit "game started" and "game ended"
+  const gameStartLogs = calls.filter((c) => c.msg === "game started");
+  const gameEndLogs = calls.filter((c) => c.msg === "game ended");
+  assertGreater(gameStartLogs.length, 0);
+  assertEquals(gameStartLogs.length, gameEndLogs.length);
 });
 
 Deno.test("PERF: NFL-band calibration report measures distance to NFL targets", () => {

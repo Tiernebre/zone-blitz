@@ -8,11 +8,14 @@ import type { CoachingMods, PlayerRuntime } from "./resolve-play.ts";
 import { createSeededRng, deriveGameSeed } from "./rng.ts";
 import type { SeededRng } from "./rng.ts";
 import { type SimTeam, simulateGame } from "./simulate-game.ts";
+import type { SimLogger } from "./simulation-logger.ts";
+import { noopLogger } from "./simulation-logger.ts";
 
 export interface SeasonInput {
   leagueSeed: number;
   teamCount?: number;
   gamesPerTeam?: number;
+  log?: SimLogger;
 }
 
 export interface SeasonResult {
@@ -240,6 +243,7 @@ function generateSchedule(
 
 export function simulateSeason(input: SeasonInput): SeasonResult {
   const { leagueSeed, teamCount = 32, gamesPerTeam = 17 } = input;
+  const log = (input.log ?? noopLogger).child({ module: "simulate-season" });
   const setupRng = createSeededRng(leagueSeed);
 
   const teams: SimTeam[] = [];
@@ -248,6 +252,12 @@ export function simulateSeason(input: SeasonInput): SeasonResult {
   }
 
   const schedule = generateSchedule(teamCount, gamesPerTeam);
+  const gamesPerWeek = teamCount / 2;
+
+  log.info(
+    { leagueSeed, teamCount, gamesPerTeam, totalGames: schedule.length },
+    "season simulation started",
+  );
 
   const start = performance.now();
   const results: GameResult[] = [];
@@ -261,11 +271,34 @@ export function simulateSeason(input: SeasonInput): SeasonResult {
       away: teams[away],
       seed: gameSeed,
       gameId,
+      log: input.log,
     });
     results.push(result);
+
+    // Log week completion at the end of each week
+    if ((i + 1) % gamesPerWeek === 0 || i === schedule.length - 1) {
+      const week = Math.floor(i / gamesPerWeek) + 1;
+      const weekGames = Math.min(
+        gamesPerWeek,
+        (i + 1) - (week - 1) * gamesPerWeek,
+      );
+      log.debug(
+        { week, gamesInWeek: weekGames, totalCompleted: i + 1 },
+        "week simulated",
+      );
+    }
   }
 
   const elapsedMs = performance.now() - start;
+
+  log.info(
+    {
+      leagueSeed,
+      totalGames: results.length,
+      elapsedMs: Math.round(elapsedMs),
+    },
+    "season simulation ended",
+  );
 
   return { results, elapsedMs };
 }
