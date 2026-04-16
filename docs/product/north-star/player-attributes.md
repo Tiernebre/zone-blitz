@@ -636,9 +636,3 @@ attributes. This creates market inefficiencies:
   undervalued
 
 Exploiting these inefficiencies is a core GM skill.
-
----
-
-## Related decisions
-
-- [0026 — Founding player pool composition and attribute normalization](../decisions/0026-founding-pool-composition-and-attribute-normalization.md)

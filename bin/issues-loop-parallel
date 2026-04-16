@@ -19,9 +19,8 @@
 # with ties broken by creation date (oldest first). Regular issues follow
 # in the same creation-date order.
 #
-# Source of truth is GitHub Issues with the `ready-for-agent` label (filed
-# by /file-adr-tickets from an Accepted ADR, or opened ad-hoc for follow-up
-# work). Dependencies (`Depends on #N`) are honored via the
+# Source of truth is GitHub Issues with the `ready-for-agent` label (opened
+# ad-hoc for follow-up work). Dependencies (`Depends on #N`) are honored via the
 # `blocked` label: the dispatcher only picks up `ready-for-agent` issues,
 # and after a worker merges its PR it sweeps for open issues that depend
 # on the one it just closed, flipping `blocked` → `ready-for-agent` when

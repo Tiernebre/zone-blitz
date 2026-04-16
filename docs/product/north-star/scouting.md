@@ -811,8 +811,7 @@ specific points:
   back-end vets, middling pros) that no scouting methodology has ever calibrated
   against. Gems and busts are more frequent here than in any later evaluation
   cycle. The scouting window between founding pool generation and the allocation
-  draft is a dedicated multi-week phase — see
-  [0034 — Genesis draft scouting phase](../decisions/0034-genesis-draft-scouting-phase.md).
+  draft is a dedicated multi-week phase.
 - **The first rookie-class scouting cycle runs through Year 1.** While the
   league is playing its inaugural season, your scouts are evaluating the rookie
   class that will be drafted in the Year 2 offseason — the first true rookie

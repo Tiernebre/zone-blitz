@@ -90,9 +90,7 @@ are about declaration, not management.
 
 There is no alternate creation flow. Zone Blitz does not offer a "jump into a
 mature league with fictional history" mode. Every league — single-player or
-multiplayer — begins at genesis and earns its history one season at a time. See
-[0021 — Deprecate established mode](../decisions/0021-deprecate-established-mode.md)
-for the decision that retired the old dual-path framing.
+multiplayer — begins at genesis and earns its history one season at a time.
 
 ---
 
@@ -215,9 +213,7 @@ around. None of it was pre-generated. All of it happened at your table.
 
 The founding of a league proceeds through an ordered sequence of phases. Each
 phase unlocks the next. Phases are distinct from the regular-season state
-machine (see
-[0014 — Season calendar and phase state machine](../decisions/0014-season-calendar-phase-state-machine.md))
-— they run exactly once, before the league's first preseason.
+machine — they run exactly once, before the league's first preseason.
 
 ### Phase 1: League charter
 
@@ -459,9 +455,7 @@ phases do not recur. Expansion cycles, when they happen, insert themselves into
 the normal offseason rather than creating a special founding-like window.
 
 This distinction matters for the UI and the state machine: Year 1's phases are a
-one-time sequence, not a recurring offseason template. See
-[0014 — Season calendar and phase state machine](../decisions/0014-season-calendar-phase-state-machine.md)
-for how this should be modeled.
+one-time sequence, not a recurring offseason template.
 
 ---
 
@@ -797,22 +791,3 @@ season coverage patterns. See [Media](./media.md).
 - "There was no preseason in Year 1 — the league didn't have one yet. We went
   straight from training camp into a Week 1 that nobody had a read on. Half the
   league's depth charts looked nothing like what people expected."
-
-## Related decisions
-
-- [0017 — League genesis as the default creation flow](../decisions/0017-league-genesis-default-creation-flow.md)
-  (superseded by 0021)
-- [0018 — Genesis phase state machine](../decisions/0018-genesis-phase-state-machine.md)
-- [0019 — Inaugural Year 1 calendar (no preseason)](../decisions/0019-inaugural-year-one-calendar.md)
-- [0021 — Deprecate established mode; genesis is the only creation flow](../decisions/0021-deprecate-established-mode.md)
-- [0022 — Fused owner/GM role as canonical](../decisions/0022-fused-owner-gm-role.md)
-- [0023 — Contested staff hiring market](../decisions/0023-contested-staff-hiring-market.md)
-- [0024 — Allocation draft as Year 1's only draft](../decisions/0024-allocation-draft-as-year-one-only-draft.md)
-- [0025 — Expansion by ownership vote](../decisions/0025-expansion-by-ownership-vote.md)
-- [0026 — Founding player pool composition and attribute normalization](../decisions/0026-founding-pool-composition-and-attribute-normalization.md)
-- [0027 — MVP league creation wizard scope](../decisions/0027-mvp-league-creation-wizard.md)
-- [0028 — Readonly league settings in MVP creation wizard](../decisions/0028-readonly-league-settings-mvp.md)
-- [0029 — Default 8 founding franchises with no count selector in MVP](../decisions/0029-eight-team-default-no-count-selector.md)
-- [0030 — Synchronous league generation with progress UI](../decisions/0030-synchronous-league-generation-with-progress-ui.md)
-- [0031 — Post-generation landing on the first in-dashboard genesis phase](../decisions/0031-post-generation-land-in-first-genesis-phase.md)
-- [0034 — Genesis draft scouting phase](../decisions/0034-genesis-draft-scouting-phase.md)

@@ -83,8 +83,6 @@ jobs:
           \`\`\`
           ${REPORT}
           \`\`\`
-
-          See [ADR 0021](docs/product/decisions/0021-sim-calibration-harness.md) for the failure contract.
           EOF
           )
 

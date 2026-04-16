@@ -181,10 +181,6 @@ itself. A league full of gimmick deals is the signature sound of Cap Hell — a
 lot of noise in the press, a lot of short-term rentals on the field, a lot of
 bills coming due on the same day three years from now.
 
-See [ADR 0016](../decisions/0016-contract-structure.md) for the data model and
-pure-function shape — `computeCapHit`, `computeDeadCap`, `computeHeadlineValue`
-— that make this archetype expressible in v1.
-
 ---
 
 ## Cap Manipulation Tools

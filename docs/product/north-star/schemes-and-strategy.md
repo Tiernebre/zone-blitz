@@ -1551,10 +1551,3 @@ your roster. The coordinator you pick in Phase 3 is betting on the players
 you'll draft in Phase 5, and the founding-pool archetypes (raw college athletes,
 practice-squad journeymen, back-end vets, middling pros) won't all fit every
 scheme equally.
-
----
-
-## Related decisions
-
-- [0005 — Remove the standalone Schemes page; surface scheme as emergent](../decisions/0005-schemes-page-removal.md)
-- [0007 — Coaching scheme implementation: tendency vectors on coordinators](../decisions/0007-coaching-scheme-implementation.md)
