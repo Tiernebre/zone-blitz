@@ -82,6 +82,156 @@ export interface StepTransitionEffects {
   }): Promise<void>;
 }
 
+interface TargetStep {
+  seasonYear: number;
+  phase: string;
+  stepIndex: number;
+  looped: boolean;
+}
+
+interface GateOutcome {
+  overrideReason: string | null;
+  overrideBlockers: Blocker[] | null;
+  autoResolved: Blocker[];
+}
+
+const ROLLOVER_PHASE = "offseason_rollover";
+const INITIAL_PHASE_PREFIX = "initial_";
+const INITIAL_KICKOFF_PHASE = "initial_kickoff";
+// Year 1 skips the offseason and kicks off directly into the regular
+// season, so the kickoff redirect does not use firstRecurringPhase
+// (which is the chronologically-first recurring phase, the offseason).
+const KICKOFF_TARGET_PHASE = "regular_season";
+
+function assertReadyCheckComplete(
+  actor: Actor,
+  readyCheckState: ReadyCheckState | undefined,
+): void {
+  const policy = readyCheckState?.policy ?? "commissioner";
+  if (policy !== "ready_check" || actor.isCommissioner) return;
+
+  const voted = new Set(readyCheckState!.votedTeamIds);
+  const allReady = readyCheckState!.activeHumanTeamIds.every((id) =>
+    voted.has(id)
+  );
+  if (!allReady) {
+    throw new DomainError(
+      "READY_CHECK_INCOMPLETE",
+      "Not all active human teams have voted ready",
+    );
+  }
+}
+
+function computeTargetStep(
+  clock: { phase: string; stepIndex: number; seasonYear: number },
+  phases: readonly string[],
+  firstRecurringPhase: string,
+): TargetStep {
+  const rolloverSteps = DEFAULT_PHASE_STEPS.filter(
+    (s) => s.phase === ROLLOVER_PHASE,
+  );
+  const rolloverMaxStep = Math.max(
+    ...rolloverSteps.map((s) => s.stepIndex),
+  );
+  const isAtRolloverEnd = clock.phase === ROLLOVER_PHASE &&
+    clock.stepIndex === rolloverMaxStep;
+
+  if (isAtRolloverEnd) {
+    return {
+      seasonYear: clock.seasonYear + 1,
+      phase: firstRecurringPhase,
+      stepIndex: 0,
+      looped: true,
+    };
+  }
+
+  const next = computeNextStep(
+    { phase: clock.phase, stepIndex: clock.stepIndex },
+    DEFAULT_PHASE_STEPS,
+    phases,
+  );
+  if (!next) {
+    throw new DomainError(
+      "INVALID_STATE",
+      "League clock is at the final step and cannot advance further",
+    );
+  }
+  return {
+    seasonYear: clock.seasonYear,
+    phase: next.phase,
+    stepIndex: next.stepIndex,
+    looped: false,
+  };
+}
+
+// Year 1's final initial step (`initial_kickoff`) hands off to the
+// first recurring phase rather than the natural next step, because
+// recurring phases don't share an ordering with initial ones.
+function redirectKickoffToRecurring(
+  clock: { phase: string },
+  target: TargetStep,
+): { target: TargetStep; setInitialComplete: true | undefined } {
+  const isLeavingInitial = clock.phase === INITIAL_KICKOFF_PHASE &&
+    !target.phase.startsWith(INITIAL_PHASE_PREFIX);
+  if (!isLeavingInitial) {
+    return { target, setInitialComplete: undefined };
+  }
+  return {
+    target: { ...target, phase: KICKOFF_TARGET_PHASE, stepIndex: 0 },
+    setInitialComplete: true,
+  };
+}
+
+function resolveGateOutcome(
+  targetPhase: string,
+  gateState: LeagueGateState,
+  actor: Actor,
+  log: pino.Logger,
+  leagueId: string,
+): GateOutcome {
+  const gate = getGateForPhase(targetPhase);
+  if (!gate) {
+    return { overrideReason: null, overrideBlockers: null, autoResolved: [] };
+  }
+  const gateResult: GateResult = gate(gateState);
+  if (gateResult.ok) {
+    return { overrideReason: null, overrideBlockers: null, autoResolved: [] };
+  }
+
+  const { resolved, remaining } = resolveAutoBlockers(gateResult);
+  if (remaining.length === 0) {
+    return {
+      overrideReason: null,
+      overrideBlockers: null,
+      autoResolved: resolved,
+    };
+  }
+
+  if (!actor.isCommissioner || !actor.overrideReason) {
+    throw new DomainError(
+      "GATE_BLOCKED",
+      `Cannot advance to ${targetPhase}: ${
+        remaining.map((b) => b.reason).join("; ")
+      }`,
+    );
+  }
+
+  log.warn(
+    {
+      leagueId,
+      phase: targetPhase,
+      overrideReason: actor.overrideReason,
+      blockerCount: remaining.length,
+    },
+    "commissioner override",
+  );
+  return {
+    overrideReason: actor.overrideReason,
+    overrideBlockers: remaining,
+    autoResolved: resolved,
+  };
+}
+
 export function createLeagueClockService(deps: {
   txRunner: TransactionRunner;
   leagueClockRepo: LeagueClockRepository;
@@ -125,19 +275,7 @@ export function createLeagueClockService(deps: {
     async advance(leagueId, actor, gateState, readyCheckState?) {
       log.info({ leagueId, userId: actor.userId }, "advancing league clock");
 
-      const policy = readyCheckState?.policy ?? "commissioner";
-      if (policy === "ready_check" && !actor.isCommissioner) {
-        const voted = new Set(readyCheckState!.votedTeamIds);
-        const allReady = readyCheckState!.activeHumanTeamIds.every((id) =>
-          voted.has(id)
-        );
-        if (!allReady) {
-          throw new DomainError(
-            "READY_CHECK_INCOMPLETE",
-            "Not all active human teams have voted ready",
-          );
-        }
-      }
+      assertReadyCheckComplete(actor, readyCheckState);
 
       const clock = await deps.leagueClockRepo.getByLeagueId(leagueId);
       if (!clock) {
@@ -147,49 +285,21 @@ export function createLeagueClockService(deps: {
         );
       }
 
-      let looped = false;
-      let seasonYear = clock.seasonYear;
-      let targetPhase: string;
-      let targetStepIndex: number;
-
-      const rolloverSteps = DEFAULT_PHASE_STEPS.filter(
-        (s) => s.phase === "offseason_rollover",
+      const initialTarget = computeTargetStep(
+        clock,
+        phases,
+        firstRecurringPhase,
       );
-      const rolloverMaxStep = Math.max(
-        ...rolloverSteps.map((s) => s.stepIndex),
-      );
-      const isAtRolloverEnd = clock.phase === "offseason_rollover" &&
-        clock.stepIndex === rolloverMaxStep;
-
-      if (isAtRolloverEnd) {
-        seasonYear = clock.seasonYear + 1;
-        targetPhase = firstRecurringPhase;
-        targetStepIndex = 0;
-        looped = true;
+      if (initialTarget.looped) {
         log.info(
-          { leagueId, newSeasonYear: seasonYear },
+          { leagueId, newSeasonYear: initialTarget.seasonYear },
           "offseason rollover: looping to new season",
         );
-      } else {
-        const next = computeNextStep(
-          { phase: clock.phase, stepIndex: clock.stepIndex },
-          DEFAULT_PHASE_STEPS,
-          phases,
-        );
-
-        if (!next) {
-          throw new DomainError(
-            "INVALID_STATE",
-            "League clock is at the final step and cannot advance further",
-          );
-        }
-
-        targetPhase = next.phase;
-        targetStepIndex = next.stepIndex;
       }
 
       if (
-        targetPhase.startsWith("initial_") && clock.hasCompletedInitial
+        initialTarget.phase.startsWith(INITIAL_PHASE_PREFIX) &&
+        clock.hasCompletedInitial
       ) {
         throw new DomainError(
           "INITIAL_COMPLETED",
@@ -197,54 +307,21 @@ export function createLeagueClockService(deps: {
         );
       }
 
-      const isLeavingInitial = clock.phase === "initial_kickoff" &&
-        !targetPhase.startsWith("initial_");
-      const setInitialComplete = isLeavingInitial ? true : undefined;
+      const { target, setInitialComplete } = redirectKickoffToRecurring(
+        clock,
+        initialTarget,
+      );
 
-      if (isLeavingInitial) {
-        targetPhase = "regular_season";
-        targetStepIndex = 0;
-      }
-
-      const gate = getGateForPhase(targetPhase);
-      let overrideReason: string | null = null;
-      let overrideBlockers: Blocker[] | null = null;
-      let autoResolved: Blocker[] = [];
-
-      if (gate) {
-        const gateResult: GateResult = gate(gateState);
-
-        if (!gateResult.ok) {
-          const { resolved, remaining } = resolveAutoBlockers(gateResult);
-          autoResolved = resolved;
-
-          if (remaining.length > 0) {
-            if (!actor.isCommissioner || !actor.overrideReason) {
-              throw new DomainError(
-                "GATE_BLOCKED",
-                `Cannot advance to ${targetPhase}: ${
-                  remaining.map((b) => b.reason).join("; ")
-                }`,
-              );
-            }
-
-            overrideReason = actor.overrideReason;
-            overrideBlockers = remaining;
-            log.warn(
-              {
-                leagueId,
-                phase: targetPhase,
-                overrideReason,
-                blockerCount: remaining.length,
-              },
-              "commissioner override",
-            );
-          }
-        }
-      }
+      const gateOutcome = resolveGateOutcome(
+        target.phase,
+        gateState,
+        actor,
+        log,
+        leagueId,
+      );
 
       const targetStep = DEFAULT_PHASE_STEPS.find(
-        (s) => s.phase === targetPhase && s.stepIndex === targetStepIndex,
+        (s) => s.phase === target.phase && s.stepIndex === target.stepIndex,
       );
 
       if (deps.stepEffects) {
@@ -262,12 +339,12 @@ export function createLeagueClockService(deps: {
         const row = await deps.leagueClockRepo.upsert(
           {
             leagueId,
-            seasonYear,
-            phase: targetPhase,
-            stepIndex: targetStepIndex,
+            seasonYear: target.seasonYear,
+            phase: target.phase,
+            stepIndex: target.stepIndex,
             advancedByUserId: actor.userId,
-            overrideReason,
-            overrideBlockers,
+            overrideReason: gateOutcome.overrideReason,
+            overrideBlockers: gateOutcome.overrideBlockers,
             hasCompletedInitial: setInitialComplete,
           },
           tx,
@@ -283,8 +360,8 @@ export function createLeagueClockService(deps: {
           advancedAt: row.advancedAt,
           overrideReason: row.overrideReason,
           overrideBlockers: row.overrideBlockers,
-          autoResolved,
-          looped,
+          autoResolved: gateOutcome.autoResolved,
+          looped: target.looped,
         };
       });
     },
