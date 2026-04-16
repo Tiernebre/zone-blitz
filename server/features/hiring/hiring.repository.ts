@@ -94,6 +94,9 @@ export interface UnassignedCandidate {
   firstName: string;
   lastName: string;
   role: string;
+  /** Coach specialty (e.g. `offense`, `defense`, `ceo`, `quarterbacks`).
+   * Null when the row represents a scout. */
+  specialty: string | null;
   marketTierPref: number | null;
   philosophyFitPref: number | null;
   staffFitPref: number | null;
@@ -610,6 +613,7 @@ export function createHiringRepository(deps: {
           firstName: coaches.firstName,
           lastName: coaches.lastName,
           role: coaches.role,
+          specialty: coaches.specialty,
           marketTierPref: coaches.marketTierPref,
           philosophyFitPref: coaches.philosophyFitPref,
           staffFitPref: coaches.staffFitPref,
@@ -620,7 +624,11 @@ export function createHiringRepository(deps: {
         .where(
           and(eq(coaches.leagueId, leagueId), isNull(coaches.teamId)),
         );
-      return rows.map((r) => ({ ...r, role: r.role as string }));
+      return rows.map((r) => ({
+        ...r,
+        role: r.role as string,
+        specialty: (r.specialty as string | null) ?? null,
+      }));
     },
 
     async listUnassignedScouts(leagueId, tx) {
@@ -641,7 +649,11 @@ export function createHiringRepository(deps: {
         .where(
           and(eq(scouts.leagueId, leagueId), isNull(scouts.teamId)),
         );
-      return rows.map((r) => ({ ...r, role: r.role as string }));
+      return rows.map((r) => ({
+        ...r,
+        role: r.role as string,
+        specialty: null as string | null,
+      }));
     },
 
     async getCandidateScoringContext(staffType, staffId, tx) {

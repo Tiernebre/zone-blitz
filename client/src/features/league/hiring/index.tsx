@@ -43,7 +43,11 @@ import {
 } from "../../../hooks/use-hiring.ts";
 import { useStaffTree } from "../../../hooks/use-staff-tree.ts";
 import { useScoutStaffTree } from "../../../hooks/use-scout-staff-tree.ts";
-import { roleLabel } from "../role-labels.ts";
+import { coachBackgroundLabel, roleLabel } from "../role-labels.ts";
+import {
+  defensiveArchetypeLabel,
+  offensiveArchetypeLabel,
+} from "@zone-blitz/shared";
 import { bandFor, formatMoney, medianSalary } from "./salary-bands.ts";
 import { stepDescription, stepHeadline, stepViewFor } from "./step-view.ts";
 
@@ -836,6 +840,7 @@ function StaffTypeTabs(
       <TabsContent value="coach">
         <CandidateDataTable
           candidates={coaches}
+          staffType="coach"
           leagueId={leagueId}
           renderAction={renderAction}
           testId={`${testIdPrefix}-coach-table`}
@@ -846,6 +851,7 @@ function StaffTypeTabs(
       <TabsContent value="scout">
         <CandidateDataTable
           candidates={scouts}
+          staffType="scout"
           leagueId={leagueId}
           renderAction={renderAction}
           testId={`${testIdPrefix}-scout-table`}
@@ -860,10 +866,23 @@ function StaffTypeTabs(
 type CandidateRow = HiringCandidateSummary & {
   fullName: string;
   displayRole: string;
+  background: string;
+  schemeLabel: string;
   bandMin: number;
   bandMax: number;
   medianSalary: number;
 };
+
+function schemeLabelFor(c: HiringCandidateSummary): string {
+  if (c.staffType !== "coach") return "—";
+  if (c.role === "HC" && c.specialty === "ceo") {
+    return "Defers to coordinators";
+  }
+  const offense = offensiveArchetypeLabel(c.offensiveArchetype);
+  const defense = defensiveArchetypeLabel(c.defensiveArchetype);
+  if (offense && defense) return `${defense}; ${offense}`;
+  return offense ?? defense ?? "—";
+}
 
 function toRows(candidates: HiringCandidateSummary[]): CandidateRow[] {
   return candidates.map((c) => {
@@ -872,6 +891,10 @@ function toRows(candidates: HiringCandidateSummary[]): CandidateRow[] {
       ...c,
       fullName: `${c.firstName} ${c.lastName}`,
       displayRole: roleLabel(c.staffType, c.role),
+      background: c.staffType === "coach"
+        ? coachBackgroundLabel(c.role, c.specialty)
+        : "—",
+      schemeLabel: schemeLabelFor(c),
       bandMin: band.min,
       bandMax: band.max,
       medianSalary: medianSalary(c.staffType, c.role),
@@ -882,8 +905,9 @@ function toRows(candidates: HiringCandidateSummary[]): CandidateRow[] {
 function buildCandidateColumns(
   leagueId: string,
   renderAction: (c: HiringCandidateSummary) => React.ReactNode,
+  staffType: "coach" | "scout",
 ): ColumnDef<CandidateRow>[] {
-  return [
+  const cols: ColumnDef<CandidateRow>[] = [
     {
       accessorKey: "fullName",
       header: ({ column }) => (
@@ -907,6 +931,36 @@ function buildCandidateColumns(
       ),
       cell: ({ row }) => row.original.displayRole,
     },
+  ];
+
+  if (staffType === "coach") {
+    cols.push(
+      {
+        accessorKey: "background",
+        header: ({ column }) => (
+          <SortableHeader column={column}>Background</SortableHeader>
+        ),
+        cell: ({ row }) => (
+          <span data-testid={`candidate-background-${row.original.id}`}>
+            {row.original.background}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "schemeLabel",
+        header: ({ column }) => (
+          <SortableHeader column={column}>Scheme</SortableHeader>
+        ),
+        cell: ({ row }) => (
+          <span data-testid={`candidate-scheme-${row.original.id}`}>
+            {row.original.schemeLabel}
+          </span>
+        ),
+      },
+    );
+  }
+
+  cols.push(
     {
       accessorKey: "medianSalary",
       header: ({ column }) => (
@@ -931,24 +985,34 @@ function buildCandidateColumns(
         <div className="text-right">{renderAction(row.original)}</div>
       ),
     },
-  ];
+  );
+
+  return cols;
 }
 
 function CandidateDataTable(
-  { candidates, renderAction, leagueId, testId, toolbarEnd, searchable = true }:
-    {
-      candidates: HiringCandidateSummary[];
-      renderAction: (c: HiringCandidateSummary) => React.ReactNode;
-      leagueId: string;
-      testId?: string;
-      toolbarEnd?: React.ReactNode;
-      searchable?: boolean;
-    },
+  {
+    candidates,
+    staffType,
+    renderAction,
+    leagueId,
+    testId,
+    toolbarEnd,
+    searchable = true,
+  }: {
+    candidates: HiringCandidateSummary[];
+    staffType: "coach" | "scout";
+    renderAction: (c: HiringCandidateSummary) => React.ReactNode;
+    leagueId: string;
+    testId?: string;
+    toolbarEnd?: React.ReactNode;
+    searchable?: boolean;
+  },
 ) {
   const rows = useMemo(() => toRows(candidates), [candidates]);
   const columns = useMemo(
-    () => buildCandidateColumns(leagueId, renderAction),
-    [leagueId, renderAction],
+    () => buildCandidateColumns(leagueId, renderAction, staffType),
+    [leagueId, renderAction, staffType],
   );
 
   const toolbar = (!searchable && !toolbarEnd)
