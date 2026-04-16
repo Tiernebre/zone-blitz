@@ -25,15 +25,21 @@ import {
   type Incentive,
   type Offer,
   resolveContestForCandidate,
-  type SalaryBand,
   type StaffCandidate,
 } from "./preference-scoring.ts";
 import {
+  bandFor,
+  COORDINATOR_PARENTS,
+  FINALIZE_WAVE,
+  INTERVIEW_PROBE_YEARS,
+  PROBE_OFFER_ID_PREFIX,
+  salaryMidpoint,
+} from "./hiring-constants.ts";
+import { type SignedCoachRef, signedCoachRefs } from "./hiring-signed-staff.ts";
+import {
   assembleCoachingStaff,
   assembleScoutingStaff,
-  COACH_SALARY_BANDS,
   poolMemberQuality,
-  SCOUT_SALARY_BANDS,
   type StaffPoolMember,
 } from "./staff-assembly.ts";
 
@@ -155,41 +161,11 @@ export interface HiringPoolGenerator {
   ): Promise<unknown>;
 }
 
-// Wave reserved for finalize auto-assigns. Waves 1 and 2 represent the
-// primary and second-wave decision steps; 99 marks the terminal
-// finalization step so consumers can distinguish auto-fills from contests.
-const FINALIZE_WAVE = 99;
-
-const COORDINATOR_PARENTS: Partial<Record<CoachRole, CoachRole>> = {
-  OC: "HC",
-  DC: "HC",
-  STC: "HC",
-  QB: "OC",
-  RB: "OC",
-  WR: "OC",
-  TE: "OC",
-  OL: "OC",
-  DL: "DC",
-  LB: "DC",
-  DB: "DC",
-  ST_ASSISTANT: "STC",
-};
-
 // GM-facing hiring market only surfaces league-leader roles. Subordinate
 // staff (coordinators, position coaches, NCC, area scouts) are auto-assembled
 // after the leader signs.
 const LEADERSHIP_COACH_ROLES = new Set<string>(["HC"]);
 const LEADERSHIP_SCOUT_ROLES = new Set<string>(["DIRECTOR"]);
-
-function bandFor(
-  staffType: StaffType,
-  role: CoachRole | ScoutRole,
-): SalaryBand {
-  if (staffType === "coach") {
-    return COACH_SALARY_BANDS[role as CoachRole];
-  }
-  return SCOUT_SALARY_BANDS[role as ScoutRole];
-}
 
 function toStaffCandidate(ctx: CandidateScoringContext): StaffCandidate {
   if (ctx.staffType === "coach") {
@@ -242,7 +218,7 @@ function toFranchiseProfile(
 
 function pickReportsTo(
   role: CoachRole,
-  signedCoaches: { staffId: string; role: CoachRole }[],
+  signedCoaches: SignedCoachRef[],
 ): string | null {
   const parentRole = COORDINATOR_PARENTS[role];
   if (!parentRole) return null;
@@ -258,6 +234,13 @@ function buyoutFromMultiplier(
   const factor = Number(multiplier);
   if (Number.isNaN(factor)) return 0;
   return Math.round(salary * contractYears * factor);
+}
+
+function sumPreferences(ctx: CandidateScoringContext): number {
+  return ctx.preferences.marketTierPref +
+    ctx.preferences.philosophyFitPref +
+    ctx.preferences.staffFitPref +
+    ctx.preferences.compensationPref;
 }
 
 export function createHiringService(deps: {
@@ -397,10 +380,10 @@ export function createHiringService(deps: {
         }
         const band = bandFor(candidate.staffType, candidate.role);
         const probeOffer: Offer = {
-          id: `probe-${interview.id}`,
+          id: `${PROBE_OFFER_ID_PREFIX}${interview.id}`,
           franchiseId: profile.teamId,
-          salary: Math.round((band.min + band.max) / 2),
-          contractYears: 2,
+          salary: salaryMidpoint(band),
+          contractYears: INTERVIEW_PROBE_YEARS,
           incentives: [],
         };
         const score = computePreferenceScore(
@@ -553,15 +536,9 @@ export function createHiringService(deps: {
                 leagueId,
                 winning.teamId,
               );
-              const signedCoaches = signed
-                .filter((m) => m.staffType === "coach")
-                .map((m) => ({
-                  staffId: m.staffId,
-                  role: m.role as CoachRole,
-                }));
               const reportsToId = pickReportsTo(
                 candidate.role as CoachRole,
-                signedCoaches,
+                signedCoachRefs(signed),
               );
               await deps.repo.assignCoach(candidate.staffId, {
                 teamId: winning.teamId,
@@ -640,12 +617,7 @@ export function createHiringService(deps: {
         );
         const remainingBudget = league.staffBudget - signedTotalSalary -
           leagueSpentOnAssembly;
-        const signedCoaches = signed
-          .filter((m) => m.staffType === "coach")
-          .map((m) => ({
-            staffId: m.staffId,
-            role: m.role as CoachRole,
-          }));
+        const signedCoaches = signedCoachRefs(signed);
 
         // Build coaching staff under HC.
         const hc = signedCoaches.find((c) => c.role === "HC");
@@ -890,11 +862,4 @@ export function createHiringService(deps: {
       return all.filter((d) => d.wave === wave);
     },
   };
-}
-
-function sumPreferences(ctx: CandidateScoringContext): number {
-  return ctx.preferences.marketTierPref +
-    ctx.preferences.philosophyFitPref +
-    ctx.preferences.staffFitPref +
-    ctx.preferences.compensationPref;
 }

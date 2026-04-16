@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHiringCandidateDetail } from "../../../hooks/use-hiring.ts";
+import { roleLabel } from "../role-labels.ts";
 import { bandFor, formatMoney } from "./salary-bands.ts";
 
 export function CandidateDetail() {
@@ -55,8 +56,9 @@ export function CandidateDetail() {
           <h1 className="text-3xl font-bold tracking-tight">
             {data.firstName} {data.lastName}
           </h1>
-          <Badge variant="secondary">{data.role}</Badge>
-          <Badge variant="outline">{data.staffType}</Badge>
+          <Badge variant="secondary">
+            {roleLabel(data.staffType, data.role)}
+          </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
           Market band for this role: {formatMoney(band.min)} –{" "}
@@ -73,46 +75,55 @@ export function CandidateDetail() {
         </Button>
       </header>
 
-      <PreferencesCard detail={data} />
       <RevealCard detail={data} />
     </div>
   );
 }
 
-function PreferencesCard({ detail }: { detail: HiringCandidateDetail }) {
-  return (
-    <Card data-testid="preferences-card">
-      <CardHeader>
-        <CardTitle>What this candidate wants</CardTitle>
-        <CardDescription>
-          How strongly they weigh each factor when choosing where to sign. These
-          are public — coaches and scouts don't hide their priorities during
-          interviews.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-4">
-        <PrefRow label="Market tier" value={detail.marketTierPref} />
-        <PrefRow label="Philosophy fit" value={detail.philosophyFitPref} />
-        <PrefRow label="Staff fit" value={detail.staffFitPref} />
-        <PrefRow label="Compensation" value={detail.compensationPref} />
-      </CardContent>
-    </Card>
-  );
+function hasReveal(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "object") {
+    return Object.keys(value as Record<string, unknown>).length > 0;
+  }
+  return true;
 }
 
-function PrefRow({ label, value }: { label: string; value: number | null }) {
+function RevealSection(
+  { title, value, testId }: { title: string; value: unknown; testId: string },
+) {
+  if (!hasReveal(value)) {
+    return (
+      <section>
+        <h3 className="text-sm font-medium">{title}</h3>
+        <p
+          className="mt-1 text-sm text-muted-foreground"
+          data-testid={testId}
+        >
+          Not yet revealed — surfaces after a deeper interview.
+        </p>
+      </section>
+    );
+  }
   return (
-    <div className="flex flex-col">
-      <span className="text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </span>
-      <span className="text-lg font-semibold">{value ?? "—"}</span>
-    </div>
+    <section>
+      <h3 className="text-sm font-medium">{title}</h3>
+      <pre
+        className="mt-1 rounded-md bg-muted p-3 text-xs"
+        data-testid={testId}
+      >
+        {JSON.stringify(value, null, 2)}
+      </pre>
+    </section>
   );
 }
 
 function RevealCard({ detail }: { detail: HiringCandidateDetail }) {
-  if (!detail.interviewReveal) {
+  const reveal = detail.interviewReveal;
+  const philosophy = reveal?.philosophyReveal ?? null;
+  const staffFit = reveal?.staffFitReveal ?? null;
+  const anyRevealed = hasReveal(philosophy) || hasReveal(staffFit);
+
+  if (!reveal || !anyRevealed) {
     return (
       <Card data-testid="reveal-locked">
         <CardHeader>
@@ -136,24 +147,16 @@ function RevealCard({ detail }: { detail: HiringCandidateDetail }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <section>
-          <h3 className="text-sm font-medium">Philosophy</h3>
-          <pre
-            className="mt-1 rounded-md bg-muted p-3 text-xs"
-            data-testid="philosophy-reveal"
-          >
-            {JSON.stringify(detail.interviewReveal.philosophyReveal, null, 2)}
-          </pre>
-        </section>
-        <section>
-          <h3 className="text-sm font-medium">Staff fit</h3>
-          <pre
-            className="mt-1 rounded-md bg-muted p-3 text-xs"
-            data-testid="staff-fit-reveal"
-          >
-            {JSON.stringify(detail.interviewReveal.staffFitReveal, null, 2)}
-          </pre>
-        </section>
+        <RevealSection
+          title="Philosophy"
+          value={philosophy}
+          testId="philosophy-reveal"
+        />
+        <RevealSection
+          title="Staff fit"
+          value={staffFit}
+          testId="staff-fit-reveal"
+        />
       </CardContent>
     </Card>
   );

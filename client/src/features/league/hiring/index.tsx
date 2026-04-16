@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { toast } from "sonner";
+import type { ColumnDef } from "@tanstack/react-table";
 import type {
   HiringCandidateSummary,
   HiringDecisionView,
@@ -19,8 +20,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataTable, SortableHeader } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -29,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useLeague } from "../../../hooks/use-league.ts";
 import { useLeagueClock } from "../../../hooks/use-league-clock.ts";
 import {
   useExpressInterest,
@@ -39,12 +43,14 @@ import {
 } from "../../../hooks/use-hiring.ts";
 import { useStaffTree } from "../../../hooks/use-staff-tree.ts";
 import { useScoutStaffTree } from "../../../hooks/use-scout-staff-tree.ts";
+import { roleLabel } from "../role-labels.ts";
 import { bandFor, formatMoney, medianSalary } from "./salary-bands.ts";
 import { stepDescription, stepHeadline, stepViewFor } from "./step-view.ts";
 
 export function Hiring() {
   const { leagueId } = useParams({ strict: false }) as { leagueId: string };
   const { data: clock, isLoading: clockLoading } = useLeagueClock(leagueId);
+  const { data: league } = useLeague(leagueId);
   const { data: teamState, isLoading: stateLoading } = useTeamHiringState(
     leagueId,
   );
@@ -75,6 +81,9 @@ export function Hiring() {
     );
   }
 
+  const interestCap = (league as { interestCap?: number } | undefined)
+    ?.interestCap;
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <header className="flex flex-col gap-2">
@@ -87,21 +96,21 @@ export function Hiring() {
         <p className="max-w-2xl text-muted-foreground">
           {stepDescription(slug)}
         </p>
-        {teamState && (
-          <p
-            className="text-sm text-muted-foreground"
-            data-testid="hiring-budget"
-          >
-            Staff budget: {formatMoney(teamState.remainingBudget)} of{" "}
-            {formatMoney(teamState.staffBudget)} remaining.
-          </p>
-        )}
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+          {teamState && (
+            <span data-testid="hiring-budget">
+              Staff budget: {formatMoney(teamState.remainingBudget)} of{" "}
+              {formatMoney(teamState.staffBudget)} remaining
+            </span>
+          )}
+        </div>
       </header>
 
       {view === "market_survey" && (
         <MarketSurveyView
           leagueId={leagueId}
           interests={teamState?.interests ?? []}
+          interestCap={interestCap}
         />
       )}
       {view === "interview" && (
@@ -109,6 +118,11 @@ export function Hiring() {
           leagueId={leagueId}
           interests={teamState?.interests ?? []}
           interviews={teamState?.interviews ?? []}
+          stepSlug={slug}
+          interviewsPerWeek={(league as
+            | { interviewsPerWeek?: number }
+            | undefined)
+            ?.interviewsPerWeek}
         />
       )}
       {view === "offers" && (
@@ -117,6 +131,9 @@ export function Hiring() {
           interviews={teamState?.interviews ?? []}
           offers={teamState?.offers ?? []}
           remainingBudget={teamState?.remainingBudget ?? 0}
+          maxConcurrentOffers={(league as
+            | { maxConcurrentOffers?: number }
+            | undefined)?.maxConcurrentOffers}
         />
       )}
       {view === "decisions" && (
@@ -150,30 +167,23 @@ function useInterestedCandidateIds(
 }
 
 function MarketSurveyView(
-  { leagueId, interests }: {
+  { leagueId, interests, interestCap }: {
     leagueId: string;
     interests: HiringInterestView[];
+    interestCap: number | undefined;
   },
 ) {
-  const [search, setSearch] = useState("");
   const { data, isLoading } = useHiringCandidates(leagueId);
   const interestedIds = useInterestedCandidateIds(interests);
   const expressInterest = useExpressInterest();
-
-  const filtered = useMemo(() => {
-    if (!data) return [];
-    const needle = search.trim().toLowerCase();
-    if (!needle) return data;
-    return data.filter((c) =>
-      `${c.firstName} ${c.lastName} ${c.role}`.toLowerCase().includes(needle)
-    );
-  }, [data, search]);
 
   if (isLoading) {
     return (
       <Skeleton data-testid="candidates-loading" className="h-64 w-full" />
     );
   }
+
+  const atCap = interestCap !== undefined && interestedIds.size >= interestCap;
 
   const handleExpress = (candidateId: string) => {
     expressInterest.mutate(
@@ -185,40 +195,53 @@ function MarketSurveyView(
     );
   };
 
+  const renderAction = (c: HiringCandidateSummary) => {
+    const interested = interestedIds.has(c.id);
+    return (
+      <Button
+        size="sm"
+        variant={interested ? "secondary" : "default"}
+        disabled={interested || expressInterest.isPending || atCap}
+        onClick={() => handleExpress(c.id)}
+        data-testid={`express-interest-${c.id}`}
+      >
+        {interested ? "Interested" : "Express Interest"}
+      </Button>
+    );
+  };
+
+  const interestBadge = interestCap !== undefined
+    ? (
+      <Badge
+        variant={interestedIds.size >= interestCap ? "destructive" : "default"}
+        className="h-7 gap-2 px-3 text-sm font-semibold"
+        data-testid="hiring-interest-counter"
+      >
+        <span className="text-xs font-medium uppercase tracking-wide opacity-80">
+          Interests Shown
+        </span>
+        <span className="tabular-nums">
+          {interestedIds.size} / {interestCap}
+        </span>
+      </Badge>
+    )
+    : null;
+
   return (
     <Card data-testid="market-survey">
       <CardHeader>
         <CardTitle>Candidate Pool</CardTitle>
         <CardDescription>
-          {filtered.length} candidate{filtered.length === 1 ? "" : "s"}{" "}
-          available
+          Search, filter, and mark the candidates you want to pursue.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <Input
-          aria-label="Search candidates"
-          placeholder="Search by name or role…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-sm"
-        />
-        <CandidateTable
-          candidates={filtered}
+      <CardContent>
+        <StaffTypeTabs
           leagueId={leagueId}
-          renderAction={(c) => {
-            const interested = interestedIds.has(c.id);
-            return (
-              <Button
-                size="sm"
-                variant={interested ? "secondary" : "default"}
-                disabled={interested || expressInterest.isPending}
-                onClick={() => handleExpress(c.id)}
-                data-testid={`express-interest-${c.id}`}
-              >
-                {interested ? "Interested" : "Express Interest"}
-              </Button>
-            );
-          }}
+          candidates={data ?? []}
+          renderAction={renderAction}
+          testIdPrefix="market"
+          toolbarEnd={interestBadge}
         />
       </CardContent>
     </Card>
@@ -230,10 +253,14 @@ function InterviewView(
     leagueId,
     interests,
     interviews,
+    stepSlug,
+    interviewsPerWeek,
   }: {
     leagueId: string;
     interests: HiringInterestView[];
     interviews: HiringInterviewView[];
+    stepSlug: string;
+    interviewsPerWeek: number | undefined;
   },
 ) {
   const { data: allCandidates, isLoading } = useHiringCandidates(leagueId);
@@ -244,6 +271,11 @@ function InterviewView(
     for (const iv of interviews) map.set(iv.staffId, iv);
     return map;
   }, [interviews]);
+
+  const requestedThisStep = useMemo(
+    () => interviews.filter((iv) => iv.stepSlug === stepSlug).length,
+    [interviews, stepSlug],
+  );
 
   const activeInterests = useMemo(
     () => interests.filter((i) => i.status === "active"),
@@ -289,6 +321,49 @@ function InterviewView(
     );
   };
 
+  const atCap = interviewsPerWeek !== undefined &&
+    requestedThisStep >= interviewsPerWeek;
+
+  const renderAction = (c: HiringCandidateSummary) => {
+    const iv = interviewByStaff.get(c.id);
+    if (iv?.status === "completed" || iv?.status === "accepted") {
+      return <Badge variant="secondary">Interviewed</Badge>;
+    }
+    if (iv?.status === "requested") {
+      return <Badge variant="outline">Pending</Badge>;
+    }
+    if (iv?.status === "declined") {
+      return <Badge variant="destructive">Declined</Badge>;
+    }
+    return (
+      <Button
+        size="sm"
+        disabled={requestInterviews.isPending || atCap}
+        onClick={() => handleRequest(c.id)}
+        data-testid={`request-interview-${c.id}`}
+      >
+        Request Interview
+      </Button>
+    );
+  };
+
+  const interviewBadge = interviewsPerWeek !== undefined
+    ? (
+      <Badge
+        variant={atCap ? "destructive" : "default"}
+        className="h-7 gap-2 px-3 text-sm font-semibold"
+        data-testid="hiring-interview-counter"
+      >
+        <span className="text-xs font-medium uppercase tracking-wide opacity-80">
+          Interviews Requested
+        </span>
+        <span className="tabular-nums">
+          {requestedThisStep} / {interviewsPerWeek}
+        </span>
+      </Badge>
+    )
+    : null;
+
   return (
     <Card data-testid="interview-view">
       <CardHeader>
@@ -299,31 +374,13 @@ function InterviewView(
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <CandidateTable
-          candidates={interestedCandidates}
+        <StaffTypeTabs
           leagueId={leagueId}
-          renderAction={(c) => {
-            const iv = interviewByStaff.get(c.id);
-            if (iv?.status === "completed" || iv?.status === "accepted") {
-              return <Badge variant="secondary">Interviewed</Badge>;
-            }
-            if (iv?.status === "requested") {
-              return <Badge variant="outline">Pending</Badge>;
-            }
-            if (iv?.status === "declined") {
-              return <Badge variant="destructive">Declined</Badge>;
-            }
-            return (
-              <Button
-                size="sm"
-                disabled={requestInterviews.isPending}
-                onClick={() => handleRequest(c.id)}
-                data-testid={`request-interview-${c.id}`}
-              >
-                Request Interview
-              </Button>
-            );
-          }}
+          candidates={interestedCandidates}
+          renderAction={renderAction}
+          testIdPrefix="interview"
+          tabsEnd={interviewBadge}
+          searchable={false}
         />
       </CardContent>
     </Card>
@@ -336,11 +393,13 @@ function OffersView(
     interviews,
     offers,
     remainingBudget,
+    maxConcurrentOffers,
   }: {
     leagueId: string;
     interviews: HiringInterviewView[];
     offers: HiringOfferView[];
     remainingBudget: number;
+    maxConcurrentOffers: number | undefined;
   },
 ) {
   const { data: allCandidates, isLoading } = useHiringCandidates(leagueId);
@@ -375,14 +434,34 @@ function OffersView(
     );
   }
 
+  const pendingCount = offers.filter((o) => o.status === "pending").length;
+  const atOfferCap = maxConcurrentOffers !== undefined &&
+    pendingCount >= maxConcurrentOffers;
+
   return (
     <Card data-testid="offers-view">
-      <CardHeader>
-        <CardTitle>Extend Offers</CardTitle>
-        <CardDescription>
-          Offer a salary within the role's market band. Higher pay scores better
-          against competing bids.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <CardTitle>Extend Offers</CardTitle>
+          <CardDescription>
+            Offer a salary within the role's market band. Higher pay scores
+            better against competing bids.
+          </CardDescription>
+        </div>
+        {maxConcurrentOffers !== undefined && (
+          <Badge
+            variant={atOfferCap ? "destructive" : "default"}
+            className="h-7 gap-2 px-3 text-sm font-semibold"
+            data-testid="hiring-offer-counter"
+          >
+            <span className="text-xs font-medium uppercase tracking-wide opacity-80">
+              Offers Outstanding
+            </span>
+            <span className="tabular-nums">
+              {pendingCount} / {maxConcurrentOffers}
+            </span>
+          </Badge>
+        )}
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {eligible.map((c) => (
@@ -400,6 +479,7 @@ function OffersView(
                 },
               )}
             submitting={submitOffers.isPending}
+            disabledAtCap={atOfferCap}
           />
         ))}
       </CardContent>
@@ -408,12 +488,20 @@ function OffersView(
 }
 
 function OfferRow(
-  { candidate, existing, remainingBudget, onSubmit, submitting }: {
+  {
+    candidate,
+    existing,
+    remainingBudget,
+    onSubmit,
+    submitting,
+    disabledAtCap,
+  }: {
     candidate: HiringCandidateSummary;
     existing: HiringOfferView | null;
     remainingBudget: number;
     onSubmit: (offer: HiringOfferInput) => void;
     submitting: boolean;
+    disabledAtCap: boolean;
   },
 ) {
   const band = bandFor(candidate.staffType, candidate.role);
@@ -423,6 +511,7 @@ function OfferRow(
   const [contractYears, setContractYears] = useState(
     existing?.contractYears ?? 3,
   );
+  const displayRole = roleLabel(candidate.staffType, candidate.role);
 
   if (existing && existing.status !== "pending") {
     return (
@@ -432,7 +521,7 @@ function OfferRow(
       >
         <div className="flex items-center justify-between">
           <div className="font-medium">
-            {candidate.firstName} {candidate.lastName} ({candidate.role})
+            {candidate.firstName} {candidate.lastName} ({displayRole})
           </div>
           <Badge
             variant={existing.status === "accepted" ? "secondary" : "outline"}
@@ -450,7 +539,8 @@ function OfferRow(
   const underBand = salary < band.min;
   const overBand = salary > band.max;
   const overBudget = salary > remainingBudget;
-  const submitDisabled = submitting || overBudget || Boolean(existing);
+  const submitDisabled = submitting || overBudget || Boolean(existing) ||
+    disabledAtCap;
 
   const handleSubmit = () => {
     onSubmit({
@@ -468,7 +558,7 @@ function OfferRow(
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="font-medium">
-          {candidate.firstName} {candidate.lastName} ({candidate.role})
+          {candidate.firstName} {candidate.lastName} ({displayRole})
         </div>
         <span className="text-xs text-muted-foreground">
           Band: {formatMoney(band.min)} – {formatMoney(band.max)}
@@ -477,14 +567,22 @@ function OfferRow(
       <div className="flex flex-wrap items-center gap-2">
         <label className="flex items-center gap-2 text-sm">
           Salary
-          <Input
-            type="number"
-            min={0}
-            value={salary}
-            onChange={(e) => setSalary(Number(e.target.value))}
-            className="w-36"
-            data-testid={`offer-salary-${candidate.id}`}
-          />
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-muted-foreground">
+              $
+            </span>
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={salary.toLocaleString("en-US")}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/[^0-9]/g, "");
+                setSalary(digits === "" ? 0 : Number(digits));
+              }}
+              className="w-40 pl-5 tabular-nums"
+              data-testid={`offer-salary-${candidate.id}`}
+            />
+          </div>
         </label>
         <label className="flex items-center gap-2 text-sm">
           Years
@@ -639,7 +737,7 @@ function StaffResultView(
                 No coaches have been assigned yet.
               </p>
             )
-            : <StaffTable rows={coachList} />}
+            : <StaffTable rows={coachList} staffType="coach" />}
         </CardContent>
       </Card>
       <Card data-testid="staff-result-scouts">
@@ -657,7 +755,7 @@ function StaffResultView(
                 No scouts have been assigned yet.
               </p>
             )
-            : <StaffTable rows={scoutList} />}
+            : <StaffTable rows={scoutList} staffType="scout" />}
         </CardContent>
       </Card>
     </div>
@@ -672,7 +770,9 @@ interface StaffMember {
   isVacancy: boolean;
 }
 
-function StaffTable({ rows }: { rows: StaffMember[] }) {
+function StaffTable(
+  { rows, staffType }: { rows: StaffMember[]; staffType: "coach" | "scout" },
+) {
   return (
     <Table>
       <TableHeader>
@@ -684,7 +784,7 @@ function StaffTable({ rows }: { rows: StaffMember[] }) {
       <TableBody>
         {rows.map((row) => (
           <TableRow key={row.id} data-testid={`staff-row-${row.id}`}>
-            <TableCell>{row.role}</TableCell>
+            <TableCell>{roleLabel(staffType, row.role)}</TableCell>
             <TableCell>
               {row.isVacancy
                 ? <Badge variant="outline">Vacant</Badge>
@@ -697,51 +797,186 @@ function StaffTable({ rows }: { rows: StaffMember[] }) {
   );
 }
 
-function CandidateTable(
-  { candidates, renderAction, leagueId }: {
+function StaffTypeTabs(
+  {
+    leagueId,
+    candidates,
+    renderAction,
+    testIdPrefix,
+    toolbarEnd,
+    tabsEnd,
+    searchable = true,
+  }: {
+    leagueId: string;
     candidates: HiringCandidateSummary[];
     renderAction: (c: HiringCandidateSummary) => React.ReactNode;
-    leagueId: string;
+    testIdPrefix: string;
+    toolbarEnd?: React.ReactNode;
+    tabsEnd?: React.ReactNode;
+    searchable?: boolean;
   },
 ) {
-  if (candidates.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No candidates match.
-      </p>
-    );
-  }
+  const coaches = candidates.filter((c) => c.staffType === "coach");
+  const scouts = candidates.filter((c) => c.staffType === "scout");
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead className="text-right">Action</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {candidates.map((c) => (
-          <TableRow key={c.id} data-testid={`candidate-row-${c.id}`}>
-            <TableCell className="font-medium">
-              <Link
-                to="/leagues/$leagueId/hiring/$candidateId"
-                params={{ leagueId, candidateId: c.id }}
-                className="underline-offset-2 hover:underline"
-                data-testid={`candidate-link-${c.id}`}
-              >
-                {c.firstName} {c.lastName}
-              </Link>
-            </TableCell>
-            <TableCell>{c.role}</TableCell>
-            <TableCell>
-              <Badge variant="outline">{c.staffType}</Badge>
-            </TableCell>
-            <TableCell className="text-right">{renderAction(c)}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <Tabs defaultValue="coach" className="gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <TabsList>
+          <TabsTrigger value="coach" data-testid={`${testIdPrefix}-tab-coach`}>
+            Coaches ({coaches.length})
+          </TabsTrigger>
+          <TabsTrigger value="scout" data-testid={`${testIdPrefix}-tab-scout`}>
+            Scouts ({scouts.length})
+          </TabsTrigger>
+        </TabsList>
+        {tabsEnd}
+      </div>
+      <TabsContent value="coach">
+        <CandidateDataTable
+          candidates={coaches}
+          leagueId={leagueId}
+          renderAction={renderAction}
+          testId={`${testIdPrefix}-coach-table`}
+          toolbarEnd={toolbarEnd}
+          searchable={searchable}
+        />
+      </TabsContent>
+      <TabsContent value="scout">
+        <CandidateDataTable
+          candidates={scouts}
+          leagueId={leagueId}
+          renderAction={renderAction}
+          testId={`${testIdPrefix}-scout-table`}
+          toolbarEnd={toolbarEnd}
+          searchable={searchable}
+        />
+      </TabsContent>
+    </Tabs>
+  );
+}
+
+type CandidateRow = HiringCandidateSummary & {
+  fullName: string;
+  displayRole: string;
+  bandMin: number;
+  bandMax: number;
+  medianSalary: number;
+};
+
+function toRows(candidates: HiringCandidateSummary[]): CandidateRow[] {
+  return candidates.map((c) => {
+    const band = bandFor(c.staffType, c.role);
+    return {
+      ...c,
+      fullName: `${c.firstName} ${c.lastName}`,
+      displayRole: roleLabel(c.staffType, c.role),
+      bandMin: band.min,
+      bandMax: band.max,
+      medianSalary: medianSalary(c.staffType, c.role),
+    };
+  });
+}
+
+function buildCandidateColumns(
+  leagueId: string,
+  renderAction: (c: HiringCandidateSummary) => React.ReactNode,
+): ColumnDef<CandidateRow>[] {
+  return [
+    {
+      accessorKey: "fullName",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Name</SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <Link
+          to="/leagues/$leagueId/hiring/$candidateId"
+          params={{ leagueId, candidateId: row.original.id }}
+          className="font-medium underline-offset-2 hover:underline"
+          data-testid={`candidate-link-${row.original.id}`}
+        >
+          {row.original.fullName}
+        </Link>
+      ),
+    },
+    {
+      accessorKey: "displayRole",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Role</SortableHeader>
+      ),
+      cell: ({ row }) => row.original.displayRole,
+    },
+    {
+      accessorKey: "medianSalary",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Expected Salary</SortableHeader>
+      ),
+      cell: ({ row }) => formatMoney(row.original.medianSalary),
+    },
+    {
+      id: "band",
+      header: "Market Band",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {formatMoney(row.original.bandMin)} –{" "}
+          {formatMoney(row.original.bandMax)}
+        </span>
+      ),
+    },
+    {
+      id: "action",
+      header: () => <span className="sr-only">Action</span>,
+      cell: ({ row }) => (
+        <div className="text-right">{renderAction(row.original)}</div>
+      ),
+    },
+  ];
+}
+
+function CandidateDataTable(
+  { candidates, renderAction, leagueId, testId, toolbarEnd, searchable = true }:
+    {
+      candidates: HiringCandidateSummary[];
+      renderAction: (c: HiringCandidateSummary) => React.ReactNode;
+      leagueId: string;
+      testId?: string;
+      toolbarEnd?: React.ReactNode;
+      searchable?: boolean;
+    },
+) {
+  const rows = useMemo(() => toRows(candidates), [candidates]);
+  const columns = useMemo(
+    () => buildCandidateColumns(leagueId, renderAction),
+    [leagueId, renderAction],
+  );
+
+  const toolbar = (!searchable && !toolbarEnd)
+    ? undefined
+    : (table: import("@tanstack/react-table").Table<CandidateRow>) => (
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {searchable
+          ? (
+            <Input
+              aria-label="Search candidates"
+              placeholder="Search by name or role…"
+              value={(table.getState().globalFilter as string) ?? ""}
+              onChange={(e) => table.setGlobalFilter(e.target.value)}
+              className="max-w-sm"
+            />
+          )
+          : <span />}
+        {toolbarEnd}
+      </div>
+    );
+
+  return (
+    <div data-testid={testId}>
+      <DataTable
+        columns={columns}
+        data={rows}
+        getRowTestId={(row) => `candidate-row-${row.id}`}
+        toolbar={toolbar}
+      />
+    </div>
   );
 }
