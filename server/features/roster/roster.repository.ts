@@ -24,7 +24,7 @@ import {
 } from "../players/attributes.schema.ts";
 import { ageFromBirthDate } from "../players/age.ts";
 import { contracts } from "../contracts/contract.schema.ts";
-import { depthChartEntries } from "../players/depth-chart.schema.ts";
+import { depthChartEntries } from "../depth-chart/depth-chart.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { coaches } from "../coaches/coach.schema.ts";
 import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";

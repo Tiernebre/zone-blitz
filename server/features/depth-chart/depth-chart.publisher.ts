@@ -14,7 +14,7 @@ import {
   pickAttributes,
   playerAttributes,
 } from "../players/attributes.schema.ts";
-import { depthChartEntries } from "../players/depth-chart.schema.ts";
+import { depthChartEntries } from "./depth-chart.schema.ts";
 import { coaches } from "../coaches/coach.schema.ts";
 import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";
 import { toCoachTendencies } from "../coaches/tendency-row.ts";

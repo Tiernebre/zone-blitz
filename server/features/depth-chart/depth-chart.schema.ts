@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { teams } from "../team/team.schema.ts";
 import { coaches } from "../coaches/coach.schema.ts";
-import { players } from "./player.schema.ts";
+import { players } from "../players/player.schema.ts";
 
 export const depthChartEntries = pgTable(
   "depth_chart_entries",

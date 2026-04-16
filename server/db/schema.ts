@@ -60,7 +60,7 @@ export {
   players,
   playerStatusEnum,
 } from "../features/players/player.schema.ts";
-export { depthChartEntries } from "../features/players/depth-chart.schema.ts";
+export { depthChartEntries } from "../features/depth-chart/depth-chart.schema.ts";
 export { playerAttributes } from "../features/players/attributes.schema.ts";
 export { playerDraftProfile } from "../features/players/player-draft-profile.schema.ts";
 export { playerSeasonRatings } from "../features/players/player-season-ratings.schema.ts";

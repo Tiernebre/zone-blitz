@@ -12,7 +12,7 @@ import * as schema from "../../db/schema.ts";
 import { players } from "../players/player.schema.ts";
 import { playerAttributes } from "../players/attributes.schema.ts";
 import { contracts } from "../contracts/contract.schema.ts";
-import { depthChartEntries } from "../players/depth-chart.schema.ts";
+import { depthChartEntries } from "../depth-chart/depth-chart.schema.ts";
 import {
   BUCKET_PROFILES,
   stubAttributesFor,
