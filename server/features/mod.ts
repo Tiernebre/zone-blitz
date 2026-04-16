@@ -63,7 +63,11 @@ import {
   createFranchiseRouter,
   createFranchiseService,
 } from "./franchise/mod.ts";
-import { createHiringRepository, createHiringService } from "./hiring/mod.ts";
+import {
+  createHiringRepository,
+  createHiringRouter,
+  createHiringService,
+} from "./hiring/mod.ts";
 import { createTransactionRunner } from "../db/transaction-runner.ts";
 
 export function createFeatureRouters(
@@ -187,6 +191,10 @@ export function createFeatureRouters(
     teamService,
     coachesService,
   });
+  const hiringRouter = createHiringRouter(hiringService, {
+    leagueRepo,
+    leagueClockService,
+  });
 
   // Routers
   const leagueRouter = createLeagueRouter(leagueService);
@@ -212,6 +220,7 @@ export function createFeatureRouters(
     scoutsRouter,
     rosterRouter,
     playersRouter,
+    hiringRouter,
     hiringService,
   };
 }

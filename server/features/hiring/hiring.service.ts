@@ -1,5 +1,11 @@
 import { DomainError } from "@zone-blitz/shared";
-import type { CoachRole, ScoutRole } from "@zone-blitz/shared";
+import type {
+  CoachRole,
+  HiringCandidateDetail,
+  HiringCandidateSummary,
+  HiringStaffType,
+  ScoutRole,
+} from "@zone-blitz/shared";
 import type pino from "pino";
 import type {
   CandidateScoringContext,
@@ -47,6 +53,22 @@ export interface HiringState {
   unassignedScouts: UnassignedCandidate[];
 }
 
+export interface TeamHiringState {
+  leagueId: string;
+  teamId: string;
+  staffBudget: number;
+  remainingBudget: number;
+  interests: HiringInterestRow[];
+  interviews: HiringInterviewRow[];
+  offers: HiringOfferRow[];
+  decisions: HiringDecisionRow[];
+}
+
+export interface CandidateFilter {
+  role?: string;
+  staffType?: HiringStaffType;
+}
+
 export interface FinalizeBlocker {
   teamId: string;
   missingRoles: string[];
@@ -88,6 +110,27 @@ export interface HiringService {
   ): Promise<HiringDecisionRow[]>;
   finalize(leagueId: string): Promise<FinalizeResult>;
   getHiringState(leagueId: string): Promise<HiringState>;
+  getTeamHiringState(
+    leagueId: string,
+    teamId: string,
+  ): Promise<TeamHiringState>;
+  listCandidates(
+    leagueId: string,
+    filter?: CandidateFilter,
+  ): Promise<HiringCandidateSummary[]>;
+  getCandidateDetail(
+    leagueId: string,
+    candidateId: string,
+    viewerTeamId?: string,
+  ): Promise<HiringCandidateDetail | undefined>;
+  resolveCandidate(
+    leagueId: string,
+    candidateId: string,
+  ): Promise<{ staffType: StaffType; staffId: string } | undefined>;
+  listDecisions(
+    leagueId: string,
+    wave?: number,
+  ): Promise<HiringDecisionRow[]>;
 }
 
 export interface HiringLeagueSummary {
@@ -706,6 +749,137 @@ export function createHiringService(deps: {
         unassignedCoaches,
         unassignedScouts,
       };
+    },
+
+    async getTeamHiringState(leagueId, teamId) {
+      const league = await loadLeague(leagueId);
+      const [
+        interests,
+        interviews,
+        offers,
+        decisions,
+        signedTotal,
+      ] = await Promise.all([
+        deps.repo.listInterestsByTeam(leagueId, teamId),
+        deps.repo.listInterviewsByTeam(leagueId, teamId),
+        deps.repo.listOffersByTeam(leagueId, teamId),
+        deps.repo.listDecisionsByLeague(leagueId),
+        deps.repo.sumSignedStaffSalaries(teamId),
+      ]);
+      const pendingTotal = offers
+        .filter((o) => o.status === "pending")
+        .reduce((sum, o) => sum + o.salary, 0);
+      return {
+        leagueId,
+        teamId,
+        staffBudget: league.staffBudget,
+        remainingBudget: league.staffBudget - signedTotal - pendingTotal,
+        interests,
+        interviews,
+        offers,
+        decisions,
+      };
+    },
+
+    async listCandidates(leagueId, filter) {
+      const [coaches, scouts] = await Promise.all([
+        deps.repo.listUnassignedCoaches(leagueId),
+        deps.repo.listUnassignedScouts(leagueId),
+      ]);
+      const all: HiringCandidateSummary[] = [];
+      if (!filter?.staffType || filter.staffType === "coach") {
+        for (const coach of coaches) {
+          if (filter?.role && coach.role !== filter.role) continue;
+          all.push({
+            id: coach.id,
+            leagueId: coach.leagueId,
+            staffType: "coach",
+            firstName: coach.firstName,
+            lastName: coach.lastName,
+            role: coach.role,
+          });
+        }
+      }
+      if (!filter?.staffType || filter.staffType === "scout") {
+        for (const scout of scouts) {
+          if (filter?.role && scout.role !== filter.role) continue;
+          all.push({
+            id: scout.id,
+            leagueId: scout.leagueId,
+            staffType: "scout",
+            firstName: scout.firstName,
+            lastName: scout.lastName,
+            role: scout.role,
+          });
+        }
+      }
+      return all;
+    },
+
+    async getCandidateDetail(leagueId, candidateId, viewerTeamId) {
+      const [coaches, scouts] = await Promise.all([
+        deps.repo.listUnassignedCoaches(leagueId),
+        deps.repo.listUnassignedScouts(leagueId),
+      ]);
+      const coach = coaches.find((c) => c.id === candidateId);
+      const scout = scouts.find((s) => s.id === candidateId);
+      const hit = coach
+        ? { candidate: coach, staffType: "coach" as const }
+        : scout
+        ? { candidate: scout, staffType: "scout" as const }
+        : undefined;
+      if (!hit) return undefined;
+
+      let interviewReveal: HiringCandidateDetail["interviewReveal"] = null;
+      if (viewerTeamId) {
+        const interview = await deps.repo.findInterview(
+          leagueId,
+          viewerTeamId,
+          hit.staffType,
+          candidateId,
+        );
+        if (interview && interview.status === "completed") {
+          interviewReveal = {
+            philosophyReveal: interview.philosophyReveal,
+            staffFitReveal: interview.staffFitReveal,
+          };
+        }
+      }
+
+      return {
+        id: hit.candidate.id,
+        leagueId: hit.candidate.leagueId,
+        staffType: hit.staffType,
+        firstName: hit.candidate.firstName,
+        lastName: hit.candidate.lastName,
+        role: hit.candidate.role,
+        marketTierPref: hit.candidate.marketTierPref,
+        philosophyFitPref: hit.candidate.philosophyFitPref,
+        staffFitPref: hit.candidate.staffFitPref,
+        compensationPref: hit.candidate.compensationPref,
+        minimumThreshold: hit.candidate.minimumThreshold,
+        interviewReveal,
+      };
+    },
+
+    async resolveCandidate(leagueId, candidateId) {
+      const [coaches, scouts] = await Promise.all([
+        deps.repo.listUnassignedCoaches(leagueId),
+        deps.repo.listUnassignedScouts(leagueId),
+      ]);
+      if (coaches.some((c) => c.id === candidateId)) {
+        return { staffType: "coach", staffId: candidateId };
+      }
+      if (scouts.some((s) => s.id === candidateId)) {
+        return { staffType: "scout", staffId: candidateId };
+      }
+      return undefined;
+    },
+
+    async listDecisions(leagueId, wave) {
+      const all = await deps.repo.listDecisionsByLeague(leagueId);
+      if (wave === undefined) return all;
+      return all.filter((d) => d.wave === wave);
     },
   };
 }
