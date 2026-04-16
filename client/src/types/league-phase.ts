@@ -1,6 +1,7 @@
 export const LEAGUE_PHASES = [
   "genesis_staff_hiring",
   "genesis_founding_pool",
+  "genesis_draft_scouting",
   "genesis_allocation_draft",
   "genesis_free_agency",
   "genesis_kickoff",

@@ -126,6 +126,16 @@ describe("navGroups", () => {
     expect(visibleLabels("regular_season")).not.toContain("Allocation Draft");
   });
 
+  it("accommodates genesis_draft_scouting without showing Founding Pool or Allocation Draft", () => {
+    const labels = visibleLabels("genesis_draft_scouting");
+    expect(labels).toContain("Home");
+    expect(labels).toContain("Scouts");
+    expect(labels).not.toContain("Founding Pool");
+    expect(labels).not.toContain("Allocation Draft");
+    expect(labels).not.toContain("Roster");
+    expect(labels).not.toContain("Salary Cap");
+  });
+
   it("every item is visible in at least one phase", () => {
     for (const group of navGroups) {
       for (const item of group.items) {
