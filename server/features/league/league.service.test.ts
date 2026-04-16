@@ -57,8 +57,8 @@ function foundingFranchiseFixtures(): Franchise[] {
     primaryColor: f.primaryColor,
     secondaryColor: f.secondaryColor,
     accentColor: f.accentColor,
-    conference: "Founding",
-    division: "Founding",
+    conference: f.conference,
+    division: f.division,
     createdAt: new Date(),
     updatedAt: new Date(),
   }));
@@ -77,8 +77,8 @@ function foundingTeamFixtures(leagueId: string): Team[] {
     primaryColor: f.primaryColor,
     secondaryColor: f.secondaryColor,
     accentColor: f.accentColor,
-    conference: "Founding",
-    division: "Founding",
+    conference: f.conference,
+    division: f.division,
     createdAt: new Date(),
     updatedAt: new Date(),
   }));

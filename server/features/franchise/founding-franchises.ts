@@ -6,6 +6,8 @@ export interface FoundingFranchise {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+  conference: string;
+  division: string;
 }
 
 export const FOUNDING_FRANCHISES: FoundingFranchise[] = [
@@ -17,6 +19,8 @@ export const FOUNDING_FRANCHISES: FoundingFranchise[] = [
     primaryColor: "#1A1A2E",
     secondaryColor: "#C9A227",
     accentColor: "#E74C3C",
+    conference: "Mountain",
+    division: "Mountain",
   },
   {
     name: "Riveters",
@@ -26,6 +30,8 @@ export const FOUNDING_FRANCHISES: FoundingFranchise[] = [
     primaryColor: "#2D4A3E",
     secondaryColor: "#D4856B",
     accentColor: "#F5F0E1",
+    conference: "Pacific",
+    division: "Pacific",
   },
   {
     name: "Republic",
@@ -35,6 +41,8 @@ export const FOUNDING_FRANCHISES: FoundingFranchise[] = [
     primaryColor: "#8B2331",
     secondaryColor: "#C4A34D",
     accentColor: "#FFFFFF",
+    conference: "Pacific",
+    division: "Pacific",
   },
   {
     name: "Admirals",
@@ -44,6 +52,8 @@ export const FOUNDING_FRANCHISES: FoundingFranchise[] = [
     primaryColor: "#003459",
     secondaryColor: "#D4AF37",
     accentColor: "#FFFFFF",
+    conference: "Pacific",
+    division: "Pacific",
   },
   {
     name: "Pioneers",
@@ -53,6 +63,8 @@ export const FOUNDING_FRANCHISES: FoundingFranchise[] = [
     primaryColor: "#5B3A29",
     secondaryColor: "#E8D5B7",
     accentColor: "#3A7D44",
+    conference: "Mountain",
+    division: "Mountain",
   },
   {
     name: "Spuds",
@@ -62,6 +74,8 @@ export const FOUNDING_FRANCHISES: FoundingFranchise[] = [
     primaryColor: "#6B4226",
     secondaryColor: "#F7DC6F",
     accentColor: "#2ECC71",
+    conference: "Mountain",
+    division: "Mountain",
   },
   {
     name: "Lava",
@@ -71,6 +85,8 @@ export const FOUNDING_FRANCHISES: FoundingFranchise[] = [
     primaryColor: "#B22222",
     secondaryColor: "#FF8C00",
     accentColor: "#1C1C1C",
+    conference: "Pacific",
+    division: "Pacific",
   },
   {
     name: "Roadrunners",
@@ -80,5 +96,7 @@ export const FOUNDING_FRANCHISES: FoundingFranchise[] = [
     primaryColor: "#C75B12",
     secondaryColor: "#40E0D0",
     accentColor: "#F5DEB3",
+    conference: "Mountain",
+    division: "Mountain",
   },
 ];
