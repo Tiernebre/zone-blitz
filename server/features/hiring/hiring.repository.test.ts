@@ -5,6 +5,7 @@ import postgres from "postgres";
 import pino from "pino";
 import * as schema from "../../db/schema.ts";
 import { coaches } from "../coaches/coach.schema.ts";
+import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";
 import { scouts } from "../scouts/scout.schema.ts";
 import { leagues } from "../league/league.schema.ts";
 import { teams } from "../team/team.schema.ts";
@@ -777,6 +778,577 @@ Deno.test({
         undefined,
       );
     } finally {
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "hiringRepository.listInterestsByTeam + findActiveInterest: scope to team and respect status",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const ctx = emptyCtx(db);
+    try {
+      const { league, team } = await setupFixtures(db);
+      ctx.leagueIds.push(league.id);
+      ctx.teamIds.push(team.id);
+
+      const repo = createHiringRepository({ db, log: createTestLogger() });
+      const candidate = crypto.randomUUID();
+      const active = await repo.createInterest({
+        leagueId: league.id,
+        teamId: team.id,
+        staffType: "coach",
+        staffId: candidate,
+        stepSlug: "hiring_market_survey",
+      });
+      const withdrawn = await repo.createInterest({
+        leagueId: league.id,
+        teamId: team.id,
+        staffType: "scout",
+        staffId: crypto.randomUUID(),
+        stepSlug: "hiring_market_survey",
+      });
+      await repo.updateInterestStatus(withdrawn.id, "withdrawn");
+      ctx.interestIds.push(active.id, withdrawn.id);
+
+      const teamInterests = await repo.listInterestsByTeam(
+        league.id,
+        team.id,
+      );
+      assertEquals(teamInterests.length, 2);
+
+      const found = await repo.findActiveInterest(
+        league.id,
+        team.id,
+        "coach",
+        candidate,
+      );
+      assertExists(found);
+
+      const withdrawnSearch = await repo.findActiveInterest(
+        league.id,
+        team.id,
+        "scout",
+        withdrawn.staffId,
+      );
+      assertEquals(withdrawnSearch, undefined);
+    } finally {
+      await cleanup(ctx);
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "hiringRepository.listInterviewsByTeam / Step + findInterview: scope correctly",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const ctx = emptyCtx(db);
+    try {
+      const { league, team } = await setupFixtures(db);
+      ctx.leagueIds.push(league.id);
+      ctx.teamIds.push(team.id);
+
+      const repo = createHiringRepository({ db, log: createTestLogger() });
+      const candidateA = crypto.randomUUID();
+      const candidateB = crypto.randomUUID();
+      const week1 = await repo.createInterview({
+        leagueId: league.id,
+        teamId: team.id,
+        staffType: "coach",
+        staffId: candidateA,
+        stepSlug: "hiring_interview_1",
+      });
+      const week2 = await repo.createInterview({
+        leagueId: league.id,
+        teamId: team.id,
+        staffType: "scout",
+        staffId: candidateB,
+        stepSlug: "hiring_interview_2",
+      });
+      ctx.interviewIds.push(week1.id, week2.id);
+
+      const teamRows = await repo.listInterviewsByTeam(league.id, team.id);
+      assertEquals(teamRows.length, 2);
+
+      const stepRows = await repo.listInterviewsByStep(
+        league.id,
+        "hiring_interview_2",
+      );
+      assertEquals(stepRows.length, 1);
+      assertEquals(stepRows[0].id, week2.id);
+
+      const matched = await repo.findInterview(
+        league.id,
+        team.id,
+        "coach",
+        candidateA,
+      );
+      assertExists(matched);
+
+      const unmatched = await repo.findInterview(
+        league.id,
+        team.id,
+        "coach",
+        crypto.randomUUID(),
+      );
+      assertEquals(unmatched, undefined);
+    } finally {
+      await cleanup(ctx);
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "hiringRepository.listOffersByTeam + listPendingOffersByLeague: filter by team and status",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const ctx = emptyCtx(db);
+    try {
+      const { league, team } = await setupFixtures(db);
+      ctx.leagueIds.push(league.id);
+      ctx.teamIds.push(team.id);
+
+      const repo = createHiringRepository({ db, log: createTestLogger() });
+      const pending = await repo.createOffer({
+        leagueId: league.id,
+        teamId: team.id,
+        staffType: "coach",
+        staffId: crypto.randomUUID(),
+        stepSlug: "hiring_offers",
+        salary: 1_000_000,
+        contractYears: 2,
+        buyoutMultiplier: "0.50",
+      });
+      const accepted = await repo.createOffer({
+        leagueId: league.id,
+        teamId: team.id,
+        staffType: "scout",
+        staffId: crypto.randomUUID(),
+        stepSlug: "hiring_offers",
+        salary: 200_000,
+        contractYears: 2,
+        buyoutMultiplier: "0.50",
+      });
+      await repo.updateOffer(accepted.id, { status: "accepted" });
+      ctx.offerIds.push(pending.id, accepted.id);
+
+      const teamOffers = await repo.listOffersByTeam(league.id, team.id);
+      assertEquals(teamOffers.length, 2);
+
+      const pendingOffers = await repo.listPendingOffersByLeague(league.id);
+      assertEquals(pendingOffers.length, 1);
+      assertEquals(pendingOffers[0].id, pending.id);
+    } finally {
+      await cleanup(ctx);
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "hiringRepository.getCandidateScoringContext: returns coach preferences and tendencies",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const ctx = emptyCtx(db);
+    const coachId = crypto.randomUUID();
+    try {
+      const { league } = await setupFixtures(db);
+      ctx.leagueIds.push(league.id);
+
+      await db.insert(coaches).values({
+        id: coachId,
+        leagueId: league.id,
+        teamId: null,
+        firstName: "Pool",
+        lastName: "Coach",
+        role: "OC",
+        age: 45,
+        hiredAt: new Date("2027-01-01T00:00:00Z"),
+        contractYears: 0,
+        contractSalary: 0,
+        contractBuyout: 0,
+        marketTierPref: 70,
+        philosophyFitPref: 60,
+        staffFitPref: 55,
+        compensationPref: 80,
+        minimumThreshold: 40,
+      });
+      ctx.coachIds.push(coachId);
+
+      await db.insert(coachTendencies).values({
+        coachId,
+        runPassLean: 60,
+        tempo: 70,
+        personnelWeight: 50,
+        formationUnderCenterShotgun: 40,
+        preSnapMotionRate: 45,
+        passingStyle: 50,
+        passingDepth: 55,
+        runGameBlocking: 50,
+        rpoIntegration: 30,
+      });
+
+      const repo = createHiringRepository({ db, log: createTestLogger() });
+      const ctxOut = await repo.getCandidateScoringContext("coach", coachId);
+      assertExists(ctxOut);
+      assertEquals(ctxOut?.role, "OC");
+      assertEquals(ctxOut?.preferences.marketTierPref, 70);
+      assertExists(ctxOut?.offense);
+      assertEquals(ctxOut?.defense, null);
+
+      assertEquals(
+        await repo.getCandidateScoringContext("coach", crypto.randomUUID()),
+        undefined,
+      );
+    } finally {
+      await db.delete(coachTendencies).where(
+        eq(coachTendencies.coachId, coachId),
+      );
+      await cleanup(ctx);
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "hiringRepository.getCandidateScoringContext: returns scout preferences with no tendencies",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const ctx = emptyCtx(db);
+    try {
+      const { league } = await setupFixtures(db);
+      ctx.leagueIds.push(league.id);
+
+      const scoutId = crypto.randomUUID();
+      await db.insert(scouts).values({
+        id: scoutId,
+        leagueId: league.id,
+        teamId: null,
+        firstName: "Pool",
+        lastName: "Scout",
+        role: "AREA_SCOUT",
+        marketTierPref: 30,
+        philosophyFitPref: 40,
+        staffFitPref: 50,
+        compensationPref: 60,
+        minimumThreshold: 20,
+      });
+      ctx.scoutIds.push(scoutId);
+
+      const repo = createHiringRepository({ db, log: createTestLogger() });
+      const result = await repo.getCandidateScoringContext("scout", scoutId);
+      assertExists(result);
+      assertEquals(result?.staffType, "scout");
+      assertEquals(result?.preferences.minimumThreshold, 20);
+      assertEquals(result?.offense, null);
+      assertEquals(result?.defense, null);
+
+      assertEquals(
+        await repo.getCandidateScoringContext("scout", crypto.randomUUID()),
+        undefined,
+      );
+    } finally {
+      await cleanup(ctx);
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "hiringRepository.getFranchiseScoringProfile: derives market tier and existing staff",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const ctx = emptyCtx(db);
+    const coachId = crypto.randomUUID();
+    try {
+      const { league, team } = await setupFixtures(db);
+      ctx.leagueIds.push(league.id);
+      ctx.teamIds.push(team.id);
+
+      await db.insert(coaches).values({
+        id: coachId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Existing",
+        lastName: "OC",
+        role: "OC",
+        age: 45,
+        hiredAt: new Date("2027-01-01T00:00:00Z"),
+        contractYears: 3,
+        contractSalary: 4_000_000,
+        contractBuyout: 6_000_000,
+      });
+      ctx.coachIds.push(coachId);
+
+      await db.insert(coachTendencies).values({
+        coachId,
+        runPassLean: 50,
+        tempo: 50,
+        personnelWeight: 50,
+        formationUnderCenterShotgun: 50,
+        preSnapMotionRate: 50,
+        passingStyle: 50,
+        passingDepth: 50,
+        runGameBlocking: 50,
+        rpoIntegration: 50,
+      });
+
+      const repo = createHiringRepository({ db, log: createTestLogger() });
+      const profile = await repo.getFranchiseScoringProfile(team.id);
+      assertExists(profile);
+      assertEquals(profile?.teamId, team.id);
+      // Test fixture cities are random — neither Large nor Medium tier — so
+      // the profile resolves to the small-market default.
+      assertEquals(profile?.marketTier, "small");
+      assertEquals(profile?.existingStaff.length, 1);
+      assertEquals(profile?.existingStaff[0].role, "OC");
+
+      assertEquals(
+        await repo.getFranchiseScoringProfile(crypto.randomUUID()),
+        undefined,
+      );
+    } finally {
+      await db.delete(coachTendencies).where(
+        eq(coachTendencies.coachId, coachId),
+      );
+      await cleanup(ctx);
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "hiringRepository.sumSignedStaffSalaries: aggregates coach + scout salaries",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const ctx = emptyCtx(db);
+    try {
+      const { league, team } = await setupFixtures(db);
+      ctx.leagueIds.push(league.id);
+      ctx.teamIds.push(team.id);
+
+      const coachId = crypto.randomUUID();
+      const scoutId = crypto.randomUUID();
+      await db.insert(coaches).values({
+        id: coachId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Signed",
+        lastName: "Coach",
+        role: "HC",
+        age: 50,
+        hiredAt: new Date("2027-01-01T00:00:00Z"),
+        contractYears: 4,
+        contractSalary: 8_000_000,
+        contractBuyout: 16_000_000,
+      });
+      await db.insert(scouts).values({
+        id: scoutId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Signed",
+        lastName: "Scout",
+        role: "DIRECTOR",
+        contractSalary: 500_000,
+      });
+      ctx.coachIds.push(coachId);
+      ctx.scoutIds.push(scoutId);
+
+      const repo = createHiringRepository({ db, log: createTestLogger() });
+      const total = await repo.sumSignedStaffSalaries(team.id);
+      assertEquals(total, 8_500_000);
+
+      const empty = await repo.sumSignedStaffSalaries(crypto.randomUUID());
+      assertEquals(empty, 0);
+    } finally {
+      await cleanup(ctx);
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name:
+    "hiringRepository.listTeamsForLeague + listSignedStaffByTeam: enumerate teams and signed staff",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const ctx = emptyCtx(db);
+    try {
+      const { league, team } = await setupFixtures(db);
+      ctx.leagueIds.push(league.id);
+      ctx.teamIds.push(team.id);
+
+      const coachId = crypto.randomUUID();
+      const scoutId = crypto.randomUUID();
+      await db.insert(coaches).values({
+        id: coachId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Signed",
+        lastName: "Coach",
+        role: "HC",
+        age: 50,
+        hiredAt: new Date("2027-01-01T00:00:00Z"),
+        contractYears: 3,
+        contractSalary: 6_000_000,
+        contractBuyout: 12_000_000,
+      });
+      await db.insert(scouts).values({
+        id: scoutId,
+        leagueId: league.id,
+        teamId: team.id,
+        firstName: "Signed",
+        lastName: "Scout",
+        role: "DIRECTOR",
+        contractSalary: 400_000,
+      });
+      ctx.coachIds.push(coachId);
+      ctx.scoutIds.push(scoutId);
+
+      const repo = createHiringRepository({ db, log: createTestLogger() });
+      const teamsList = await repo.listTeamsForLeague(league.id);
+      assertEquals(teamsList.length, 1);
+      assertEquals(teamsList[0].teamId, team.id);
+
+      const signed = await repo.listSignedStaffByTeam(league.id, team.id);
+      assertEquals(signed.length, 2);
+      const coachEntry = signed.find((m) => m.staffType === "coach");
+      const scoutEntry = signed.find((m) => m.staffType === "scout");
+      assertEquals(coachEntry?.role, "HC");
+      assertEquals(scoutEntry?.role, "DIRECTOR");
+    } finally {
+      await cleanup(ctx);
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name: "hiringRepository.assignCoach: writes hire fields onto the coach row",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const ctx = emptyCtx(db);
+    try {
+      const { league, team } = await setupFixtures(db);
+      ctx.leagueIds.push(league.id);
+      ctx.teamIds.push(team.id);
+
+      const coachId = crypto.randomUUID();
+      await db.insert(coaches).values({
+        id: coachId,
+        leagueId: league.id,
+        teamId: null,
+        firstName: "Pool",
+        lastName: "Coach",
+        role: "OC",
+        age: 42,
+        hiredAt: new Date("2024-01-01T00:00:00Z"),
+        contractYears: 0,
+        contractSalary: 0,
+        contractBuyout: 0,
+      });
+      ctx.coachIds.push(coachId);
+
+      const repo = createHiringRepository({ db, log: createTestLogger() });
+      const hiredAt = new Date("2027-04-16T00:00:00Z");
+      await repo.assignCoach(coachId, {
+        teamId: team.id,
+        reportsToId: null,
+        contractSalary: 3_000_000,
+        contractYears: 3,
+        contractBuyout: 4_500_000,
+        hiredAt,
+      });
+
+      const [row] = await db
+        .select()
+        .from(coaches)
+        .where(eq(coaches.id, coachId))
+        .limit(1);
+      assertEquals(row.teamId, team.id);
+      assertEquals(row.contractSalary, 3_000_000);
+      assertEquals(row.contractYears, 3);
+      assertEquals(row.contractBuyout, 4_500_000);
+      assertEquals(row.hiredAt.toISOString(), hiredAt.toISOString());
+    } finally {
+      await cleanup(ctx);
+      await client.end();
+    }
+  },
+});
+
+Deno.test({
+  name: "hiringRepository.assignScout: writes hire fields onto the scout row",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  fn: async () => {
+    const { db, client } = createTestDb();
+    const ctx = emptyCtx(db);
+    try {
+      const { league, team } = await setupFixtures(db);
+      ctx.leagueIds.push(league.id);
+      ctx.teamIds.push(team.id);
+
+      const scoutId = crypto.randomUUID();
+      await db.insert(scouts).values({
+        id: scoutId,
+        leagueId: league.id,
+        teamId: null,
+        firstName: "Pool",
+        lastName: "Scout",
+        role: "AREA_SCOUT",
+      });
+      ctx.scoutIds.push(scoutId);
+
+      const repo = createHiringRepository({ db, log: createTestLogger() });
+      const hiredAt = new Date("2027-04-16T00:00:00Z");
+      await repo.assignScout(scoutId, {
+        teamId: team.id,
+        contractSalary: 150_000,
+        contractYears: 2,
+        contractBuyout: 150_000,
+        hiredAt,
+      });
+
+      const [row] = await db
+        .select()
+        .from(scouts)
+        .where(eq(scouts.id, scoutId))
+        .limit(1);
+      assertEquals(row.teamId, team.id);
+      assertEquals(row.contractSalary, 150_000);
+      assertEquals(row.contractYears, 2);
+      assertEquals(row.hiredAt.toISOString(), hiredAt.toISOString());
+    } finally {
+      await cleanup(ctx);
       await client.end();
     }
   },

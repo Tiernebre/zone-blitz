@@ -1,5 +1,11 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import type pino from "pino";
+import type {
+  CoachRole,
+  DefensiveTendencies,
+  OffensiveTendencies,
+  ScoutRole,
+} from "@zone-blitz/shared";
 import type { Database, Executor } from "../../db/connection.ts";
 import {
   hiringDecisions,
@@ -9,6 +15,11 @@ import {
 } from "./hiring.schema.ts";
 import { coaches } from "../coaches/coach.schema.ts";
 import { scouts } from "../scouts/scout.schema.ts";
+import { coachTendencies } from "../coaches/coach-tendencies.schema.ts";
+import { teams } from "../team/team.schema.ts";
+import { cities } from "../cities/city.schema.ts";
+import { marketTierForCity } from "./preference-scoring.ts";
+import type { FranchiseStaffMember, MarketTier } from "./preference-scoring.ts";
 
 export type StaffType = "coach" | "scout";
 export type HiringInterestStatus = "active" | "withdrawn";
@@ -91,6 +102,56 @@ export interface UnassignedCandidate {
   minimumThreshold: number | null;
 }
 
+export interface CandidateScoringContext {
+  staffType: StaffType;
+  staffId: string;
+  role: CoachRole | ScoutRole;
+  preferences: {
+    marketTierPref: number;
+    philosophyFitPref: number;
+    staffFitPref: number;
+    compensationPref: number;
+    minimumThreshold: number;
+  };
+  offense: OffensiveTendencies | null;
+  defense: DefensiveTendencies | null;
+}
+
+export interface FranchiseScoringProfile {
+  teamId: string;
+  marketTier: MarketTier;
+  existingStaff: FranchiseStaffMember[];
+}
+
+export interface SignedStaffMember {
+  staffType: StaffType;
+  staffId: string;
+  role: CoachRole | ScoutRole;
+  contractSalary: number;
+}
+
+export interface TeamScoringSummary {
+  teamId: string;
+  marketTier: MarketTier;
+}
+
+export interface AssignCoachPatch {
+  teamId: string;
+  reportsToId: string | null;
+  contractSalary: number;
+  contractYears: number;
+  contractBuyout: number;
+  hiredAt: Date;
+}
+
+export interface AssignScoutPatch {
+  teamId: string;
+  contractSalary: number;
+  contractYears: number;
+  contractBuyout: number;
+  hiredAt: Date;
+}
+
 export interface HiringRepository {
   createInterest(
     input: {
@@ -110,6 +171,18 @@ export interface HiringRepository {
     leagueId: string,
     tx?: Executor,
   ): Promise<HiringInterestRow[]>;
+  listInterestsByTeam(
+    leagueId: string,
+    teamId: string,
+    tx?: Executor,
+  ): Promise<HiringInterestRow[]>;
+  findActiveInterest(
+    leagueId: string,
+    teamId: string,
+    staffType: StaffType,
+    staffId: string,
+    tx?: Executor,
+  ): Promise<HiringInterestRow | undefined>;
   updateInterestStatus(
     id: string,
     status: HiringInterestStatus,
@@ -134,6 +207,23 @@ export interface HiringRepository {
     leagueId: string,
     tx?: Executor,
   ): Promise<HiringInterviewRow[]>;
+  listInterviewsByTeam(
+    leagueId: string,
+    teamId: string,
+    tx?: Executor,
+  ): Promise<HiringInterviewRow[]>;
+  listInterviewsByStep(
+    leagueId: string,
+    stepSlug: string,
+    tx?: Executor,
+  ): Promise<HiringInterviewRow[]>;
+  findInterview(
+    leagueId: string,
+    teamId: string,
+    staffType: StaffType,
+    staffId: string,
+    tx?: Executor,
+  ): Promise<HiringInterviewRow | undefined>;
   updateInterview(
     id: string,
     patch: {
@@ -163,6 +253,15 @@ export interface HiringRepository {
     tx?: Executor,
   ): Promise<HiringOfferRow | undefined>;
   listOffersByLeague(
+    leagueId: string,
+    tx?: Executor,
+  ): Promise<HiringOfferRow[]>;
+  listOffersByTeam(
+    leagueId: string,
+    teamId: string,
+    tx?: Executor,
+  ): Promise<HiringOfferRow[]>;
+  listPendingOffersByLeague(
     leagueId: string,
     tx?: Executor,
   ): Promise<HiringOfferRow[]>;
@@ -198,6 +297,37 @@ export interface HiringRepository {
     leagueId: string,
     tx?: Executor,
   ): Promise<UnassignedCandidate[]>;
+
+  getCandidateScoringContext(
+    staffType: StaffType,
+    staffId: string,
+    tx?: Executor,
+  ): Promise<CandidateScoringContext | undefined>;
+  getFranchiseScoringProfile(
+    teamId: string,
+    tx?: Executor,
+  ): Promise<FranchiseScoringProfile | undefined>;
+  sumSignedStaffSalaries(teamId: string, tx?: Executor): Promise<number>;
+  listTeamsForLeague(
+    leagueId: string,
+    tx?: Executor,
+  ): Promise<TeamScoringSummary[]>;
+  listSignedStaffByTeam(
+    leagueId: string,
+    teamId: string,
+    tx?: Executor,
+  ): Promise<SignedStaffMember[]>;
+
+  assignCoach(
+    coachId: string,
+    patch: AssignCoachPatch,
+    tx?: Executor,
+  ): Promise<void>;
+  assignScout(
+    scoutId: string,
+    patch: AssignScoutPatch,
+    tx?: Executor,
+  ): Promise<void>;
 }
 
 export function createHiringRepository(deps: {
@@ -241,6 +371,35 @@ export function createHiringRepository(deps: {
         .where(eq(hiringInterests.leagueId, leagueId));
     },
 
+    async listInterestsByTeam(leagueId, teamId, tx) {
+      return await (tx ?? deps.db)
+        .select()
+        .from(hiringInterests)
+        .where(
+          and(
+            eq(hiringInterests.leagueId, leagueId),
+            eq(hiringInterests.teamId, teamId),
+          ),
+        );
+    },
+
+    async findActiveInterest(leagueId, teamId, staffType, staffId, tx) {
+      const [row] = await (tx ?? deps.db)
+        .select()
+        .from(hiringInterests)
+        .where(
+          and(
+            eq(hiringInterests.leagueId, leagueId),
+            eq(hiringInterests.teamId, teamId),
+            eq(hiringInterests.staffType, staffType),
+            eq(hiringInterests.staffId, staffId),
+            eq(hiringInterests.status, "active"),
+          ),
+        )
+        .limit(1);
+      return row ?? undefined;
+    },
+
     async updateInterestStatus(id, status, tx) {
       const [row] = await (tx ?? deps.db)
         .update(hiringInterests)
@@ -282,6 +441,46 @@ export function createHiringRepository(deps: {
         .select()
         .from(hiringInterviews)
         .where(eq(hiringInterviews.leagueId, leagueId));
+    },
+
+    async listInterviewsByTeam(leagueId, teamId, tx) {
+      return await (tx ?? deps.db)
+        .select()
+        .from(hiringInterviews)
+        .where(
+          and(
+            eq(hiringInterviews.leagueId, leagueId),
+            eq(hiringInterviews.teamId, teamId),
+          ),
+        );
+    },
+
+    async listInterviewsByStep(leagueId, stepSlug, tx) {
+      return await (tx ?? deps.db)
+        .select()
+        .from(hiringInterviews)
+        .where(
+          and(
+            eq(hiringInterviews.leagueId, leagueId),
+            eq(hiringInterviews.stepSlug, stepSlug),
+          ),
+        );
+    },
+
+    async findInterview(leagueId, teamId, staffType, staffId, tx) {
+      const [row] = await (tx ?? deps.db)
+        .select()
+        .from(hiringInterviews)
+        .where(
+          and(
+            eq(hiringInterviews.leagueId, leagueId),
+            eq(hiringInterviews.teamId, teamId),
+            eq(hiringInterviews.staffType, staffType),
+            eq(hiringInterviews.staffId, staffId),
+          ),
+        )
+        .limit(1);
+      return row ?? undefined;
     },
 
     async updateInterview(id, patch, tx) {
@@ -339,6 +538,30 @@ export function createHiringRepository(deps: {
         .select()
         .from(hiringOffers)
         .where(eq(hiringOffers.leagueId, leagueId));
+    },
+
+    async listOffersByTeam(leagueId, teamId, tx) {
+      return await (tx ?? deps.db)
+        .select()
+        .from(hiringOffers)
+        .where(
+          and(
+            eq(hiringOffers.leagueId, leagueId),
+            eq(hiringOffers.teamId, teamId),
+          ),
+        );
+    },
+
+    async listPendingOffersByLeague(leagueId, tx) {
+      return await (tx ?? deps.db)
+        .select()
+        .from(hiringOffers)
+        .where(
+          and(
+            eq(hiringOffers.leagueId, leagueId),
+            eq(hiringOffers.status, "pending"),
+          ),
+        );
     },
 
     async updateOffer(id, patch, tx) {
@@ -420,6 +643,293 @@ export function createHiringRepository(deps: {
           and(eq(scouts.leagueId, leagueId), isNull(scouts.teamId)),
         );
       return rows.map((r) => ({ ...r, role: r.role as string }));
+    },
+
+    async getCandidateScoringContext(staffType, staffId, tx) {
+      const exec = tx ?? deps.db;
+      if (staffType === "coach") {
+        const [row] = await exec
+          .select({
+            id: coaches.id,
+            role: coaches.role,
+            marketTierPref: coaches.marketTierPref,
+            philosophyFitPref: coaches.philosophyFitPref,
+            staffFitPref: coaches.staffFitPref,
+            compensationPref: coaches.compensationPref,
+            minimumThreshold: coaches.minimumThreshold,
+          })
+          .from(coaches)
+          .where(eq(coaches.id, staffId))
+          .limit(1);
+        if (!row) return undefined;
+        const tendencies = await exec
+          .select()
+          .from(coachTendencies)
+          .where(eq(coachTendencies.coachId, staffId))
+          .limit(1);
+        const tendRow = tendencies[0];
+        const offense = tendRow && tendRow.runPassLean !== null
+          ? {
+            runPassLean: tendRow.runPassLean ?? 0,
+            tempo: tendRow.tempo ?? 0,
+            personnelWeight: tendRow.personnelWeight ?? 0,
+            formationUnderCenterShotgun: tendRow.formationUnderCenterShotgun ??
+              0,
+            preSnapMotionRate: tendRow.preSnapMotionRate ?? 0,
+            passingStyle: tendRow.passingStyle ?? 0,
+            passingDepth: tendRow.passingDepth ?? 0,
+            runGameBlocking: tendRow.runGameBlocking ?? 0,
+            rpoIntegration: tendRow.rpoIntegration ?? 0,
+          } as OffensiveTendencies
+          : null;
+        const defense = tendRow && tendRow.frontOddEven !== null
+          ? {
+            frontOddEven: tendRow.frontOddEven ?? 0,
+            gapResponsibility: tendRow.gapResponsibility ?? 0,
+            subPackageLean: tendRow.subPackageLean ?? 0,
+            coverageManZone: tendRow.coverageManZone ?? 0,
+            coverageShell: tendRow.coverageShell ?? 0,
+            cornerPressOff: tendRow.cornerPressOff ?? 0,
+            pressureRate: tendRow.pressureRate ?? 0,
+            disguiseRate: tendRow.disguiseRate ?? 0,
+          } as DefensiveTendencies
+          : null;
+        return {
+          staffType: "coach",
+          staffId,
+          role: row.role as CoachRole,
+          preferences: {
+            marketTierPref: row.marketTierPref ?? 50,
+            philosophyFitPref: row.philosophyFitPref ?? 50,
+            staffFitPref: row.staffFitPref ?? 50,
+            compensationPref: row.compensationPref ?? 50,
+            minimumThreshold: row.minimumThreshold ?? 50,
+          },
+          offense,
+          defense,
+        };
+      }
+
+      const [row] = await exec
+        .select({
+          id: scouts.id,
+          role: scouts.role,
+          marketTierPref: scouts.marketTierPref,
+          philosophyFitPref: scouts.philosophyFitPref,
+          staffFitPref: scouts.staffFitPref,
+          compensationPref: scouts.compensationPref,
+          minimumThreshold: scouts.minimumThreshold,
+        })
+        .from(scouts)
+        .where(eq(scouts.id, staffId))
+        .limit(1);
+      if (!row) return undefined;
+      return {
+        staffType: "scout",
+        staffId,
+        role: row.role as ScoutRole,
+        preferences: {
+          marketTierPref: row.marketTierPref ?? 50,
+          philosophyFitPref: row.philosophyFitPref ?? 50,
+          staffFitPref: row.staffFitPref ?? 50,
+          compensationPref: row.compensationPref ?? 50,
+          minimumThreshold: row.minimumThreshold ?? 50,
+        },
+        offense: null,
+        defense: null,
+      };
+    },
+
+    async getFranchiseScoringProfile(teamId, tx) {
+      const exec = tx ?? deps.db;
+      const [team] = await exec
+        .select({ id: teams.id, cityId: teams.cityId })
+        .from(teams)
+        .where(eq(teams.id, teamId))
+        .limit(1);
+      if (!team) return undefined;
+      const [city] = await exec
+        .select({ name: cities.name })
+        .from(cities)
+        .where(eq(cities.id, team.cityId))
+        .limit(1);
+      const cityName = city?.name ?? "";
+      const marketTier = marketTierForCity(cityName);
+
+      const coachRows = await exec
+        .select({
+          id: coaches.id,
+          role: coaches.role,
+        })
+        .from(coaches)
+        .where(eq(coaches.teamId, teamId));
+
+      const tendencyRows = coachRows.length === 0 ? [] : await exec
+        .select()
+        .from(coachTendencies)
+        .where(
+          inArray(
+            coachTendencies.coachId,
+            coachRows.map((c) => c.id),
+          ),
+        );
+      const tendencyById = new Map(
+        tendencyRows.map((row) => [row.coachId, row]),
+      );
+
+      const existingStaff: FranchiseStaffMember[] = coachRows.map((coach) => {
+        const tend = tendencyById.get(coach.id);
+        const offense = tend && tend.runPassLean !== null
+          ? {
+            runPassLean: tend.runPassLean ?? 0,
+            tempo: tend.tempo ?? 0,
+            personnelWeight: tend.personnelWeight ?? 0,
+            formationUnderCenterShotgun: tend.formationUnderCenterShotgun ?? 0,
+            preSnapMotionRate: tend.preSnapMotionRate ?? 0,
+            passingStyle: tend.passingStyle ?? 0,
+            passingDepth: tend.passingDepth ?? 0,
+            runGameBlocking: tend.runGameBlocking ?? 0,
+            rpoIntegration: tend.rpoIntegration ?? 0,
+          } as OffensiveTendencies
+          : null;
+        const defense = tend && tend.frontOddEven !== null
+          ? {
+            frontOddEven: tend.frontOddEven ?? 0,
+            gapResponsibility: tend.gapResponsibility ?? 0,
+            subPackageLean: tend.subPackageLean ?? 0,
+            coverageManZone: tend.coverageManZone ?? 0,
+            coverageShell: tend.coverageShell ?? 0,
+            cornerPressOff: tend.cornerPressOff ?? 0,
+            pressureRate: tend.pressureRate ?? 0,
+            disguiseRate: tend.disguiseRate ?? 0,
+          } as DefensiveTendencies
+          : null;
+        return {
+          staffType: "coach",
+          role: coach.role as CoachRole,
+          offense,
+          defense,
+        };
+      });
+
+      return { teamId, marketTier, existingStaff };
+    },
+
+    async sumSignedStaffSalaries(teamId, tx) {
+      const exec = tx ?? deps.db;
+      const [coachSum] = await exec
+        .select({
+          total: sql<number>`coalesce(sum(${coaches.contractSalary}), 0)`
+            .as("total"),
+        })
+        .from(coaches)
+        .where(eq(coaches.teamId, teamId));
+      const [scoutSum] = await exec
+        .select({
+          total: sql<number>`coalesce(sum(${scouts.contractSalary}), 0)`.as(
+            "total",
+          ),
+        })
+        .from(scouts)
+        .where(eq(scouts.teamId, teamId));
+      return Number(coachSum?.total ?? 0) + Number(scoutSum?.total ?? 0);
+    },
+
+    async listTeamsForLeague(leagueId, tx) {
+      const exec = tx ?? deps.db;
+      const rows = await exec
+        .select({
+          teamId: teams.id,
+          cityName: cities.name,
+        })
+        .from(teams)
+        .innerJoin(cities, eq(cities.id, teams.cityId))
+        .where(eq(teams.leagueId, leagueId));
+      return rows.map((row) => ({
+        teamId: row.teamId,
+        marketTier: marketTierForCity(row.cityName),
+      }));
+    },
+
+    async listSignedStaffByTeam(leagueId, teamId, tx) {
+      const exec = tx ?? deps.db;
+      const coachRows = await exec
+        .select({
+          id: coaches.id,
+          role: coaches.role,
+          contractSalary: coaches.contractSalary,
+        })
+        .from(coaches)
+        .where(
+          and(
+            eq(coaches.leagueId, leagueId),
+            eq(coaches.teamId, teamId),
+            isNotNull(coaches.teamId),
+          ),
+        );
+      const scoutRows = await exec
+        .select({
+          id: scouts.id,
+          role: scouts.role,
+          contractSalary: scouts.contractSalary,
+        })
+        .from(scouts)
+        .where(
+          and(
+            eq(scouts.leagueId, leagueId),
+            eq(scouts.teamId, teamId),
+            isNotNull(scouts.teamId),
+          ),
+        );
+      const result: SignedStaffMember[] = [];
+      for (const row of coachRows) {
+        result.push({
+          staffType: "coach",
+          staffId: row.id,
+          role: row.role as CoachRole,
+          contractSalary: row.contractSalary,
+        });
+      }
+      for (const row of scoutRows) {
+        result.push({
+          staffType: "scout",
+          staffId: row.id,
+          role: row.role as ScoutRole,
+          contractSalary: row.contractSalary,
+        });
+      }
+      return result;
+    },
+
+    async assignCoach(coachId, patch, tx) {
+      log.debug({ coachId, teamId: patch.teamId }, "assigning coach");
+      await (tx ?? deps.db)
+        .update(coaches)
+        .set({
+          teamId: patch.teamId,
+          reportsToId: patch.reportsToId,
+          contractSalary: patch.contractSalary,
+          contractYears: patch.contractYears,
+          contractBuyout: patch.contractBuyout,
+          hiredAt: patch.hiredAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(coaches.id, coachId));
+    },
+
+    async assignScout(scoutId, patch, tx) {
+      log.debug({ scoutId, teamId: patch.teamId }, "assigning scout");
+      await (tx ?? deps.db)
+        .update(scouts)
+        .set({
+          teamId: patch.teamId,
+          contractSalary: patch.contractSalary,
+          contractYears: patch.contractYears,
+          contractBuyout: patch.contractBuyout,
+          hiredAt: patch.hiredAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(scouts.id, scoutId));
     },
   };
 }
