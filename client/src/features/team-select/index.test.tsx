@@ -50,6 +50,7 @@ const MOCK_FRANCHISES = [
     accentColor: "#E74C3C",
     backstory:
       "Born from the neon glow and high-stakes spirit of the Biggest Little City.",
+    conference: "Mountain",
   },
   {
     id: "f2",
@@ -61,6 +62,7 @@ const MOCK_FRANCHISES = [
     accentColor: "#F5F0E1",
     backstory:
       "Forged in Portland's shipyard heritage, the Riveters honor the workers who built the West.",
+    conference: "Pacific",
   },
   {
     id: "f3",
@@ -72,6 +74,7 @@ const MOCK_FRANCHISES = [
     accentColor: "#FFFFFF",
     backstory:
       "With a naval heritage stretching back generations, the Admirals command San Diego's waterfront.",
+    conference: "Pacific",
   },
 ];
 
@@ -212,6 +215,39 @@ describe("TeamSelect", () => {
     for (const franchise of MOCK_FRANCHISES) {
       expect(screen.getByText(franchise.backstory)).toBeDefined();
     }
+  });
+
+  it("groups teams into Pacific and Mountain conference cards", async () => {
+    mockFranchisesGet.mockReturnValue(
+      Promise.resolve({ json: () => Promise.resolve(MOCK_FRANCHISES) }),
+    );
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText("Aces")).toBeDefined();
+    });
+    expect(screen.getByText("Pacific")).toBeDefined();
+    expect(screen.getByText("Mountain")).toBeDefined();
+  });
+
+  it("renders conferences in Pacific-then-Mountain order with cities alphabetical within each", async () => {
+    mockFranchisesGet.mockReturnValue(
+      Promise.resolve({ json: () => Promise.resolve(MOCK_FRANCHISES) }),
+    );
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText("Aces")).toBeDefined();
+    });
+    const conferenceHeadings = [
+      ...document.querySelectorAll('[data-slot="card-title"]'),
+    ].map((el) => el.textContent);
+    expect(conferenceHeadings).toEqual(["Pacific", "Mountain"]);
+
+    const cityOrder = ["Portland", "San Diego", "Reno"];
+    const cityPositions = cityOrder.map((city) => {
+      const el = screen.getByText(city);
+      return Array.from(document.querySelectorAll("*")).indexOf(el);
+    });
+    expect(cityPositions).toEqual([...cityPositions].sort((a, b) => a - b));
   });
 
   it("does not expose identity-override controls", async () => {
