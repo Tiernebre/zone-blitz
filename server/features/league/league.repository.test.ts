@@ -116,6 +116,10 @@ Deno.test({
       assertEquals(result.capFloorPercent, 89);
       assertEquals(result.capGrowthRate, 5);
       assertEquals(result.rosterSize, 53);
+      assertEquals(result.staffBudget, 50_000_000);
+      assertEquals(result.interestCap, 10);
+      assertEquals(result.interviewsPerWeek, 4);
+      assertEquals(result.maxConcurrentOffers, 5);
 
       const [row] = await db.select().from(leagues).where(
         eq(leagues.id, leagueId),
@@ -128,6 +132,10 @@ Deno.test({
       assertEquals(row.capFloorPercent, 89);
       assertEquals(row.capGrowthRate, 5);
       assertEquals(row.rosterSize, 53);
+      assertEquals(row.staffBudget, 50_000_000);
+      assertEquals(row.interestCap, 10);
+      assertEquals(row.interviewsPerWeek, 4);
+      assertEquals(row.maxConcurrentOffers, 5);
     } finally {
       if (leagueId) {
         await db.delete(leagues).where(eq(leagues.id, leagueId));

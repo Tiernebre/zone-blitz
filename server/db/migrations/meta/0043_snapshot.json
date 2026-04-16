@@ -1,6 +1,6 @@
 {
-  "id": "2bd69023-c9e5-479e-ba59-0eb7aeaa7430",
-  "prevId": "97c83e7a-760c-4d07-8928-06966f11cac9",
+  "id": "17f0573f-4870-4ccc-9da3-1c4ab9171e2a",
+  "prevId": "2bd69023-c9e5-479e-ba59-0eb7aeaa7430",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -987,6 +987,36 @@
         "mentor_coach_id": {
           "name": "mentor_coach_id",
           "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "market_tier_pref": {
+          "name": "market_tier_pref",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "philosophy_fit_pref": {
+          "name": "philosophy_fit_pref",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "staff_fit_pref": {
+          "name": "staff_fit_pref",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "compensation_pref": {
+          "name": "compensation_pref",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "minimum_threshold": {
+          "name": "minimum_threshold",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
@@ -2090,6 +2120,448 @@
       },
       "indexes": {},
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.hiring_decisions": {
+      "name": "hiring_decisions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "league_id": {
+          "name": "league_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "staff_type": {
+          "name": "staff_type",
+          "type": "staff_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "staff_id": {
+          "name": "staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chosen_offer_id": {
+          "name": "chosen_offer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "wave": {
+          "name": "wave",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "decided_at": {
+          "name": "decided_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "hiring_decisions_league_id_leagues_id_fk": {
+          "name": "hiring_decisions_league_id_leagues_id_fk",
+          "tableFrom": "hiring_decisions",
+          "tableTo": "leagues",
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "hiring_decisions_chosen_offer_id_hiring_offers_id_fk": {
+          "name": "hiring_decisions_chosen_offer_id_hiring_offers_id_fk",
+          "tableFrom": "hiring_decisions",
+          "tableTo": "hiring_offers",
+          "columnsFrom": [
+            "chosen_offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.hiring_interests": {
+      "name": "hiring_interests",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "league_id": {
+          "name": "league_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "staff_type": {
+          "name": "staff_type",
+          "type": "staff_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "staff_id": {
+          "name": "staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "step_slug": {
+          "name": "step_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "hiring_interest_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "hiring_interests_league_id_leagues_id_fk": {
+          "name": "hiring_interests_league_id_leagues_id_fk",
+          "tableFrom": "hiring_interests",
+          "tableTo": "leagues",
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "hiring_interests_team_id_teams_id_fk": {
+          "name": "hiring_interests_team_id_teams_id_fk",
+          "tableFrom": "hiring_interests",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.hiring_interviews": {
+      "name": "hiring_interviews",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "league_id": {
+          "name": "league_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "staff_type": {
+          "name": "staff_type",
+          "type": "staff_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "staff_id": {
+          "name": "staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "step_slug": {
+          "name": "step_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "hiring_interview_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'requested'"
+        },
+        "philosophy_reveal": {
+          "name": "philosophy_reveal",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "staff_fit_reveal": {
+          "name": "staff_fit_reveal",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "hiring_interviews_league_id_leagues_id_fk": {
+          "name": "hiring_interviews_league_id_leagues_id_fk",
+          "tableFrom": "hiring_interviews",
+          "tableTo": "leagues",
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "hiring_interviews_team_id_teams_id_fk": {
+          "name": "hiring_interviews_team_id_teams_id_fk",
+          "tableFrom": "hiring_interviews",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.hiring_offers": {
+      "name": "hiring_offers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "league_id": {
+          "name": "league_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "staff_type": {
+          "name": "staff_type",
+          "type": "staff_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "staff_id": {
+          "name": "staff_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "step_slug": {
+          "name": "step_slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "hiring_offer_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "salary": {
+          "name": "salary",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contract_years": {
+          "name": "contract_years",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "buyout_multiplier": {
+          "name": "buyout_multiplier",
+          "type": "numeric(3, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "incentives": {
+          "name": "incentives",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "preference_score": {
+          "name": "preference_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "hiring_offers_league_id_leagues_id_fk": {
+          "name": "hiring_offers_league_id_leagues_id_fk",
+          "tableFrom": "hiring_offers",
+          "tableTo": "leagues",
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "hiring_offers_team_id_teams_id_fk": {
+          "name": "hiring_offers_team_id_teams_id_fk",
+          "tableFrom": "hiring_offers",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -6684,6 +7156,36 @@
           "notNull": true,
           "default": false
         },
+        "market_tier_pref": {
+          "name": "market_tier_pref",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "philosophy_fit_pref": {
+          "name": "philosophy_fit_pref",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "staff_fit_pref": {
+          "name": "staff_fit_pref",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "compensation_pref": {
+          "name": "compensation_pref",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "minimum_threshold": {
+          "name": "minimum_threshold",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -7373,6 +7875,34 @@
         "restructure"
       ]
     },
+    "public.hiring_interest_status": {
+      "name": "hiring_interest_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "withdrawn"
+      ]
+    },
+    "public.hiring_interview_status": {
+      "name": "hiring_interview_status",
+      "schema": "public",
+      "values": [
+        "requested",
+        "accepted",
+        "declined",
+        "completed"
+      ]
+    },
+    "public.hiring_offer_status": {
+      "name": "hiring_offer_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "accepted",
+        "rejected",
+        "expired"
+      ]
+    },
     "public.league_phase": {
       "name": "league_phase",
       "schema": "public",
@@ -7541,6 +8071,14 @@
         "regular_season",
         "playoffs",
         "offseason"
+      ]
+    },
+    "public.staff_type": {
+      "name": "staff_type",
+      "schema": "public",
+      "values": [
+        "coach",
+        "scout"
       ]
     },
     "public.step_kind": {

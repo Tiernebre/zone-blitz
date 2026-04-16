@@ -47,6 +47,10 @@ const baseLeague = {
   capGrowthRate: 5,
   rosterSize: 53,
   advancePolicy: "commissioner" as const,
+  staffBudget: 50_000_000,
+  interestCap: 10,
+  interviewsPerWeek: 4,
+  maxConcurrentOffers: 5,
 };
 
 function renderWithProviders() {
@@ -240,6 +244,34 @@ describe("LeagueSettings — league configuration", () => {
     const section = screen.getByTestId("league-config");
     expect(within(section).getByText("Commissioner")).toBeDefined();
     expect(within(section).getByText("Advance Policy")).toBeDefined();
+  });
+
+  it("displays the staff budget formatted as currency", () => {
+    renderWithProviders();
+    const section = screen.getByTestId("league-config");
+    expect(within(section).getByText("$50,000,000")).toBeDefined();
+    expect(within(section).getByText("Staff Budget")).toBeDefined();
+  });
+
+  it("displays the interest cap", () => {
+    renderWithProviders();
+    const section = screen.getByTestId("league-config");
+    expect(within(section).getByText("10")).toBeDefined();
+    expect(within(section).getByText("Interest Cap")).toBeDefined();
+  });
+
+  it("displays the interviews per week", () => {
+    renderWithProviders();
+    const section = screen.getByTestId("league-config");
+    expect(within(section).getByText("4")).toBeDefined();
+    expect(within(section).getByText("Interviews / Week")).toBeDefined();
+  });
+
+  it("displays the max concurrent offers", () => {
+    renderWithProviders();
+    const section = screen.getByTestId("league-config");
+    expect(within(section).getByText("5")).toBeDefined();
+    expect(within(section).getByText("Max Concurrent Offers")).toBeDefined();
   });
 
   it("displays ready check advance policy when set", () => {
