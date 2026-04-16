@@ -24,6 +24,8 @@ export interface AdvanceResult {
   seasonYear: number;
   phase: string;
   stepIndex: number;
+  slug: string;
+  flavorDate: string | null;
   advancedAt: Date;
   overrideReason: string | null;
   overrideBlockers: unknown;
@@ -232,6 +234,10 @@ export function createLeagueClockService(deps: {
         }
       }
 
+      const targetStep = DEFAULT_PHASE_STEPS.find(
+        (s) => s.phase === targetPhase && s.stepIndex === targetStepIndex,
+      );
+
       return await deps.txRunner.run(async (tx) => {
         const row = await deps.leagueClockRepo.upsert(
           {
@@ -252,6 +258,8 @@ export function createLeagueClockService(deps: {
           seasonYear: row.seasonYear,
           phase: row.phase,
           stepIndex: row.stepIndex,
+          slug: targetStep?.slug ?? "",
+          flavorDate: targetStep?.flavorDate ?? null,
           advancedAt: row.advancedAt,
           overrideReason: row.overrideReason,
           overrideBlockers: row.overrideBlockers,

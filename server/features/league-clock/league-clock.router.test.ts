@@ -35,6 +35,8 @@ function createMockAdvanceResult(
     seasonYear: 2026,
     phase: "offseason_review",
     stepIndex: 1,
+    slug: "end_of_year_recap",
+    flavorDate: "Feb 10",
     advancedAt: new Date("2026-01-01T00:00:00Z"),
     overrideReason: null,
     overrideBlockers: null,
