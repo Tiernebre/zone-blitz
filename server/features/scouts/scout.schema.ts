@@ -23,7 +23,6 @@ export const scouts = pgTable("scouts", {
     .notNull()
     .references(() => leagues.id, { onDelete: "cascade" }),
   teamId: uuid("team_id")
-    .notNull()
     .references(() => teams.id, { onDelete: "cascade" }),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),

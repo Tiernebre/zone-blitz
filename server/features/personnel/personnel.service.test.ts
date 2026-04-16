@@ -53,6 +53,7 @@ function createMockScoutsService(
 ): ScoutsService {
   return {
     generate: () => Promise.resolve({ scoutCount: 0 }),
+    generatePool: () => Promise.resolve({ scoutCount: 0 }),
     getStaffTree: () => Promise.resolve([]),
     getScoutDetail: () =>
       Promise.reject(new Error("not used in personnel tests")),
@@ -112,12 +113,12 @@ Deno.test("personnel.service", async (t) => {
         },
       });
 
-      let scoutsServiceInput:
-        | { leagueId: string; teamIds: string[] }
+      let scoutsPoolInput:
+        | { leagueId: string; numberOfTeams: number }
         | undefined;
       const scoutsService = createMockScoutsService({
-        generate: (input) => {
-          scoutsServiceInput = input;
+        generatePool: (input) => {
+          scoutsPoolInput = input;
           return Promise.resolve({ scoutCount: 3 });
         },
       });
@@ -158,15 +159,15 @@ Deno.test("personnel.service", async (t) => {
 
       assertEquals(playersServiceInput?.leagueId, "l1");
       assertEquals(playersServiceInput?.seasonId, "s1");
-      assertEquals(playersServiceInput?.teamIds, ["t1"]);
-      assertEquals(playersServiceInput?.rosterSize, 2);
+      assertEquals(playersServiceInput?.teamIds, []);
+      assertEquals(playersServiceInput?.rosterSize, 0);
       assertEquals(playersServiceInput?.salaryCap, 255_000_000);
 
       assertEquals(poolInput?.leagueId, "l1");
       assertEquals(poolInput?.numberOfTeams, 1);
 
-      assertEquals(scoutsServiceInput?.leagueId, "l1");
-      assertEquals(scoutsServiceInput?.teamIds, ["t1"]);
+      assertEquals(scoutsPoolInput?.leagueId, "l1");
+      assertEquals(scoutsPoolInput?.numberOfTeams, 1);
 
       assertEquals(frontOfficeServiceInput?.leagueId, "l1");
       assertEquals(frontOfficeServiceInput?.teamIds, ["t1"]);
@@ -196,7 +197,7 @@ Deno.test("personnel.service", async (t) => {
           },
         }),
         scoutsService: createMockScoutsService({
-          generate: (_input, tx) => {
+          generatePool: (_input, tx) => {
             received.scouts = tx;
             return Promise.resolve({ scoutCount: 0 });
           },
@@ -281,6 +282,109 @@ Deno.test("personnel.service", async (t) => {
         result.coachCount,
         10,
         "coachCount should reflect the candidate pool size",
+      );
+    },
+  );
+
+  await t.step(
+    "generate creates only an unassigned scouting pool — does not pre-assign scouts to teams",
+    async () => {
+      let generateCalled = false;
+      let poolInput:
+        | { leagueId: string; numberOfTeams: number }
+        | undefined;
+      const scoutsService = createMockScoutsService({
+        generatePool: (input) => {
+          poolInput = input;
+          return Promise.resolve({ scoutCount: 14 });
+        },
+        generate: () => {
+          generateCalled = true;
+          return Promise.resolve({ scoutCount: 7 });
+        },
+      });
+
+      const service = createPersonnelService({
+        playersService: createMockPlayersService(),
+        coachesService: createMockCoachesService(),
+        scoutsService,
+        frontOfficeService: createMockFrontOfficeService(),
+        depthChartPublisher: createMockDepthChartPublisher(),
+        log: createTestLogger(),
+      });
+
+      const result = await service.generate({
+        leagueId: "l1",
+        seasonId: "s1",
+        teamIds: ["t1", "t2"],
+        rosterSize: 2,
+        salaryCap: 255_000_000,
+      });
+
+      assertEquals(
+        generateCalled,
+        false,
+        "scoutsService.generate() must not be called — scouts should remain unassigned until explicitly hired",
+      );
+      assertEquals(poolInput?.leagueId, "l1");
+      assertEquals(poolInput?.numberOfTeams, 2);
+      assertEquals(
+        result.scoutCount,
+        14,
+        "scoutCount should reflect the candidate pool size",
+      );
+    },
+  );
+
+  await t.step(
+    "generate passes empty teamIds to playersService so rosters start empty",
+    async () => {
+      let playersInput:
+        | {
+          leagueId: string;
+          seasonId: string;
+          teamIds: string[];
+          rosterSize: number;
+          salaryCap: number;
+        }
+        | undefined;
+      const playersService = createMockPlayersService({
+        generate: (input) => {
+          playersInput = input;
+          return Promise.resolve({
+            playerCount: 300,
+            draftProspectCount: 250,
+            contractCount: 0,
+          });
+        },
+      });
+
+      const service = createPersonnelService({
+        playersService,
+        coachesService: createMockCoachesService(),
+        scoutsService: createMockScoutsService(),
+        frontOfficeService: createMockFrontOfficeService(),
+        depthChartPublisher: createMockDepthChartPublisher(),
+        log: createTestLogger(),
+      });
+
+      await service.generate({
+        leagueId: "l1",
+        seasonId: "s1",
+        teamIds: ["t1", "t2", "t3"],
+        rosterSize: 53,
+        salaryCap: 255_000_000,
+      });
+
+      assertEquals(
+        playersInput?.teamIds,
+        [],
+        "teamIds must be empty so no players are pre-assigned to teams",
+      );
+      assertEquals(
+        playersInput?.rosterSize,
+        0,
+        "rosterSize must be 0 since rosters start empty",
       );
     },
   );

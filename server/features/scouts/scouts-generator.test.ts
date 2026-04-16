@@ -200,3 +200,69 @@ Deno.test("seeded generator is deterministic", () => {
     assertEquals(a[i].hiredAt.getTime(), b[i].hiredAt.getTime());
   }
 });
+
+// ---- generatePool assertions ----
+
+Deno.test("generatePool creates unassigned scouts with no teamId", () => {
+  const result = makeGenerator().generatePool({
+    leagueId: "league-1",
+    numberOfTeams: 3,
+  });
+
+  for (const scout of result) {
+    assertEquals(scout.teamId, null);
+    assertEquals(scout.leagueId, "league-1");
+  }
+});
+
+Deno.test("generatePool creates 1.5x scouts per role per team count", () => {
+  const result = makeGenerator().generatePool({
+    leagueId: "league-1",
+    numberOfTeams: 4,
+  });
+
+  const countPerRole = Math.ceil(4 * 1.5);
+  const directors = result.filter((s) => s.role === "DIRECTOR");
+  const crossCheckers = result.filter(
+    (s) => s.role === "NATIONAL_CROSS_CHECKER",
+  );
+  const areaScouts = result.filter((s) => s.role === "AREA_SCOUT");
+
+  assertEquals(directors.length, countPerRole);
+  assertEquals(crossCheckers.length, countPerRole * 2); // 2 cross-checker slots
+  assertEquals(areaScouts.length, countPerRole * 4); // 4 area scout slots
+});
+
+Deno.test("generatePool returns empty array when numberOfTeams is 0", () => {
+  const result = makeGenerator().generatePool({
+    leagueId: "league-1",
+    numberOfTeams: 0,
+  });
+  assertEquals(result.length, 0);
+});
+
+Deno.test("generatePool scouts have no reportsToId (flat pool)", () => {
+  const result = makeGenerator().generatePool({
+    leagueId: "league-1",
+    numberOfTeams: 2,
+  });
+
+  for (const scout of result) {
+    assertEquals(scout.reportsToId, null);
+  }
+});
+
+Deno.test("generatePool scouts have valid attributes within role bands", () => {
+  const result = makeGenerator().generatePool({
+    leagueId: "league-1",
+    numberOfTeams: 3,
+  });
+
+  for (const scout of result) {
+    assertEquals(scout.isVacancy, false);
+    assertEquals(scout.firstName.length > 0, true);
+    assertEquals(scout.lastName.length > 0, true);
+    assertEquals(scout.workCapacity > 0, true);
+    assertEquals(scout.contractSalary > 0, true);
+  }
+});

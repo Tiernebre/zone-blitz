@@ -6,6 +6,11 @@ export interface ScoutsGenerateInput {
   teamIds: string[];
 }
 
+export interface ScoutsPoolGenerateInput {
+  leagueId: string;
+  numberOfTeams: number;
+}
+
 export interface ScoutsGenerateResult {
   scoutCount: number;
 }
@@ -13,6 +18,11 @@ export interface ScoutsGenerateResult {
 export interface ScoutsService {
   generate(
     input: ScoutsGenerateInput,
+    tx?: Executor,
+  ): Promise<ScoutsGenerateResult>;
+
+  generatePool(
+    input: ScoutsPoolGenerateInput,
     tx?: Executor,
   ): Promise<ScoutsGenerateResult>;
 

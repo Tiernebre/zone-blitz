@@ -7,6 +7,7 @@ import type {
   GeneratedScout,
   ScoutsGenerator,
   ScoutsGeneratorInput,
+  ScoutsPoolInput,
 } from "./scouts.generator.interface.ts";
 
 // Graduated from a flat constants blueprint (every director age 58, every
@@ -78,6 +79,8 @@ const STAFF_BLUEPRINT: RoleSpec[] = [
 ];
 
 export const SCOUTS_PER_TEAM = STAFF_BLUEPRINT.length;
+
+const POOL_MULTIPLIER = 1.5;
 
 interface RoleBand {
   ageMin: number;
@@ -222,6 +225,73 @@ export function createScoutsGenerator(
             lastName,
             role: spec.role,
             reportsToId,
+            coverage: spec.coverage,
+            age,
+            hiredAt,
+            contractYears,
+            contractSalary,
+            contractBuyout,
+            workCapacity,
+            isVacancy: false,
+          });
+        }
+      }
+
+      return scouts;
+    },
+
+    generatePool(input: ScoutsPoolInput): GeneratedScout[] {
+      if (input.numberOfTeams === 0) return [];
+
+      const scouts: GeneratedScout[] = [];
+      const anchor = now();
+      const countPerRole = Math.ceil(input.numberOfTeams * POOL_MULTIPLIER);
+
+      for (const spec of STAFF_BLUEPRINT) {
+        for (let i = 0; i < countPerRole; i++) {
+          const { firstName, lastName } = nameGenerator.next();
+          const id = crypto.randomUUID();
+
+          const band = ROLE_BANDS[spec.role];
+          const age = intInRange(random, band.ageMin, band.ageMax);
+          const contractYears = intInRange(
+            random,
+            band.yearsMin,
+            band.yearsMax,
+          );
+          const salarySteps = Math.max(
+            1,
+            Math.floor((band.salaryMax - band.salaryMin) / 25_000),
+          );
+          const contractSalary = band.salaryMin +
+            intInRange(random, 0, salarySteps) * 25_000;
+          const buyoutYears = intInRange(
+            random,
+            band.buyoutYearsMin,
+            band.buyoutYearsMax,
+          );
+          const contractBuyout = contractSalary * buyoutYears;
+          const workCapacity = intInRange(
+            random,
+            band.workCapacityMin,
+            band.workCapacityMax,
+          );
+          const tenureYears = intInRange(
+            random,
+            band.tenureMin,
+            band.tenureMax,
+          );
+          const hiredAt = new Date(anchor);
+          hiredAt.setUTCFullYear(hiredAt.getUTCFullYear() - tenureYears);
+
+          scouts.push({
+            id,
+            leagueId: input.leagueId,
+            teamId: null,
+            firstName,
+            lastName,
+            role: spec.role,
+            reportsToId: null,
             coverage: spec.coverage,
             age,
             hiredAt,
