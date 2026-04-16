@@ -44,10 +44,7 @@ function FranchiseCard({
             <p className="text-base font-bold text-card-foreground truncate">
               {team.city}
             </p>
-            <p
-              className="text-lg font-extrabold tracking-tight truncate"
-              style={{ color: team.primaryColor }}
-            >
+            <p className="text-lg font-extrabold tracking-tight truncate text-muted-foreground">
               {team.name}
             </p>
           </div>
@@ -135,19 +132,13 @@ export function TeamSelect() {
         {assignUserTeam.isError && (
           <Alert variant="destructive">
             <AlertTitle>Failed to assign team</AlertTitle>
-            <AlertDescription>
-              {assignUserTeam.error?.message}
-            </AlertDescription>
+            <AlertDescription>{assignUserTeam.error?.message}</AlertDescription>
           </Alert>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {(teams as FranchiseTeam[]).map((team) => (
-            <FranchiseCard
-              key={team.id}
-              team={team}
-              onSelect={handleSelect}
-            />
+            <FranchiseCard key={team.id} team={team} onSelect={handleSelect} />
           ))}
         </div>
       </div>
