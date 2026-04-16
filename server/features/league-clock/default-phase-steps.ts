@@ -69,6 +69,32 @@ export const DEFAULT_PHASE_STEPS: DefaultPhaseStep[] = [
     kind: "event",
   },
 
+  // genesis_draft_scouting (4-week scouting window — ADR 0034)
+  {
+    phase: "genesis_draft_scouting",
+    stepIndex: 0,
+    slug: "scouting_pool_reveal",
+    kind: "event",
+  },
+  {
+    phase: "genesis_draft_scouting",
+    stepIndex: 1,
+    slug: "scouting_first_reports",
+    kind: "event",
+  },
+  {
+    phase: "genesis_draft_scouting",
+    stepIndex: 2,
+    slug: "scouting_deep_eval",
+    kind: "event",
+  },
+  {
+    phase: "genesis_draft_scouting",
+    stepIndex: 3,
+    slug: "scouting_board_lock",
+    kind: "event",
+  },
+
   // genesis_allocation_draft
   {
     phase: "genesis_allocation_draft",

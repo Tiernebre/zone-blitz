@@ -1,13 +1,10 @@
 import { assertEquals } from "@std/assert";
 import { DEFAULT_PHASE_STEPS } from "./default-phase-steps.ts";
 
-// genesis_draft_scouting is intentionally excluded from step-seeding
-// expectations in this test: ADR 0034 accepts the phase and enum value, but
-// the four-step catalog (scouting_pool_reveal, scouting_first_reports,
-// scouting_deep_eval, scouting_board_lock) is seeded in a follow-up ticket.
-const ALL_PHASES_WITH_STEPS = [
+const ALL_PHASES = [
   "genesis_staff_hiring",
   "genesis_founding_pool",
+  "genesis_draft_scouting",
   "genesis_allocation_draft",
   "genesis_free_agency",
   "genesis_kickoff",
@@ -27,9 +24,9 @@ const ALL_PHASES_WITH_STEPS = [
   "offseason_rollover",
 ] as const;
 
-Deno.test("every seeded phase has at least one step", () => {
+Deno.test("every phase has at least one step", () => {
   const phasesWithSteps = new Set(DEFAULT_PHASE_STEPS.map((s) => s.phase));
-  for (const phase of ALL_PHASES_WITH_STEPS) {
+  for (const phase of ALL_PHASES) {
     assertEquals(
       phasesWithSteps.has(phase),
       true,
@@ -186,12 +183,11 @@ Deno.test("all steps have non-empty slugs", () => {
   }
 });
 
-Deno.test("each seeded genesis phase has at least one step", () => {
-  // genesis_draft_scouting is defined in the enum (ADR 0034) but its step
-  // catalog is seeded in a follow-up ticket, so it is not yet required here.
+Deno.test("each genesis phase has at least one step", () => {
   const genesisPhases = [
     "genesis_staff_hiring",
     "genesis_founding_pool",
+    "genesis_draft_scouting",
     "genesis_allocation_draft",
     "genesis_free_agency",
     "genesis_kickoff",
@@ -291,4 +287,40 @@ Deno.test("legacy single-step hiring slugs are removed from the catalog", () => 
   const slugs = new Set(DEFAULT_PHASE_STEPS.map((s) => s.slug));
   assertEquals(slugs.has("hire_initial_staff"), false);
   assertEquals(slugs.has("coaching_hires"), false);
+});
+
+const GENESIS_DRAFT_SCOUTING_STEP_SLUGS = [
+  "scouting_pool_reveal",
+  "scouting_first_reports",
+  "scouting_deep_eval",
+  "scouting_board_lock",
+] as const;
+
+Deno.test("genesis_draft_scouting has the ADR 0034 four-step catalog in order", () => {
+  const steps = DEFAULT_PHASE_STEPS.filter(
+    (s) => s.phase === "genesis_draft_scouting",
+  ).sort((a, b) => a.stepIndex - b.stepIndex);
+  assertEquals(steps.length, 4);
+  for (let i = 0; i < GENESIS_DRAFT_SCOUTING_STEP_SLUGS.length; i++) {
+    assertEquals(steps[i].stepIndex, i);
+    assertEquals(steps[i].slug, GENESIS_DRAFT_SCOUTING_STEP_SLUGS[i]);
+    assertEquals(steps[i].kind, "event");
+  }
+});
+
+Deno.test("genesis_draft_scouting sits between genesis_founding_pool and genesis_allocation_draft in the catalog", () => {
+  const lastFoundingPoolIdx = DEFAULT_PHASE_STEPS.findLastIndex(
+    (s) => s.phase === "genesis_founding_pool",
+  );
+  const firstScoutingIdx = DEFAULT_PHASE_STEPS.findIndex(
+    (s) => s.phase === "genesis_draft_scouting",
+  );
+  const lastScoutingIdx = DEFAULT_PHASE_STEPS.findLastIndex(
+    (s) => s.phase === "genesis_draft_scouting",
+  );
+  const firstAllocationDraftIdx = DEFAULT_PHASE_STEPS.findIndex(
+    (s) => s.phase === "genesis_allocation_draft",
+  );
+  assertEquals(lastFoundingPoolIdx < firstScoutingIdx, true);
+  assertEquals(lastScoutingIdx < firstAllocationDraftIdx, true);
 });
