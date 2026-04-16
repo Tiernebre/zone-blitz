@@ -97,6 +97,8 @@ export interface UnassignedCandidate {
   /** Coach specialty (e.g. `offense`, `defense`, `ceo`, `quarterbacks`).
    * Null when the row represents a scout. */
   specialty: string | null;
+  age: number;
+  yearsExperience: number;
   marketTierPref: number | null;
   philosophyFitPref: number | null;
   staffFitPref: number | null;
@@ -614,6 +616,8 @@ export function createHiringRepository(deps: {
           lastName: coaches.lastName,
           role: coaches.role,
           specialty: coaches.specialty,
+          age: coaches.age,
+          yearsExperience: coaches.yearsExperience,
           marketTierPref: coaches.marketTierPref,
           philosophyFitPref: coaches.philosophyFitPref,
           staffFitPref: coaches.staffFitPref,
@@ -639,6 +643,8 @@ export function createHiringRepository(deps: {
           firstName: scouts.firstName,
           lastName: scouts.lastName,
           role: scouts.role,
+          age: scouts.age,
+          yearsExperience: scouts.yearsExperience,
           marketTierPref: scouts.marketTierPref,
           philosophyFitPref: scouts.philosophyFitPref,
           staffFitPref: scouts.staffFitPref,

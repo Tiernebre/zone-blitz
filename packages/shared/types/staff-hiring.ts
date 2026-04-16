@@ -32,6 +32,12 @@ export interface HiringCandidateSummary {
    * coaches who carry a defensive scheme identity (DCs, defense-HCs).
    * Null for everyone else. */
   defensiveArchetype: string | null;
+  /** Current age, in years. Public knowledge. */
+  age: number;
+  /** Total career experience, in years. Independent of tenure with any
+   * specific team — distinguishes the 25-year veteran from the rising
+   * first-timer at a glance. */
+  yearsExperience: number;
 }
 
 export interface HiringInterviewReveal {

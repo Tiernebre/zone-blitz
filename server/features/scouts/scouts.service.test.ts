@@ -108,6 +108,7 @@ const baseGenerated = {
   reportsToId: null,
   coverage: "Northeast",
   age: 42,
+  yearsExperience: 12,
   hiredAt: new Date(),
   contractYears: 2,
   contractSalary: 250_000,

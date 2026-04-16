@@ -33,6 +33,7 @@ export const scouts = pgTable("scouts", {
   ),
   coverage: text("coverage"),
   age: integer("age").notNull().default(40),
+  yearsExperience: integer("years_experience").notNull().default(0),
   hiredAt: timestamp("hired_at").notNull().defaultNow(),
   contractYears: integer("contract_years").notNull().default(1),
   contractSalary: integer("contract_salary").notNull().default(0),

@@ -166,6 +166,8 @@ describe("Market survey view", () => {
           specialty: "offense",
           offensiveArchetype: "pro_style_timing",
           defensiveArchetype: null,
+          age: 54,
+          yearsExperience: 28,
         },
         {
           id: "c2",
@@ -177,6 +179,8 @@ describe("Market survey view", () => {
           specialty: "offense",
           offensiveArchetype: "shanahan_wide_zone",
           defensiveArchetype: null,
+          age: 44,
+          yearsExperience: 18,
         },
         {
           id: "c3",
@@ -188,6 +192,8 @@ describe("Market survey view", () => {
           specialty: "defense",
           offensiveArchetype: null,
           defensiveArchetype: "fangio_two_high",
+          age: 60,
+          yearsExperience: 35,
         },
         {
           id: "c4",
@@ -199,6 +205,8 @@ describe("Market survey view", () => {
           specialty: "ceo",
           offensiveArchetype: null,
           defensiveArchetype: null,
+          age: 50,
+          yearsExperience: 1,
         },
       ],
       isLoading: false,
@@ -245,6 +253,20 @@ describe("Market survey view", () => {
     expect(
       screen.getByTestId("candidate-scheme-c4").textContent,
     ).toBe("Defers to coordinators");
+  });
+
+  it("shows age and years of experience so vets and first-timers are distinguishable", () => {
+    renderPage();
+    expect(
+      screen.getByTestId("candidate-age-c1").textContent,
+    ).toBe("54");
+    expect(
+      screen.getByTestId("candidate-experience-c1").textContent,
+    ).toBe("28 yrs");
+    // Grammar for the single-year case — a first-time first-year HC.
+    expect(
+      screen.getByTestId("candidate-experience-c4").textContent,
+    ).toBe("1 yr");
   });
 
   it("invokes expressInterest on Express Interest click", () => {

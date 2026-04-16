@@ -896,6 +896,8 @@ Deno.test("finalize: assembles full coaching staff under signed HC by drawing fr
     lastName: role,
     role,
     specialty: null,
+    age: 45,
+    yearsExperience: 15,
     marketTierPref: 50,
     philosophyFitPref: 50,
     staffFitPref: 50,
@@ -991,6 +993,8 @@ Deno.test("finalize: assembles scouting staff under signed Director", async () =
     lastName: role,
     role,
     specialty: null,
+    age: 45,
+    yearsExperience: 15,
     marketTierPref: 50,
     philosophyFitPref: 50,
     staffFitPref: 50,
@@ -1065,6 +1069,8 @@ Deno.test("finalize: skips teams without a signed HC or Director (no leader, no 
             lastName: "L",
             role: "OC",
             specialty: "offense",
+            age: 45,
+            yearsExperience: 15,
             marketTierPref: 50,
             philosophyFitPref: 50,
             staffFitPref: 50,
@@ -1115,6 +1121,8 @@ Deno.test("finalize: same candidate is not assigned to two teams in the same run
     lastName: "OC",
     role: "OC",
     specialty: "offense",
+    age: 45,
+    yearsExperience: 15,
     marketTierPref: 50,
     philosophyFitPref: 50,
     staffFitPref: 50,
@@ -1193,6 +1201,8 @@ Deno.test("finalize: respects league staff budget when assembling staff", async 
     lastName: "OC",
     role: "OC",
     specialty: "offense",
+    age: 45,
+    yearsExperience: 15,
     marketTierPref: 50,
     philosophyFitPref: 50,
     staffFitPref: 50,
@@ -1307,6 +1317,8 @@ function makeUnassigned(
     lastName: "Last",
     role: "HC",
     specialty: null,
+    age: 45,
+    yearsExperience: 15,
     marketTierPref: 50,
     philosophyFitPref: 50,
     staffFitPref: 50,
@@ -1338,6 +1350,12 @@ Deno.test("listCandidates: returns coaches and scouts tagged with staff type", a
   assertEquals(scoutRow?.staffType, "scout");
   assertEquals(coachRow?.role, "HC");
   assertEquals(scoutRow?.role, "DIRECTOR");
+  // Age and experience are surfaced on the summary so the market table
+  // can show tl;dr career signal before interviews are requested.
+  assertEquals(coachRow?.age, coach.age);
+  assertEquals(coachRow?.yearsExperience, coach.yearsExperience);
+  assertEquals(scoutRow?.age, scout.age);
+  assertEquals(scoutRow?.yearsExperience, scout.yearsExperience);
 });
 
 Deno.test("listCandidates: filters by staffType", async () => {
@@ -1441,6 +1459,8 @@ Deno.test("getCandidateDetail: returns detail with null interview reveal when vi
   assertEquals(detail?.id, coach.id);
   assertEquals(detail?.staffType, "coach");
   assertEquals(detail?.interviewReveal, null);
+  assertEquals(detail?.age, coach.age);
+  assertEquals(detail?.yearsExperience, coach.yearsExperience);
 });
 
 Deno.test("getCandidateDetail: returns interview reveal when viewer has completed interview", async () => {
