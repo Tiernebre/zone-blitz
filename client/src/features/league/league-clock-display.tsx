@@ -1,13 +1,7 @@
 import { useState } from "react";
-import {
-  AlertTriangleIcon,
-  CalendarIcon,
-  ChevronRightIcon,
-  InfoIcon,
-} from "lucide-react";
+import { AlertTriangleIcon, ChevronRightIcon, InfoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import {
   useAdvanceLeagueClock,
   useLeagueClock,
@@ -25,6 +19,14 @@ function formatPhase(phase: string): string {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+function formatClockHeading(
+  phase: string,
+  slug: string,
+  seasonYear: number,
+): string {
+  return `${formatPhase(phase)} — ${formatSlug(slug)}, Year ${seasonYear}`;
 }
 
 interface LeagueClockDisplayProps {
@@ -70,15 +72,8 @@ export function LeagueClockDisplay({
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <CalendarIcon className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-muted-foreground">
-            {clock.seasonYear}
-          </span>
-          <Badge variant="outline">{formatPhase(clock.phase)}</Badge>
-        </div>
-        <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">
-            {formatSlug(clock.slug)}
+            {formatClockHeading(clock.phase, clock.slug, clock.seasonYear)}
           </span>
           {clock.flavorDate && (
             <span className="text-xs text-muted-foreground">
