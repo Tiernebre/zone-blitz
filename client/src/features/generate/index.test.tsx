@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Generate, MILESTONE_COPY } from "./index.tsx";
 
-const mockFoundPost = vi.fn();
+const mockGeneratePost = vi.fn();
 const mockNavigate = vi.fn();
 
 vi.mock("../../api.ts", () => ({
@@ -17,8 +17,8 @@ vi.mock("../../api.ts", () => ({
     api: {
       leagues: {
         ":id": {
-          found: {
-            $post: (...args: unknown[]) => mockFoundPost(...args),
+          generate: {
+            $post: (...args: unknown[]) => mockGeneratePost(...args),
           },
         },
       },
@@ -54,7 +54,7 @@ afterEach(() => {
 
 describe("Generate", () => {
   it("shows the first milestone copy on mount", () => {
-    mockFoundPost.mockReturnValue(new Promise(() => {}));
+    mockGeneratePost.mockReturnValue(new Promise(() => {}));
     renderWithProviders();
     expect(
       screen.getByText("Creating coaches and league structure…"),
@@ -62,7 +62,7 @@ describe("Generate", () => {
   });
 
   it("cycles through narrative milestones while generation is pending", () => {
-    mockFoundPost.mockReturnValue(new Promise(() => {}));
+    mockGeneratePost.mockReturnValue(new Promise(() => {}));
     renderWithProviders();
 
     expect(screen.getByText(MILESTONE_COPY[0])).toBeDefined();
@@ -75,8 +75,8 @@ describe("Generate", () => {
     }
   });
 
-  it("calls the found endpoint and navigates to dashboard on success", async () => {
-    mockFoundPost.mockReturnValue(
+  it("calls the generate endpoint and navigates to dashboard on success", async () => {
+    mockGeneratePost.mockReturnValue(
       Promise.resolve({
         ok: true,
         json: () =>
@@ -92,7 +92,7 @@ describe("Generate", () => {
     renderWithProviders();
 
     await vi.waitFor(() => {
-      expect(mockFoundPost).toHaveBeenCalledWith({
+      expect(mockGeneratePost).toHaveBeenCalledWith({
         param: { id: "league-1" },
       });
     });
@@ -104,12 +104,12 @@ describe("Generate", () => {
     });
   });
 
-  it("only calls the found endpoint once across re-renders", async () => {
-    mockFoundPost.mockReturnValue(new Promise(() => {}));
+  it("only calls the generate endpoint once across re-renders", async () => {
+    mockGeneratePost.mockReturnValue(new Promise(() => {}));
     const { rerender } = renderWithProviders();
 
     await vi.waitFor(() => {
-      expect(mockFoundPost).toHaveBeenCalledTimes(1);
+      expect(mockGeneratePost).toHaveBeenCalledTimes(1);
     });
 
     const queryClient = new QueryClient({
@@ -121,11 +121,11 @@ describe("Generate", () => {
       </QueryClientProvider>,
     );
 
-    expect(mockFoundPost).toHaveBeenCalledTimes(1);
+    expect(mockGeneratePost).toHaveBeenCalledTimes(1);
   });
 
   it("shows error alert with retry control when generation fails", async () => {
-    mockFoundPost.mockReturnValue(
+    mockGeneratePost.mockReturnValue(
       Promise.resolve({ ok: false, status: 500 }),
     );
     renderWithProviders();
@@ -137,8 +137,8 @@ describe("Generate", () => {
     expect(screen.getByRole("button", { name: /try again/i })).toBeDefined();
   });
 
-  it("retries the found call when the user clicks Try again", async () => {
-    mockFoundPost.mockReturnValueOnce(
+  it("retries the generate call when the user clicks Try again", async () => {
+    mockGeneratePost.mockReturnValueOnce(
       Promise.resolve({ ok: false, status: 500 }),
     );
     renderWithProviders();
@@ -147,7 +147,7 @@ describe("Generate", () => {
       expect(screen.getByText("Generation failed")).toBeDefined();
     });
 
-    mockFoundPost.mockReturnValueOnce(
+    mockGeneratePost.mockReturnValueOnce(
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ leagueId: "league-1" }),
@@ -156,7 +156,7 @@ describe("Generate", () => {
     fireEvent.click(screen.getByRole("button", { name: /try again/i }));
 
     await vi.waitFor(() => {
-      expect(mockFoundPost).toHaveBeenCalledTimes(2);
+      expect(mockGeneratePost).toHaveBeenCalledTimes(2);
     });
     await vi.waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith({

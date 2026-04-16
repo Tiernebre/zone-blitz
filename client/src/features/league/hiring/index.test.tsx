@@ -759,14 +759,16 @@ describe("Finalize view", () => {
     );
   });
 
-  it("joins missing coach and scout roles with 'and' in the alert", () => {
+  it("lists missing coach and scout roles with human-readable labels in the alert", () => {
     mockUseHiringBlockers.mockReturnValue({
       data: { missingCoachRoles: ["HC"], missingScoutRoles: ["DIRECTOR"] },
       isLoading: false,
     });
     mockUseHiringCandidates.mockReturnValue({ data: [], isLoading: false });
     renderPage();
-    expect(screen.getByText(/HC and DIRECTOR/)).toBeTruthy();
+    expect(
+      screen.getByText(/Head Coach, Director of Scouting/),
+    ).toBeTruthy();
   });
 
   it("defaults to empty blocker and candidate lists when hooks return undefined", () => {

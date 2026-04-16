@@ -89,9 +89,10 @@ describe("CandidateDetail", () => {
     });
     renderPage();
     expect(screen.getByTestId("candidate-detail")).toBeTruthy();
-    expect(screen.getByTestId("preferences-card")).toBeTruthy();
     expect(screen.getByTestId("reveal-locked")).toBeTruthy();
     expect(screen.getByText("Andy Reid")).toBeTruthy();
+    expect(screen.getByText("Head Coach")).toBeTruthy();
+    expect(screen.queryByTestId("preferences-card")).toBeNull();
   });
 
   it("renders unlocked interview reveal when available", () => {
@@ -125,7 +126,7 @@ describe("CandidateDetail", () => {
     );
   });
 
-  it("renders a dash when a preference value is null", () => {
+  it("keeps the reveal locked when the reveal object has only null fields", () => {
     mockUseHiringCandidateDetail.mockReturnValue({
       data: {
         id: "c1",
@@ -139,12 +140,14 @@ describe("CandidateDetail", () => {
         staffFitPref: null,
         compensationPref: null,
         minimumThreshold: null,
-        interviewReveal: null,
+        interviewReveal: {
+          philosophyReveal: null,
+          staffFitReveal: null,
+        },
       },
       isLoading: false,
     });
     renderPage();
-    const prefs = screen.getByTestId("preferences-card");
-    expect(prefs.textContent).toContain("—");
+    expect(screen.getByTestId("reveal-locked")).toBeTruthy();
   });
 });
