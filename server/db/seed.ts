@@ -2,12 +2,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
 import postgres from "postgres";
 import pino from "pino";
-import {
-  cities,
-  colleges,
-  leaguePhaseStep,
-  states,
-} from "./schema.ts";
+import { cities, colleges, leaguePhaseStep, states } from "./schema.ts";
 import { DEFAULT_STATES } from "../features/states/default-states.ts";
 import { DEFAULT_CITIES } from "../features/cities/default-cities.ts";
 import { DEFAULT_COLLEGES } from "../features/colleges/default-colleges.ts";
