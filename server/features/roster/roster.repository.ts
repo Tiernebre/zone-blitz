@@ -181,9 +181,7 @@ export function createRosterRepository(deps: {
 
       const today = now();
       const rosterPlayers: RosterPlayer[] = rows.map((row) => {
-        const attributes: PlayerAttributes = pickAttributes(
-          row as unknown as Record<string, unknown>,
-        );
+        const attributes: PlayerAttributes = pickAttributes(row);
         const bucket = neutralBucket({
           attributes,
           heightInches: row.heightInches,

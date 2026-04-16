@@ -20,13 +20,12 @@ export function attributeColumns() {
   return columns;
 }
 
-export function pickAttributes(
-  row: Record<string, unknown>,
-): PlayerAttributes {
+export function pickAttributes(row: object): PlayerAttributes {
+  const indexed = row as Record<string, unknown>;
   const attrs: Record<string, number> = {};
   for (const key of PLAYER_ATTRIBUTE_KEYS) {
-    attrs[key] = row[key] as number;
-    attrs[`${key}Potential`] = row[`${key}Potential`] as number;
+    attrs[key] = indexed[key] as number;
+    attrs[`${key}Potential`] = indexed[`${key}Potential`] as number;
   }
   return attrs as PlayerAttributes;
 }

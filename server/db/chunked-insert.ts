@@ -3,8 +3,8 @@ import type { Executor } from "./connection.ts";
 export const DEFAULT_CHUNK_SIZE = 100;
 export const MAX_PARAMETERS_PER_BATCH = 5_000;
 
-function effectiveChunkSize(
-  rows: readonly Record<string, unknown>[],
+function effectiveChunkSize<Row extends object>(
+  rows: readonly Row[],
   chunkSize: number,
 ): number {
   if (rows.length === 0) return chunkSize;
@@ -17,11 +17,11 @@ function effectiveChunkSize(
   return Math.min(chunkSize, maxByParams);
 }
 
-export async function chunkedInsert(
+export async function chunkedInsert<Row extends object>(
   exec: Executor,
   // deno-lint-ignore no-explicit-any
   table: any,
-  rows: readonly Record<string, unknown>[],
+  rows: readonly Row[],
   chunkSize: number = DEFAULT_CHUNK_SIZE,
 ): Promise<void> {
   const size = effectiveChunkSize(rows, chunkSize);
@@ -31,11 +31,11 @@ export async function chunkedInsert(
   }
 }
 
-export async function chunkedInsertReturning<R>(
+export async function chunkedInsertReturning<R, Row extends object = object>(
   exec: Executor,
   // deno-lint-ignore no-explicit-any
   table: any,
-  rows: readonly Record<string, unknown>[],
+  rows: readonly Row[],
   returning: Record<string, unknown>,
   chunkSize: number = DEFAULT_CHUNK_SIZE,
 ): Promise<R[]> {

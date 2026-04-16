@@ -195,9 +195,7 @@ export function createPlayersService(deps: {
       });
 
       if (contractBundles.length > 0) {
-        const contractRows = contractBundles.map(
-          (b) => b.contract as unknown as Record<string, unknown>,
-        );
+        const contractRows = contractBundles.map((b) => b.contract);
         const insertedContracts = await chunkedInsertReturning<{
           id: string;
           playerId: string;

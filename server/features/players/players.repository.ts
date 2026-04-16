@@ -239,9 +239,7 @@ export function createPlayersRepository(deps: {
 
       if (!row) return undefined;
 
-      const attributes: PlayerAttributes = pickAttributes(
-        row as unknown as Record<string, unknown>,
-      );
+      const attributes: PlayerAttributes = pickAttributes(row);
       const bucket = neutralBucket({
         attributes,
         heightInches: row.heightInches,
@@ -486,7 +484,7 @@ export function createPlayersRepository(deps: {
         firstName: row.firstName,
         lastName: row.lastName,
         neutralBucket: neutralBucket({
-          attributes: pickAttributes(row as unknown as Record<string, unknown>),
+          attributes: pickAttributes(row),
           heightInches: row.heightInches,
           weightPounds: row.weightPounds,
         }),
