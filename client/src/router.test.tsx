@@ -188,7 +188,6 @@ describe("Router", () => {
     ["standings", "Standings"],
     ["schedule", "Schedule"],
     ["media", "Media"],
-    ["owner", "Owner"],
     ["opponents", "Opponents"],
   ];
 

@@ -31,16 +31,9 @@ describe("navGroups", () => {
     }
   });
 
-  it("Owner is visible in all phases", () => {
-    for (const phase of LEAGUE_PHASES) {
-      expect(visibleLabels(phase)).toContain("Owner");
-    }
-  });
-
   it("shows only genesis-appropriate items in genesis_charter", () => {
     const visible = visibleLabels("genesis_charter");
     expect(visible).toContain("Home");
-    expect(visible).toContain("Owner");
     expect(visible).not.toContain("Roster");
     expect(visible).not.toContain("Coaches");
     expect(visible).not.toContain("Draft");
@@ -166,10 +159,10 @@ describe("navGroups", () => {
 
   describe("exact visible set per representative phase", () => {
     it.each<[LeaguePhase, string[]]>([
-      ["genesis_charter", ["Home", "Charter", "Owner"]],
+      ["genesis_charter", ["Home", "Charter"]],
       [
         "genesis_staff_hiring",
-        ["Home", "Coaches", "Scouts", "Staff Hiring", "Media", "Owner"],
+        ["Home", "Coaches", "Scouts", "Staff Hiring", "Media"],
       ],
       [
         "genesis_allocation_draft",
@@ -182,7 +175,6 @@ describe("navGroups", () => {
           "Allocation Draft",
           "Salary Cap",
           "Media",
-          "Owner",
         ],
       ],
       [
@@ -195,7 +187,6 @@ describe("navGroups", () => {
           "Free Agency",
           "Salary Cap",
           "Media",
-          "Owner",
         ],
       ],
       [
@@ -210,7 +201,6 @@ describe("navGroups", () => {
           "Schedule",
           "Opponents",
           "Media",
-          "Owner",
         ],
       ],
       [
@@ -227,7 +217,6 @@ describe("navGroups", () => {
           "Schedule",
           "Opponents",
           "Media",
-          "Owner",
         ],
       ],
       [
@@ -239,7 +228,6 @@ describe("navGroups", () => {
           "Scouts",
           "Salary Cap",
           "Media",
-          "Owner",
         ],
       ],
     ])(
