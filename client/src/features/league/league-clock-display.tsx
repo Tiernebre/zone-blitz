@@ -1,6 +1,18 @@
+import { useState } from "react";
 import { ChevronRightIcon, InfoIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   useAdvanceLeagueClock,
   useLeagueClock,
@@ -39,6 +51,7 @@ export function LeagueClockDisplay({
 }: LeagueClockDisplayProps) {
   const { data: clock } = useLeagueClock(leagueId);
   const advanceMutation = useAdvanceLeagueClock();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   if (!clock) return null;
 
@@ -46,6 +59,7 @@ export function LeagueClockDisplay({
   const showInauguralYearNote = clock.isInauguralSeason && !isSetupPhase;
 
   const handleAdvance = () => {
+    setConfirmOpen(false);
     advanceMutation.mutate(
       {
         leagueId,
@@ -87,16 +101,41 @@ export function LeagueClockDisplay({
           )}
         </div>
         {isCommissioner && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="ml-auto"
-            onClick={handleAdvance}
-            disabled={advanceMutation.isPending}
-          >
-            <ChevronRightIcon />
-            Advance
-          </Button>
+          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="ml-auto"
+                  disabled={advanceMutation.isPending}
+                />
+              }
+            >
+              <ChevronRightIcon />
+              Advance
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Advance league?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will move the league forward to the next step. This
+                  action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleAdvance}
+                  disabled={advanceMutation.isPending}
+                >
+                  {advanceMutation.isPending
+                    ? "Advancing..."
+                    : "Confirm Advance"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </div>
       {showInauguralYearNote && (
