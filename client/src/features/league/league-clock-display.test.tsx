@@ -49,7 +49,7 @@ afterEach(() => {
 });
 
 describe("LeagueClockDisplay", () => {
-  it("renders the phase and step name with flavor date", async () => {
+  it("renders the full temporal context: phase, slug, year, and flavor date", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -68,10 +68,11 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
 
     await waitFor(() => {
-      expect(screen.getByText("Week 4")).toBeDefined();
+      expect(
+        screen.getByText("Regular Season — Week 4, Year 2026"),
+      ).toBeDefined();
     });
     expect(screen.getByText("Sep 28")).toBeDefined();
-    expect(screen.getByText(/Regular Season/)).toBeDefined();
   });
 
   it("renders Advance button for commissioner", async () => {
@@ -118,7 +119,9 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: false });
 
     await waitFor(() => {
-      expect(screen.getByText("Awards Ceremony")).toBeDefined();
+      expect(
+        screen.getByText("Offseason Review — Awards Ceremony, Year 2026"),
+      ).toBeDefined();
     });
     expect(screen.queryByRole("button", { name: /advance/i })).toBeNull();
   });
@@ -358,7 +361,7 @@ describe("LeagueClockDisplay", () => {
     });
   });
 
-  it("renders the season year", async () => {
+  it("renders year as part of the full temporal context string", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -378,7 +381,9 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
 
     await waitFor(() => {
-      expect(screen.getByText("2026")).toBeDefined();
+      expect(
+        screen.getByText("Draft — Round 1, Year 2026"),
+      ).toBeDefined();
     });
   });
 
@@ -402,7 +407,9 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: false });
 
     await waitFor(() => {
-      expect(screen.getByText("Week 1")).toBeDefined();
+      expect(
+        screen.getByText("Regular Season — Week 1, Year 1"),
+      ).toBeDefined();
     });
     expect(
       screen.getByText("No preseason (inaugural year)"),
@@ -429,7 +436,9 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: false });
 
     await waitFor(() => {
-      expect(screen.getByText("Preseason Week 1")).toBeDefined();
+      expect(
+        screen.getByText("Preseason — Preseason Week 1, Year 2"),
+      ).toBeDefined();
     });
     expect(
       screen.queryByText("No preseason (inaugural year)"),
@@ -456,7 +465,9 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: false });
 
     await waitFor(() => {
-      expect(screen.getByText("Kickoff")).toBeDefined();
+      expect(
+        screen.getByText("Genesis Kickoff — Kickoff, Year 1"),
+      ).toBeDefined();
     });
     expect(
       screen.queryByText("No preseason (inaugural year)"),
