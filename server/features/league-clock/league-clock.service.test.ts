@@ -116,6 +116,7 @@ function createGateState(
     draftOrderResolved: true,
     superBowlPlayed: true,
     priorPhaseComplete: true,
+    allTeamsHaveStaff: true,
     ...overrides,
   };
 }
