@@ -1,14 +1,14 @@
 import type {
-  Franchise,
   League,
   LeagueFoundResult,
   LeagueListItem,
   NewLeague,
+  Team,
 } from "@zone-blitz/shared";
 
 export interface CreateLeagueResult {
   league: League;
-  franchises: Franchise[];
+  teams: Team[];
 }
 
 export interface LeagueService {
@@ -16,6 +16,7 @@ export interface LeagueService {
   getById(id: string): Promise<League>;
   create(input: NewLeague): Promise<CreateLeagueResult>;
   found(leagueId: string): Promise<LeagueFoundResult>;
+  getTeams(leagueId: string): Promise<Team[]>;
   assignUserTeam(id: string, userTeamId: string): Promise<League>;
   touchLastPlayed(id: string): Promise<League>;
   deleteById(id: string): Promise<void>;

@@ -1,5 +1,7 @@
 export interface Team {
   id: string;
+  leagueId: string;
+  franchiseId: string;
   name: string;
   cityId: string;
   city: string;

@@ -6,6 +6,7 @@ import { createAppRouter, createTestRouter } from "./router.tsx";
 
 const mockGet = vi.fn();
 const mockTeamsGet = vi.fn();
+const mockFranchisesGet = vi.fn();
 const mockStaffGet = vi.fn();
 const mockUseSession = vi.fn();
 
@@ -18,6 +19,11 @@ vi.mock("./api.ts", () => ({
       },
       teams: {
         $get: (...args: unknown[]) => mockTeamsGet(...args),
+        league: {
+          ":leagueId": {
+            $get: (...args: unknown[]) => mockFranchisesGet(...args),
+          },
+        },
       },
       coaches: {
         leagues: {
@@ -131,19 +137,18 @@ describe("Router", () => {
       data: { user: { id: "1", name: "Test" }, session: { id: "s1" } },
       isPending: false,
     });
-    mockTeamsGet.mockReturnValue(
+    mockFranchisesGet.mockReturnValue(
       Promise.resolve({
         json: () =>
           Promise.resolve([
             {
               id: "t1",
-              name: "Minutemen",
-              city: "Boston",
-              abbreviation: "BOS",
-              primaryColor: "#000",
-              secondaryColor: "#FFF",
-              conference: "AFC",
-              division: "AFC East",
+              name: "Aces",
+              city: "Reno",
+              abbreviation: "RNO",
+              primaryColor: "#1A1A2E",
+              secondaryColor: "#C9A227",
+              accentColor: "#E74C3C",
             },
           ]),
       }),
@@ -151,7 +156,7 @@ describe("Router", () => {
     renderRouter("/leagues/1/team-select");
     await waitFor(() => {
       expect(
-        screen.getByRole("heading", { name: "Choose Your Team" }),
+        screen.getByRole("heading", { name: "Choose Your Franchise" }),
       ).toBeDefined();
     });
   });

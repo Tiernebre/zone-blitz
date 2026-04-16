@@ -5,9 +5,9 @@ import type { LeagueRepository } from "./league.repository.interface.ts";
 import type { LeagueService } from "./league.service.interface.ts";
 import type { SeasonService } from "../season/season.service.interface.ts";
 import type { TeamService } from "../team/team.service.interface.ts";
+import type { FranchiseService } from "../franchise/franchise.service.interface.ts";
 import type { PersonnelService } from "../personnel/personnel.service.interface.ts";
 import type { ScheduleService } from "../schedule/schedule.service.interface.ts";
-import type { FranchiseRepository } from "../franchise/franchise.repository.ts";
 import type { LeagueClockRepository } from "../league-clock/league-clock.repository.ts";
 
 const FOUNDING_TEAM_COUNT = 8;
@@ -18,9 +18,9 @@ export function createLeagueService(deps: {
   leagueRepo: LeagueRepository;
   seasonService: SeasonService;
   teamService: TeamService;
+  franchiseService: FranchiseService;
   personnelService: PersonnelService;
   scheduleService: ScheduleService;
-  franchiseRepo: FranchiseRepository;
   leagueClockRepo: LeagueClockRepository;
   log: pino.Logger;
 }): LeagueService {
@@ -77,15 +77,14 @@ export function createLeagueService(deps: {
     async create(input) {
       log.info({ name: input.name }, "creating league shell");
 
-      const teams = await deps.teamService.getAll();
-      if (teams.length === 0) {
+      const franchises = await deps.franchiseService.getAll();
+
+      if (franchises.length !== FOUNDING_TEAM_COUNT) {
         throw new DomainError(
           "PRECONDITION_FAILED",
-          "Cannot create a league with no teams. Run `deno task db:seed` to seed default teams.",
+          `Expected ${FOUNDING_TEAM_COUNT} founding franchises but found ${franchises.length}. Run \`deno task db:seed\` to seed founding franchises.`,
         );
       }
-
-      const foundingTeams = teams.slice(0, FOUNDING_TEAM_COUNT);
 
       return await deps.txRunner.run(async (tx) => {
         const league = await deps.leagueRepo.create(
@@ -93,20 +92,28 @@ export function createLeagueService(deps: {
           tx,
         );
 
-        const franchises = await deps.franchiseRepo.createMany(
-          foundingTeams.map((t) => ({
+        const teams = await deps.teamService.createMany(
+          franchises.map((f) => ({
             leagueId: league.id,
-            teamId: t.id,
+            franchiseId: f.id,
+            name: f.name,
+            cityId: f.cityId,
+            abbreviation: f.abbreviation,
+            primaryColor: f.primaryColor,
+            secondaryColor: f.secondaryColor,
+            accentColor: f.accentColor,
+            conference: f.conference,
+            division: f.division,
           })),
           tx,
         );
 
         log.info(
-          { leagueId: league.id, franchiseCount: franchises.length },
-          "created league shell with founding franchises",
+          { leagueId: league.id, teamCount: teams.length },
+          "created league shell with teams",
         );
 
-        return { league, franchises };
+        return { league, teams };
       });
     },
 
@@ -126,12 +133,9 @@ export function createLeagueService(deps: {
         );
       }
 
-      const franchises = await deps.franchiseRepo.getByLeagueId(leagueId);
-      const teamIds = franchises.map((f) => f.teamId);
+      const teams = await deps.teamService.getByLeagueId(leagueId);
+      const teamIds = teams.map((t) => t.id);
       const seasonLength = deriveDefaultSeasonLength(teamIds.length);
-
-      const allTeams = await deps.teamService.getAll();
-      const teamMap = new Map(allTeams.map((t) => [t.id, t]));
 
       return await deps.txRunner.run(async (tx) => {
         const season = await deps.seasonService.create(
@@ -158,14 +162,11 @@ export function createLeagueService(deps: {
           {
             seasonId: season.id,
             seasonLength,
-            teams: franchises.map((f) => {
-              const team = teamMap.get(f.teamId);
-              return {
-                teamId: f.teamId,
-                conference: team?.conference ?? "",
-                division: team?.division ?? "",
-              };
-            }),
+            teams: teams.map((t) => ({
+              teamId: t.id,
+              conference: t.conference,
+              division: t.division,
+            })),
           },
           tx,
         );
@@ -202,13 +203,28 @@ export function createLeagueService(deps: {
       });
     },
 
+    async getTeams(leagueId) {
+      log.debug({ leagueId }, "fetching teams for league");
+      const league = await deps.leagueRepo.getById(leagueId);
+      if (!league) {
+        throw new DomainError("NOT_FOUND", `League ${leagueId} not found`);
+      }
+      return await deps.teamService.getByLeagueId(leagueId);
+    },
+
     async assignUserTeam(id, userTeamId) {
       log.info({ id, userTeamId }, "assigning user team to league");
       const league = await deps.leagueRepo.getById(id);
       if (!league) {
         throw new DomainError("NOT_FOUND", `League ${id} not found`);
       }
-      await deps.teamService.getById(userTeamId);
+      const team = await deps.teamService.getById(userTeamId);
+      if (team.leagueId !== id) {
+        throw new DomainError(
+          "INVALID_INPUT",
+          `Team ${userTeamId} does not belong to league ${id}`,
+        );
+      }
       const updated = await deps.leagueRepo.updateUserTeam(id, userTeamId);
       if (!updated) {
         throw new DomainError("NOT_FOUND", `League ${id} not found`);

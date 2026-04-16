@@ -1,4 +1,5 @@
 import {
+  type AnyPgColumn,
   integer,
   pgEnum,
   pgTable,
@@ -16,7 +17,7 @@ export const advancePolicyEnum = pgEnum("advance_policy", [
 export const leagues = pgTable("leagues", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
-  userTeamId: uuid("user_team_id").references(() => teams.id, {
+  userTeamId: uuid("user_team_id").references((): AnyPgColumn => teams.id, {
     onDelete: "set null",
   }),
   numberOfTeams: integer("number_of_teams").notNull().default(32),

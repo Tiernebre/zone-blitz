@@ -1,16 +1,30 @@
 import { eq } from "drizzle-orm";
 import type { Franchise } from "@zone-blitz/shared";
-import type { Database, Executor } from "../../db/connection.ts";
+import type { Database } from "../../db/connection.ts";
 import { franchises } from "./franchise.schema.ts";
+import { cities } from "../cities/city.schema.ts";
+import { states } from "../states/state.schema.ts";
 import type pino from "pino";
 
-export interface FranchiseRepository {
-  createMany(
-    rows: { leagueId: string; teamId: string }[],
-    tx?: Executor,
-  ): Promise<Franchise[]>;
+const franchiseColumns = {
+  id: franchises.id,
+  name: franchises.name,
+  cityId: franchises.cityId,
+  city: cities.name,
+  state: states.code,
+  abbreviation: franchises.abbreviation,
+  primaryColor: franchises.primaryColor,
+  secondaryColor: franchises.secondaryColor,
+  accentColor: franchises.accentColor,
+  conference: franchises.conference,
+  division: franchises.division,
+  createdAt: franchises.createdAt,
+  updatedAt: franchises.updatedAt,
+};
 
-  getByLeagueId(leagueId: string, tx?: Executor): Promise<Franchise[]>;
+export interface FranchiseRepository {
+  getAll(): Promise<Franchise[]>;
+  getById(id: string): Promise<Franchise | undefined>;
 }
 
 export function createFranchiseRepository(deps: {
@@ -20,20 +34,25 @@ export function createFranchiseRepository(deps: {
   const log = deps.log.child({ module: "franchise.repository" });
 
   return {
-    async createMany(rows, tx) {
-      log.debug({ count: rows.length }, "creating franchises");
-      return await (tx ?? deps.db)
-        .insert(franchises)
-        .values(rows)
-        .returning();
+    async getAll() {
+      log.debug("fetching all franchises");
+      return await deps.db
+        .select(franchiseColumns)
+        .from(franchises)
+        .innerJoin(cities, eq(franchises.cityId, cities.id))
+        .innerJoin(states, eq(cities.stateId, states.id));
     },
 
-    async getByLeagueId(leagueId, tx) {
-      log.debug({ leagueId }, "fetching franchises for league");
-      return await (tx ?? deps.db)
-        .select()
+    async getById(id) {
+      log.debug({ id }, "fetching franchise by id");
+      const [franchise] = await deps.db
+        .select(franchiseColumns)
         .from(franchises)
-        .where(eq(franchises.leagueId, leagueId));
+        .innerJoin(cities, eq(franchises.cityId, cities.id))
+        .innerJoin(states, eq(cities.stateId, states.id))
+        .where(eq(franchises.id, id))
+        .limit(1);
+      return franchise;
     },
   };
 }

@@ -9,6 +9,8 @@ import type { Team } from "@zone-blitz/shared";
 
 const teamColumns = {
   id: teams.id,
+  leagueId: teams.leagueId,
+  franchiseId: teams.franchiseId,
   name: teams.name,
   cityId: teams.cityId,
   city: cities.name,
@@ -30,18 +32,37 @@ export function createTeamRepository(deps: {
   const log = deps.log.child({ module: "team.repository" });
 
   return {
-    async getAll(): Promise<Team[]> {
-      log.debug("fetching all teams");
-      return await deps.db
+    async createMany(rows, tx) {
+      log.debug({ count: rows.length }, "creating teams");
+      if (rows.length === 0) return [];
+      const inserted = await (tx ?? deps.db)
+        .insert(teams)
+        .values(rows)
+        .returning({ id: teams.id });
+      const ids = inserted.map((r) => r.id);
+      if (ids.length === 0) return [];
+      const created = await (tx ?? deps.db)
         .select(teamColumns)
         .from(teams)
         .innerJoin(cities, eq(teams.cityId, cities.id))
-        .innerJoin(states, eq(cities.stateId, states.id));
+        .innerJoin(states, eq(cities.stateId, states.id))
+        .where(eq(teams.leagueId, rows[0].leagueId));
+      return created.filter((t) => ids.includes(t.id));
     },
 
-    async getById(id): Promise<Team | undefined> {
+    async getByLeagueId(leagueId, tx): Promise<Team[]> {
+      log.debug({ leagueId }, "fetching teams for league");
+      return await (tx ?? deps.db)
+        .select(teamColumns)
+        .from(teams)
+        .innerJoin(cities, eq(teams.cityId, cities.id))
+        .innerJoin(states, eq(cities.stateId, states.id))
+        .where(eq(teams.leagueId, leagueId));
+    },
+
+    async getById(id, tx): Promise<Team | undefined> {
       log.debug({ id }, "fetching team by id");
-      const [team] = await deps.db
+      const [team] = await (tx ?? deps.db)
         .select(teamColumns)
         .from(teams)
         .innerJoin(cities, eq(teams.cityId, cities.id))

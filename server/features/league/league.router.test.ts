@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { createLeagueRouter } from "./league.router.ts";
-import type { Franchise, League, LeagueListItem } from "@zone-blitz/shared";
+import type { League, LeagueListItem, Team } from "@zone-blitz/shared";
 import type {
   CreateLeagueResult,
   LeagueService,
@@ -25,13 +25,21 @@ function createMockLeague(overrides: Partial<League> = {}): League {
   };
 }
 
-function createMockFranchise(
-  overrides: Partial<Franchise> = {},
-): Franchise {
+function createMockTeam(overrides: Partial<Team> = {}): Team {
   return {
-    id: "f-1",
+    id: "team-1",
     leagueId: "1",
-    teamId: "team-1",
+    franchiseId: "f-1",
+    name: "Team",
+    cityId: "city-1",
+    city: "City",
+    state: "NY",
+    abbreviation: "TST",
+    primaryColor: "#000",
+    secondaryColor: "#FFF",
+    accentColor: "#F00",
+    conference: "AFC",
+    division: "AFC East",
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -43,11 +51,11 @@ function createMockLeagueService(
 ): LeagueService {
   const defaultResult: CreateLeagueResult = {
     league: createMockLeague({ id: "new-id" }),
-    franchises: Array.from({ length: 8 }, (_, i) =>
-      createMockFranchise({
-        id: `f-${i}`,
+    teams: Array.from({ length: 8 }, (_, i) =>
+      createMockTeam({
+        id: `team-${i + 1}`,
         leagueId: "new-id",
-        teamId: `team-${i + 1}`,
+        franchiseId: `f-${i + 1}`,
       })),
   };
 
@@ -63,6 +71,7 @@ function createMockLeagueService(
         coachCount: 10,
         scoutCount: 5,
       }),
+    getTeams: () => Promise.resolve([]),
     assignUserTeam: () => Promise.resolve(createMockLeague()),
     touchLastPlayed: () => Promise.resolve(createMockLeague()),
     deleteById: () => Promise.resolve(),
@@ -133,15 +142,15 @@ Deno.test("league.router", async (t) => {
   });
 
   await t.step(
-    "POST / creates a league shell with franchises and returns 201",
+    "POST / creates a league shell with teams and returns 201",
     async () => {
       const result: CreateLeagueResult = {
         league: createMockLeague({ id: "new-id", name: "New League" }),
-        franchises: Array.from({ length: 8 }, (_, i) =>
-          createMockFranchise({
-            id: `f-${i}`,
+        teams: Array.from({ length: 8 }, (_, i) =>
+          createMockTeam({
+            id: `team-${i + 1}`,
             leagueId: "new-id",
-            teamId: `team-${i + 1}`,
+            franchiseId: `f-${i + 1}`,
           })),
       };
       const router = createLeagueRouter(
@@ -158,7 +167,7 @@ Deno.test("league.router", async (t) => {
       const body = await res.json();
       assertEquals(body.league.id, "new-id");
       assertEquals(body.league.name, "New League");
-      assertEquals(body.franchises.length, 8);
+      assertEquals(body.teams.length, 8);
     },
   );
 
@@ -197,6 +206,23 @@ Deno.test("league.router", async (t) => {
       assertEquals(res.status, 400);
     },
   );
+
+  await t.step("GET /:id/teams returns teams for the league", async () => {
+    const teams = [
+      createMockTeam({ id: "team-1", name: "Alpha" }),
+      createMockTeam({ id: "team-2", name: "Beta" }),
+    ];
+    const router = createLeagueRouter(
+      createMockLeagueService({ getTeams: () => Promise.resolve(teams) }),
+    );
+
+    const res = await router.request("/lg-1/teams");
+    assertEquals(res.status, 200);
+    const body = await res.json();
+    assertEquals(body.length, 2);
+    assertEquals(body[0].name, "Alpha");
+    assertEquals(body[1].name, "Beta");
+  });
 
   await t.step(
     "POST /:id/found runs founding generation and returns result",

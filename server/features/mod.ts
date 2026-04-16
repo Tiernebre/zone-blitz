@@ -58,7 +58,11 @@ import {
   createLeagueClockRouter,
   createLeagueClockService,
 } from "./league-clock/mod.ts";
-import { createFranchiseRepository } from "./franchise/mod.ts";
+import {
+  createFranchiseRepository,
+  createFranchiseRouter,
+  createFranchiseService,
+} from "./franchise/mod.ts";
 import { createTransactionRunner } from "../db/transaction-runner.ts";
 
 export function createFeatureRouters(
@@ -148,15 +152,16 @@ export function createFeatureRouters(
   // League Clock + Franchise repos (needed by league service)
   const leagueClockRepo = createLeagueClockRepository({ db, log });
   const franchiseRepo = createFranchiseRepository({ db, log });
+  const franchiseService = createFranchiseService({ franchiseRepo, log });
 
   const leagueService = createLeagueService({
     txRunner,
     leagueRepo,
     seasonService,
     teamService,
+    franchiseService,
     personnelService,
     scheduleService,
-    franchiseRepo,
     leagueClockRepo,
     log,
   });
@@ -173,6 +178,7 @@ export function createFeatureRouters(
   const leagueRouter = createLeagueRouter(leagueService);
   const userRouter = createUserRouter(userService);
   const teamRouter = createTeamRouter(teamService);
+  const franchiseRouter = createFranchiseRouter(franchiseService);
   const coachesRouter = createCoachesRouter(coachesService);
   const scoutsRouter = createScoutsRouter(scoutsService);
   const rosterService = createRosterService({ repo: rosterRepo, log });
@@ -187,6 +193,7 @@ export function createFeatureRouters(
     leagueClockRouter,
     userRouter,
     teamRouter,
+    franchiseRouter,
     coachesRouter,
     scoutsRouter,
     rosterRouter,

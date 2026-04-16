@@ -10,9 +10,9 @@ export function createTeamService(deps: {
   const log = deps.log.child({ module: "team.service" });
 
   return {
-    async getAll() {
-      log.debug("fetching all teams");
-      return await deps.teamRepo.getAll();
+    async getByLeagueId(leagueId) {
+      log.debug({ leagueId }, "fetching teams for league");
+      return await deps.teamRepo.getByLeagueId(leagueId);
     },
 
     async getById(id) {
@@ -22,6 +22,11 @@ export function createTeamService(deps: {
         throw new DomainError("NOT_FOUND", `Team ${id} not found`);
       }
       return team;
+    },
+
+    async createMany(rows, tx) {
+      log.debug({ count: rows.length }, "creating teams");
+      return await deps.teamRepo.createMany(rows, tx);
     },
   };
 }

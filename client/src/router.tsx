@@ -30,6 +30,7 @@ import { Schedule } from "./features/league/schedule.tsx";
 import { Media } from "./features/league/media.tsx";
 import { Owner } from "./features/league/owner.tsx";
 import { TeamSelect } from "./features/team-select/index.tsx";
+import { Generate } from "./features/generate/index.tsx";
 
 const rootRoute = createRootRoute();
 
@@ -79,6 +80,12 @@ const teamSelectRoute = createRoute({
   getParentRoute: () => authenticatedRoute,
   path: "leagues/$leagueId/team-select",
   component: TeamSelect,
+});
+
+const generateRoute = createRoute({
+  getParentRoute: () => authenticatedRoute,
+  path: "leagues/$leagueId/generate",
+  component: Generate,
 });
 
 const leagueLayoutRoute = createRoute({
@@ -201,6 +208,7 @@ const routeTree = rootRoute.addChildren([
     leagueSelectRoute,
     createLeagueRoute,
     teamSelectRoute,
+    generateRoute,
     leagueLayoutRoute.addChildren([
       leagueHomeRoute,
       leagueSettingsRoute,

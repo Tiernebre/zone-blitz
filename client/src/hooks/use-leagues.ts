@@ -66,6 +66,24 @@ export function useTouchLeague() {
   });
 }
 
+export function useFoundLeague() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (leagueId: string) => {
+      const res = await api.api.leagues[":id"].found.$post({
+        param: { id: leagueId },
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to found league (${res.status})`);
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leagues"] });
+    },
+  });
+}
+
 export function useDeleteLeague() {
   const queryClient = useQueryClient();
   return useMutation({

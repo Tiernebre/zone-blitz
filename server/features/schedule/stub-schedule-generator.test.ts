@@ -1,13 +1,23 @@
 import { assertEquals } from "@std/assert";
 import { createStubScheduleGenerator } from "./stub-schedule-generator.ts";
-import { DEFAULT_TEAMS } from "../team/default-teams.ts";
 import type { TeamDivisionInfo } from "./schedule.generator.interface.ts";
 
-const TEAMS: TeamDivisionInfo[] = DEFAULT_TEAMS.map((t, i) => ({
-  teamId: `team-${i}`,
-  conference: t.conference,
-  division: t.division,
-}));
+// 32 synthetic teams across 8 divisions (AFC/NFC × North/South/East/West),
+// 4 teams per division, matching the shape the stub generator expects.
+const CONFERENCES = ["AFC", "NFC"] as const;
+const DIVISION_NAMES = ["North", "South", "East", "West"] as const;
+const TEAMS: TeamDivisionInfo[] = [];
+for (const conference of CONFERENCES) {
+  for (const dir of DIVISION_NAMES) {
+    for (let i = 0; i < 4; i++) {
+      TEAMS.push({
+        teamId: `team-${conference}-${dir}-${i}`,
+        conference,
+        division: `${conference} ${dir}`,
+      });
+    }
+  }
+}
 
 const INPUT = {
   seasonId: "season-1",

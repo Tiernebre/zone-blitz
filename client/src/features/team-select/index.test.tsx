@@ -9,20 +9,24 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TeamSelect } from "./index.tsx";
 
-const mockTeamsGet = vi.fn();
+const mockFranchisesGet = vi.fn();
 const mockAssignTeam = vi.fn();
 const mockNavigate = vi.fn();
 
 vi.mock("../../api.ts", () => ({
   api: {
     api: {
-      teams: {
-        $get: (...args: unknown[]) => mockTeamsGet(...args),
-      },
       leagues: {
         ":id": {
           "user-team": {
             $patch: (...args: unknown[]) => mockAssignTeam(...args),
+          },
+        },
+      },
+      teams: {
+        league: {
+          ":leagueId": {
+            $get: (...args: unknown[]) => mockFranchisesGet(...args),
           },
         },
       },
@@ -35,36 +39,33 @@ vi.mock("@tanstack/react-router", () => ({
   useParams: () => ({ leagueId: "league-1" }),
 }));
 
-const MOCK_TEAMS = [
+const MOCK_FRANCHISES = [
   {
-    id: "t1",
-    name: "Minutemen",
-    city: "Boston",
-    abbreviation: "BOS",
-    primaryColor: "#0B2240",
-    secondaryColor: "#C41230",
-    conference: "AFC",
-    division: "AFC East",
+    id: "f1",
+    name: "Aces",
+    city: "Reno",
+    abbreviation: "RNO",
+    primaryColor: "#1A1A2E",
+    secondaryColor: "#C9A227",
+    accentColor: "#E74C3C",
   },
   {
-    id: "t2",
-    name: "Sharks",
-    city: "Miami",
-    abbreviation: "MIA",
-    primaryColor: "#006B70",
-    secondaryColor: "#FF6B35",
-    conference: "AFC",
-    division: "AFC East",
+    id: "f2",
+    name: "Riveters",
+    city: "Portland",
+    abbreviation: "PDX",
+    primaryColor: "#2D4A3E",
+    secondaryColor: "#D4856B",
+    accentColor: "#F5F0E1",
   },
   {
-    id: "t3",
-    name: "Lumberjacks",
-    city: "Green Bay",
-    abbreviation: "GBL",
-    primaryColor: "#204E32",
-    secondaryColor: "#FFB612",
-    conference: "NFC",
-    division: "NFC North",
+    id: "f3",
+    name: "Admirals",
+    city: "San Diego",
+    abbreviation: "SDG",
+    primaryColor: "#003459",
+    secondaryColor: "#D4AF37",
+    accentColor: "#FFFFFF",
   },
 ];
 
@@ -85,120 +86,125 @@ afterEach(() => {
 });
 
 describe("TeamSelect", () => {
-  it("renders the Choose Your Team heading", async () => {
-    mockTeamsGet.mockReturnValue(
-      Promise.resolve({ json: () => Promise.resolve(MOCK_TEAMS) }),
+  it("renders the Choose Your Franchise heading", async () => {
+    mockFranchisesGet.mockReturnValue(
+      Promise.resolve({ json: () => Promise.resolve(MOCK_FRANCHISES) }),
     );
     renderWithProviders();
     await waitFor(() => {
       expect(
-        screen.getByRole("heading", { name: "Choose Your Team" }),
+        screen.getByRole("heading", { name: "Choose Your Franchise" }),
       ).toBeDefined();
     });
   });
 
-  it("shows skeleton loading state while fetching teams", () => {
-    mockTeamsGet.mockReturnValue(new Promise(() => {}));
+  it("shows skeleton loading state while fetching franchises", () => {
+    mockFranchisesGet.mockReturnValue(new Promise(() => {}));
     renderWithProviders();
     const skeletons = document.querySelectorAll('[data-slot="skeleton"]');
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
   it("shows alert error state when fetch fails", async () => {
-    mockTeamsGet.mockReturnValue(Promise.reject(new Error("network error")));
+    mockFranchisesGet.mockReturnValue(
+      Promise.reject(new Error("network error")),
+    );
     renderWithProviders();
     await waitFor(() => {
       const alert = screen.getByRole("alert");
       expect(alert).toBeDefined();
-      expect(screen.getByText("Failed to load teams")).toBeDefined();
+      expect(screen.getByText("Failed to load franchises")).toBeDefined();
     });
   });
 
-  it("renders teams grouped by conference", async () => {
-    mockTeamsGet.mockReturnValue(
-      Promise.resolve({ json: () => Promise.resolve(MOCK_TEAMS) }),
+  it("renders franchise cards with city and team name", async () => {
+    mockFranchisesGet.mockReturnValue(
+      Promise.resolve({ json: () => Promise.resolve(MOCK_FRANCHISES) }),
     );
     renderWithProviders();
     await waitFor(() => {
-      expect(screen.getByText("AFC")).toBeDefined();
-      expect(screen.getByText("NFC")).toBeDefined();
+      expect(screen.getByText("Reno")).toBeDefined();
+      expect(screen.getByText("Aces")).toBeDefined();
+      expect(screen.getByText("Portland")).toBeDefined();
+      expect(screen.getByText("Riveters")).toBeDefined();
+      expect(screen.getByText("San Diego")).toBeDefined();
+      expect(screen.getByText("Admirals")).toBeDefined();
     });
   });
 
-  it("renders teams with city and name", async () => {
-    mockTeamsGet.mockReturnValue(
-      Promise.resolve({ json: () => Promise.resolve(MOCK_TEAMS) }),
+  it("renders color swatches for each franchise", async () => {
+    mockFranchisesGet.mockReturnValue(
+      Promise.resolve({ json: () => Promise.resolve(MOCK_FRANCHISES) }),
     );
     renderWithProviders();
     await waitFor(() => {
-      expect(screen.getByText("Boston Minutemen")).toBeDefined();
-      expect(screen.getByText("Miami Sharks")).toBeDefined();
-      expect(screen.getByText("Green Bay Lumberjacks")).toBeDefined();
+      expect(screen.getByText("Aces")).toBeDefined();
     });
+    const swatches = document.querySelectorAll("span.rounded-full.size-4");
+    expect(swatches.length).toBe(MOCK_FRANCHISES.length * 3);
   });
 
-  it("renders division headings", async () => {
-    mockTeamsGet.mockReturnValue(
-      Promise.resolve({ json: () => Promise.resolve(MOCK_TEAMS) }),
+  it("assigns team and navigates to generate on selection", async () => {
+    mockFranchisesGet.mockReturnValue(
+      Promise.resolve({ json: () => Promise.resolve(MOCK_FRANCHISES) }),
+    );
+    mockAssignTeam.mockReturnValue(
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ id: "league-1", userTeamId: "f1" }),
+      }),
     );
     renderWithProviders();
     await waitFor(() => {
-      expect(screen.getByText("AFC East")).toBeDefined();
-      expect(screen.getByText("NFC North")).toBeDefined();
+      expect(screen.getByText("Aces")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByText("Aces"));
+
+    await waitFor(() => {
+      expect(mockAssignTeam).toHaveBeenCalledWith({
+        param: { id: "league-1" },
+        json: { userTeamId: "f1" },
+      });
+    });
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith({
+        to: "/leagues/$leagueId/generate",
+        params: { leagueId: "league-1" },
+      });
     });
   });
-
-  it(
-    "persists the pick and navigates to league dashboard on success",
-    async () => {
-      mockTeamsGet.mockReturnValue(
-        Promise.resolve({ json: () => Promise.resolve(MOCK_TEAMS) }),
-      );
-      mockAssignTeam.mockReturnValue(
-        Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ id: "league-1", userTeamId: "t1" }),
-        }),
-      );
-      renderWithProviders();
-      await waitFor(() => {
-        expect(screen.getByText("Boston Minutemen")).toBeDefined();
-      });
-
-      fireEvent.click(screen.getByText("Boston Minutemen"));
-
-      await waitFor(() => {
-        expect(mockAssignTeam).toHaveBeenCalledWith({
-          param: { id: "league-1" },
-          json: { userTeamId: "t1" },
-        });
-      });
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith({
-          to: "/leagues/$leagueId",
-          params: { leagueId: "league-1" },
-        });
-      });
-    },
-  );
 
   it("surfaces an error alert when assignment fails", async () => {
-    mockTeamsGet.mockReturnValue(
-      Promise.resolve({ json: () => Promise.resolve(MOCK_TEAMS) }),
+    mockFranchisesGet.mockReturnValue(
+      Promise.resolve({ json: () => Promise.resolve(MOCK_FRANCHISES) }),
     );
     mockAssignTeam.mockReturnValue(
       Promise.resolve({ ok: false, status: 500 }),
     );
     renderWithProviders();
     await waitFor(() => {
-      expect(screen.getByText("Boston Minutemen")).toBeDefined();
+      expect(screen.getByText("Aces")).toBeDefined();
     });
 
-    fireEvent.click(screen.getByText("Boston Minutemen"));
+    fireEvent.click(screen.getByText("Aces"));
 
     await waitFor(() => {
       expect(screen.getByText("Failed to assign team")).toBeDefined();
     });
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("does not expose identity-override controls", async () => {
+    mockFranchisesGet.mockReturnValue(
+      Promise.resolve({ json: () => Promise.resolve(MOCK_FRANCHISES) }),
+    );
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText("Aces")).toBeDefined();
+    });
+    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(screen.queryByText(/rename/i)).toBeNull();
+    expect(screen.queryByText(/recolor/i)).toBeNull();
   });
 });

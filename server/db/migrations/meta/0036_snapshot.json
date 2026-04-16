@@ -1,5 +1,5 @@
 {
-  "id": "8cca2236-1c33-47f4-b1bb-451d7f5490ad",
+  "id": "b1ccd02c-864a-4f45-9f42-d6b883d434d9",
   "prevId": "33d68f52-77a7-4d3c-a680-2f8fbedf6512",
   "version": "7",
   "dialect": "postgresql",
@@ -1781,15 +1781,51 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "league_id": {
-          "name": "league_id",
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "city_id": {
+          "name": "city_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "team_id": {
-          "name": "team_id",
-          "type": "uuid",
+        "abbreviation": {
+          "name": "abbreviation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "primary_color": {
+          "name": "primary_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "secondary_color": {
+          "name": "secondary_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "accent_color": {
+          "name": "accent_color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "conference": {
+          "name": "conference",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "division": {
+          "name": "division",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -1810,25 +1846,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "franchises_league_id_leagues_id_fk": {
-          "name": "franchises_league_id_leagues_id_fk",
+        "franchises_city_id_cities_id_fk": {
+          "name": "franchises_city_id_cities_id_fk",
           "tableFrom": "franchises",
-          "tableTo": "leagues",
+          "tableTo": "cities",
           "columnsFrom": [
-            "league_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "franchises_team_id_teams_id_fk": {
-          "name": "franchises_team_id_teams_id_fk",
-          "tableFrom": "franchises",
-          "tableTo": "teams",
-          "columnsFrom": [
-            "team_id"
+            "city_id"
           ],
           "columnsTo": [
             "id"
@@ -1839,12 +1862,11 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "franchises_league_id_team_id_unique": {
-          "name": "franchises_league_id_team_id_unique",
+        "franchises_abbreviation_unique": {
+          "name": "franchises_abbreviation_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "league_id",
-            "team_id"
+            "abbreviation"
           ]
         }
       },
@@ -6936,6 +6958,18 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "league_id": {
+          "name": "league_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "franchise_id": {
+          "name": "franchise_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "name": {
           "name": "name",
           "type": "text",
@@ -7001,6 +7035,32 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "teams_league_id_leagues_id_fk": {
+          "name": "teams_league_id_leagues_id_fk",
+          "tableFrom": "teams",
+          "tableTo": "leagues",
+          "columnsFrom": [
+            "league_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "teams_franchise_id_franchises_id_fk": {
+          "name": "teams_franchise_id_franchises_id_fk",
+          "tableFrom": "teams",
+          "tableTo": "franchises",
+          "columnsFrom": [
+            "franchise_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
         "teams_city_id_cities_id_fk": {
           "name": "teams_city_id_cities_id_fk",
           "tableFrom": "teams",
@@ -7017,11 +7077,12 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "teams_abbreviation_unique": {
-          "name": "teams_abbreviation_unique",
+        "teams_league_id_franchise_id_unique": {
+          "name": "teams_league_id_franchise_id_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "abbreviation"
+            "league_id",
+            "franchise_id"
           ]
         }
       },
