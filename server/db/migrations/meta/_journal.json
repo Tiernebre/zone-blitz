@@ -267,6 +267,20 @@
       "when": 1776556800000,
       "tag": "0037_update_franchise_colors",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1776556800001,
+      "tag": "0038_bizarre_epoch",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1776556800002,
+      "tag": "0039_tough_senator_kelly",
+      "breakpoints": true
     }
   ]
 }

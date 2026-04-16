@@ -7,6 +7,7 @@ import {
 } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { Toaster } from "@/components/ui/sonner";
 import { LeagueClockDisplay } from "./league-clock-display.tsx";
 
 const mockGetClock = vi.fn();
@@ -32,11 +33,12 @@ function renderWithProviders(props: {
   isCommissioner: boolean;
 }) {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   return render(
     <QueryClientProvider client={queryClient}>
       <LeagueClockDisplay {...props} />
+      <Toaster />
     </QueryClientProvider>,
   );
 }
@@ -47,7 +49,7 @@ afterEach(() => {
 });
 
 describe("LeagueClockDisplay", () => {
-  it("renders the phase and step name with flavor date", async () => {
+  it("renders the full temporal context: phase, slug, year, and flavor date", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -66,10 +68,11 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
 
     await waitFor(() => {
-      expect(screen.getByText("Week 4")).toBeDefined();
+      expect(
+        screen.getByText("Regular Season — Week 4, Year 2026"),
+      ).toBeDefined();
     });
     expect(screen.getByText("Sep 28")).toBeDefined();
-    expect(screen.getByText(/Regular Season/)).toBeDefined();
   });
 
   it("renders Advance button for commissioner", async () => {
@@ -116,12 +119,270 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: false });
 
     await waitFor(() => {
-      expect(screen.getByText("Awards Ceremony")).toBeDefined();
+      expect(
+        screen.getByText("Offseason Review — Awards Ceremony, Year 2026"),
+      ).toBeDefined();
     });
     expect(screen.queryByRole("button", { name: /advance/i })).toBeNull();
   });
 
-  it("renders blocker warnings when advance fails with GATE_BLOCKED", async () => {
+  it("shows confirmation dialog when Advance button is clicked", async () => {
+    mockGetClock.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2026,
+          phase: "offseason_review",
+          stepIndex: 0,
+          slug: "awards_ceremony",
+          kind: "event",
+          flavorDate: "Feb 8",
+          advancedAt: "2026-01-01T00:00:00Z",
+        }),
+    });
+
+    renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /advance/i }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /advance/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Advance league?")).toBeDefined();
+      expect(
+        screen.getByText(/this will move the league forward/i),
+      ).toBeDefined();
+      expect(
+        screen.getByRole("button", { name: "Confirm Advance" }),
+      ).toBeDefined();
+      expect(
+        screen.getByRole("button", { name: "Cancel" }),
+      ).toBeDefined();
+    });
+
+    expect(mockAdvance).not.toHaveBeenCalled();
+  });
+
+  it("does not advance when Cancel is clicked in confirmation dialog", async () => {
+    mockGetClock.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2026,
+          phase: "offseason_review",
+          stepIndex: 0,
+          slug: "awards_ceremony",
+          kind: "event",
+          flavorDate: "Feb 8",
+          advancedAt: "2026-01-01T00:00:00Z",
+        }),
+    });
+
+    renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /advance/i }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /advance/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Cancel" })).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Advance league?")).toBeNull();
+    });
+
+    expect(mockAdvance).not.toHaveBeenCalled();
+  });
+
+  it("shows a success toast when advance is confirmed", async () => {
+    mockGetClock.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2026,
+          phase: "offseason_review",
+          stepIndex: 0,
+          slug: "awards_ceremony",
+          kind: "event",
+          flavorDate: "Feb 8",
+          advancedAt: "2026-01-01T00:00:00Z",
+        }),
+    });
+
+    mockAdvance.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2026,
+          phase: "offseason_review",
+          stepIndex: 1,
+          slug: "end_of_year_recap",
+          flavorDate: "Feb 10",
+          advancedAt: "2026-01-01T00:00:00Z",
+          overrideReason: null,
+          overrideBlockers: null,
+          autoResolved: [],
+          looped: false,
+        }),
+    });
+
+    renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /advance/i }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /advance/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Confirm Advance" }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirm Advance" }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Advanced to End Of Year Recap/)).toBeDefined();
+    });
+  });
+
+  it("shows a success toast with flavor date when present", async () => {
+    mockGetClock.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2026,
+          phase: "regular_season",
+          stepIndex: 0,
+          slug: "week_1",
+          kind: "week",
+          flavorDate: "Sep 7",
+          advancedAt: "2026-01-01T00:00:00Z",
+        }),
+    });
+
+    mockAdvance.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2026,
+          phase: "regular_season",
+          stepIndex: 1,
+          slug: "week_2",
+          flavorDate: "Sep 14",
+          advancedAt: "2026-01-01T00:00:00Z",
+          overrideReason: null,
+          overrideBlockers: null,
+          autoResolved: [],
+          looped: false,
+        }),
+    });
+
+    renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /advance/i }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /advance/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Confirm Advance" }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirm Advance" }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Advanced to Week 2/)).toBeDefined();
+    });
+    expect(screen.getByText(/Sep 14/)).toBeDefined();
+  });
+
+  it("shows a success toast without flavor date when absent", async () => {
+    mockGetClock.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2026,
+          phase: "genesis_charter",
+          stepIndex: 0,
+          slug: "ratify_league_charter",
+          kind: "event",
+          flavorDate: null,
+          advancedAt: "2026-01-01T00:00:00Z",
+          hasCompletedGenesis: false,
+        }),
+    });
+
+    mockAdvance.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          leagueId: "lg-1",
+          seasonYear: 2026,
+          phase: "genesis_franchise_establishment",
+          stepIndex: 0,
+          slug: "establish_franchises",
+          flavorDate: null,
+          advancedAt: "2026-01-01T00:00:00Z",
+          overrideReason: null,
+          overrideBlockers: null,
+          autoResolved: [],
+          looped: false,
+        }),
+    });
+
+    renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /advance/i }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /advance/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Confirm Advance" }),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirm Advance" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Advanced to Establish Franchises/),
+      ).toBeDefined();
+    });
+  });
+
+  it("shows an error toast when advance fails after confirmation", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -159,59 +420,19 @@ describe("LeagueClockDisplay", () => {
     fireEvent.click(screen.getByRole("button", { name: /advance/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toBeDefined();
-    });
-    expect(screen.getByText(/not cap-compliant/i)).toBeDefined();
-  });
-
-  it("advances successfully when Advance button is clicked", async () => {
-    mockGetClock.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          leagueId: "lg-1",
-          seasonYear: 2026,
-          phase: "offseason_review",
-          stepIndex: 0,
-          slug: "awards_ceremony",
-          kind: "event",
-          flavorDate: "Feb 8",
-          advancedAt: "2026-01-01T00:00:00Z",
-        }),
-    });
-
-    mockAdvance.mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          leagueId: "lg-1",
-          seasonYear: 2026,
-          phase: "offseason_review",
-          stepIndex: 1,
-          advancedAt: "2026-01-01T00:00:00Z",
-          overrideReason: null,
-          overrideBlockers: null,
-          autoResolved: [],
-          looped: false,
-        }),
-    });
-
-    renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
-
-    await waitFor(() => {
       expect(
-        screen.getByRole("button", { name: /advance/i }),
+        screen.getByRole("button", { name: "Confirm Advance" }),
       ).toBeDefined();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: /advance/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm Advance" }));
 
     await waitFor(() => {
-      expect(mockAdvance).toHaveBeenCalled();
+      expect(screen.getByText(/Cannot Advance/)).toBeDefined();
     });
   });
 
-  it("renders the season year", async () => {
+  it("renders year as part of the full temporal context string", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -231,11 +452,13 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: true });
 
     await waitFor(() => {
-      expect(screen.getByText("2026")).toBeDefined();
+      expect(
+        screen.getByText("Draft — Round 1, Year 2026"),
+      ).toBeDefined();
     });
   });
 
-  it("renders 'No preseason (inaugural year)' note in Year 1", async () => {
+  it("renders 'No preseason (inaugural year)' note in inaugural season", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -255,14 +478,16 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: false });
 
     await waitFor(() => {
-      expect(screen.getByText("Week 1")).toBeDefined();
+      expect(
+        screen.getByText("Regular Season — Week 1, Year 1"),
+      ).toBeDefined();
     });
     expect(
       screen.getByText("No preseason (inaugural year)"),
     ).toBeDefined();
   });
 
-  it("does not render inaugural year note when hasCompletedGenesis is true", async () => {
+  it("does not render inaugural year note after inaugural season", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -282,14 +507,16 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: false });
 
     await waitFor(() => {
-      expect(screen.getByText("Preseason Week 1")).toBeDefined();
+      expect(
+        screen.getByText("Preseason — Preseason Week 1, Year 2"),
+      ).toBeDefined();
     });
     expect(
       screen.queryByText("No preseason (inaugural year)"),
     ).toBeNull();
   });
 
-  it("does not render inaugural year note during genesis phases", async () => {
+  it("does not render inaugural year note during setup phases", async () => {
     mockGetClock.mockResolvedValue({
       ok: true,
       json: () =>
@@ -309,7 +536,9 @@ describe("LeagueClockDisplay", () => {
     renderWithProviders({ leagueId: "lg-1", isCommissioner: false });
 
     await waitFor(() => {
-      expect(screen.getByText("Kickoff")).toBeDefined();
+      expect(
+        screen.getByText("Genesis Kickoff — Kickoff, Year 1"),
+      ).toBeDefined();
     });
     expect(
       screen.queryByText("No preseason (inaugural year)"),

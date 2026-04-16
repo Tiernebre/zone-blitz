@@ -175,12 +175,12 @@ describe("LeagueLayout", () => {
     expect(settingsLink.getAttribute("href")).toBe("/leagues/1/settings");
   });
 
-  it("renders toggle buttons for the sidebar", () => {
+  it("renders exactly one toggle button for the sidebar", () => {
     renderWithProviders();
     const toggleButtons = screen.getAllByRole("button", {
       name: /toggle sidebar/i,
     });
-    expect(toggleButtons.length).toBeGreaterThanOrEqual(1);
+    expect(toggleButtons.length).toBe(1);
   });
 
   it("collapses the sidebar when toggle is clicked", () => {
@@ -248,7 +248,6 @@ describe("LeagueLayout", () => {
     ["Scouts", "/leagues/1/scouts"],
     ["Salary Cap", "/leagues/1/salary-cap"],
     ["Media", "/leagues/1/media"],
-    ["Owner", "/leagues/1/owner"],
   ])(
     "renders a %s nav link pointing to %s in offseason_review phase",
     (name, href) => {
@@ -278,7 +277,6 @@ describe("LeagueLayout", () => {
         ["Schedule", "/leagues/1/schedule"],
         ["Opponents", "/leagues/1/opponents"],
         ["Media", "/leagues/1/media"],
-        ["Owner", "/leagues/1/owner"],
       ]
     ) {
       const link = screen.getByRole("link", { name });
@@ -294,7 +292,6 @@ describe("LeagueLayout", () => {
       expect(screen.getByRole("link", { name: "Home" })).toBeDefined();
     });
 
-    expect(screen.getByRole("link", { name: "Owner" })).toBeDefined();
     expect(screen.getByRole("link", { name: "Charter" })).toBeDefined();
     expect(screen.queryByRole("link", { name: "Roster" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Draft" })).toBeNull();
@@ -306,9 +303,10 @@ describe("LeagueLayout", () => {
     renderWithProviders();
 
     await waitFor(() => {
-      expect(screen.getByRole("link", { name: "Staff Hiring" })).toBeDefined();
+      expect(screen.getByRole("link", { name: "Coaches" })).toBeDefined();
     });
 
+    expect(screen.queryByRole("link", { name: "Staff Hiring" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Charter" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Founding Pool" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Allocation Draft" })).toBeNull();

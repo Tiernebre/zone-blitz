@@ -20,6 +20,7 @@ function createMockGenerator(
 ): ScoutsGenerator {
   return {
     generate: () => [],
+    generatePool: () => [],
     ...overrides,
   };
 }
@@ -245,6 +246,101 @@ Deno.test("scouts.service", async (t) => {
         DomainError,
         "Scout missing not found",
       );
+    },
+  );
+
+  await t.step(
+    "generatePool inserts pool scouts and returns count",
+    async () => {
+      const { db, calls } = createMockDb();
+      const generator = createMockGenerator({
+        generatePool: () => [
+          {
+            ...baseGenerated,
+            id: "s1",
+            firstName: "A",
+            lastName: "B",
+            teamId: null,
+          },
+          {
+            ...baseGenerated,
+            id: "s2",
+            firstName: "C",
+            lastName: "D",
+            teamId: null,
+          },
+        ],
+      });
+
+      const service = createScoutsService({
+        generator,
+        repo: createMockRepo(),
+        db,
+        log: createTestLogger(),
+      });
+
+      const result = await service.generatePool({
+        leagueId: "l1",
+        numberOfTeams: 2,
+      });
+
+      assertEquals(result.scoutCount, 2);
+      assertEquals(calls.length, 1);
+    },
+  );
+
+  await t.step(
+    "generatePool skips insert when generator returns empty",
+    async () => {
+      const { db, calls } = createMockDb();
+      const service = createScoutsService({
+        generator: createMockGenerator(),
+        repo: createMockRepo(),
+        db,
+        log: createTestLogger(),
+      });
+
+      const result = await service.generatePool({
+        leagueId: "l1",
+        numberOfTeams: 0,
+      });
+
+      assertEquals(result.scoutCount, 0);
+      assertEquals(calls.length, 0);
+    },
+  );
+
+  await t.step(
+    "generatePool routes inserts through tx when provided",
+    async () => {
+      const { db, calls: dbCalls } = createMockDb();
+      const { db: tx, calls: txCalls } = createMockDb();
+      const generator = createMockGenerator({
+        generatePool: () => [
+          {
+            ...baseGenerated,
+            id: "s1",
+            firstName: "A",
+            lastName: "B",
+            teamId: null,
+          },
+        ],
+      });
+
+      const service = createScoutsService({
+        generator,
+        repo: createMockRepo(),
+        db,
+        log: createTestLogger(),
+      });
+
+      await service.generatePool(
+        { leagueId: "l1", numberOfTeams: 2 },
+        tx,
+      );
+
+      assertEquals(dbCalls.length, 0);
+      assertEquals(txCalls.length, 1);
     },
   );
 });

@@ -36,6 +36,26 @@ export function createScoutsService(deps: {
       return { scoutCount: generated.length };
     },
 
+    async generatePool(input, tx) {
+      log.info({ leagueId: input.leagueId }, "generating scouting pool");
+
+      const generated = deps.generator.generatePool({
+        leagueId: input.leagueId,
+        numberOfTeams: input.numberOfTeams,
+      });
+
+      if (generated.length > 0) {
+        await chunkedInsert(tx ?? deps.db, scouts, generated);
+      }
+
+      log.info(
+        { leagueId: input.leagueId, scouts: generated.length },
+        "persisted scouting pool",
+      );
+
+      return { scoutCount: generated.length };
+    },
+
     async getStaffTree(leagueId, teamId) {
       log.debug({ leagueId, teamId }, "fetching staff tree");
       return await deps.repo.getStaffTreeByTeam(leagueId, teamId);

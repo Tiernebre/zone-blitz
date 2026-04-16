@@ -26,8 +26,8 @@ export function createPersonnelService(deps: {
       const playersResult = await deps.playersService.generate({
         leagueId: input.leagueId,
         seasonId: input.seasonId,
-        teamIds: input.teamIds,
-        rosterSize: input.rosterSize,
+        teamIds: [],
+        rosterSize: 0,
         salaryCap: input.salaryCap,
       }, tx);
 
@@ -51,10 +51,15 @@ export function createPersonnelService(deps: {
         "published initial depth charts",
       );
 
-      const scoutsResult = await deps.scoutsService.generate({
+      const scoutsResult = await deps.scoutsService.generatePool({
         leagueId: input.leagueId,
-        teamIds: input.teamIds,
+        numberOfTeams: input.teamIds.length,
       }, tx);
+
+      log.info(
+        { leagueId: input.leagueId, poolSize: scoutsResult.scoutCount },
+        "generated scouting candidate pool",
+      );
 
       const frontOfficeResult = await deps.frontOfficeService
         .generate({

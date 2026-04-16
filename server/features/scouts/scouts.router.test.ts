@@ -9,6 +9,7 @@ function createMockService(
 ): ScoutsService {
   return {
     generate: () => Promise.resolve({ scoutCount: 0 }),
+    generatePool: () => Promise.resolve({ scoutCount: 0 }),
     getStaffTree: () => Promise.resolve([]),
     getScoutDetail: () =>
       Promise.reject(new DomainError("NOT_FOUND", "Scout missing not found")),
