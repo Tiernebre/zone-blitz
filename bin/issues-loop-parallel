@@ -15,6 +15,10 @@
 #   ISSUES_LOOP_LABEL          label to watch (default: ready-for-agent)
 #   ISSUES_LOOP_POLL_INTERVAL  seconds between GH polls (default: 60)
 #
+# Priority: issues labeled `high-priority` are dispatched before others,
+# with ties broken by creation date (oldest first). Regular issues follow
+# in the same creation-date order.
+#
 # Source of truth is GitHub Issues with the `ready-for-agent` label (filed
 # by /file-adr-tickets from an Accepted ADR, or opened ad-hoc for follow-up
 # work). Dependencies (`Depends on #N`) are honored via the
@@ -163,8 +167,10 @@ while true; do
       --label "$LABEL" \
       --state open \
       --limit 200 \
-      --json number,createdAt \
-      --jq 'sort_by(.createdAt) | .[].number' || true)"
+      --json number,createdAt,labels \
+      --jq '[.[] | . + {highPrio: (any(.labels[]; .name == "high-priority"))}]
+            | sort_by((if .highPrio then 0 else 1 end), .createdAt)
+            | .[].number' || true)"
 
     dispatched=0
     while IFS= read -r issue_number; do
