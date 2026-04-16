@@ -53,6 +53,8 @@ const mockTouch = vi.fn().mockResolvedValue({
 
 let mockPhase = "offseason_review";
 const mockClockGet = vi.fn();
+const mockLeagueGet = vi.fn();
+const mockTeamsGet = vi.fn();
 
 vi.mock("../../api.ts", () => ({
   api: {
@@ -64,16 +66,16 @@ vi.mock("../../api.ts", () => ({
       },
       leagues: {
         [":id"]: {
-          $get: vi.fn().mockResolvedValue({
-            json: () =>
-              Promise.resolve({
-                id: 1,
-                name: "My League",
-                userTeamId: "team-1",
-              }),
-          }),
+          $get: (...args: unknown[]) => mockLeagueGet(...args),
           touch: {
             $post: (...args: unknown[]) => mockTouch(...args),
+          },
+        },
+      },
+      teams: {
+        league: {
+          [":leagueId"]: {
+            $get: (...args: unknown[]) => mockTeamsGet(...args),
           },
         },
       },
@@ -105,6 +107,29 @@ function renderWithProviders() {
 
 beforeEach(() => {
   mockPhase = "offseason_review";
+  mockLeagueGet.mockResolvedValue({
+    json: () =>
+      Promise.resolve({
+        id: 1,
+        name: "My League",
+        userTeamId: "team-1",
+      }),
+  });
+  mockTeamsGet.mockResolvedValue({
+    ok: true,
+    json: () =>
+      Promise.resolve([
+        {
+          id: "team-1",
+          name: "Alphas",
+          city: "Alpha City",
+          abbreviation: "ALP",
+          primaryColor: "#112233",
+          secondaryColor: "#445566",
+          accentColor: "#ffcc00",
+        },
+      ]),
+  });
   mockClockGet.mockImplementation(() =>
     Promise.resolve({
       ok: true,
@@ -360,6 +385,61 @@ describe("LeagueLayout", () => {
     expect(screen.getByRole("link", { name: "Roster" })).toBeDefined();
     expect(screen.getByRole("link", { name: "Draft" })).toBeDefined();
     expect(screen.getByRole("link", { name: "Standings" })).toBeDefined();
+  });
+
+  it("applies the user team's primary color as the top header accent border", async () => {
+    renderWithProviders();
+    const header = await screen.findByTestId("league-header");
+    await waitFor(() => {
+      expect(
+        (header as HTMLElement).style.borderBottomColor,
+      ).not.toBe("");
+    });
+    expect((header as HTMLElement).style.borderBottomColor).toMatch(
+      /rgb\(17,\s*34,\s*51\)|#112233/,
+    );
+  });
+
+  it("exposes user team colors as CSS variables on the sidebar wrapper", async () => {
+    renderWithProviders();
+    await waitFor(() => {
+      const wrapper = document.querySelector(
+        '[data-slot="sidebar-wrapper"]',
+      ) as HTMLElement | null;
+      expect(wrapper?.style.getPropertyValue("--team-primary")).toBe(
+        "#112233",
+      );
+    });
+    const wrapper = document.querySelector(
+      '[data-slot="sidebar-wrapper"]',
+    ) as HTMLElement;
+    expect(wrapper.style.getPropertyValue("--team-secondary")).toBe("#445566");
+    expect(wrapper.style.getPropertyValue("--team-accent")).toBe("#ffcc00");
+  });
+
+  it("shows the user team's city and name in the sidebar header once loaded", async () => {
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText("Alpha City")).toBeDefined();
+    });
+    expect(screen.getByText("Alphas")).toBeDefined();
+  });
+
+  it("omits team-color styles when the league has no userTeamId", async () => {
+    mockLeagueGet.mockResolvedValue({
+      json: () =>
+        Promise.resolve({ id: 1, name: "My League", userTeamId: null }),
+    });
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText("My League")).toBeDefined();
+    });
+    const header = screen.getByTestId("league-header") as HTMLElement;
+    expect(header.style.borderBottomColor).toBe("");
+    const wrapper = document.querySelector(
+      '[data-slot="sidebar-wrapper"]',
+    ) as HTMLElement;
+    expect(wrapper.style.getPropertyValue("--team-primary")).toBe("");
   });
 
   it("collapses empty nav groups in early initial phases", async () => {
