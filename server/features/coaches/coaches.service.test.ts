@@ -147,6 +147,11 @@ Deno.test("coaches.service", async (t) => {
         specialty: "ceo" as const,
         isVacancy: false,
         mentorCoachId: null,
+        marketTierPref: null,
+        philosophyFitPref: null,
+        staffFitPref: null,
+        compensationPref: null,
+        minimumThreshold: null,
       };
       const generator = createMockGenerator({
         generate: () => [
@@ -258,6 +263,11 @@ Deno.test("coaches.service", async (t) => {
         specialty: "ceo" as const,
         isVacancy: false,
         mentorCoachId: null,
+        marketTierPref: null,
+        philosophyFitPref: null,
+        staffFitPref: null,
+        compensationPref: null,
+        minimumThreshold: null,
       };
       const generator = createMockGenerator({
         generate: () => [{ ...base, id: "c1", firstName: "A", lastName: "B" }],
@@ -298,6 +308,11 @@ Deno.test("coaches.service", async (t) => {
         collegeId: null,
         isVacancy: false,
         mentorCoachId: null,
+        marketTierPref: null,
+        philosophyFitPref: null,
+        staffFitPref: null,
+        compensationPref: null,
+        minimumThreshold: null,
       };
       const generator = createMockGenerator({
         generate: () => [
@@ -366,6 +381,11 @@ Deno.test("coaches.service", async (t) => {
         collegeId: null,
         isVacancy: false,
         mentorCoachId: null,
+        marketTierPref: null,
+        philosophyFitPref: null,
+        staffFitPref: null,
+        compensationPref: null,
+        minimumThreshold: null,
       };
       const generator = createMockGenerator({
         generate: () => [
@@ -466,6 +486,11 @@ Deno.test("coaches.service", async (t) => {
         specialty: "ceo" as const,
         isVacancy: false,
         mentorCoachId: null,
+        marketTierPref: null,
+        philosophyFitPref: null,
+        staffFitPref: null,
+        compensationPref: null,
+        minimumThreshold: null,
       };
       const generator = createMockGenerator({
         generatePool: () => [
@@ -539,6 +564,11 @@ Deno.test("coaches.service", async (t) => {
         specialty: "ceo" as const,
         isVacancy: false,
         mentorCoachId: null,
+        marketTierPref: null,
+        philosophyFitPref: null,
+        staffFitPref: null,
+        compensationPref: null,
+        minimumThreshold: null,
       };
       const generator = createMockGenerator({
         generatePool: () => [

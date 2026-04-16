@@ -114,6 +114,11 @@ const baseGenerated = {
   contractBuyout: 300_000,
   workCapacity: 120,
   isVacancy: false,
+  marketTierPref: null,
+  philosophyFitPref: null,
+  staffFitPref: null,
+  compensationPref: null,
+  minimumThreshold: null,
 };
 
 Deno.test("scouts.service", async (t) => {

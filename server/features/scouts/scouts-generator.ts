@@ -158,6 +158,32 @@ function intInRange(random: () => number, min: number, max: number): number {
   return Math.floor(random() * (max - min + 1)) + min;
 }
 
+interface ScoutPreferences {
+  marketTierPref: number;
+  philosophyFitPref: number;
+  staffFitPref: number;
+  compensationPref: number;
+  minimumThreshold: number;
+}
+
+function rollPreferences(random: () => number): ScoutPreferences {
+  return {
+    marketTierPref: intInRange(random, 0, 100),
+    philosophyFitPref: intInRange(random, 0, 100),
+    staffFitPref: intInRange(random, 0, 100),
+    compensationPref: intInRange(random, 0, 100),
+    minimumThreshold: intInRange(random, 0, 100),
+  };
+}
+
+const NULL_PREFERENCES = {
+  marketTierPref: null,
+  philosophyFitPref: null,
+  staffFitPref: null,
+  compensationPref: null,
+  minimumThreshold: null,
+};
+
 export function createScoutsGenerator(
   options: ScoutsGeneratorOptions = {},
 ): ScoutsGenerator {
@@ -233,6 +259,7 @@ export function createScoutsGenerator(
             contractBuyout,
             workCapacity,
             isVacancy: false,
+            ...NULL_PREFERENCES,
           });
         }
       }
@@ -300,6 +327,7 @@ export function createScoutsGenerator(
             contractBuyout,
             workCapacity,
             isVacancy: false,
+            ...rollPreferences(random),
           });
         }
       }

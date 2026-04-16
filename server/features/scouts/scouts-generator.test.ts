@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertNotEquals } from "@std/assert";
 import {
   createScoutsGenerator,
   type NameGenerator,
@@ -279,5 +279,50 @@ Deno.test("generatePool scouts have valid attributes within role bands", () => {
     assertEquals(scout.lastName.length > 0, true);
     assertEquals(scout.workCapacity > 0, true);
     assertEquals(scout.contractSalary > 0, true);
+  }
+});
+
+Deno.test("generatePool populates preference columns in 0..100 range", () => {
+  const result = makeGenerator().generatePool({
+    leagueId: "league-1",
+    numberOfTeams: 4,
+  });
+  for (const scout of result) {
+    for (
+      const key of [
+        "marketTierPref",
+        "philosophyFitPref",
+        "staffFitPref",
+        "compensationPref",
+        "minimumThreshold",
+      ] as const
+    ) {
+      const value = scout[key];
+      assertNotEquals(value, null, `pool scout missing ${key}`);
+      assertEquals(typeof value, "number");
+      assertEquals(value! >= 0 && value! <= 100, true);
+    }
+  }
+});
+
+Deno.test("generatePool preference values vary across the pool", () => {
+  const result = makeGenerator().generatePool({
+    leagueId: "league-1",
+    numberOfTeams: 6,
+  });
+  const marketTiers = new Set(result.map((s) => s.marketTierPref));
+  const compensations = new Set(result.map((s) => s.compensationPref));
+  assertEquals(marketTiers.size > 1, true);
+  assertEquals(compensations.size > 1, true);
+});
+
+Deno.test("generate leaves preference columns null for assigned scouts", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const scout of result) {
+    assertEquals(scout.marketTierPref, null);
+    assertEquals(scout.philosophyFitPref, null);
+    assertEquals(scout.staffFitPref, null);
+    assertEquals(scout.compensationPref, null);
+    assertEquals(scout.minimumThreshold, null);
   }
 });
