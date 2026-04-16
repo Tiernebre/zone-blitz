@@ -29,40 +29,7 @@ export function createLeagueService(deps: {
   return {
     async getAll() {
       log.debug("fetching all leagues");
-      const leagues = await deps.leagueRepo.getAll();
-      return await Promise.all(
-        leagues.map(async (league) => {
-          const seasons = await deps.seasonService.getByLeagueId(league.id);
-          const current = seasons.reduce<typeof seasons[number] | undefined>(
-            (latest, season) =>
-              !latest || season.year > latest.year ? season : latest,
-            undefined,
-          );
-          const userTeam = league.userTeamId
-            ? await deps.teamService.getById(league.userTeamId)
-            : null;
-          return {
-            ...league,
-            currentSeason: current
-              ? {
-                year: current.year,
-                phase: current.phase,
-                offseasonStage: current.offseasonStage,
-                week: current.week,
-              }
-              : null,
-            userTeam: userTeam
-              ? {
-                id: userTeam.id,
-                name: userTeam.name,
-                city: userTeam.city,
-                abbreviation: userTeam.abbreviation,
-                primaryColor: userTeam.primaryColor,
-              }
-              : null,
-          };
-        }),
-      );
+      return await deps.leagueRepo.listWithSummary();
     },
 
     async getById(id) {

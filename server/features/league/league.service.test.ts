@@ -2,7 +2,12 @@ import { assertEquals, assertRejects } from "@std/assert";
 import { createLeagueService } from "./league.service.ts";
 import { DomainError } from "@zone-blitz/shared";
 import pino from "pino";
-import type { Franchise, League, Team } from "@zone-blitz/shared";
+import type {
+  Franchise,
+  League,
+  LeagueListItem,
+  Team,
+} from "@zone-blitz/shared";
 import type { Executor } from "../../db/connection.ts";
 import type { TransactionRunner } from "../../db/transaction-runner.ts";
 import type { LeagueRepository } from "./league.repository.interface.ts";
@@ -96,7 +101,7 @@ function createMockRepo(
   overrides: Partial<LeagueRepository> = {},
 ): LeagueRepository {
   return {
-    getAll: () => Promise.resolve([]),
+    listWithSummary: () => Promise.resolve([]),
     getById: () => Promise.resolve(undefined),
     create: () => Promise.resolve(createMockLeague({ id: "new-id" })),
     updateUserTeam: () => Promise.resolve(createMockLeague({ id: "new-id" })),
@@ -243,163 +248,37 @@ function createService(overrides: {
 
 Deno.test("league.service", async (t) => {
   await t.step(
-    "getAll returns leagues with their current season embedded",
+    "getAll delegates to leagueRepo.listWithSummary",
     async () => {
-      const leagues: League[] = [
-        createMockLeague({ id: "1", name: "League One" }),
-        createMockLeague({ id: "2", name: "League Two" }),
+      const items: LeagueListItem[] = [
+        {
+          ...createMockLeague({ id: "1", name: "League One" }),
+          currentSeason: {
+            year: 2,
+            phase: "regular_season",
+            offseasonStage: null,
+            week: 5,
+          },
+          userTeam: {
+            id: "team-42",
+            name: "Falcons",
+            city: "Atlanta",
+            abbreviation: "ATL",
+            primaryColor: "#A71930",
+          },
+        },
+        {
+          ...createMockLeague({ id: "2", name: "League Two" }),
+          currentSeason: null,
+          userTeam: null,
+        },
       ];
       const service = createService({
-        leagueRepo: { getAll: () => Promise.resolve(leagues) },
-        seasonService: {
-          getByLeagueId: (leagueId) =>
-            Promise.resolve([
-              {
-                id: `${leagueId}-s1`,
-                leagueId,
-                year: 1,
-                phase: "preseason" as const,
-                offseasonStage: null,
-                week: 1,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              },
-              {
-                id: `${leagueId}-s2`,
-                leagueId,
-                year: 2,
-                phase: "regular_season" as const,
-                offseasonStage: null,
-                week: 5,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              },
-            ]),
-        },
+        leagueRepo: { listWithSummary: () => Promise.resolve(items) },
       });
 
       const result = await service.getAll();
-      assertEquals(result.length, 2);
-      assertEquals(result[0].name, "League One");
-      assertEquals(result[0].currentSeason, {
-        year: 2,
-        phase: "regular_season",
-        offseasonStage: null,
-        week: 5,
-      });
-    },
-  );
-
-  await t.step(
-    "getAll includes offseasonStage in currentSeason when set",
-    async () => {
-      const service = createService({
-        leagueRepo: {
-          getAll: () =>
-            Promise.resolve([createMockLeague({ id: "1", name: "League" })]),
-        },
-        seasonService: {
-          getByLeagueId: (leagueId) =>
-            Promise.resolve([
-              {
-                id: `${leagueId}-s1`,
-                leagueId,
-                year: 1,
-                phase: "offseason" as const,
-                offseasonStage: "draft" as const,
-                week: 1,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              },
-            ]),
-        },
-      });
-
-      const result = await service.getAll();
-      assertEquals(result[0].currentSeason, {
-        year: 1,
-        phase: "offseason",
-        offseasonStage: "draft",
-        week: 1,
-      });
-    },
-  );
-
-  await t.step(
-    "getAll embeds userTeam summary when league has userTeamId",
-    async () => {
-      const teamId = "team-42";
-      const service = createService({
-        leagueRepo: {
-          getAll: () =>
-            Promise.resolve([
-              createMockLeague({ id: "lg-1", userTeamId: teamId }),
-            ]),
-        },
-        teamService: {
-          getById: (id) =>
-            Promise.resolve({
-              id,
-              leagueId: "lg-1",
-              franchiseId: "f-1",
-              name: "Falcons",
-              cityId: "city-1",
-              city: "Atlanta",
-              state: "GA",
-              abbreviation: "ATL",
-              primaryColor: "#A71930",
-              secondaryColor: "#000",
-              accentColor: "#FFF",
-              backstory: "A test backstory.",
-              conference: "NFC",
-              division: "NFC South",
-              marketTier: "medium",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            }),
-        },
-      });
-
-      const result = await service.getAll();
-      assertEquals(result[0].userTeam, {
-        id: teamId,
-        name: "Falcons",
-        city: "Atlanta",
-        abbreviation: "ATL",
-        primaryColor: "#A71930",
-      });
-    },
-  );
-
-  await t.step(
-    "getAll returns userTeam null when userTeamId is null",
-    async () => {
-      const service = createService({
-        leagueRepo: {
-          getAll: () =>
-            Promise.resolve([
-              createMockLeague({ id: "lg-1", userTeamId: null }),
-            ]),
-        },
-      });
-
-      const result = await service.getAll();
-      assertEquals(result[0].userTeam, null);
-    },
-  );
-
-  await t.step(
-    "getAll returns currentSeason null when a league has no seasons",
-    async () => {
-      const service = createService({
-        leagueRepo: {
-          getAll: () => Promise.resolve([createMockLeague({ id: "1" })]),
-        },
-        seasonService: { getByLeagueId: () => Promise.resolve([]) },
-      });
-
-      const result = await service.getAll();
-      assertEquals(result[0].currentSeason, null);
+      assertEquals(result, items);
     },
   );
 
