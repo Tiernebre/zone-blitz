@@ -55,7 +55,7 @@ function FranchiseCard({
     <Button
       variant="ghost"
       onClick={() => onSelect(team)}
-      className="h-auto p-0 w-full"
+      className="h-auto p-0 w-full whitespace-normal"
     >
       <Card className="w-full overflow-hidden transition-shadow hover:shadow-lg">
         <div

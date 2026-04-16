@@ -217,6 +217,21 @@ describe("TeamSelect", () => {
     }
   });
 
+  it("allows backstory text to wrap rather than truncating to a single line", async () => {
+    mockFranchisesGet.mockReturnValue(
+      Promise.resolve({ json: () => Promise.resolve(MOCK_FRANCHISES) }),
+    );
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText("Aces")).toBeDefined();
+    });
+    for (const franchise of MOCK_FRANCHISES) {
+      const backstory = screen.getByText(franchise.backstory);
+      const card = backstory.closest("button");
+      expect(card?.className).toContain("whitespace-normal");
+    }
+  });
+
   it("groups teams into Pacific and Mountain conference cards", async () => {
     mockFranchisesGet.mockReturnValue(
       Promise.resolve({ json: () => Promise.resolve(MOCK_FRANCHISES) }),
