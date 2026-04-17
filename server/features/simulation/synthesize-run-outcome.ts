@@ -2,6 +2,7 @@ import type { PlayOutcome, PlayTag } from "./events.ts";
 import type { MatchupContribution, Situation } from "./resolve-play.ts";
 import { RUN_RESOLUTION } from "./resolve-play.ts";
 import type { SeededRng } from "./rng.ts";
+import { observeRunScore } from "./score-observer.ts";
 
 export interface OutcomeResult {
   outcome: PlayOutcome;
@@ -34,6 +35,7 @@ export function synthesizeRunOutcome(
     ? blockingContribs.reduce((s, c) => s + c.score, 0) /
       blockingContribs.length
     : avgScore;
+  observeRunScore(blockScore);
 
   let yardage: number;
   if (blockScore < RUN_RESOLUTION.stuffThreshold) {
