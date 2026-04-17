@@ -427,26 +427,58 @@ const VETERAN_AGE_MAX = 36;
 const PROSPECT_AGE_MIN = 20;
 const PROSPECT_AGE_MAX = 23;
 
-/** Rough overall score in [30, 95] per tier. */
+/**
+ * Rolls an overall-quality score anchored to the Geno Smith Line — the
+ * 0–100 scale contract in `docs/product/north-star/player-attributes.md`
+ * where 50 is the starter/backup boundary, franchise players sit 70+,
+ * elite sit 85+, and the population peaks in the backup band (35–40).
+ *
+ * Tier means are chosen so the league-wide rostered average lands in
+ * the lower half of the starter band and the league mode sits in the
+ * backup band — not the inflated 58/70/82 scale that treated 0–100 as
+ * 30–95 in disguise. Elite (85+) and generational (95+) outcomes come
+ * from the bell's upper tail; `applyLeagueEliteCaps` trims any excess
+ * to the rarity the spec mandates.
+ */
 function rollQuality(
   rng: SeededRng,
   tier: "star" | "starter" | "depth",
 ): number {
-  const mean = tier === "star" ? 82 : tier === "starter" ? 70 : 58;
-  const stddev = tier === "star" ? 5 : tier === "starter" ? 6 : 7;
-  return rng.gaussian(mean, stddev, 30, 95);
+  const mean = tier === "star" ? 55 : tier === "starter" ? 40 : 28;
+  const stddev = tier === "star" ? 10 : tier === "starter" ? 7 : 7;
+  return rng.gaussian(mean, stddev, 1, 99);
 }
 
+/**
+ * Assigns tier slots within a bucket. The prior split (one star, top
+ * half as starters, rest depth) over-populated the starter band — a
+ * 53-man roster realistically carries ~22 starters, not ~34. The new
+ * split gives each bucket one star, ~1/5 of the bucket as starters,
+ * and the rest as depth. Combined with the rescaled `rollQuality`
+ * means this produces a right-skewed, backup-heavy roster whose modal
+ * player is in the depth band (30-40) — the Geno Smith Line shape the
+ * north-star doc mandates.
+ */
 function qualityTierForIndex(
   indexInBucket: number,
   bucketCount: number,
 ): "star" | "starter" | "depth" {
   if (bucketCount <= 1) return "starter";
   if (indexInBucket === 0) return "star";
-  const starterCount = Math.max(1, Math.floor(bucketCount / 2));
+  const starterCount = Math.max(1, Math.ceil(bucketCount / 5));
   if (indexInBucket <= starterCount) return "starter";
   return "depth";
 }
+
+// Signature attributes float above a higher floor than the rest because
+// `lockInBucket` reclassifies via the signature set — if a depth-tier
+// player's signature attrs can clamp all the way down to the practice-
+// squad band, the classifier can't pull him back into his intended
+// bucket within the 20-iter cap. Non-signature attributes still use a
+// lower floor so de-emphasized skills can sink into the 1-14 "shouldn't
+// be on a pro field" band the scale contract describes.
+const SIGNATURE_ATTR_FLOOR = 15;
+const NON_SIGNATURE_ATTR_FLOOR = 5;
 
 function rollAttributesFor(
   rng: SeededRng,
@@ -460,14 +492,18 @@ function rollAttributesFor(
   const attrs: Record<string, number> = {};
   for (const key of PLAYER_ATTRIBUTE_KEYS) {
     let mean: number;
+    let floor: number;
     if (signatureSet.has(key)) {
       mean = quality + 10;
+      floor = SIGNATURE_ATTR_FLOOR;
     } else if (deEmphasizedSet.has(key)) {
-      mean = Math.max(25, Math.round(quality * 0.55));
+      mean = Math.round(quality * 0.55);
+      floor = NON_SIGNATURE_ATTR_FLOOR;
     } else {
       mean = Math.round(quality * 0.85);
+      floor = NON_SIGNATURE_ATTR_FLOOR;
     }
-    attrs[key] = rng.gaussian(mean, 5, 25, 99);
+    attrs[key] = rng.gaussian(mean, 5, floor, 99);
   }
   return attrs as PlayerAttributes;
 }
@@ -489,7 +525,11 @@ function lockInBucket(
 ): void {
   const rec = attributes as unknown as Record<string, number>;
   const profile = BUCKET_PROFILES[bucket];
-  const MAX_ITERS = 20;
+  // +3 per iteration × 30 iterations gives up to +90 signature headroom,
+  // enough to reclassify a low-quality depth player whose rolled
+  // signature attrs landed at the practice-squad floor while his size
+  // still matches his intended bucket.
+  const MAX_ITERS = 30;
   for (let iter = 0; iter < MAX_ITERS; iter++) {
     const classified = neutralBucket({
       attributes,
@@ -498,7 +538,7 @@ function lockInBucket(
     });
     if (classified === bucket) return;
     for (const key of profile.signature) {
-      rec[key] = Math.min(99, rec[key] + 2);
+      rec[key] = Math.min(99, rec[key] + 3);
     }
   }
 }
@@ -857,6 +897,144 @@ function rollVeteranContract(
 }
 
 /**
+ * League-wide elite-tier caps, from the scale contract in
+ * `docs/product/north-star/player-attributes.md`:
+ *
+ * - 85+ (elite) are "extraordinarily rare — 5-10 across the entire
+ *   league". Implemented as a team-scaled budget: ~10 elites per 32-team
+ *   league, rounded, minimum 1 so small test leagues still get one.
+ * - 95+ (generational) "may not exist in any given season" and are
+ *   "one per decade per position". Implemented as at most one per
+ *   neutral bucket per league.
+ *
+ * Independent rolls can produce more than the spec allows — this pass
+ * sorts by signature overall and pushes the excess just below the
+ * threshold (elite capped to 84, generational capped to 94) by
+ * subtracting a flat delta from every signature attribute. Bucket
+ * classification is unaffected because all signature attributes move
+ * together and by the same amount.
+ */
+export const ELITE_OVERALL_THRESHOLD = 85;
+export const GENERATIONAL_OVERALL_THRESHOLD = 95;
+export const ELITES_PER_32_TEAMS = 10;
+
+function signatureOverall(
+  attributes: PlayerAttributes,
+  bucket: NeutralBucket,
+): number {
+  const profile = BUCKET_PROFILES[bucket];
+  const rec = attributes as unknown as Record<string, number>;
+  let sum = 0;
+  for (const key of profile.signature) sum += rec[key];
+  return sum / profile.signature.length;
+}
+
+function pushBelowOverall(
+  attributes: PlayerAttributes,
+  bucket: NeutralBucket,
+  targetOverall: number,
+): void {
+  const profile = BUCKET_PROFILES[bucket];
+  const rec = attributes as unknown as Record<string, number>;
+  const current = signatureOverall(attributes, bucket);
+  if (current <= targetOverall) return;
+  const delta = Math.ceil(current - targetOverall);
+  for (const key of profile.signature) {
+    rec[key] = Math.max(0, rec[key] - delta);
+  }
+}
+
+interface ClassifiedEntry {
+  attributes: PlayerAttributes;
+  bucket: NeutralBucket;
+  overall: number;
+}
+
+function classifyForCap(
+  entries: ReadonlyArray<{
+    player: { heightInches: number; weightPounds: number };
+    attributes: PlayerAttributes;
+  }>,
+): ClassifiedEntry[] {
+  const classified: ClassifiedEntry[] = entries.map((e) => {
+    const bucket = neutralBucket({
+      attributes: e.attributes,
+      heightInches: e.player.heightInches,
+      weightPounds: e.player.weightPounds,
+    });
+    return {
+      attributes: e.attributes,
+      bucket,
+      overall: signatureOverall(e.attributes, bucket),
+    };
+  });
+  return classified;
+}
+
+export function applyLeagueEliteCaps(
+  entries: ReadonlyArray<{
+    player: { heightInches: number; weightPounds: number };
+    attributes: PlayerAttributes;
+  }>,
+  teamCount: number,
+): void {
+  if (entries.length === 0 || teamCount === 0) return;
+
+  const eliteBudget = Math.max(
+    1,
+    Math.round((ELITES_PER_32_TEAMS * teamCount) / 32),
+  );
+
+  // Capping a player's signature attrs can shift his neutral-bucket
+  // classification (non-signature attrs become relatively higher). We
+  // reclassify and re-cap until the league settles under both budgets,
+  // up to a generous iteration cap. This converges quickly in practice
+  // because each iteration can only reduce a player's signature
+  // overall, never raise it.
+  const MAX_SWEEPS = 8;
+  for (let sweep = 0; sweep < MAX_SWEEPS; sweep++) {
+    const classified = classifyForCap(entries);
+
+    // Generational (95+) cap: at most one per bucket per league.
+    const byBucket = new Map<NeutralBucket, ClassifiedEntry[]>();
+    for (const c of classified) {
+      const list = byBucket.get(c.bucket) ?? [];
+      list.push(c);
+      byBucket.set(c.bucket, list);
+    }
+    let changed = false;
+    for (const [, list] of byBucket) {
+      const generationals = list
+        .filter((c) => c.overall >= GENERATIONAL_OVERALL_THRESHOLD)
+        .sort((a, b) => b.overall - a.overall);
+      for (let i = 1; i < generationals.length; i++) {
+        pushBelowOverall(
+          generationals[i].attributes,
+          generationals[i].bucket,
+          GENERATIONAL_OVERALL_THRESHOLD - 1,
+        );
+        changed = true;
+      }
+    }
+
+    // Elite (85+) cap, league-wide.
+    const elites = classified
+      .filter((c) => c.overall >= ELITE_OVERALL_THRESHOLD)
+      .sort((a, b) => b.overall - a.overall);
+    for (let i = eliteBudget; i < elites.length; i++) {
+      pushBelowOverall(
+        elites[i].attributes,
+        elites[i].bucket,
+        ELITE_OVERALL_THRESHOLD - 1,
+      );
+      changed = true;
+    }
+
+    if (!changed) return;
+  }
+}
+
+/**
  * Deterministic attribute profile for a bucket — used by repository/integration
  * tests that need a classifiable attribute set without running the full
  * randomized generator. Each signature attribute is lifted above baseline so
@@ -950,6 +1128,7 @@ export function createPlayersGenerator(
   return {
     generate(input: PlayersGeneratorInput): GeneratedPlayers {
       const players: GeneratedPlayers["players"] = [];
+      const rosteredEntries: typeof players = [];
 
       for (const teamId of input.teamIds) {
         const bucketIndex = new Map<NeutralBucket, number>();
@@ -961,18 +1140,37 @@ export function createPlayersGenerator(
           const bucket = ROSTER_BUCKET_SLOTS[i % ROSTER_BUCKET_SLOTS.length];
           const indexInBucket = bucketIndex.get(bucket) ?? 0;
           bucketIndex.set(bucket, indexInBucket + 1);
-          players.push(
-            buildPlayer({
-              leagueId: input.leagueId,
-              teamId,
-              status: "active",
-              bucket,
-              indexInBucket,
-              bucketCount: bucketTotal.get(bucket) ?? 1,
-              draftingTeamId: teamId,
-              statusKind: "rostered",
-            }),
-          );
+          const entry = buildPlayer({
+            leagueId: input.leagueId,
+            teamId,
+            status: "active",
+            bucket,
+            indexInBucket,
+            bucketCount: bucketTotal.get(bucket) ?? 1,
+            draftingTeamId: teamId,
+            statusKind: "rostered",
+          });
+          players.push(entry);
+          rosteredEntries.push(entry);
+        }
+      }
+
+      // Apply the league-wide elite-tier budget across the rostered
+      // pool. Free agents and prospects live outside the "X per
+      // league" budgets — FAs are index-biased toward depth, and the
+      // draft class is a one-year wave rather than the steady league
+      // population the spec quantifies.
+      applyLeagueEliteCaps(rosteredEntries, input.teamIds.length);
+      // Potentials were rolled against the pre-cap current, which can
+      // leave a capped player's ceiling below his post-cap current. Re-
+      // sync each signature attribute's potential so `potential >=
+      // current` still holds without re-rolling the whole attribute set.
+      for (const entry of rosteredEntries) {
+        const rec = entry.attributes as unknown as Record<string, number>;
+        for (const key of PLAYER_ATTRIBUTE_KEYS) {
+          if (rec[`${key}Potential`] < rec[key]) {
+            rec[`${key}Potential`] = rec[key];
+          }
         }
       }
 

@@ -10,8 +10,12 @@ import {
   positionalSalaryMultiplier,
 } from "@zone-blitz/shared";
 import {
+  applyLeagueEliteCaps,
   BUCKET_PROFILES,
   createPlayersGenerator,
+  ELITE_OVERALL_THRESHOLD,
+  ELITES_PER_32_TEAMS,
+  GENERATIONAL_OVERALL_THRESHOLD,
   type NameGenerator,
   ROSTER_BUCKET_COMPOSITION,
   SALARY_FLOOR,
@@ -852,5 +856,160 @@ Deno.test("default archetype (no teamArchetypes provided) still produces valid c
   for (const b of bundles) {
     assertEquals(b.years.length, b.contract.totalYears);
     assertEquals(b.contract.realYears <= b.contract.totalYears, true);
+  }
+});
+
+// ---- Geno Smith Line distribution ----
+//
+// The scale contract in `docs/product/north-star/player-attributes.md`
+// states the league-wide attribute distribution is a right-skewed bell
+// peaking at 35-40, with 50 as the starter/backup boundary. These
+// tests prove the generator's actual distribution lines up with that
+// contract — not a 50-100-in-disguise scale — and that elite (85+)
+// and generational (95+) tiers stay as rare as the spec mandates.
+
+function signatureOverallOf(entry: {
+  player: { heightInches: number; weightPounds: number };
+  attributes: Parameters<typeof neutralBucket>[0]["attributes"];
+}): number {
+  const bucket = bucketOf(entry);
+  const profile = BUCKET_PROFILES[bucket];
+  const rec = entry.attributes as unknown as Record<string, number>;
+  let sum = 0;
+  for (const key of profile.signature) sum += rec[key];
+  return sum / profile.signature.length;
+}
+
+function makeFullLeagueGenerator(seed: number) {
+  // 32 teams × 53 = 1696 rostered players — a realistic sample for
+  // league-wide distribution assertions.
+  return createPlayersGenerator({
+    random: seededRandom(seed),
+    nameGenerator: fixedNameGenerator(),
+    currentYear: 2026,
+  });
+}
+
+const FULL_LEAGUE_INPUT = {
+  leagueId: "league-1",
+  seasonId: "season-1",
+  teamIds: Array.from({ length: 32 }, (_, i) => `team-${i + 1}`),
+  rosterSize: 53,
+};
+
+Deno.test("rostered signature overall distribution peaks in the backup band (35-50)", () => {
+  const result = makeFullLeagueGenerator(999).generate(FULL_LEAGUE_INPUT);
+  const rostered = result.players.filter(
+    (p) => p.player.teamId !== null && p.player.status === "active",
+  );
+  const overalls = rostered.map(signatureOverallOf);
+  const mean = overalls.reduce((s, v) => s + v, 0) / overalls.length;
+  // Bin into 10-point buckets and find the modal bucket. The north-star
+  // doc says the league peaks around 35-40; allow 30-50 for the mode so
+  // seed noise on a 1696-player sample doesn't turn this flaky.
+  const bins = new Map<number, number>();
+  for (const v of overalls) {
+    const bucket = Math.floor(v / 10) * 10;
+    bins.set(bucket, (bins.get(bucket) ?? 0) + 1);
+  }
+  let modeBucket = 0;
+  let modeCount = 0;
+  for (const [b, c] of bins) {
+    if (c > modeCount) {
+      modeBucket = b;
+      modeCount = c;
+    }
+  }
+  assertEquals(
+    modeBucket >= 30 && modeBucket <= 50,
+    true,
+    `expected modal 10-pt bin in [30, 50]; got ${modeBucket} (count ${modeCount})`,
+  );
+  // Mean falls in the "fringe starter / solid starter" window — a
+  // backup-heavy roster where the average player is near the Geno
+  // Smith line, not well above it.
+  assertEquals(
+    mean >= 40 && mean <= 55,
+    true,
+    `expected rostered mean overall in [40, 55]; got ${mean.toFixed(1)}`,
+  );
+});
+
+Deno.test("elite (85+) count stays within the league-wide budget", () => {
+  const result = makeFullLeagueGenerator(12345).generate(FULL_LEAGUE_INPUT);
+  const rostered = result.players.filter(
+    (p) => p.player.teamId !== null && p.player.status === "active",
+  );
+  const elites = rostered.filter(
+    (p) => signatureOverallOf(p) >= ELITE_OVERALL_THRESHOLD,
+  );
+  const budget = Math.max(
+    1,
+    Math.round((ELITES_PER_32_TEAMS * FULL_LEAGUE_INPUT.teamIds.length) / 32),
+  );
+  assertEquals(
+    elites.length <= budget,
+    true,
+    `elites=${elites.length}, budget=${budget}`,
+  );
+});
+
+Deno.test("generational (95+) is at most one per neutral bucket per league", () => {
+  const result = makeFullLeagueGenerator(777).generate(FULL_LEAGUE_INPUT);
+  const rostered = result.players.filter(
+    (p) => p.player.teamId !== null && p.player.status === "active",
+  );
+  const byBucket = new Map<NeutralBucket, number>();
+  for (const p of rostered) {
+    const overall = signatureOverallOf(p);
+    if (overall >= GENERATIONAL_OVERALL_THRESHOLD) {
+      const bucket = bucketOf(p);
+      byBucket.set(bucket, (byBucket.get(bucket) ?? 0) + 1);
+    }
+  }
+  for (const [bucket, count] of byBucket) {
+    assertEquals(count <= 1, true, `bucket ${bucket} had ${count} 95+ players`);
+  }
+});
+
+Deno.test("elite cap in a 3-team test still allows one elite player", () => {
+  // With the new distribution the elite budget for 3 teams rounds to 1,
+  // not zero — otherwise a small test league would never showcase a
+  // franchise-defining talent. Guards against rounding regressions.
+  let foundElite = false;
+  for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+    const result = makeGenerator(seed).generate(INPUT);
+    const rostered = result.players.filter(
+      (p) => p.player.teamId !== null && p.player.status === "active",
+    );
+    if (
+      rostered.some((p) => signatureOverallOf(p) >= ELITE_OVERALL_THRESHOLD)
+    ) {
+      foundElite = true;
+      break;
+    }
+  }
+  assertEquals(foundElite, true, "expected at least one elite within 10 seeds");
+});
+
+Deno.test("applyLeagueEliteCaps is a no-op on an empty roster", () => {
+  applyLeagueEliteCaps([], 0);
+  applyLeagueEliteCaps([], 32);
+});
+
+Deno.test("applyLeagueEliteCaps preserves potential >= current invariant", () => {
+  const result = makeFullLeagueGenerator(42).generate(FULL_LEAGUE_INPUT);
+  const rostered = result.players.filter(
+    (p) => p.player.teamId !== null && p.player.status === "active",
+  );
+  for (const entry of rostered) {
+    const rec = entry.attributes as unknown as Record<string, number>;
+    for (const key of PLAYER_ATTRIBUTE_KEYS) {
+      assertEquals(
+        rec[`${key}Potential`] >= rec[key],
+        true,
+        `${key}: potential=${rec[`${key}Potential`]} < current=${rec[key]}`,
+      );
+    }
   }
 });

@@ -1,4 +1,5 @@
 import { assertEquals, assertNotEquals } from "@std/assert";
+import { SCOUT_RATING_KEYS } from "@zone-blitz/shared";
 import {
   createScoutsGenerator,
   type NameGenerator,
@@ -401,6 +402,122 @@ Deno.test("generate leaves preference columns null for assigned scouts", () => {
     assertEquals(scout.compensationPref, null);
     assertEquals(scout.minimumThreshold, null);
   }
+});
+
+// ---- Hidden ratings (Geno Smith Line distribution) ----
+//
+// Scout hidden ratings follow the same 0-100 scale contract coach
+// ratings do (see `docs/product/north-star/player-attributes.md` —
+// 50 is the Mendoza line, elite is 85+, generational 95+). The
+// generator rolls a bell-shaped distribution around a mean of 50 with
+// small per-role tilts so league-wide means stay at 50 and elite
+// evaluators emerge from the upper tail.
+
+Deno.test("every generated scout carries a full ratings bundle in 1..99", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const scout of result) {
+    const { current, ceiling, growthRate } = scout.ratings;
+    for (const key of SCOUT_RATING_KEYS) {
+      assertEquals(typeof current[key], "number");
+      assertEquals(current[key] >= 1 && current[key] <= 99, true);
+      assertEquals(ceiling[key] >= current[key], true);
+      assertEquals(ceiling[key] <= 99, true);
+    }
+    assertEquals(growthRate >= 10 && growthRate <= 95, true);
+  }
+});
+
+Deno.test("rating current values average near the 50 midpoint across a pool", () => {
+  const result = makeGenerator(3).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const values: number[] = [];
+  for (const scout of result) {
+    for (const key of SCOUT_RATING_KEYS) {
+      values.push(scout.ratings.current[key]);
+    }
+  }
+  const mean = values.reduce((s, v) => s + v, 0) / values.length;
+  // Role tilts shift the mean a few points above 50; guard a band wide
+  // enough to avoid flaking on seed noise but narrow enough to catch
+  // a regression that re-anchors to 60 or 40.
+  assertEquals(
+    mean >= 47 && mean <= 56,
+    true,
+    `expected pool rating mean in [47, 56]; got ${mean.toFixed(1)}`,
+  );
+});
+
+Deno.test("elite (85+) scout ratings are rare — well under 5% of rolls", () => {
+  const result = makeGenerator(5).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  let total = 0;
+  let elite = 0;
+  for (const scout of result) {
+    for (const key of SCOUT_RATING_KEYS) {
+      total++;
+      if (scout.ratings.current[key] >= 85) elite++;
+    }
+  }
+  assertEquals(
+    elite / total < 0.05,
+    true,
+    `expected <5% elite ratings; got ${elite}/${total}`,
+  );
+});
+
+Deno.test("young scouts carry a wider ceiling gap than veterans", () => {
+  const result = makeGenerator(9).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const areaScouts = result.filter((s) => s.role === "AREA_SCOUT");
+  const young = areaScouts.filter((s) => s.age <= 30);
+  const veteran = areaScouts.filter((s) => s.age >= 50);
+  assertEquals(young.length > 0, true, "expected some young area scouts");
+  assertEquals(veteran.length > 0, true, "expected some veteran area scouts");
+
+  const avgGap = (scouts: typeof areaScouts) => {
+    let sum = 0;
+    let count = 0;
+    for (const s of scouts) {
+      for (const key of SCOUT_RATING_KEYS) {
+        sum += s.ratings.ceiling[key] - s.ratings.current[key];
+        count++;
+      }
+    }
+    return sum / count;
+  };
+
+  assertEquals(
+    avgGap(young) > avgGap(veteran),
+    true,
+    `young gap=${avgGap(young).toFixed(1)} should exceed veteran gap=${
+      avgGap(veteran).toFixed(1)
+    }`,
+  );
+});
+
+Deno.test("role tilts favor accuracy for directors", () => {
+  const result = makeGenerator(13).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const directors = result.filter((s) => s.role === "DIRECTOR");
+  const areaScouts = result.filter((s) => s.role === "AREA_SCOUT");
+  const avgAccuracy = (scouts: typeof directors) =>
+    scouts.reduce((s, sc) => s + sc.ratings.current.accuracy, 0) /
+    scouts.length;
+  assertEquals(
+    avgAccuracy(directors) > avgAccuracy(areaScouts),
+    true,
+    `director accuracy mean=${avgAccuracy(directors).toFixed(1)} vs area=${
+      avgAccuracy(areaScouts).toFixed(1)
+    }`,
+  );
 });
 
 Deno.test("generatePool rolls directors across the full position-focus pool", () => {
