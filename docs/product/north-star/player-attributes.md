@@ -54,23 +54,32 @@ player is the worst player in the game — which raises the question: what are
 
 The scale is calibrated to professional football within the current league:
 
-| Range     | What it means                                                  | Scale anchor (illustrative only)           |
-| --------- | -------------------------------------------------------------- | ------------------------------------------ |
-| 95-100    | Generational. One per decade at a position, maybe.             | Peak Tom Brady, Joe Montana, Walter Payton |
-| 85-94     | Elite. Perennial All-Pro, franchise-defining.                  | Patrick Mahomes, prime Aaron Donald        |
-| 70-84     | Franchise-caliber starter. The guy you build around.           | Josh Allen, Lamar Jackson                  |
-| 60-69     | Solid starter. Winning football, not losing you games.         | Kirk Cousins, Derek Carr                   |
-| **50-59** | **The Mendoza line. You can start, but nobody's excited.**     | **Geno Smith**                             |
-| 40-49     | Fringe starter / quality backup. Fills in without disaster.    | Veteran bridge QB, journeyman guard        |
-| 25-39     | Backup / roster depth. Contributes on special teams.           | Typical QB2, rotational defensive end      |
-| 15-24     | Practice squad. Developing or hanging on.                      | UDFA fighting for a roster spot            |
-| 1-14      | Shouldn't be on a professional football field.                 | Guy off the street                         |
-| 0         | Horrendous. Cannot perform this skill at a professional level. | A punter trying to play linebacker         |
+| Range     | What it means                                                     | Scale anchor (illustrative only)           |
+| --------- | ----------------------------------------------------------------- | ------------------------------------------ |
+| 95-100    | Generational. One per decade at a position, maybe.                | Peak Tom Brady, Joe Montana, Walter Payton |
+| 85-94     | Elite. Perennial All-Pro, franchise-defining.                     | Patrick Mahomes, prime Aaron Donald        |
+| 70-84     | Franchise-caliber starter. The guy you build around.              | Josh Allen, Lamar Jackson                  |
+| 60-69     | Solid starter. Winning football, not losing you games.            | Kirk Cousins, Derek Carr                   |
+| **50-59** | **The starter/backup line. You can start, but nobody's excited.** | **Geno Smith**\*                           |
+| 40-49     | Fringe starter / quality backup. Fills in without disaster.       | Veteran bridge QB, journeyman guard        |
+| 25-39     | Backup / roster depth. Contributes on special teams.              | Typical QB2, rotational defensive end      |
+| 15-24     | Practice squad. Developing or hanging on.                         | UDFA fighting for a roster spot            |
+| 1-14      | Shouldn't be on a professional football field.                    | Guy off the street                         |
+| 0         | Horrendous. Cannot perform this skill at a professional level.    | A punter trying to play linebacker         |
 
 **50 is the line — within your league.** Above it, you're a starter somewhere in
 this league. Below it, you're fighting for your job. A young league whose 50s
 and 60s would be 30s and 40s on an NFL scale doesn't care: inside the league,
 those ratings mark the starter/backup boundary all the same.
+
+\*_A note on the Geno Smith anchor._ The 50 line describes the **starter/backup
+boundary within the league**, not a single real-world player's career
+trajectory. Geno's actual career crosses the 50 line repeatedly — below it in
+his Jets years, at or above it during peak Seattle, ambiguous after — and that's
+exactly the point. The scale is sharper than any one player's arc because it's a
+structural boundary, not a biography. He's the namesake because his career
+_straddles_ the line; real players move across the tiers as circumstances,
+health, coaching, and scheme change. Treat the anchor as a vibe, not a verdict.
 
 ### Bell curve distribution
 
@@ -84,13 +93,52 @@ The distribution is **right-skewed with a steep dropoff at the elite end**:
 - Genuine starters (50+) are the minority of total players
 - Quality starters (60+) are noticeably uncommon
 - Franchise players (70+) are rare — maybe 2-3 per team at most
-- Elite players (85+) are extraordinarily rare — 5-10 across the entire league
-- Generational players (95+) may not exist in any given season. When one does
-  exist, it's an event. There might be one per decade at a position.
+- Elite players (85+) are rare but real — roughly **3-5% per position**, which
+  sums to about **25-40 across a 32-team league**. Think "a few per position,"
+  not "a handful across the entire sport." An elite tier that's too thin
+  collapses into generational and erases the everyday All-Pro layer that makes
+  the league legible.
+- Generational players (95+) are the true once-a-generation tier — **roughly one
+  per decade per position**, meaning maybe 1–2 active generational players
+  league-wide in any given season. When one exists, it's an event.
 
 This means finding a 70+ player in the draft is a major win. Finding an 85+ is a
 franchise-altering event. And if you somehow land a 95+, you've found a player
 who will be discussed for decades.
+
+### Position shapes are not the same bell
+
+The universal bell above describes the league _in aggregate_. Individual
+positions deviate from it in ways the sim needs to respect. The calibration
+source of record is
+[`data/docs/nfl-talent-distribution-by-position.md`](../../../data/docs/nfl-talent-distribution-by-position.md)
+— consult it before tuning any position-specific generator.
+
+Three archetypal shapes matter most:
+
+- **Bimodal with fat tails (QB).** Quarterback is not a bell. There are ~12–15
+  real starters and a long flat plateau of weak-starter / replacement arms
+  behind them. The middle is thin; the tails are fat. This is why
+  replacement-tier QB is a disaster and elite-tier QB is paid like nothing else.
+- **Compressed toward the mean (OL, specialists).** Offensive linemen, kickers,
+  punters, and long snappers cluster tight around 50. The drop-off from elite to
+  replacement is real but smaller than at skill positions, and scheme /
+  continuity explain more variance than raw talent. Ratings for these groups
+  should ride closer to the mean with shorter tails.
+- **Top-heavy with a long right tail (EDGE, to a lesser extent QB and iDL).**
+  Pass rushers have a small, decisive elite cohort that rides much further from
+  50 than other positions. The gap between a top-tier edge and a rotational
+  rusher is larger than the gap between tiers at, say, safety or interior OL.
+
+Other positions fall between these poles — WR and CB are closer to normal with a
+modest elite tail; RB is flatter because replacement backs produce a surprising
+share of what average starters do; TE is bimodal _by role_ (receiving vs
+blocking) rather than by talent.
+
+The takeaway for design: **a single league-wide bell is the starting point, not
+the ceiling of sophistication.** Per-position generators should shape their
+tiers against the distributions in the talent doc, not against the aggregate
+curve.
 
 ### No overall rating
 
