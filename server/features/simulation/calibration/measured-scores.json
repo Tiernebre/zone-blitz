@@ -1,0 +1,30 @@
+{
+  "generated_by": "deno task sim:refit",
+  "seeds": [
+    3390767137,
+    168939025,
+    3735928559,
+    4207869677,
+    3135097598,
+    3237998146,
+    4277009102,
+    212580974
+  ],
+  "sampleCounts": {
+    "blockScore": 139098,
+    "protectionScore": 123809,
+    "coverageScore": 123809
+  },
+  "blockScore": {
+    "mean": 2.371311273746237,
+    "stddev": 4.86389102168291
+  },
+  "protectionScore": {
+    "mean": -5.0937935314340645,
+    "stddev": 5.340522462194146
+  },
+  "coverageScore": {
+    "mean": -0.39691469207497626,
+    "stddev": 8.184379098286115
+  }
+}

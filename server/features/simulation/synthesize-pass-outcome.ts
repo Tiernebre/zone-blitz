@@ -2,6 +2,7 @@ import type { PlayOutcome, PlayTag } from "./events.ts";
 import type { MatchupContribution, Situation } from "./resolve-play.ts";
 import { PASS_RESOLUTION, SACK_YARDAGE } from "./resolve-play.ts";
 import type { SeededRng } from "./rng.ts";
+import { observePassScore } from "./score-observer.ts";
 import type { OutcomeResult } from "./synthesize-run-outcome.ts";
 
 export function synthesizePassOutcome(
@@ -32,6 +33,15 @@ export function synthesizePassOutcome(
     ? protectionContribs.reduce((s, c) => s + c.score, 0) /
       protectionContribs.length
     : avgScore;
+
+  const routeContribs = contributions.filter(
+    (c) => c.matchup.type === "route_coverage",
+  );
+  const coverageScore = routeContribs.length > 0
+    ? routeContribs.reduce((s, c) => s + c.score, 0) /
+      routeContribs.length
+    : avgScore;
+  observePassScore(protectionScore, coverageScore);
 
   const sackProb = Math.max(
     PASS_RESOLUTION.sack.floor,
@@ -71,14 +81,6 @@ export function synthesizePassOutcome(
     if (protectionScore < -5) {
       tags.push("pressure");
     }
-
-    const routeContribs = contributions.filter(
-      (c) => c.matchup.type === "route_coverage",
-    );
-    const coverageScore = routeContribs.length > 0
-      ? routeContribs.reduce((s, c) => s + c.score, 0) /
-        routeContribs.length
-      : avgScore;
 
     const intProb = Math.max(
       PASS_RESOLUTION.interception.floor,
