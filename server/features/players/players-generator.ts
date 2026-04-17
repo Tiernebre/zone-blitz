@@ -29,6 +29,12 @@ import type {
   PlayersGenerator,
   PlayersGeneratorInput,
 } from "./players.generator.interface.ts";
+import {
+  bucketToContractPosition,
+  getContractStructurePrior,
+  type QualityTier,
+  qualityTierToContractTier,
+} from "./contract-structure-bands.ts";
 
 // Re-export the shared NameGenerator type for consumer tests that want to
 // mock a name source without reaching into server/shared directly.
@@ -648,39 +654,45 @@ function rollOrigin(
   };
 }
 
-interface ArchetypeShapeParams {
-  bonusRatioMin: number;
-  bonusRatioMax: number;
+/**
+ * Archetype-driven modifiers applied on top of the position × tier
+ * contract-structure prior (see `contract-structure-bands.ts`). Real
+ * NFL deals are shaped by position × market tier first; team cap
+ * posture nudges the bonus share up/down and governs void-year usage.
+ */
+interface ArchetypeModifier {
+  /** Additive delta applied to the sampled signing-bonus share. */
+  bonusShareDelta: number;
   voidYearChance: number;
   maxVoidYears: number;
 }
 
-const ARCHETYPE_SHAPE: Record<CapArchetype, ArchetypeShapeParams> = {
+const ARCHETYPE_MODIFIER: Record<CapArchetype, ArchetypeModifier> = {
   "cap-hell": {
-    bonusRatioMin: 0.45,
-    bonusRatioMax: 0.65,
+    bonusShareDelta: 0.20,
     voidYearChance: 0.6,
     maxVoidYears: 2,
   },
   tight: {
-    bonusRatioMin: 0.30,
-    bonusRatioMax: 0.50,
+    bonusShareDelta: 0.10,
     voidYearChance: 0.3,
     maxVoidYears: 1,
   },
   balanced: {
-    bonusRatioMin: 0.25,
-    bonusRatioMax: 0.45,
+    bonusShareDelta: 0.05,
     voidYearChance: 0.15,
     maxVoidYears: 1,
   },
   flush: {
-    bonusRatioMin: 0.08,
-    bonusRatioMax: 0.22,
-    voidYearChance: 0.0,
+    bonusShareDelta: -0.10,
+    voidYearChance: 0,
     maxVoidYears: 0,
   },
 };
+
+function clampRatio(value: number): number {
+  return Math.max(0, Math.min(0.95, value));
+}
 
 const ROOKIE_SLOTTED_MAX = 40_000_000;
 const ROOKIE_SLOTTED_MIN = 4_000_000;
@@ -713,6 +725,7 @@ function rollContract(
     teamId: string;
     bucket: NeutralBucket;
     quality: number;
+    qualityTier: QualityTier;
     age: number;
     signedYear: number;
     archetype: CapArchetype;
@@ -786,60 +799,109 @@ function rollRookieContract(
   };
 }
 
-function rollVeteranContract(
+export function rollVeteranContract(
   rng: SeededRng,
   args: {
     playerId: string;
     teamId: string;
     bucket: NeutralBucket;
     quality: number;
+    qualityTier: QualityTier;
     age: number;
     signedYear: number;
     archetype: CapArchetype;
   },
   multiplierFn: SalaryMultiplierFn,
 ): RolledContractBundle {
-  const shape = ARCHETYPE_SHAPE[args.archetype];
+  const modifier = ARCHETYPE_MODIFIER[args.archetype];
+  const prior = getContractStructurePrior(
+    bucketToContractPosition(args.bucket),
+    qualityTierToContractTier(args.qualityTier),
+  );
   const mult = multiplierFn(args.bucket, args.quality);
   const excess = Math.max(0, args.quality - 50);
   const baseSalary = SALARY_FLOOR + excess * SALARY_PER_QUALITY_POINT * mult;
   const jitter = 0.9 + rng.next() * 0.2;
   const annualBase = Math.max(SALARY_FLOOR, Math.round(baseSalary * jitter));
 
-  let realYears: number;
-  if (args.age >= 32) realYears = rng.int(1, 2);
-  else if (args.quality >= 80) realYears = rng.int(3, 5);
-  else if (args.quality >= 65) realYears = rng.int(2, 4);
-  else realYears = rng.int(1, 3);
+  // Sample length from the position × tier band. The p10/p90 window
+  // captures most of the real distribution and keeps CB contracts
+  // noticeably shorter than QB contracts at the same tier.
+  const lenMin = Math.max(1, Math.round(prior.lengthP10));
+  const lenMax = Math.max(lenMin, Math.round(prior.lengthP90));
+  let realYears = rng.int(lenMin, lenMax);
+  if (args.age >= 32) realYears = Math.min(realYears, 2);
 
   const totalValue = annualBase * realYears;
 
-  const bonusRatio = shape.bonusRatioMin +
-    rng.next() * (shape.bonusRatioMax - shape.bonusRatioMin);
+  // Signing-bonus share: position × tier baseline jittered around the
+  // mean, then nudged by archetype. Flush teams push cash flat, cap-
+  // hell teams push bonus-heavy to defer the hit.
+  const bonusSpread = Math.max(
+    0.05,
+    (prior.bonusShareP90 - prior.bonusShareP10) / 2,
+  );
+  const bonusSampled = prior.bonusShareMean +
+    (rng.next() * 2 - 1) * bonusSpread;
+  const bonusRatio = clampRatio(bonusSampled + modifier.bonusShareDelta);
   const signingBonus = Math.round(totalValue * bonusRatio);
   const remainingBase = totalValue - signingBonus;
 
+  // Void years are an archetype lever only — the league-wide per-
+  // position rate is effectively zero in the data (see
+  // void_year_usage_rate_by_position in contract-structure.json).
   let voidYears = 0;
   if (
-    shape.maxVoidYears > 0 && realYears >= 2 &&
-    rng.next() < shape.voidYearChance
+    modifier.maxVoidYears > 0 && realYears >= 2 &&
+    rng.next() < modifier.voidYearChance
   ) {
-    voidYears = rng.int(1, shape.maxVoidYears);
+    voidYears = rng.int(1, modifier.maxVoidYears);
   }
   const totalYears = realYears + voidYears;
 
-  const perYearBase = Math.max(1, Math.floor(remainingBase / realYears));
-  const baseResidue = remainingBase - perYearBase * realYears;
-
-  const guaranteedPct = args.quality >= 80
-    ? 0.5 + rng.next() * 0.2
-    : args.quality >= 65
-    ? 0.2 + rng.next() * 0.2
-    : 0.05 + rng.next() * 0.1;
+  // Guaranteed-year count derives from the position × tier guarantee
+  // share — IOL top-10 deals get the most guaranteed seasons, CB top-
+  // 10s the fewest, matching the research bands.
+  const guarSpread = Math.max(
+    0.05,
+    (prior.guaranteeShareP90 - prior.guaranteeShareP10) / 2,
+  );
+  const guarRatio = clampRatio(
+    prior.guaranteeShareMean + (rng.next() * 2 - 1) * guarSpread,
+  );
+  // Probabilistic rounding preserves the sampled share's expectation
+  // across a roster — deterministic `round` discards the fractional
+  // part and collapses neighbouring priors (IOL 0.53 vs OT 0.46) to
+  // the same integer for typical realYears, erasing the position
+  // signal the data encodes.
+  const guarYearsRaw = guarRatio * realYears;
+  const guarFloor = Math.floor(guarYearsRaw);
+  const guarFrac = guarYearsRaw - guarFloor;
   const guaranteedYears = Math.max(
     1,
-    Math.round(guaranteedPct * realYears),
+    guarFloor + (rng.next() < guarFrac ? 1 : 0),
   );
+
+  // Per-year base follows the cap-hit shape of real deals at this
+  // position × tier. Top-10 QB deals are back-loaded (Y1 ~15%, Y5
+  // ~34%); top-10 RB deals are front-loaded. Flat fallback is used
+  // only when the source shape is degenerate.
+  const shape = prior.capHitShape.slice(0, realYears);
+  const shapeSum = shape.reduce((s, v) => s + v, 0);
+  const yearBases: number[] = [];
+  if (shapeSum > 0) {
+    for (let i = 0; i < realYears; i++) {
+      yearBases.push(
+        Math.max(1, Math.floor(remainingBase * (shape[i] / shapeSum))),
+      );
+    }
+  } else {
+    const perYear = Math.max(1, Math.floor(remainingBase / realYears));
+    for (let i = 0; i < realYears; i++) yearBases.push(perYear);
+  }
+  const yearBaseSum = yearBases.reduce((s, v) => s + v, 0);
+  yearBases[realYears - 1] += remainingBase - yearBaseSum;
+  if (yearBases[realYears - 1] < 1) yearBases[realYears - 1] = 1;
 
   const years: GeneratedContractYear[] = [];
   for (let i = 0; i < realYears; i++) {
@@ -848,7 +910,7 @@ function rollVeteranContract(
       : "none";
     years.push({
       leagueYear: args.signedYear + i,
-      base: perYearBase + (i === realYears - 1 ? baseResidue : 0),
+      base: yearBases[i],
       rosterBonus: 0,
       workoutBonus: 0,
       perGameRosterBonus: 0,
@@ -1253,6 +1315,7 @@ export function createPlayersGenerator(
               teamId,
               bucket,
               quality,
+              qualityTier: tier,
               age,
               signedYear: currentYear,
               archetype,
