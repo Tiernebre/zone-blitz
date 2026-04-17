@@ -1,0 +1,129 @@
+{
+  "generated_at": "2026-04-17T12:55:40Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season plays only. Red-zone touchdown rate is drive-indexed: a drive counts once if any snap on that offensive drive reaches yardline_100 <= 20 (or <= 10 for inside_10, or goal_to_go for reach_goal_to_go). `touchdowns` = drives whose fixed_drive_result == 'Touchdown'. Red-zone play mix is play-indexed over the same filter as play-call-tendencies (play_type in {pass, run}, excluding kneels / spikes / two-point conversions). `called_pass` = play_type == 'pass' OR qb_dropback == 1 (counts sacks and scrambles as called passes). Red-zone sack rate = sacks / dropbacks. 3rd-down distance buckets: short (1-2), medium (3-5), long (6-9), very_long (10+). Conversion rate uses `third_down_converted`; pass rate uses the same called_pass definition; sack rate denominator is 3rd-down dropbacks only. 4th-and-short conversion is intentionally not duplicated here — see data/bands/situational.json. Measured 2020-2024 rates (for quick calibration-harness sanity check): red-zone drive TD rate ~60%, inside-10 TD rate ~68%, goal-to-go TD rate ~73%, red-zone pass rate ~54%, red-zone sack rate ~5.7%, 3rd-down conversion ~40%, 3rd-and-short (1-2) ~65%, 3rd-and-very-long (10+) ~19%.",
+  "bands": {
+    "red_zone": {
+      "touchdown_rate": {
+        "reach_red_zone": {
+          "n": 10877,
+          "touchdowns": 6561,
+          "rate": 0.6032
+        },
+        "reach_inside_10": {
+          "n": 6241,
+          "touchdowns": 4258,
+          "rate": 0.6823
+        },
+        "reach_goal_to_go": {
+          "n": 4686,
+          "touchdowns": 3424,
+          "rate": 0.7307
+        }
+      },
+      "play_mix": {
+        "n": 25293,
+        "called_pass": 13641,
+        "pass_rate": 0.5393,
+        "run_rate": 0.4607
+      },
+      "sack_rate_on_dropbacks": {
+        "n": 13641,
+        "sacks": 783,
+        "rate": 0.0574
+      }
+    },
+    "third_down": {
+      "conversion_rate": {
+        "overall": {
+          "n": 34230,
+          "converted": 13778,
+          "rate": 0.4025
+        },
+        "by_distance": {
+          "long_6_9": {
+            "n": 9426,
+            "numerator": 3387,
+            "rate": 0.3593
+          },
+          "medium_3_5": {
+            "n": 8609,
+            "numerator": 4047,
+            "rate": 0.4701
+          },
+          "short_1_2": {
+            "n": 7139,
+            "numerator": 4622,
+            "rate": 0.6474
+          },
+          "very_long_10_plus": {
+            "n": 9056,
+            "numerator": 1722,
+            "rate": 0.1902
+          }
+        }
+      },
+      "pass_rate": {
+        "overall": {
+          "n": 34230,
+          "called_pass": 27520,
+          "rate": 0.804
+        },
+        "by_distance": {
+          "long_6_9": {
+            "n": 9426,
+            "numerator": 8827,
+            "rate": 0.9365
+          },
+          "medium_3_5": {
+            "n": 8609,
+            "numerator": 7446,
+            "rate": 0.8649
+          },
+          "short_1_2": {
+            "n": 7139,
+            "numerator": 2946,
+            "rate": 0.4127
+          },
+          "very_long_10_plus": {
+            "n": 9056,
+            "numerator": 8301,
+            "rate": 0.9166
+          }
+        }
+      },
+      "sack_rate_on_dropbacks": {
+        "overall": {
+          "n": 27520,
+          "sacks": 2578,
+          "rate": 0.0937
+        },
+        "by_distance": {
+          "long_6_9": {
+            "n": 8827,
+            "numerator": 952,
+            "rate": 0.1079
+          },
+          "medium_3_5": {
+            "n": 7446,
+            "numerator": 631,
+            "rate": 0.0847
+          },
+          "short_1_2": {
+            "n": 2946,
+            "numerator": 176,
+            "rate": 0.0597
+          },
+          "very_long_10_plus": {
+            "n": 8301,
+            "numerator": 819,
+            "rate": 0.0987
+          }
+        }
+      }
+    },
+    "fourth_down_short_reference": {
+      "note": "4th-and-short go-for-it conversion is covered in data/bands/situational.json under fourth_down_conversion_rate.by_field_zone_and_distance. Not duplicated here to avoid drift between the two artifacts."
+    }
+  }
+}

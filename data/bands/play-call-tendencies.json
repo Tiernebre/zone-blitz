@@ -1,0 +1,424 @@
+{
+  "generated_at": "2026-04-17T12:56:37Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season plays only. Pass/run denominator = play_type in {pass, run}, excluding kneels, spikes, and two-point conversions. `called_pass` counts any snap where the outcome is a pass OR qb_dropback == 1 (so sacks and scrambles land in the pass bucket — they represent called passes whose outcome was affected by pressure). Distance buckets: short (1-2), medium (3-6), long (7-10), very_long (11+). Score differential buckets (from offense perspective): trailing_15_plus, trailing_8_to_14, trailing_1_to_7, tied, leading_1_to_7, leading_8_to_14, leading_15_plus. Time buckets prioritise the late-game windows that matter most for clock management: two_min_h1, two_min_q4, under_5_min_q4, q4_early, q3, q2, q1. Field zones: own_deep (>80), own_side (61-80), midfield (41-60), opp_side (21-40), red_zone_outer (11-20), red_zone_inner (5-10), goal_to_go (<=4). `headline_slices` are pre-computed named cells for the big 6 tendencies the calibration harness cares about: trailing 7+ late Q4 (expect ~85% pass), leading 14+ Q4 (expect ~30% pass, clock kill), 3rd-and-long 7+ (expect ~90%), 3rd-and-short 1-2, red-zone goal-to-go (expect ~45%), and the two 2-minute drills.",
+  "bands": {
+    "pass_rate_overall": {
+      "n": 167254,
+      "called_pass": 101750,
+      "rate": 0.6084
+    },
+    "pass_rate_by_down": {
+      "1st": {
+        "n": 73647,
+        "called_pass": 37405,
+        "rate": 0.5079
+      },
+      "2nd": {
+        "n": 55636,
+        "called_pass": 34392,
+        "rate": 0.6182
+      },
+      "3rd": {
+        "n": 34230,
+        "called_pass": 27520,
+        "rate": 0.804
+      },
+      "4th": {
+        "n": 3741,
+        "called_pass": 2433,
+        "rate": 0.6504
+      }
+    },
+    "pass_rate_by_down_and_distance": {
+      "1st": {
+        "long_7_10": {
+          "n": 67590,
+          "called_pass": 34322,
+          "rate": 0.5078
+        },
+        "medium_3_6": {
+          "n": 2187,
+          "called_pass": 824,
+          "rate": 0.3768
+        },
+        "short_1_2": {
+          "n": 1148,
+          "called_pass": 307,
+          "rate": 0.2674
+        },
+        "very_long_11_plus": {
+          "n": 2722,
+          "called_pass": 1952,
+          "rate": 0.7171
+        }
+      },
+      "2nd": {
+        "long_7_10": {
+          "n": 25429,
+          "called_pass": 17486,
+          "rate": 0.6876
+        },
+        "medium_3_6": {
+          "n": 16351,
+          "called_pass": 8444,
+          "rate": 0.5164
+        },
+        "short_1_2": {
+          "n": 5892,
+          "called_pass": 1994,
+          "rate": 0.3384
+        },
+        "very_long_11_plus": {
+          "n": 7964,
+          "called_pass": 6468,
+          "rate": 0.8122
+        }
+      },
+      "3rd": {
+        "long_7_10": {
+          "n": 9594,
+          "called_pass": 9064,
+          "rate": 0.9448
+        },
+        "medium_3_6": {
+          "n": 11371,
+          "called_pass": 10009,
+          "rate": 0.8802
+        },
+        "short_1_2": {
+          "n": 7139,
+          "called_pass": 2946,
+          "rate": 0.4127
+        },
+        "very_long_11_plus": {
+          "n": 6126,
+          "called_pass": 5501,
+          "rate": 0.898
+        }
+      },
+      "4th": {
+        "long_7_10": {
+          "n": 418,
+          "called_pass": 398,
+          "rate": 0.9522
+        },
+        "medium_3_6": {
+          "n": 952,
+          "called_pass": 899,
+          "rate": 0.9443
+        },
+        "short_1_2": {
+          "n": 2076,
+          "called_pass": 856,
+          "rate": 0.4123
+        },
+        "very_long_11_plus": {
+          "n": 295,
+          "called_pass": 280,
+          "rate": 0.9492
+        }
+      }
+    },
+    "pass_rate_by_score_diff_and_time": {
+      "leading_1_to_7": {
+        "q1": {
+          "n": 5527,
+          "called_pass": 3120,
+          "rate": 0.5645
+        },
+        "q2": {
+          "n": 8625,
+          "called_pass": 4995,
+          "rate": 0.5791
+        },
+        "q3": {
+          "n": 7835,
+          "called_pass": 4414,
+          "rate": 0.5634
+        },
+        "q4_early": {
+          "n": 4835,
+          "called_pass": 2566,
+          "rate": 0.5307
+        },
+        "two_min_h1": {
+          "n": 2964,
+          "called_pass": 2333,
+          "rate": 0.7871
+        },
+        "under_5_min_q4": {
+          "n": 2473,
+          "called_pass": 800,
+          "rate": 0.3235
+        }
+      },
+      "leading_15_plus": {
+        "q1": {
+          "n": 30,
+          "called_pass": 17,
+          "rate": 0.5667
+        },
+        "q2": {
+          "n": 665,
+          "called_pass": 387,
+          "rate": 0.582
+        },
+        "q3": {
+          "n": 3335,
+          "called_pass": 1720,
+          "rate": 0.5157
+        },
+        "q4_early": {
+          "n": 2887,
+          "called_pass": 1049,
+          "rate": 0.3634
+        },
+        "two_min_h1": {
+          "n": 601,
+          "called_pass": 474,
+          "rate": 0.7887
+        },
+        "under_5_min_q4": {
+          "n": 1329,
+          "called_pass": 226,
+          "rate": 0.1701
+        }
+      },
+      "leading_8_to_14": {
+        "q1": {
+          "n": 412,
+          "called_pass": 239,
+          "rate": 0.5801
+        },
+        "q2": {
+          "n": 2829,
+          "called_pass": 1564,
+          "rate": 0.5528
+        },
+        "q3": {
+          "n": 5049,
+          "called_pass": 2795,
+          "rate": 0.5536
+        },
+        "q4_early": {
+          "n": 3514,
+          "called_pass": 1675,
+          "rate": 0.4767
+        },
+        "two_min_h1": {
+          "n": 1488,
+          "called_pass": 1155,
+          "rate": 0.7762
+        },
+        "under_5_min_q4": {
+          "n": 1593,
+          "called_pass": 327,
+          "rate": 0.2053
+        }
+      },
+      "tied": {
+        "q1": {
+          "n": 20479,
+          "called_pass": 11677,
+          "rate": 0.5702
+        },
+        "q2": {
+          "n": 4717,
+          "called_pass": 2797,
+          "rate": 0.593
+        },
+        "q3": {
+          "n": 2354,
+          "called_pass": 1339,
+          "rate": 0.5688
+        },
+        "q4_early": {
+          "n": 2331,
+          "called_pass": 1370,
+          "rate": 0.5877
+        },
+        "two_min_h1": {
+          "n": 1077,
+          "called_pass": 855,
+          "rate": 0.7939
+        },
+        "under_5_min_q4": {
+          "n": 1139,
+          "called_pass": 749,
+          "rate": 0.6576
+        }
+      },
+      "trailing_1_to_7": {
+        "q1": {
+          "n": 10223,
+          "called_pass": 5977,
+          "rate": 0.5847
+        },
+        "q2": {
+          "n": 10165,
+          "called_pass": 5944,
+          "rate": 0.5848
+        },
+        "q3": {
+          "n": 8455,
+          "called_pass": 4879,
+          "rate": 0.5771
+        },
+        "q4_early": {
+          "n": 5203,
+          "called_pass": 3194,
+          "rate": 0.6139
+        },
+        "two_min_h1": {
+          "n": 3194,
+          "called_pass": 2558,
+          "rate": 0.8009
+        },
+        "under_5_min_q4": {
+          "n": 5061,
+          "called_pass": 4066,
+          "rate": 0.8034
+        }
+      },
+      "trailing_15_plus": {
+        "q1": {
+          "n": 89,
+          "called_pass": 54,
+          "rate": 0.6067
+        },
+        "q2": {
+          "n": 1250,
+          "called_pass": 776,
+          "rate": 0.6208
+        },
+        "q3": {
+          "n": 4817,
+          "called_pass": 3200,
+          "rate": 0.6643
+        },
+        "q4_early": {
+          "n": 4624,
+          "called_pass": 3684,
+          "rate": 0.7967
+        },
+        "two_min_h1": {
+          "n": 996,
+          "called_pass": 857,
+          "rate": 0.8604
+        },
+        "under_5_min_q4": {
+          "n": 3297,
+          "called_pass": 2686,
+          "rate": 0.8147
+        }
+      },
+      "trailing_8_to_14": {
+        "q1": {
+          "n": 1094,
+          "called_pass": 650,
+          "rate": 0.5941
+        },
+        "q2": {
+          "n": 4825,
+          "called_pass": 2904,
+          "rate": 0.6019
+        },
+        "q3": {
+          "n": 6270,
+          "called_pass": 3817,
+          "rate": 0.6088
+        },
+        "q4_early": {
+          "n": 4752,
+          "called_pass": 3503,
+          "rate": 0.7372
+        },
+        "two_min_h1": {
+          "n": 1828,
+          "called_pass": 1557,
+          "rate": 0.8518
+        },
+        "under_5_min_q4": {
+          "n": 3023,
+          "called_pass": 2801,
+          "rate": 0.9266
+        }
+      }
+    },
+    "pass_rate_by_field_zone": {
+      "goal_to_go": {
+        "n": 5316,
+        "called_pass": 2271,
+        "rate": 0.4272
+      },
+      "midfield": {
+        "n": 41927,
+        "called_pass": 26349,
+        "rate": 0.6284
+      },
+      "opp_side": {
+        "n": 31695,
+        "called_pass": 18850,
+        "rate": 0.5947
+      },
+      "own_deep": {
+        "n": 13210,
+        "called_pass": 7926,
+        "rate": 0.6
+      },
+      "own_side": {
+        "n": 55129,
+        "called_pass": 34984,
+        "rate": 0.6346
+      },
+      "red_zone_inner": {
+        "n": 6971,
+        "called_pass": 3894,
+        "rate": 0.5586
+      },
+      "red_zone_outer": {
+        "n": 13006,
+        "called_pass": 7476,
+        "rate": 0.5748
+      }
+    },
+    "pass_rate_headline_slices": {
+      "trailing_7_plus_late_q4": {
+        "n": 7362,
+        "called_pass": 6368,
+        "rate": 0.865
+      },
+      "leading_14_plus_q4": {
+        "n": 5243,
+        "called_pass": 1655,
+        "rate": 0.3157
+      },
+      "third_and_long_7_plus": {
+        "n": 15720,
+        "called_pass": 14565,
+        "rate": 0.9265
+      },
+      "third_and_short_1_2": {
+        "n": 7139,
+        "called_pass": 2946,
+        "rate": 0.4127
+      },
+      "red_zone_goal_to_go": {
+        "n": 9774,
+        "called_pass": 4815,
+        "rate": 0.4926
+      },
+      "two_min_drill_h1": {
+        "n": 12148,
+        "called_pass": 9789,
+        "rate": 0.8058
+      },
+      "two_min_drill_q4": {
+        "n": 7399,
+        "called_pass": 5376,
+        "rate": 0.7266
+      }
+    }
+  }
+}
