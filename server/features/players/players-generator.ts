@@ -17,6 +17,7 @@ import {
 } from "../../shared/name-generator.ts";
 import { DEFAULT_COLLEGES } from "../colleges/default-colleges.ts";
 import { DEFAULT_CITIES } from "../cities/default-cities.ts";
+import { sampleBucketAge } from "./age-curves.ts";
 import type { ContractGuaranteeType } from "@zone-blitz/shared";
 import type {
   ContractGeneratorInput,
@@ -422,8 +423,6 @@ export const SALARY_PER_QUALITY_POINT = 250_000;
 
 const ROOKIE_SCALE_AGE_THRESHOLD = 25;
 
-const VETERAN_AGE_MIN = 21;
-const VETERAN_AGE_MAX = 36;
 const PROSPECT_AGE_MIN = 20;
 const PROSPECT_AGE_MAX = 23;
 
@@ -810,14 +809,16 @@ function rollHeightWeight(rng: SeededRng, bucket: NeutralBucket): {
 function rollAge(
   rng: SeededRng,
   status: "rostered" | "free-agent" | "prospect",
+  bucket: NeutralBucket,
 ): number {
   if (status === "prospect") {
     return rng.int(PROSPECT_AGE_MIN, PROSPECT_AGE_MAX);
   }
-  // Triangular-ish around the middle of the playing-age band.
-  const raw = (rng.next() + rng.next()) / 2;
-  const span = VETERAN_AGE_MAX - VETERAN_AGE_MIN;
-  return VETERAN_AGE_MIN + Math.round(raw * span);
+  // Active / free-agent ages follow a position-conditioned cohort
+  // survival curve so RB/CB cliff near 28, OL plateau into mid-30s,
+  // QB keep a long tail past 36, and specialists (K/P/LS) extend past
+  // 40 — all real shapes the prior uniform 21–36 triangular erased.
+  return sampleBucketAge(rng.next, bucket);
 }
 
 function birthDateForAge(
@@ -1371,7 +1372,7 @@ export function createPlayersGenerator(
       args.bucketCount,
     );
     const quality = rollQuality(rng, args.bucket, tier);
-    const age = rollAge(rng, args.statusKind);
+    const age = rollAge(rng, args.statusKind, args.bucket);
     const { heightInches, weightPounds } = rollHeightWeight(rng, args.bucket);
     const attributes = rollAttributesFor(rng, args.bucket, quality);
     lockInBucket(attributes, args.bucket, heightInches, weightPounds);
@@ -1529,7 +1530,7 @@ export function createPlayersGenerator(
             bucketCount,
           );
           const quality = rollQuality(rng, bucket, tier);
-          const age = rollAge(rng, "rostered");
+          const age = rollAge(rng, "rostered", bucket);
           return rollContract(
             rng,
             {
