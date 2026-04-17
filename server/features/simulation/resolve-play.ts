@@ -118,7 +118,7 @@ const PASS_CONCEPTS = new Set([
 
 // ── Play-call tuning knobs ────────────────────────────────────────────
 const PLAY_CALL = {
-  runBias: 0.07,
+  runBias: 0.065,
   shortYardageRunBoost: 0.15,
   longYardageRunPenalty: 0.08,
   twoMinuteRunPenalty: 0.2,
@@ -138,19 +138,19 @@ const PLAY_CALL = {
 // ── Pass-resolution calibration knobs ─────────────────────────────────
 export const PASS_RESOLUTION = {
   completion: {
-    base: 0.655,
+    base: 0.659,
     coverageModifier: 0.010,
     floor: 0.18,
     ceiling: 0.92,
   },
-  interception: { base: 0.022, coverageModifier: 0.002, floor: 0.004 },
-  sack: { base: 0.086, protectionModifier: 0.005, floor: 0.01 },
+  interception: { base: 0.021, coverageModifier: 0.002, floor: 0.004 },
+  sack: { base: 0.089, protectionModifier: 0.005, floor: 0.01 },
   bigPlay: {
     base: 0.20,
     coverageModifier: 0.008,
     floor: 0.05,
     ceiling: 0.45,
-    yards: { min: 13, max: 35 },
+    yards: { min: 14, max: 35 },
   },
   completionYards: { min: 3, max: 14 },
   fumbleOnSack: 0.08,
@@ -163,9 +163,9 @@ export const RUN_RESOLUTION = {
   shortGainThreshold: -5,
   shortGainYards: { min: 1, max: 5 },
   bigPlayThreshold: 15,
-  bigPlayYards: { min: 9, max: 26 },
+  bigPlayYards: { min: 9, max: 20 },
   normalYards: { min: 2, max: 8 },
-  fumbleRate: 0.009,
+  fumbleRate: 0.010,
 } as const;
 
 // ── Miscellaneous play-outcome knobs ──────────────────────────────────
