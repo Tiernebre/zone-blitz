@@ -67,6 +67,7 @@ export function makeCoachingMods(
     schemeFitBonus: 0,
     situationalBonus: 0,
     aggressiveness: 50,
+    penaltyDiscipline: 1,
     ...overrides,
   };
 }

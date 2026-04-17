@@ -78,7 +78,12 @@ function makeFingerprint(): SchemeFingerprint {
 }
 
 function makeCoachingMods(): CoachingMods {
-  return { schemeFitBonus: 0, situationalBonus: 0, aggressiveness: 50 };
+  return {
+    schemeFitBonus: 0,
+    situationalBonus: 0,
+    aggressiveness: 50,
+    penaltyDiscipline: 1,
+  };
 }
 
 function makeOffense(): PlayerRuntime[] {

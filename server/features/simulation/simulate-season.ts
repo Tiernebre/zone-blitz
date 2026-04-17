@@ -213,6 +213,7 @@ function generateTeam(teamId: string, rng: SeededRng): SimTeam {
       schemeFitBonus: rng.int(-3, 3),
       situationalBonus: rng.int(-2, 2),
       aggressiveness: rng.int(30, 70),
+      penaltyDiscipline: 1,
     } as CoachingMods,
   };
 }
