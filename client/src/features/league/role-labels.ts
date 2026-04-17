@@ -32,28 +32,28 @@ export function roleLabel(
   return SCOUT_ROLE_LABELS[role as ScoutRole] ?? role;
 }
 
-const COACH_BACKGROUND_LABELS: Record<string, string> = {
-  offense: "Offensive background",
-  defense: "Defensive background",
-  ceo: "CEO / manager",
-  special_teams: "Special teams background",
-  quarterbacks: "Quarterbacks background",
-  running_backs: "Running backs background",
-  wide_receivers: "Wide receivers background",
-  tight_ends: "Tight ends background",
-  offensive_line: "Offensive line background",
-  defensive_line: "Defensive line background",
-  linebackers: "Linebackers background",
-  defensive_backs: "Defensive backs background",
+const COACH_ARCHETYPE_LABELS: Record<string, string> = {
+  offense: "Offensive Oriented",
+  defense: "Defensive Oriented",
+  ceo: "On-Field CEO",
+  special_teams: "Special Teams Oriented",
+  quarterbacks: "Quarterbacks Oriented",
+  running_backs: "Running Backs Oriented",
+  wide_receivers: "Wide Receivers Oriented",
+  tight_ends: "Tight Ends Oriented",
+  offensive_line: "Offensive Line Oriented",
+  defensive_line: "Defensive Line Oriented",
+  linebackers: "Linebackers Oriented",
+  defensive_backs: "Defensive Backs Oriented",
 };
 
 /**
- * The "Background" column on the coach hiring tab. Surfaces public
+ * The "Archetype" column on the coach hiring tab. Surfaces public
  * knowledge: the side of the ball or position group this coach
  * built his career on. Driven entirely by `specialty` so HC, OC, DC,
  * and position coaches all map through the same table.
  */
-export function coachBackgroundLabel(specialty: string | null): string {
+export function coachArchetypeLabel(specialty: string | null): string {
   if (!specialty) return "—";
-  return COACH_BACKGROUND_LABELS[specialty] ?? "—";
+  return COACH_ARCHETYPE_LABELS[specialty] ?? "—";
 }

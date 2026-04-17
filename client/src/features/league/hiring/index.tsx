@@ -43,7 +43,7 @@ import {
 } from "../../../hooks/use-hiring.ts";
 import { useStaffTree } from "../../../hooks/use-staff-tree.ts";
 import { useScoutStaffTree } from "../../../hooks/use-scout-staff-tree.ts";
-import { coachBackgroundLabel, roleLabel } from "../role-labels.ts";
+import { coachArchetypeLabel, roleLabel } from "../role-labels.ts";
 import {
   defensiveArchetypeLabel,
   offensiveArchetypeLabel,
@@ -949,11 +949,11 @@ function buildCandidateColumns(
   if (staffType === "coach") {
     cols.push(
       {
-        id: "background",
-        header: "Background",
+        id: "archetype",
+        header: "Archetype",
         cell: ({ row }) => (
-          <span data-testid={`candidate-background-${row.original.id}`}>
-            {coachBackgroundLabel(row.original.specialty)}
+          <span data-testid={`candidate-archetype-${row.original.id}`}>
+            {coachArchetypeLabel(row.original.specialty)}
           </span>
         ),
       },

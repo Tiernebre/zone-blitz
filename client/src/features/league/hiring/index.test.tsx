@@ -228,21 +228,21 @@ describe("Market survey view", () => {
     expect(screen.queryByLabelText("Search candidates")).toBeNull();
   });
 
-  it("shows an offensive HC's background and scheme", () => {
+  it("shows an offensive HC's archetype and scheme", () => {
     renderPage();
     expect(
-      screen.getByTestId("candidate-background-c1").textContent,
-    ).toBe("Offensive background");
+      screen.getByTestId("candidate-archetype-c1").textContent,
+    ).toBe("Offensive Oriented");
     expect(
       screen.getByTestId("candidate-scheme-c1").textContent,
     ).toBe("Pro Style");
   });
 
-  it("shows a defensive HC's background and scheme", () => {
+  it("shows a defensive HC's archetype and scheme", () => {
     renderPage();
     expect(
-      screen.getByTestId("candidate-background-c3").textContent,
-    ).toBe("Defensive background");
+      screen.getByTestId("candidate-archetype-c3").textContent,
+    ).toBe("Defensive Oriented");
     expect(
       screen.getByTestId("candidate-scheme-c3").textContent,
     ).toBe("Fangio Two-High");
@@ -251,8 +251,8 @@ describe("Market survey view", () => {
   it("calls out CEO HCs as deferring to coordinators", () => {
     renderPage();
     expect(
-      screen.getByTestId("candidate-background-c4").textContent,
-    ).toBe("CEO / manager");
+      screen.getByTestId("candidate-archetype-c4").textContent,
+    ).toBe("On-Field CEO");
     expect(
       screen.getByTestId("candidate-scheme-c4").textContent,
     ).toBe("Defers to coordinators");
