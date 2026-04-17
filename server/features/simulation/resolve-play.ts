@@ -118,7 +118,7 @@ const PASS_CONCEPTS = new Set([
 
 // ── Play-call tuning knobs ────────────────────────────────────────────
 const PLAY_CALL = {
-  runBias: 0.070,
+  runBias: 0.065,
   shortYardageRunBoost: 0.15,
   longYardageRunPenalty: 0.08,
   twoMinuteRunPenalty: 0.2,
