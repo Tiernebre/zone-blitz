@@ -131,7 +131,12 @@ forEachSeed("each team has coaching mods", (seed) => {
   }
 });
 
-forEachSeed("all player attributes are numbers in [25, 99]", (seed) => {
+forEachSeed("all player attributes are numbers in [1, 99]", (seed) => {
+  // Bounds follow the Geno Smith Line rating-scale contract
+  // (RATING_MIN=1, RATING_MAX=99). Whichever generator is injected is
+  // free to pick tighter per-attribute floors (production uses 5 for
+  // non-signature, 15 for signature) — calibration just asserts the
+  // scale-contract bounds, not the generator's internal tuning.
   const league = generateCalibrationLeague({ seed, teamCount: TEAM_COUNT });
   for (const team of league.teams) {
     for (const player of [...team.starters, ...team.bench]) {
@@ -139,7 +144,7 @@ forEachSeed("all player attributes are numbers in [25, 99]", (seed) => {
       for (const [key, value] of Object.entries(attrs)) {
         if (key.endsWith("Potential")) continue;
         assert(
-          typeof value === "number" && value >= 25 && value <= 99,
+          typeof value === "number" && value >= 1 && value <= 99,
           `player ${player.playerId} attr ${key} = ${value} out of range`,
         );
       }
@@ -218,6 +223,63 @@ forEachSeed(
       inCenter >= minInCenter,
       `expected ≥${minInCenter} of ${TEAM_COUNT} teams with runPassLean in [45,70], got ${inCenter}`,
     );
+  },
+);
+
+Deno.test("injected players generator is used in place of the default", () => {
+  // Prove the seam is wired: a stub generator that returns zero
+  // rostered players should produce zero starters + zero bench on
+  // every team, regardless of seed.
+  let calls = 0;
+  const league = generateCalibrationLeague({
+    seed: CALIBRATION_SEED,
+    teamCount: 4,
+    playersGenerator: {
+      generate: () => {
+        calls++;
+        return { players: [] };
+      },
+      generateContracts: () => [],
+    },
+  });
+  assertEquals(calls, 1);
+  assertEquals(league.teams.length, 4);
+  for (const team of league.teams) {
+    assertEquals(team.starters.length, 0);
+    assertEquals(team.bench.length, 0);
+  }
+});
+
+Deno.test(
+  "injected generator receives the calibration team IDs and roster size",
+  () => {
+    const captured: {
+      leagueId: string;
+      teamIds: string[];
+      rosterSize: number;
+    }[] = [];
+    generateCalibrationLeague({
+      seed: CALIBRATION_SEED,
+      teamCount: 3,
+      playersGenerator: {
+        generate: (input) => {
+          captured.push({
+            leagueId: input.leagueId,
+            teamIds: [...input.teamIds],
+            rosterSize: input.rosterSize,
+          });
+          return { players: [] };
+        },
+        generateContracts: () => [],
+      },
+    });
+    assertEquals(captured.length, 1, "generator must be invoked once");
+    assertEquals(captured[0].teamIds, [
+      "cal-team-0",
+      "cal-team-1",
+      "cal-team-2",
+    ]);
+    assertEquals(captured[0].rosterSize, 53);
   },
 );
 
