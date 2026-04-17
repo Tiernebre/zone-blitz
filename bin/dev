@@ -5,7 +5,6 @@ cd "$(dirname "$0")/.."
 deno task setup
 deno task db:start
 deno task db:migrate
-deno task db:seed
 
 deno run -A npm:concurrently -n server,client -c blue,green \
   "deno task dev:server" \

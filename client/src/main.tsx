@@ -10,6 +10,7 @@ createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
     <TooltipProvider delay={700}>
       <Toaster />
+      Zone Blitz
     </TooltipProvider>
   </QueryClientProvider>,
 );
