@@ -4,15 +4,31 @@
  * 1. Runs a seed sweep of calibration leagues with the score observer
  *    installed to measure the blockScore / protectionScore /
  *    coverageScore distributions.
- * 2. Loads the NFL bands from data/bands/team-game.json and the per-rush
- *    overall band from data/bands/rushing-plays.json.
- * 3. Feeds both to the fit-outcomes pipeline.
+ * 2. Loads the NFL bands from data/bands/team-game.json, the per-rush
+ *    overall band from data/bands/rushing-plays.json, and the per-
+ *    completion 20+ yard rate from data/bands/passing-plays.json.
+ * 3. Feeds all of the above to the fit-outcomes pipeline.
  * 4. Writes the measured distribution and fitted coefficients to
  *    checked-in JSON artifacts alongside this file.
  *
  * `computeRefit` is the pure pipeline (no filesystem writes) so tests
  * can exercise it without the `--allow-write` flag; `runRefit` is the
  * thin CLI wrapper that handles the actual file writes.
+ *
+ * ## When to run this
+ *
+ *   Any time the matchup-score distribution can shift:
+ *   - Adjusting coaching-mod magnitudes, scheme-fit deltas, noise stddev
+ *     in `resolve-play.ts::rollMatchup`.
+ *   - Changing how matchups are assembled in `resolve-matchups.ts`.
+ *   - Updating the calibration-league attribute profiles.
+ *   - Updating an NFL band JSON under `data/bands/`.
+ *
+ *   Flow: edit sim → `deno task sim:refit` → `deno task sim:verify`
+ *   (should pass without drift) → commit the updated
+ *   `outcome-coefficients.json` + `measured-scores.json` with the sim
+ *   change in the same PR. CI's `sim-verify` job fails the build if
+ *   coefficients on disk disagree with a fresh refit beyond tolerance.
  */
 import { CALIBRATION_SEEDS } from "./calibration-seeds.ts";
 import { loadBands, type MetricBand } from "./band-loader.ts";
