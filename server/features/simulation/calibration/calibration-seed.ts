@@ -1,1 +1,0 @@
-export const CALIBRATION_SEED = 0xCA1_B0021;

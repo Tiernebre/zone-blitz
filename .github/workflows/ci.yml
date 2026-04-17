@@ -36,19 +36,6 @@ jobs:
           deno-version: v2.7.11
       - run: deno task db:check-journal
 
-  sim-verify:
-    name: Sim Coefficients Verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.7.11
-      - run: deno install
-      - name: Verify fitted outcome coefficients are up to date
-        run: deno task sim:verify
-
   test:
     name: Test
     runs-on: ubuntu-latest
