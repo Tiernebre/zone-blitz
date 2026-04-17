@@ -898,6 +898,9 @@ Deno.test("finalize: assembles full coaching staff under signed HC by drawing fr
     specialty: null,
     age: 45,
     yearsExperience: 15,
+    positionBackground: null,
+    positionFocus: null,
+    regionFocus: null,
     marketTierPref: 50,
     philosophyFitPref: 50,
     staffFitPref: 50,
@@ -995,6 +998,9 @@ Deno.test("finalize: assembles scouting staff under signed Director", async () =
     specialty: null,
     age: 45,
     yearsExperience: 15,
+    positionBackground: null,
+    positionFocus: null,
+    regionFocus: null,
     marketTierPref: 50,
     philosophyFitPref: 50,
     staffFitPref: 50,
@@ -1071,6 +1077,9 @@ Deno.test("finalize: skips teams without a signed HC or Director (no leader, no 
             specialty: "offense",
             age: 45,
             yearsExperience: 15,
+            positionBackground: null,
+            positionFocus: null,
+            regionFocus: null,
             marketTierPref: 50,
             philosophyFitPref: 50,
             staffFitPref: 50,
@@ -1123,6 +1132,9 @@ Deno.test("finalize: same candidate is not assigned to two teams in the same run
     specialty: "offense",
     age: 45,
     yearsExperience: 15,
+    positionBackground: null,
+    positionFocus: null,
+    regionFocus: null,
     marketTierPref: 50,
     philosophyFitPref: 50,
     staffFitPref: 50,
@@ -1203,6 +1215,9 @@ Deno.test("finalize: respects league staff budget when assembling staff", async 
     specialty: "offense",
     age: 45,
     yearsExperience: 15,
+    positionBackground: null,
+    positionFocus: null,
+    regionFocus: null,
     marketTierPref: 50,
     philosophyFitPref: 50,
     staffFitPref: 50,
@@ -1319,6 +1334,9 @@ function makeUnassigned(
     specialty: null,
     age: 45,
     yearsExperience: 15,
+    positionBackground: null,
+    positionFocus: null,
+    regionFocus: null,
     marketTierPref: 50,
     philosophyFitPref: 50,
     staffFitPref: 50,
@@ -1329,8 +1347,12 @@ function makeUnassigned(
 }
 
 Deno.test("listCandidates: returns coaches and scouts tagged with staff type", async () => {
-  const coach = makeUnassigned({ role: "HC" });
-  const scout = makeUnassigned({ role: "DIRECTOR" });
+  const coach = makeUnassigned({ role: "HC", positionBackground: "QB" });
+  const scout = makeUnassigned({
+    role: "DIRECTOR",
+    positionFocus: "GENERALIST",
+    regionFocus: "SOUTHEAST",
+  });
   const service = createHiringService({
     repo: stubRepo({
       listUnassignedCoaches: () => Promise.resolve([coach]),
@@ -1356,6 +1378,15 @@ Deno.test("listCandidates: returns coaches and scouts tagged with staff type", a
   assertEquals(coachRow?.yearsExperience, coach.yearsExperience);
   assertEquals(scoutRow?.age, scout.age);
   assertEquals(scoutRow?.yearsExperience, scout.yearsExperience);
+  // Coach carries positionBackground; scout carries positionFocus +
+  // regionFocus. The shared summary still surfaces the null slots so
+  // the UI can treat every row the same way.
+  assertEquals(coachRow?.positionBackground, coach.positionBackground);
+  assertEquals(coachRow?.positionFocus, null);
+  assertEquals(coachRow?.regionFocus, null);
+  assertEquals(scoutRow?.positionBackground, null);
+  assertEquals(scoutRow?.positionFocus, scout.positionFocus);
+  assertEquals(scoutRow?.regionFocus, scout.regionFocus);
 });
 
 Deno.test("listCandidates: filters by staffType", async () => {
@@ -1461,6 +1492,9 @@ Deno.test("getCandidateDetail: returns detail with null interview reveal when vi
   assertEquals(detail?.interviewReveal, null);
   assertEquals(detail?.age, coach.age);
   assertEquals(detail?.yearsExperience, coach.yearsExperience);
+  assertEquals(detail?.positionBackground, coach.positionBackground);
+  assertEquals(detail?.positionFocus, null);
+  assertEquals(detail?.regionFocus, null);
 });
 
 Deno.test("getCandidateDetail: returns interview reveal when viewer has completed interview", async () => {

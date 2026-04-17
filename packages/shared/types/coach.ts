@@ -161,6 +161,7 @@ export interface Coach {
   contractBuyout: number;
   collegeId: string | null;
   specialty: CoachSpecialty | null;
+  positionBackground: string | null;
   isVacancy: boolean;
   mentorCoachId: string | null;
   marketTierPref: number | null;

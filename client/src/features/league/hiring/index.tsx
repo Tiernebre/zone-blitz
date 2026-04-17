@@ -47,6 +47,8 @@ import { coachBackgroundLabel, roleLabel } from "../role-labels.ts";
 import {
   defensiveArchetypeLabel,
   offensiveArchetypeLabel,
+  positionGroupLabel,
+  scoutRegionLabel,
 } from "@zone-blitz/shared";
 import { bandFor, formatMoney, medianSalary } from "./salary-bands.ts";
 import { stepDescription, stepHeadline, stepViewFor } from "./step-view.ts";
@@ -956,11 +958,43 @@ function buildCandidateColumns(
         ),
       },
       {
+        id: "position",
+        header: "Position",
+        cell: ({ row }) => (
+          <span data-testid={`candidate-position-${row.original.id}`}>
+            {positionGroupLabel(row.original.positionBackground) ?? "—"}
+          </span>
+        ),
+      },
+      {
         id: "scheme",
         header: "Scheme",
         cell: ({ row }) => (
           <span data-testid={`candidate-scheme-${row.original.id}`}>
             {coachSchemeLabel(row.original)}
+          </span>
+        ),
+      },
+    );
+  }
+
+  if (staffType === "scout") {
+    cols.push(
+      {
+        id: "region",
+        header: "Region",
+        cell: ({ row }) => (
+          <span data-testid={`candidate-region-${row.original.id}`}>
+            {scoutRegionLabel(row.original.regionFocus) ?? "—"}
+          </span>
+        ),
+      },
+      {
+        id: "position",
+        header: "Position",
+        cell: ({ row }) => (
+          <span data-testid={`candidate-position-${row.original.id}`}>
+            {positionGroupLabel(row.original.positionFocus) ?? "—"}
           </span>
         ),
       },

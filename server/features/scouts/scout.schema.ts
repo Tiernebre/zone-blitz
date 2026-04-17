@@ -32,6 +32,8 @@ export const scouts = pgTable("scouts", {
     { onDelete: "set null" },
   ),
   coverage: text("coverage"),
+  positionFocus: text("position_focus"),
+  regionFocus: text("region_focus"),
   age: integer("age").notNull().default(40),
   yearsExperience: integer("years_experience").notNull().default(0),
   hiredAt: timestamp("hired_at").notNull().defaultNow(),

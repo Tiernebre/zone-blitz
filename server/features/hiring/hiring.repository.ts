@@ -97,6 +97,15 @@ export interface UnassignedCandidate {
   /** Coach specialty (e.g. `offense`, `defense`, `ceo`, `quarterbacks`).
    * Null when the row represents a scout. */
   specialty: string | null;
+  /** Coach: the position group their career came up through. Null for
+   * scouts. */
+  positionBackground: string | null;
+  /** Scout: the position group their evaluation work focuses on. Null
+   * for coaches. */
+  positionFocus: string | null;
+  /** Scout: the region this scout's network is strongest in. Null for
+   * coaches. */
+  regionFocus: string | null;
   age: number;
   yearsExperience: number;
   marketTierPref: number | null;
@@ -616,6 +625,7 @@ export function createHiringRepository(deps: {
           lastName: coaches.lastName,
           role: coaches.role,
           specialty: coaches.specialty,
+          positionBackground: coaches.positionBackground,
           age: coaches.age,
           yearsExperience: coaches.yearsExperience,
           marketTierPref: coaches.marketTierPref,
@@ -632,6 +642,9 @@ export function createHiringRepository(deps: {
         ...r,
         role: r.role as string,
         specialty: (r.specialty as string | null) ?? null,
+        positionBackground: (r.positionBackground as string | null) ?? null,
+        positionFocus: null as string | null,
+        regionFocus: null as string | null,
       }));
     },
 
@@ -643,6 +656,8 @@ export function createHiringRepository(deps: {
           firstName: scouts.firstName,
           lastName: scouts.lastName,
           role: scouts.role,
+          positionFocus: scouts.positionFocus,
+          regionFocus: scouts.regionFocus,
           age: scouts.age,
           yearsExperience: scouts.yearsExperience,
           marketTierPref: scouts.marketTierPref,
@@ -659,6 +674,9 @@ export function createHiringRepository(deps: {
         ...r,
         role: r.role as string,
         specialty: null as string | null,
+        positionBackground: null as string | null,
+        positionFocus: (r.positionFocus as string | null) ?? null,
+        regionFocus: (r.regionFocus as string | null) ?? null,
       }));
     },
 

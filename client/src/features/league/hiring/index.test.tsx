@@ -168,6 +168,7 @@ describe("Market survey view", () => {
           defensiveArchetype: null,
           age: 54,
           yearsExperience: 28,
+          positionBackground: "QB",
         },
         {
           id: "c2",
@@ -194,6 +195,7 @@ describe("Market survey view", () => {
           defensiveArchetype: "fangio_two_high",
           age: 60,
           yearsExperience: 35,
+          positionBackground: "DB",
         },
         {
           id: "c4",
@@ -207,6 +209,7 @@ describe("Market survey view", () => {
           defensiveArchetype: null,
           age: 50,
           yearsExperience: 1,
+          positionBackground: "GENERALIST",
         },
       ],
       isLoading: false,
@@ -267,6 +270,51 @@ describe("Market survey view", () => {
     expect(
       screen.getByTestId("candidate-experience-c4").textContent,
     ).toBe("1 yr");
+  });
+
+  it("shows a coach's position background so tl;dr career roots are scannable", () => {
+    renderPage();
+    expect(
+      screen.getByTestId("candidate-position-c1").textContent,
+    ).toBe("Quarterbacks");
+    expect(
+      screen.getByTestId("candidate-position-c3").textContent,
+    ).toBe("Defensive Backs");
+    expect(
+      screen.getByTestId("candidate-position-c4").textContent,
+    ).toBe("Generalist");
+  });
+
+  it("shows a scouting director's region and position focus on the scout tab", () => {
+    mockUseHiringCandidates.mockReturnValue({
+      data: [
+        {
+          id: "s1",
+          leagueId: "lg",
+          staffType: "scout",
+          firstName: "Ron",
+          lastName: "Wolf",
+          role: "DIRECTOR",
+          specialty: null,
+          offensiveArchetype: null,
+          defensiveArchetype: null,
+          age: 58,
+          yearsExperience: 30,
+          positionBackground: null,
+          positionFocus: "GENERALIST",
+          regionFocus: "SOUTHEAST",
+        },
+      ],
+      isLoading: false,
+    });
+    renderPage();
+    fireEvent.click(screen.getByTestId("market-tab-scout"));
+    expect(
+      screen.getByTestId("candidate-region-s1").textContent,
+    ).toBe("Southeast");
+    expect(
+      screen.getByTestId("candidate-position-s1").textContent,
+    ).toBe("Generalist");
   });
 
   it("invokes expressInterest on Express Interest click", () => {
