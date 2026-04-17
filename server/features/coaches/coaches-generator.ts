@@ -20,6 +20,7 @@ import type {
   CoachesGeneratorInput,
   CoachesPoolInput,
   GeneratedCoach,
+  GeneratedCoachPersonality,
   GeneratedCoachRatings,
   GeneratedCoachTendencies,
 } from "./coaches.generator.interface.ts";
@@ -541,6 +542,68 @@ function rollPreferences(random: () => number): CoachPreferences {
   };
 }
 
+// Personality traits are drawn on the same bell-centered 0–100 scale as
+// ratings, but use a tighter spread (~SD 12) than ratings. Traits are
+// meant to differentiate "what kind of person" each coach is; the
+// extreme McDaniels / Belichick archetypes should emerge from the tails
+// on their own, not from a pre-loaded mean.
+const PERSONALITY_MEAN = 50;
+const PERSONALITY_SCALE = 70;
+const PERSONALITY_MIN = 0;
+const PERSONALITY_MAX = 100;
+
+function rollPersonalityTrait(random: () => number, tilt: number): number {
+  const bell = bellSample(random) - 0.5; // -0.5..0.5 mean 0
+  const value = Math.round(
+    PERSONALITY_MEAN + tilt + bell * PERSONALITY_SCALE,
+  );
+  if (value < PERSONALITY_MIN) return PERSONALITY_MIN;
+  if (value > PERSONALITY_MAX) return PERSONALITY_MAX;
+  return value;
+}
+
+/**
+ * Roll the hidden personality bundle for a coach. Light role-based
+ * tilts reflect the archetypes each tier draws on:
+ *
+ * - First-time HCs (no prior HC years) skew higher-ambition — they
+ *   fought up the ladder and the chair is still the point.
+ * - Coordinators carry a small ambition tilt for the same reason
+ *   (they're next in line for the chair).
+ * - HCs who've already been at the top lean slightly more
+ *   workaholic and scheme-attached — survivors of the grind.
+ *
+ * Every other trait rolls from the neutral mean; populations average
+ * to 50 across a large pool so the full 0–100 range stays meaningful.
+ */
+function rollCoachPersonality(
+  random: () => number,
+  tier: Tier,
+  headCoachYears: number,
+): GeneratedCoachPersonality {
+  let ambitionTilt = 0;
+  let workaholicTilt = 0;
+  let schemeTilt = 0;
+  if (tier === "HC") {
+    if (headCoachYears === 0) {
+      ambitionTilt = 8;
+    } else {
+      workaholicTilt = 3;
+      schemeTilt = 3;
+    }
+  } else if (tier === "COORDINATOR") {
+    ambitionTilt = 3;
+  }
+  return {
+    loyalty: rollPersonalityTrait(random, 0),
+    greed: rollPersonalityTrait(random, 0),
+    ambition: rollPersonalityTrait(random, ambitionTilt),
+    schemeAttachment: rollPersonalityTrait(random, schemeTilt),
+    ego: rollPersonalityTrait(random, 0),
+    workaholic: rollPersonalityTrait(random, workaholicTilt),
+  };
+}
+
 function generateCoach(
   spec: RoleSpec,
   leagueId: string,
@@ -604,6 +667,13 @@ function generateCoach(
     specialty,
     random,
   );
+  // Personality rolls last so introducing this block didn't renumber the
+  // random stream any existing test snapshot was calibrated against.
+  const personality = rollCoachPersonality(
+    random,
+    spec.tier,
+    roleExperience.headCoachYears,
+  );
 
   return {
     id,
@@ -634,6 +704,7 @@ function generateCoach(
     compensationPref: preferences?.compensationPref ?? null,
     minimumThreshold: preferences?.minimumThreshold ?? null,
     ratings,
+    personality,
     ...(tendencies ? { tendencies } : {}),
   };
 }

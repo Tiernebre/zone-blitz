@@ -11,7 +11,10 @@ import type { CoachesGenerator } from "./coaches.generator.interface.ts";
 import type { CoachesRepository } from "./coaches.repository.interface.ts";
 import type { CoachTendenciesRepository } from "./coach-tendencies.repository.interface.ts";
 import type { CoachRatingsRepository } from "./coach-ratings.repository.ts";
-import type { GeneratedCoachRatings } from "./coaches.generator.interface.ts";
+import type {
+  GeneratedCoachPersonality,
+  GeneratedCoachRatings,
+} from "./coaches.generator.interface.ts";
 
 function createTestLogger() {
   return {
@@ -94,6 +97,15 @@ const DEFAULT_RATINGS: GeneratedCoachRatings = {
     adaptability: 65,
   },
   growthRate: 55,
+};
+
+const DEFAULT_PERSONALITY: GeneratedCoachPersonality = {
+  loyalty: 50,
+  greed: 50,
+  ambition: 50,
+  schemeAttachment: 50,
+  ego: 50,
+  workaholic: 50,
 };
 
 interface InsertCall {
@@ -196,6 +208,7 @@ Deno.test("coaches.service", async (t) => {
         coordinatorYears: 0,
         positionCoachYears: 15,
         ratings: DEFAULT_RATINGS,
+        personality: DEFAULT_PERSONALITY,
       };
       const generator = createMockGenerator({
         generate: () => [
@@ -322,6 +335,7 @@ Deno.test("coaches.service", async (t) => {
         coordinatorYears: 0,
         positionCoachYears: 15,
         ratings: DEFAULT_RATINGS,
+        personality: DEFAULT_PERSONALITY,
       };
       const generator = createMockGenerator({
         generate: () => [{ ...base, id: "c1", firstName: "A", lastName: "B" }],
@@ -374,6 +388,7 @@ Deno.test("coaches.service", async (t) => {
         coordinatorYears: 0,
         positionCoachYears: 15,
         ratings: DEFAULT_RATINGS,
+        personality: DEFAULT_PERSONALITY,
       };
       const generator = createMockGenerator({
         generate: () => [
@@ -454,6 +469,7 @@ Deno.test("coaches.service", async (t) => {
         coordinatorYears: 0,
         positionCoachYears: 15,
         ratings: DEFAULT_RATINGS,
+        personality: DEFAULT_PERSONALITY,
       };
       const generator = createMockGenerator({
         generate: () => [
@@ -544,6 +560,7 @@ Deno.test("coaches.service", async (t) => {
         coordinatorYears: 0,
         positionCoachYears: 15,
         ratings: DEFAULT_RATINGS,
+        personality: DEFAULT_PERSONALITY,
       };
       const generator = createMockGenerator({
         generate: () => [
@@ -627,6 +644,7 @@ Deno.test("coaches.service", async (t) => {
         coordinatorYears: 0,
         positionCoachYears: 15,
         ratings: DEFAULT_RATINGS,
+        personality: DEFAULT_PERSONALITY,
       };
       const generator = createMockGenerator({
         generatePool: () => [
@@ -713,6 +731,7 @@ Deno.test("coaches.service", async (t) => {
         coordinatorYears: 0,
         positionCoachYears: 15,
         ratings: DEFAULT_RATINGS,
+        personality: DEFAULT_PERSONALITY,
       };
       const generator = createMockGenerator({
         generatePool: () => [
@@ -796,6 +815,7 @@ Deno.test("coaches.service", async (t) => {
         coordinatorYears: 0,
         positionCoachYears: 15,
         ratings: DEFAULT_RATINGS,
+        personality: DEFAULT_PERSONALITY,
       };
       const generator = createMockGenerator({
         generatePool: () => [
@@ -924,6 +944,7 @@ Deno.test("coaches.service", async (t) => {
         coordinatorYears: 0,
         positionCoachYears: 15,
         ratings: DEFAULT_RATINGS,
+        personality: DEFAULT_PERSONALITY,
       };
       const generator = createMockGenerator({
         generatePool: () => [

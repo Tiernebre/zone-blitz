@@ -34,7 +34,7 @@ export function createCoachesService(deps: {
       }
 
       const coachRows = generated.map((
-        { tendencies: _t, ratings: _r, ...row },
+        { tendencies: _t, ratings: _r, personality: _p, ...row },
       ) => row);
       await chunkedInsert(tx ?? deps.db, coaches, coachRows);
 
@@ -74,7 +74,7 @@ export function createCoachesService(deps: {
       }
 
       const coachRows = generated.map((
-        { tendencies: _t, ratings: _r, ...row },
+        { tendencies: _t, ratings: _r, personality: _p, ...row },
       ) => row);
       await chunkedInsert(tx ?? deps.db, coaches, coachRows);
 

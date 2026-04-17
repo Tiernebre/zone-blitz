@@ -545,3 +545,125 @@ Deno.test("generatePool rolls directors across the full position-focus pool", ()
     `expected <50% generalist directors, got ${generalists}/${directors.length}`,
   );
 });
+
+// ---- Hidden personality traits ----
+//
+// Scouts carry personality traits parallel to the coach model, minus
+// scheme attachment (scouts evaluate players, not schemes) and plus
+// two scout-specific traits: `conviction` and `travelTolerance`.
+// Rolled on the 0–100 scale centered at 50 with a bell-shaped
+// distribution, stable per scout, hidden from the UI.
+
+const SCOUT_PERSONALITY_KEYS = [
+  "loyalty",
+  "greed",
+  "ambition",
+  "conviction",
+  "travelTolerance",
+] as const;
+
+Deno.test("every generated scout carries a full personality payload", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const scout of result) {
+    assertNotEquals(scout.personality, undefined);
+    for (const key of SCOUT_PERSONALITY_KEYS) {
+      const value = scout.personality[key];
+      assertEquals(
+        Number.isInteger(value),
+        true,
+        `scout ${scout.id} ${key} not integer: ${value}`,
+      );
+      assertEquals(
+        value >= 0 && value <= 100,
+        true,
+        `scout ${scout.id} ${key}=${value} outside 0..100`,
+      );
+    }
+  }
+});
+
+Deno.test("generatePool scouts carry personality payload", () => {
+  const result = makeGenerator(777).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 8,
+  });
+  for (const scout of result) {
+    assertNotEquals(scout.personality, undefined);
+    for (const key of SCOUT_PERSONALITY_KEYS) {
+      const value = scout.personality[key];
+      assertEquals(value >= 0 && value <= 100, true);
+    }
+  }
+});
+
+Deno.test("scout personality is stable for a given seed", () => {
+  const a = makeGenerator(55).generate(INPUT);
+  const b = makeGenerator(55).generate(INPUT);
+  assertEquals(a.length, b.length);
+  for (let i = 0; i < a.length; i++) {
+    for (const key of SCOUT_PERSONALITY_KEYS) {
+      assertEquals(a[i].personality[key], b[i].personality[key]);
+    }
+  }
+});
+
+Deno.test("scout personality values vary across a pool", () => {
+  const result = makeGenerator(99).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  for (const key of SCOUT_PERSONALITY_KEYS) {
+    const distinct = new Set(result.map((s) => s.personality[key]));
+    assertEquals(
+      distinct.size > 1,
+      true,
+      `expected variance on ${key}, got constant roll`,
+    );
+  }
+});
+
+Deno.test("scout personality is bell-centered on 50 across a large pool", () => {
+  const result = makeGenerator(111).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  for (const key of SCOUT_PERSONALITY_KEYS) {
+    const values = result.map((s) => s.personality[key]);
+    const mean = avg(values);
+    assertEquals(
+      mean >= 45 && mean <= 60,
+      true,
+      `${key} mean=${mean.toFixed(1)} drifted outside [45, 60]`,
+    );
+    const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) /
+      values.length;
+    const sd = Math.sqrt(variance);
+    assertEquals(
+      sd >= 8 && sd <= 22,
+      true,
+      `${key} sd=${sd.toFixed(1)} outside expected bell band`,
+    );
+  }
+});
+
+Deno.test("area scouts carry higher travel tolerance on average than directors", () => {
+  const result = makeGenerator(4242).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const areaScouts = result.filter((s) => s.role === "AREA_SCOUT");
+  const directors = result.filter((s) => s.role === "DIRECTOR");
+  const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const areaTravel = avg(areaScouts.map((s) => s.personality.travelTolerance));
+  const directorTravel = avg(
+    directors.map((s) => s.personality.travelTolerance),
+  );
+  assertEquals(
+    areaTravel > directorTravel,
+    true,
+    `area-scout travel tolerance=${
+      areaTravel.toFixed(1)
+    } should exceed director travel tolerance=${directorTravel.toFixed(1)}`,
+  );
+});

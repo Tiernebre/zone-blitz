@@ -173,6 +173,13 @@ const baseGenerated = {
   compensationPref: null,
   minimumThreshold: null,
   ratings: sampleRatings,
+  personality: {
+    loyalty: 50,
+    greed: 50,
+    ambition: 50,
+    conviction: 50,
+    travelTolerance: 50,
+  },
 };
 
 Deno.test("scouts.service", async (t) => {

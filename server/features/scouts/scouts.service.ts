@@ -27,7 +27,9 @@ export function createScoutsService(deps: {
       });
 
       if (generated.length > 0) {
-        const scoutRows = generated.map(({ ratings: _r, ...row }) => row);
+        const scoutRows = generated.map(
+          ({ ratings: _r, personality: _p, ...row }) => row,
+        );
         await chunkedInsert(tx ?? deps.db, scouts, scoutRows);
         for (const scout of generated) {
           await deps.ratingsRepo.upsert({
@@ -56,7 +58,9 @@ export function createScoutsService(deps: {
       });
 
       if (generated.length > 0) {
-        const scoutRows = generated.map(({ ratings: _r, ...row }) => row);
+        const scoutRows = generated.map(
+          ({ ratings: _r, personality: _p, ...row }) => row,
+        );
         await chunkedInsert(tx ?? deps.db, scouts, scoutRows);
         for (const scout of generated) {
           await deps.ratingsRepo.upsert({

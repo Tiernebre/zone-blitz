@@ -143,7 +143,7 @@ Deno.test("all coaches have the correct leagueId, non-empty names, plausible age
     assertEquals(coach.leagueId, INPUT.leagueId);
     assertEquals(coach.firstName.length > 0, true);
     assertEquals(coach.lastName.length > 0, true);
-    assertEquals(coach.age >= 30 && coach.age <= 75, true);
+    assertEquals(coach.age >= 26 && coach.age <= 75, true);
     assertEquals(coach.contractYears >= 1, true);
     assertEquals(coach.isVacancy, false);
   }
@@ -956,4 +956,131 @@ Deno.test("generate leaves preference columns null for assigned staff", () => {
     assertEquals(coach.compensationPref, null);
     assertEquals(coach.minimumThreshold, null);
   }
+});
+
+// ---- Hidden personality traits ----
+//
+// Personality traits model who a coach IS (Belichick loyalty,
+// McDaniels mercenary, McVay ambition) — distinct from the `*Pref`
+// hiring weights which drive how a coach evaluates an offer.
+// Traits are hidden, bell-distributed on the 0–100 scale centered at
+// 50, and stable per coach (rolled once at generation).
+
+const COACH_PERSONALITY_KEYS = [
+  "loyalty",
+  "greed",
+  "ambition",
+  "schemeAttachment",
+  "ego",
+  "workaholic",
+] as const;
+
+Deno.test("every generated coach carries a full personality payload", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const coach of result) {
+    assertNotEquals(coach.personality, undefined);
+    for (const key of COACH_PERSONALITY_KEYS) {
+      const value = coach.personality[key];
+      assertEquals(
+        Number.isInteger(value),
+        true,
+        `coach ${coach.id} ${key} not integer: ${value}`,
+      );
+      assertEquals(
+        value >= 0 && value <= 100,
+        true,
+        `coach ${coach.id} ${key}=${value} outside 0..100`,
+      );
+    }
+  }
+});
+
+Deno.test("generatePool coaches carry personality payload", () => {
+  const result = makePoolGenerator().generatePool(POOL_INPUT);
+  for (const coach of result) {
+    assertNotEquals(coach.personality, undefined);
+    for (const key of COACH_PERSONALITY_KEYS) {
+      const value = coach.personality[key];
+      assertEquals(value >= 0 && value <= 100, true);
+    }
+  }
+});
+
+Deno.test("coach personality is stable for a given seed", () => {
+  const a = makePoolGenerator(42).generatePool(POOL_INPUT);
+  const b = makePoolGenerator(42).generatePool(POOL_INPUT);
+  assertEquals(a.length, b.length);
+  for (let i = 0; i < a.length; i++) {
+    for (const key of COACH_PERSONALITY_KEYS) {
+      assertEquals(a[i].personality[key], b[i].personality[key]);
+    }
+  }
+});
+
+Deno.test("coach personality values vary across the pool (not a constant roll)", () => {
+  const result = makePoolGenerator().generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  for (const key of COACH_PERSONALITY_KEYS) {
+    const distinct = new Set(result.map((c) => c.personality[key]));
+    assertEquals(
+      distinct.size > 1,
+      true,
+      `expected variance on ${key}, got constant roll`,
+    );
+  }
+});
+
+Deno.test("coach personality is bell-centered on 50 across a large pool", () => {
+  const result = makePoolGenerator(2024).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  for (const key of COACH_PERSONALITY_KEYS) {
+    const values = result.map((c) => c.personality[key]);
+    const mean = avg(values);
+    // Tilts nudge a few traits up to ~5 points; guard wide enough for
+    // noise but narrow enough to catch a regression to 60 or 40.
+    assertEquals(
+      mean >= 45 && mean <= 60,
+      true,
+      `${key} mean=${mean.toFixed(1)} drifted outside [45, 60]`,
+    );
+    // Bell distribution: standard deviation should be reasonable,
+    // not collapsed to zero and not uniform (uniform 0..100 sd ≈ 29).
+    const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) /
+      values.length;
+    const sd = Math.sqrt(variance);
+    assertEquals(
+      sd >= 8 && sd <= 22,
+      true,
+      `${key} sd=${sd.toFixed(1)} outside expected bell band`,
+    );
+  }
+});
+
+Deno.test("first-time HCs skew higher ambition than experienced HCs on average", () => {
+  const result = makePoolGenerator(3131).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 64,
+  });
+  const hcs = result.filter((c) => c.role === "HC");
+  const firstTime = hcs.filter((c) => c.headCoachYears === 0);
+  const experienced = hcs.filter((c) => c.headCoachYears > 0);
+  assertEquals(firstTime.length > 0, true, "expected first-time HCs in pool");
+  assertEquals(experienced.length > 0, true, "expected experienced HCs");
+  const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const firstTimeAmbition = avg(firstTime.map((c) => c.personality.ambition));
+  const experiencedAmbition = avg(
+    experienced.map((c) => c.personality.ambition),
+  );
+  assertEquals(
+    firstTimeAmbition > experiencedAmbition,
+    true,
+    `first-time HC ambition=${
+      firstTimeAmbition.toFixed(1)
+    } should exceed experienced HC ambition=${experiencedAmbition.toFixed(1)}`,
+  );
 });

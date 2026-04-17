@@ -16,6 +16,7 @@ import {
 } from "../../shared/name-generator.ts";
 import type {
   GeneratedScout,
+  GeneratedScoutPersonality,
   GeneratedScoutRatings,
   ScoutsGenerator,
   ScoutsGeneratorInput,
@@ -331,6 +332,62 @@ function rollScoutRating(random: () => number, tilt: number): number {
   return value;
 }
 
+// Personality traits share the rating-scale midpoint contract but use a
+// full 0..100 band (vs. 1..99 for ratings) and a slightly tighter bell
+// so distinctions between archetypes cluster meaningfully without
+// flattening into uniform. Role tilts are small — populations still
+// average to 50 across a large pool.
+const PERSONALITY_MEAN = 50;
+const PERSONALITY_SCALE = 70;
+const PERSONALITY_MIN = 0;
+const PERSONALITY_MAX = 100;
+
+function rollPersonalityTrait(random: () => number, tilt: number): number {
+  const bell = bellSample(random) - 0.5;
+  const value = Math.round(
+    PERSONALITY_MEAN + tilt + bell * PERSONALITY_SCALE,
+  );
+  if (value < PERSONALITY_MIN) return PERSONALITY_MIN;
+  if (value > PERSONALITY_MAX) return PERSONALITY_MAX;
+  return value;
+}
+
+/**
+ * Roll the hidden personality bundle for a scout. Role tilts reflect
+ * the archetypes each role draws on:
+ *
+ * - Area scouts carry a travel-tolerance tilt — they live on the road;
+ *   the selection into the role already filters for it.
+ * - Directors carry a small ambition tilt — they took the chair, so
+ *   on average they cared more than their peers about it.
+ * - Cross-checkers get an ambition tilt one step below directors —
+ *   they're next in line.
+ *
+ * Every other trait rolls from the neutral mean.
+ */
+function rollScoutPersonality(
+  random: () => number,
+  role: ScoutRole,
+): GeneratedScoutPersonality {
+  let ambitionTilt = 0;
+  let travelTilt = 0;
+  if (role === "DIRECTOR") {
+    ambitionTilt = 5;
+  } else if (role === "NATIONAL_CROSS_CHECKER") {
+    ambitionTilt = 3;
+    travelTilt = 2;
+  } else if (role === "AREA_SCOUT") {
+    travelTilt = 8;
+  }
+  return {
+    loyalty: rollPersonalityTrait(random, 0),
+    greed: rollPersonalityTrait(random, 0),
+    ambition: rollPersonalityTrait(random, ambitionTilt),
+    conviction: rollPersonalityTrait(random, 0),
+    travelTolerance: rollPersonalityTrait(random, travelTilt),
+  };
+}
+
 function scoutCeilingHeadroom(
   random: () => number,
   age: number,
@@ -462,6 +519,7 @@ export function createScoutsGenerator(
           );
 
           const ratings = rollScoutRatings(random, spec.role, age, band);
+          const personality = rollScoutPersonality(random, spec.role);
 
           scouts.push({
             id,
@@ -484,6 +542,7 @@ export function createScoutsGenerator(
             isVacancy: false,
             ...NULL_PREFERENCES,
             ratings,
+            personality,
           });
         }
       }
@@ -564,6 +623,7 @@ export function createScoutsGenerator(
           );
 
           const ratings = rollScoutRatings(random, spec.role, age, band);
+          const personality = rollScoutPersonality(random, spec.role);
 
           scouts.push({
             id,
@@ -586,6 +646,7 @@ export function createScoutsGenerator(
             isVacancy: false,
             ...rollPreferences(random),
             ratings,
+            personality,
           });
         }
       }
