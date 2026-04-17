@@ -25,16 +25,16 @@ The sim has three layers of calibration targets:
 
 ## Market & Career (the league-building layer)
 
-| # | Gap                                                                                              | Primary source                                          | Issue |
-| - | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------- | ----- |
-| 1 | Position market sizing (roster slots, starter counts, snap-share thresholds per position)        | `nflreadr::load_rosters_weekly()`, `load_snap_counts()` | #510  |
-| 2 | Draft position distribution (positions picked per round, last 10 drafts)                         | `nflreadr::load_draft_picks()`                          | #511  |
-| 3 | Draft pick trade-value (observed vs Jimmy Johnson / Rich Hill curves)                            | `load_draft_picks()` + trade scrape                     | #512  |
-| 4 | Draft hit-rate bands — `P(multi-year starter \| round, position)`                                | `load_draft_picks()` + career snaps                     | #513  |
-| 5 | Free agent market (UFAs signed per offseason by position, AAV bands)                             | `nflreadr::load_contracts()`                            | #514  |
-| 6 | Contract structure (length, guarantee %, cap-hit shape by position × tier)                       | `load_contracts()` + OTC cross-check                    | #515  |
-| 7 | Career length + aging curves — `P(active \| age, position)`, peak years                          | `load_rosters()` longitudinal                           | #516  |
-| 8 | Coaching tenure + firing patterns (HC tenure distribution, W-L triggers, coordinator → HC rates) | Manual scrape (PFR head-coach history)                  | #517  |
+| # | Gap                                                                                                                                                                                                           | Primary source                                          | Issue |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ----- |
+| 1 | Position market sizing (roster slots, starter counts, snap-share thresholds per position)                                                                                                                     | `nflreadr::load_rosters_weekly()`, `load_snap_counts()` | #510  |
+| 2 | Draft position distribution (positions picked per round, last 10 drafts)                                                                                                                                      | `nflreadr::load_draft_picks()`                          | #511  |
+| 3 | Draft pick trade-value (observed vs Jimmy Johnson / Rich Hill curves) — **landed** via [`draft-pick-value.json`](../bands/draft-pick-value.json) + [`draft-pick-trade-value.md`](./draft-pick-trade-value.md) | `load_draft_picks()` + trade scrape                     | #512  |
+| 4 | Draft hit-rate bands — `P(multi-year starter \| round, position)` — **landed** via [`draft-hit-rates.json`](../bands/draft-hit-rates.json) + [`draft-hit-rates-by-round.md`](./draft-hit-rates-by-round.md)   | `load_draft_picks()` + career snaps                     | #513  |
+| 5 | Free agent market (UFAs signed per offseason by position, AAV bands)                                                                                                                                          | `nflreadr::load_contracts()`                            | #514  |
+| 6 | Contract structure (length, guarantee %, cap-hit shape by position × tier)                                                                                                                                    | `load_contracts()` + OTC cross-check                    | #515  |
+| 7 | Career length + aging curves — `P(active \| age, position)`, peak years                                                                                                                                       | `load_rosters()` longitudinal                           | #516  |
+| 8 | Coaching tenure + firing patterns (HC tenure distribution, W-L triggers, coordinator → HC rates)                                                                                                              | Manual scrape (PFR head-coach history)                  | #517  |
 
 These directly serve the user-named asks:
 
