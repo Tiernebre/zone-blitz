@@ -94,6 +94,22 @@ without depending on network or R at test time. Regenerate them when:
   `load_snap_counts()` for CB snap share. Mid-season QB changes and injured
   starters are handled naturally — weekly stats are summed per player, so a
   starter who misses games accumulates less and the backup's share rises.
+- **`play-call-tendencies.json`** — pass vs run called-play rate by situation.
+  Pass rate broken out by down, down x distance bucket, score differential x
+  time bucket (including two-minute drills and last-5-min-Q4), and field zone,
+  plus pre-computed headline slices (trailing 7+ late Q4, leading 14+ Q4,
+  3rd-and-long 7+, 3rd-and-short 1-2, red-zone goal-to-go, two-minute drills).
+  `called_pass` counts any snap where `play_type == "pass"` OR
+  `qb_dropback == 1` so sacks and scrambles land in the pass bucket. Feeds the
+  sim's offensive play-selection AI and game-script realism (comeback-mode pass
+  rates, late-lead clock kill).
+- **`red-zone-and-third-down.json`** — headline efficiency bands for the two
+  most-cited offensive-efficiency stats. Red-zone drive TD rate (drives reaching
+  the 20, 10, and goal-to-go), red-zone pass/run split, red-zone sack rate, and
+  3rd-down conversion + pass + sack rates broken out by distance bucket (short
+  1-2 / medium 3-5 / long 6-9 / very-long 10+). 4th-and-short go-for-it
+  conversion is referenced, not duplicated, from `situational.json`. Direct
+  single-number bands for fast drift detection.
 - **`injuries.json`** — injury rate bands by position, severity, and category.
   Derived from `nflreadr::load_injuries()` joined to
   `nflreadr::load_rosters_weekly()` to determine actual weeks missed (severity

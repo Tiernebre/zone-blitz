@@ -44,10 +44,10 @@ These directly serve the user-named asks:
 
 ## Game Flow (the situational-realism layer)
 
-| #  | Gap                                                                               | Primary source         | Issue |
-| -- | --------------------------------------------------------------------------------- | ---------------------- | ----- |
-| 9  | Play-call tendencies by situation (pass/run by D&D, score diff, time, field zone) | `nflreadr::load_pbp()` | #518  |
-| 10 | Red-zone + 3rd-down efficiency (play-call mix + conversion rates)                 | `load_pbp()`           | #519  |
+| #  | Gap                                                                               | Primary source         | Issue | Status                                                                         |
+| -- | --------------------------------------------------------------------------------- | ---------------------- | ----- | ------------------------------------------------------------------------------ |
+| 9  | Play-call tendencies by situation (pass/run by D&D, score diff, time, field zone) | `nflreadr::load_pbp()` | #518  | Done — [`play-call-tendencies.json`](../bands/play-call-tendencies.json)       |
+| 10 | Red-zone + 3rd-down efficiency (play-call mix + conversion rates)                 | `load_pbp()`           | #519  | Done — [`red-zone-and-third-down.json`](../bands/red-zone-and-third-down.json) |
 
 ## Future consideration (not yet issue-filed)
 
