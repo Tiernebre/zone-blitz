@@ -1,4 +1,5 @@
 import {
+  clamp,
   type CoachRole,
   DEFENSIVE_TENDENCY_KEYS,
   type DefensiveTendencies,
@@ -88,12 +89,6 @@ const MARKET_TIER_SCORES: Record<MarketTier, number> = {
 
 export function marketTierScore(tier: MarketTier): number {
   return MARKET_TIER_SCORES[tier];
-}
-
-function clamp(value: number, min: number, max: number): number {
-  if (value < min) return min;
-  if (value > max) return max;
-  return value;
 }
 
 function tendencySimilarity(
