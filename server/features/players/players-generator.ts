@@ -395,22 +395,25 @@ export const BUCKET_PROFILES: Record<NeutralBucket, BucketProfile> = {
 };
 
 // Target roster composition by neutral bucket. FB is intentionally absent —
-// lead-blocking fullbacks classify as RB under the neutral lens.
+// lead-blocking fullbacks classify as RB under the neutral lens. Counts are
+// calibrated to `data/bands/position-market.json` (mean ACT slots per
+// team-week, 2020-2024) within ±0.5 per bucket: combined OL = 8 (data 8.02),
+// combined DL = 7 (data 7.03), combined DB = 9 (data 9.22).
 export const ROSTER_BUCKET_COMPOSITION: readonly {
   bucket: NeutralBucket;
   count: number;
 }[] = [
   { bucket: "QB", count: 2 },
   { bucket: "RB", count: 4 },
-  { bucket: "WR", count: 6 },
+  { bucket: "WR", count: 5 },
   { bucket: "TE", count: 3 },
   { bucket: "OT", count: 4 },
-  { bucket: "IOL", count: 5 },
+  { bucket: "IOL", count: 4 },
   { bucket: "EDGE", count: 4 },
-  { bucket: "IDL", count: 4 },
+  { bucket: "IDL", count: 3 },
   { bucket: "LB", count: 7 },
-  { bucket: "CB", count: 6 },
-  { bucket: "S", count: 5 },
+  { bucket: "CB", count: 5 },
+  { bucket: "S", count: 4 },
   { bucket: "K", count: 1 },
   { bucket: "P", count: 1 },
   { bucket: "LS", count: 1 },
@@ -1193,14 +1196,21 @@ export function createPlayersGenerator(
       const players: GeneratedPlayers["players"] = [];
       const rosteredEntries: typeof players = [];
 
+      // input.rosterSize is the league's roster cap (config), but the actual
+      // generated count is fixed by ROSTER_BUCKET_COMPOSITION — the data-
+      // calibrated 48-man composition. A larger cap leaves open slots; a
+      // zero cap (e.g. an empty league at creation time) skips entirely.
+      const rosteredCount = input.rosterSize > 0
+        ? ROSTER_BUCKET_SLOTS.length
+        : 0;
       for (const teamId of input.teamIds) {
         const bucketIndex = new Map<NeutralBucket, number>();
         const bucketTotal = new Map<NeutralBucket, number>();
         for (const { bucket, count } of ROSTER_BUCKET_COMPOSITION) {
           bucketTotal.set(bucket, count);
         }
-        for (let i = 0; i < input.rosterSize; i++) {
-          const bucket = ROSTER_BUCKET_SLOTS[i % ROSTER_BUCKET_SLOTS.length];
+        for (let i = 0; i < rosteredCount; i++) {
+          const bucket = ROSTER_BUCKET_SLOTS[i];
           const indexInBucket = bucketIndex.get(bucket) ?? 0;
           bucketIndex.set(bucket, indexInBucket + 1);
           const entry = buildPlayer({

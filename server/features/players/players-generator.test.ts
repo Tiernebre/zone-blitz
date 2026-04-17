@@ -72,10 +72,14 @@ Deno.test("generates correct number of rostered players per team", () => {
   const rostered = result.players.filter(
     (p) => p.player.teamId !== null && p.player.status === "active",
   );
-  assertEquals(rostered.length, TEAM_IDS.length * INPUT.rosterSize);
+  const expectedPerTeam = ROSTER_BUCKET_COMPOSITION.reduce(
+    (sum, entry) => sum + entry.count,
+    0,
+  );
+  assertEquals(rostered.length, TEAM_IDS.length * expectedPerTeam);
   for (const teamId of TEAM_IDS) {
     const teamPlayers = rostered.filter((p) => p.player.teamId === teamId);
-    assertEquals(teamPlayers.length, INPUT.rosterSize);
+    assertEquals(teamPlayers.length, expectedPerTeam);
   }
 });
 
@@ -231,13 +235,51 @@ Deno.test("signing bonus produces a bonus proration row with source 'signing'", 
   }
 });
 
-Deno.test("roster composition sums to 53 players", () => {
+Deno.test("roster composition sums to 48 players (NFL ACT mean)", () => {
   const total = ROSTER_BUCKET_COMPOSITION.reduce(
     (sum, entry) => sum + entry.count,
     0,
   );
-  assertEquals(total, 53);
+  assertEquals(total, 48);
 });
+
+Deno.test(
+  "roster composition matches position-market.json within ±0.5 slot per data bucket",
+  () => {
+    const counts = new Map<NeutralBucket, number>();
+    for (const { bucket, count } of ROSTER_BUCKET_COMPOSITION) {
+      counts.set(bucket, count);
+    }
+    const get = (b: NeutralBucket) => counts.get(b) ?? 0;
+
+    // Means from data/bands/position-market.json roster_slots_per_team_week.
+    const checks: { label: string; actual: number; data: number }[] = [
+      { label: "QB", actual: get("QB"), data: 2.0386 },
+      { label: "RB", actual: get("RB"), data: 3.5617 },
+      { label: "WR", actual: get("WR"), data: 5.2229 },
+      { label: "TE", actual: get("TE"), data: 3.1022 },
+      { label: "OL (OT+IOL)", actual: get("OT") + get("IOL"), data: 8.0223 },
+      {
+        label: "DL (EDGE+IDL)",
+        actual: get("EDGE") + get("IDL"),
+        data: 7.0316,
+      },
+      { label: "LB", actual: get("LB"), data: 6.8224 },
+      { label: "DB (CB+S)", actual: get("CB") + get("S"), data: 9.2181 },
+      { label: "K", actual: get("K"), data: 0.9959 },
+      { label: "P", actual: get("P"), data: 1.0059 },
+      { label: "LS", actual: get("LS"), data: 0.9996 },
+    ];
+    for (const { label, actual, data } of checks) {
+      const delta = Math.abs(actual - data);
+      assertEquals(
+        delta <= 0.5,
+        true,
+        `${label}: composition ${actual} diverges from data mean ${data} by ${delta} (>0.5)`,
+      );
+    }
+  },
+);
 
 Deno.test(
   "every generated player classifies into a known neutral bucket",
@@ -251,7 +293,7 @@ Deno.test(
 );
 
 Deno.test(
-  "per-team rostered neutral buckets match the 53-man composition",
+  "per-team rostered neutral buckets match the canonical composition",
   () => {
     const result = makeGenerator().generate(INPUT);
     for (const teamId of TEAM_IDS) {
@@ -376,7 +418,7 @@ Deno.test("ages span a rookie-to-veteran curve", () => {
   // those positions. Cap the sanity bound at the documented specialist
   // extreme so the test still fails on a true blow-up.
   assertEquals(maxAge <= 48, true);
-  // There should be both rookies (<=23) and veterans (>=30) in a 159-man pool.
+  // There should be both rookies (<=23) and veterans (>=30) in a 144-man pool.
   assertEquals(ages.some((a) => a <= 23), true);
   assertEquals(ages.some((a) => a >= 30), true);
 });
@@ -1131,7 +1173,7 @@ function signatureOverallOf(entry: {
 }
 
 function makeFullLeagueGenerator(seed: number) {
-  // 32 teams × 53 = 1696 rostered players — a realistic sample for
+  // 32 teams × 48 = 1536 rostered players — a realistic sample for
   // league-wide distribution assertions.
   return createPlayersGenerator({
     random: seededRandom(seed),
@@ -1156,7 +1198,7 @@ Deno.test("rostered signature overall distribution peaks in the backup band (35-
   const mean = overalls.reduce((s, v) => s + v, 0) / overalls.length;
   // Bin into 10-point buckets and find the modal bucket. The north-star
   // doc says the league peaks around 35-40; allow 30-50 for the mode so
-  // seed noise on a 1696-player sample doesn't turn this flaky.
+  // seed noise on a 1536-player sample doesn't turn this flaky.
   const bins = new Map<number, number>();
   for (const v of overalls) {
     const bucket = Math.floor(v / 10) * 10;
