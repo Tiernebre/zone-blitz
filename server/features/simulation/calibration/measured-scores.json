@@ -11,20 +11,20 @@
     212580974
   ],
   "sampleCounts": {
-    "blockScore": 139098,
-    "protectionScore": 123809,
-    "coverageScore": 123809
+    "blockScore": 549230,
+    "protectionScore": 800579,
+    "coverageScore": 800579
   },
   "blockScore": {
-    "mean": 2.371311273746237,
-    "stddev": 4.86389102168291
+    "mean": -4.297129039818806,
+    "stddev": 6.828823836186485
   },
   "protectionScore": {
-    "mean": -5.0937935314340645,
-    "stddev": 5.340522462194146
+    "mean": 0.02253814634993007,
+    "stddev": 7.993612053296132
   },
   "coverageScore": {
-    "mean": -0.39691469207497626,
-    "stddev": 8.184379098286115
+    "mean": -6.2828509116546165,
+    "stddev": 8.644186137052632
   }
 }

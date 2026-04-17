@@ -167,25 +167,8 @@ export const PASS_RESOLUTION = {
   fumbleOnSack: 0.08,
 } as const;
 
-// ── Run-resolution calibration knobs ──────────────────────────────────
-// Thresholds re-centered on the measured blockScore distribution (mean
-// ≈ -4, sd ≈ 6). The prior -5 cutoff put roughly 40% of plays in the
-// 1-5 yard "short gain" band on the new scale, pulling YPC below 4.0;
-// shifting to -9 keeps the stuff/short tails realistic while leaving
-// enough density in the normal-yards band to hit the 4.45 NFL mark.
-export const RUN_RESOLUTION = {
-  stuffThreshold: -20,
-  stuffYards: { min: -3, max: 0 },
-  shortGainThreshold: -7,
-  shortGainYards: { min: 1, max: 5 },
-  // 12 is past the 90th percentile of blockScore on the new scale, so
-  // big plays stay genuinely rare (~5% of carries) instead of
-  // ballooning YPC variance above the NFL spread band.
-  bigPlayThreshold: 12,
-  bigPlayYards: { min: 9, max: 20 },
-  normalYards: { min: 2, max: 9 },
-  fumbleRate: 0.010,
-} as const;
+// Run outcome coefficients now live in the fitted artifact produced by
+// `deno task sim:refit` (see ./outcome-coefficients.ts).
 
 // ── Miscellaneous play-outcome knobs ──────────────────────────────────
 const INJURY_ON_PLAY = 0.005;

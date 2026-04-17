@@ -1,20 +1,29 @@
 /**
- * Runs the simulator across a seed sweep with a score-observer installed,
- * and returns summary statistics for the intermediate matchup scores
- * consumed by the fit-outcomes pipeline.
+ * Runs the simulator across a seed sweep of calibration leagues with a
+ * score-observer installed, and returns summary statistics for the
+ * intermediate matchup scores consumed by the fit-outcomes pipeline.
+ *
+ * Using the calibration league generator (not `simulateSeason`'s own
+ * random player generator) is important: the fitter's coefficients are
+ * later evaluated by the calibration harness, and both must observe the
+ * same distribution or the coefficients will be tuned to the wrong
+ * population.
  */
+import { deriveGameSeed } from "../rng.ts";
 import {
   createCollectingObserver,
   type ScoreSamples,
   setScoreObserver,
 } from "../score-observer.ts";
-import { simulateSeason } from "../simulate-season.ts";
+import { simulateGame } from "../simulate-game.ts";
+import { CALIBRATION_GAME_COUNT } from "./constants.ts";
+import { generateCalibrationLeague } from "./generate-calibration-league.ts";
+import { generateMatchups } from "./harness.ts";
 import type { ScoreDistribution, Stats } from "./fit-outcomes.ts";
 
 export interface MeasureScoresOptions {
   seeds: number[];
-  teamCount?: number;
-  gamesPerTeam?: number;
+  gamesPerSeed?: number;
 }
 
 export interface MeasuredDistribution extends ScoreDistribution {
@@ -46,14 +55,19 @@ export function measureScores(
   options: MeasureScoresOptions,
 ): MeasuredDistribution {
   const { samples, observer } = createCollectingObserver();
+  const gamesPerSeed = options.gamesPerSeed ?? CALIBRATION_GAME_COUNT;
+
   setScoreObserver(observer);
   try {
     for (const seed of options.seeds) {
-      simulateSeason({
-        leagueSeed: seed,
-        teamCount: options.teamCount,
-        gamesPerTeam: options.gamesPerTeam,
-      });
+      const league = generateCalibrationLeague({ seed });
+      const matchups = generateMatchups(league.teams, gamesPerSeed);
+      for (let i = 0; i < matchups.length; i++) {
+        const { home, away } = matchups[i];
+        const gameId = `measure-scores-${seed}-${i}`;
+        const gameSeed = deriveGameSeed(league.calibrationSeed, gameId);
+        simulateGame({ home, away, seed: gameSeed, gameId });
+      }
     }
   } finally {
     setScoreObserver(null);

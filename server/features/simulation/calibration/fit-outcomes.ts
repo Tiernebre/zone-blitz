@@ -1,10 +1,9 @@
 /**
  * Pure function that maps matchup-score distributions + NFL bands to the
  * coefficients consumed by `synthesize-run-outcome` and
- * `synthesize-pass-outcome`. PR 1 scaffolding reproduces today's hand-tuned
- * values from today's distribution; PR 2/3 will rewrite the math so
- * coefficients are derived directly from the bands once the outcome
- * mappings are continuous/sigmoid.
+ * `synthesize-pass-outcome`. PR 2 switches the run outcome to a continuous,
+ * monotonic yardage model; the pass section remains on the PR 1 anchors
+ * until PR 3 rewrites it in sigmoid form.
  */
 import type { MetricBand } from "./band-loader.ts";
 
@@ -22,6 +21,11 @@ export interface ScoreDistribution {
 export interface FitInputs {
   scores: ScoreDistribution;
   bands: Map<string, MetricBand>;
+  /**
+   * `overall` band from data/bands/rushing-plays.json — per-rush yardage
+   * mean and sd used to anchor the continuous run yardage model.
+   */
+  rushingOverall: MetricBand;
 }
 
 export interface YardRange {
@@ -50,13 +54,25 @@ export interface PassCoefficients {
 }
 
 export interface RunCoefficients {
-  stuffThreshold: number;
-  stuffYards: YardRange;
-  shortGainThreshold: number;
-  shortGainYards: YardRange;
-  bigPlayThreshold: number;
-  bigPlayYards: YardRange;
-  normalYards: YardRange;
+  /**
+   * Parameters of the continuous yardage model
+   *   yardage ~ Gaussian(yardageIntercept + yardageSlope · blockScore,
+   *                      yardageStddev)
+   * sampled once and clamped to [yardageMin, yardageMax]. `yardageSlope`
+   * and `yardageStddev` are fit together so the aggregate per-rush yardage
+   * mean / variance matches the `rushing-plays` overall NFL band.
+   */
+  yardageIntercept: number;
+  yardageSlope: number;
+  yardageStddev: number;
+  yardageMin: number;
+  yardageMax: number;
+  /**
+   * Yardage threshold above which a rush is tagged `big_play`. Chosen as
+   * the NFL `overall` p90 so the tag's frequency tracks the league rate
+   * automatically when inputs shift.
+   */
+  bigPlayCutoff: number;
   fumbleRate: number;
 }
 
@@ -66,53 +82,43 @@ export interface FittedCoefficients {
 }
 
 /**
- * Anchor values chosen so that, given the current measured score
- * distribution (see measured-scores.json), the fitter reproduces today's
- * hand-tuned RUN_RESOLUTION / PASS_RESOLUTION constants to within rounding.
- *
- * Interpretation: each `anchorAtMean` is the probability the current engine
- * lands at when the relevant matchup score equals the league-average score;
- * each `sdMultiplier` places a run-yardage threshold a fixed number of
- * standard deviations from the blockScore mean. Encoding these explicitly
- * makes the regression test a straightforward back-substitution.
- *
- * PR 2/3 replace these anchors with a band-driven least-squares solve once
- * the outcome mappings become continuous/sigmoid.
+ * Anchor values for the PR 1 pass section — still produces today's
+ * hand-tuned PASS_RESOLUTION constants from today's measured distribution.
+ * Replaced in PR 3 by a band-driven sigmoid fit.
  */
-const FIT_CONFIG = {
-  pass: {
-    completion: {
-      anchorAtMean: 0.686031,
-      modifier: 0.010,
-      floor: 0.18,
-      ceiling: 0.92,
-    },
-    interception: {
-      anchorAtMean: 0.015794,
-      modifier: 0.002,
-      floor: 0.004,
-    },
-    sack: { anchorAtMean: 0.09647, modifier: 0.005, floor: 0.01 },
-    bigPlay: {
-      anchorAtMean: 0.196825,
-      modifier: 0.008,
-      floor: 0.05,
-      ceiling: 0.45,
-      yards: { min: 14, max: 35 },
-    },
-    completionYards: { min: 3, max: 15 },
-    fumbleOnSack: 0.08,
+const PASS_ANCHORS = {
+  completion: {
+    anchorAtMean: 0.686031,
+    modifier: 0.010,
+    floor: 0.18,
+    ceiling: 0.92,
   },
-  run: {
-    stuffSdBelow: 4.59955,
-    shortGainSdBelow: 1.9267,
-    bigPlaySdAbove: 1.97964,
-    stuffYards: { min: -3, max: 0 },
-    shortGainYards: { min: 1, max: 5 },
-    bigPlayYards: { min: 9, max: 20 },
-    normalYards: { min: 2, max: 9 },
-    fumbleRate: 0.010,
+  interception: { anchorAtMean: 0.015794, modifier: 0.002, floor: 0.004 },
+  sack: { anchorAtMean: 0.09647, modifier: 0.005, floor: 0.01 },
+  bigPlay: {
+    anchorAtMean: 0.196825,
+    modifier: 0.008,
+    floor: 0.05,
+    ceiling: 0.45,
+    yards: { min: 14, max: 35 },
   },
+  completionYards: { min: 3, max: 15 },
+  fumbleOnSack: 0.08,
+} as const;
+
+/**
+ * Design knobs for the continuous run model. The slope is fixed here as a
+ * documented sensitivity choice (0.25 yards of expected gain per unit of
+ * blockScore, roughly the per-play marginal response of a strong run block
+ * over a neutral one); the intercept and residual stddev are fit against
+ * the NFL rushing band so aggregate mean and variance line up. Truncation
+ * bounds and the big-play cutoff are fixed to realistic NFL limits.
+ */
+const RUN_CONFIG = {
+  yardageSlope: 0.25,
+  yardageMin: -8,
+  yardageMax: 60,
+  fumbleRate: 0.010,
 } as const;
 
 function roundTo(value: number, digits: number): number {
@@ -120,81 +126,75 @@ function roundTo(value: number, digits: number): number {
   return Math.round(value * factor) / factor;
 }
 
-function roundInt(value: number): number {
-  return Math.round(value);
-}
-
 export function fitOutcomes(input: FitInputs): FittedCoefficients {
-  // Bands are accepted as input for forward compatibility with PR 2/3; in the
-  // scaffolding phase coefficients are anchored to the measured distribution.
-  // Reference the map to keep the parameter non-unused.
   if (input.bands.size === 0) {
     throw new Error("fitOutcomes requires a non-empty bands map");
   }
 
-  const { scores } = input;
-  const pc = FIT_CONFIG.pass;
+  const { scores, rushingOverall } = input;
 
-  // Each probability coefficient has the form `prob = base ± score · modifier`
-  // and must evaluate to `anchorAtMean` at the measured distribution mean.
-  // Solve for `base` symbolically so future distribution shifts regenerate
-  // coefficients without hand-retuning.
   const pass: PassCoefficients = {
     completion: {
       base: roundTo(
-        pc.completion.anchorAtMean -
-          scores.coverageScore.mean * pc.completion.modifier,
+        PASS_ANCHORS.completion.anchorAtMean -
+          scores.coverageScore.mean * PASS_ANCHORS.completion.modifier,
         4,
       ),
-      coverageModifier: pc.completion.modifier,
-      floor: pc.completion.floor,
-      ceiling: pc.completion.ceiling,
+      coverageModifier: PASS_ANCHORS.completion.modifier,
+      floor: PASS_ANCHORS.completion.floor,
+      ceiling: PASS_ANCHORS.completion.ceiling,
     },
     interception: {
       base: roundTo(
-        pc.interception.anchorAtMean +
-          scores.coverageScore.mean * pc.interception.modifier,
+        PASS_ANCHORS.interception.anchorAtMean +
+          scores.coverageScore.mean * PASS_ANCHORS.interception.modifier,
         4,
       ),
-      coverageModifier: pc.interception.modifier,
-      floor: pc.interception.floor,
+      coverageModifier: PASS_ANCHORS.interception.modifier,
+      floor: PASS_ANCHORS.interception.floor,
     },
     sack: {
       base: roundTo(
-        pc.sack.anchorAtMean +
-          scores.protectionScore.mean * pc.sack.modifier,
+        PASS_ANCHORS.sack.anchorAtMean +
+          scores.protectionScore.mean * PASS_ANCHORS.sack.modifier,
         4,
       ),
-      protectionModifier: pc.sack.modifier,
-      floor: pc.sack.floor,
+      protectionModifier: PASS_ANCHORS.sack.modifier,
+      floor: PASS_ANCHORS.sack.floor,
     },
     bigPlay: {
       base: roundTo(
-        pc.bigPlay.anchorAtMean -
-          scores.coverageScore.mean * pc.bigPlay.modifier,
+        PASS_ANCHORS.bigPlay.anchorAtMean -
+          scores.coverageScore.mean * PASS_ANCHORS.bigPlay.modifier,
         4,
       ),
-      coverageModifier: pc.bigPlay.modifier,
-      floor: pc.bigPlay.floor,
-      ceiling: pc.bigPlay.ceiling,
-      yards: pc.bigPlay.yards,
+      coverageModifier: PASS_ANCHORS.bigPlay.modifier,
+      floor: PASS_ANCHORS.bigPlay.floor,
+      ceiling: PASS_ANCHORS.bigPlay.ceiling,
+      yards: PASS_ANCHORS.bigPlay.yards,
     },
-    completionYards: pc.completionYards,
-    fumbleOnSack: pc.fumbleOnSack,
+    completionYards: PASS_ANCHORS.completionYards,
+    fumbleOnSack: PASS_ANCHORS.fumbleOnSack,
   };
 
-  const rc = FIT_CONFIG.run;
-  const m = scores.blockScore.mean;
-  const sd = scores.blockScore.stddev;
+  // Continuous run model fit:
+  //   yardage = Gaussian(α + β·bs, σ) clamped to [yMin, yMax]
+  //   Match mean:    α + β · E[BS]       = rushingOverall.mean
+  //   Match variance: β² · Var[BS] + σ²   = rushingOverall.sd²
+  const β = RUN_CONFIG.yardageSlope;
+  const bsMean = scores.blockScore.mean;
+  const bsVar = scores.blockScore.stddev ** 2;
+  const targetVar = rushingOverall.sd ** 2;
+  const residualVar = Math.max(0, targetVar - β * β * bsVar);
+
   const run: RunCoefficients = {
-    stuffThreshold: roundInt(m - rc.stuffSdBelow * sd),
-    stuffYards: rc.stuffYards,
-    shortGainThreshold: roundInt(m - rc.shortGainSdBelow * sd),
-    shortGainYards: rc.shortGainYards,
-    bigPlayThreshold: roundInt(m + rc.bigPlaySdAbove * sd),
-    bigPlayYards: rc.bigPlayYards,
-    normalYards: rc.normalYards,
-    fumbleRate: rc.fumbleRate,
+    yardageIntercept: roundTo(rushingOverall.mean - β * bsMean, 4),
+    yardageSlope: β,
+    yardageStddev: roundTo(Math.sqrt(residualVar), 4),
+    yardageMin: RUN_CONFIG.yardageMin,
+    yardageMax: RUN_CONFIG.yardageMax,
+    bigPlayCutoff: rushingOverall.p90,
+    fumbleRate: RUN_CONFIG.fumbleRate,
   };
 
   return { pass, run };

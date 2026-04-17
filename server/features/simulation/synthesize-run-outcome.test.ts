@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { assert, assertEquals } from "@std/assert";
 import {
   PLAYER_ATTRIBUTE_KEYS,
   type PlayerAttributes,
@@ -11,6 +11,7 @@ import type {
   Situation,
 } from "./resolve-play.ts";
 import { synthesizeRunOutcome } from "./synthesize-run-outcome.ts";
+import { RUN_COEFFICIENTS } from "./outcome-coefficients.ts";
 
 function makeAttributes(
   overrides: Partial<PlayerAttributes> = {},
@@ -43,13 +44,70 @@ function makeRng(seed = 42): SeededRng {
   return createRng(mulberry32(seed));
 }
 
+function runTrials(score: number, trials: number): number[] {
+  const yards: number[] = [];
+  for (let i = 0; i < trials; i++) {
+    const rng = makeRng(i);
+    const contribs: MatchupContribution[] = [
+      {
+        matchup: {
+          type: "run_block",
+          attacker: makePlayer("ot1", "OT"),
+          defender: makePlayer("idl1", "IDL"),
+        },
+        attackerFit: "neutral",
+        defenderFit: "neutral",
+        score,
+      },
+    ];
+    yards.push(synthesizeRunOutcome(contribs, makeSituation(), rng).yardage);
+  }
+  return yards;
+}
+
 Deno.test("synthesizeRunOutcome", async (t) => {
   await t.step(
-    "returns rush outcome with yardage for dominant blocking",
+    "expected yardage increases with blockScore (monotonic)",
     () => {
-      let positiveCount = 0;
-      const trials = 30;
-      for (let i = 0; i < trials; i++) {
+      const trials = 300;
+      const lowMean = runTrials(-20, trials).reduce((a, b) => a + b, 0) /
+        trials;
+      const midMean = runTrials(0, trials).reduce((a, b) => a + b, 0) / trials;
+      const highMean = runTrials(20, trials).reduce((a, b) => a + b, 0) /
+        trials;
+      assert(lowMean < midMean, `lowMean=${lowMean} midMean=${midMean}`);
+      assert(midMean < highMean, `midMean=${midMean} highMean=${highMean}`);
+    },
+  );
+
+  await t.step(
+    "returns positive yardage most of the time on dominant blocking",
+    () => {
+      const yards = runTrials(20, 200);
+      const positive = yards.filter((y) => y > 0).length;
+      assert(positive / yards.length > 0.85, `positive rate=${positive / 200}`);
+    },
+  );
+
+  await t.step("yardage is clamped to the configured range", () => {
+    const extreme = runTrials(100, 100).concat(runTrials(-100, 100));
+    for (const y of extreme) {
+      assert(y >= RUN_COEFFICIENTS.yardageMin, `${y} < yardageMin`);
+      assert(y <= RUN_COEFFICIENTS.yardageMax, `${y} > yardageMax`);
+    }
+  });
+
+  await t.step(
+    "tags big_play when yardage clears the cutoff",
+    () => {
+      const yards = runTrials(20, 200);
+      const bigCount = yards.filter(
+        (y) => y >= RUN_COEFFICIENTS.bigPlayCutoff,
+      ).length;
+      assert(bigCount > 0);
+
+      // Tag must fire on every yardage ≥ cutoff — check one concrete sample.
+      for (let i = 0; i < 200; i++) {
         const rng = makeRng(i);
         const contribs: MatchupContribution[] = [
           {
@@ -64,75 +122,16 @@ Deno.test("synthesizeRunOutcome", async (t) => {
           },
         ];
         const result = synthesizeRunOutcome(contribs, makeSituation(), rng);
-        if (result.yardage > 0) positiveCount++;
+        if (result.yardage >= RUN_COEFFICIENTS.bigPlayCutoff) {
+          assertEquals(result.tags.includes("big_play"), true);
+          return;
+        }
       }
-      assertEquals(positiveCount / trials > 0.9, true);
+      throw new Error(
+        "no big_play observed in 200 trials — cutoff unreachable?",
+      );
     },
   );
-
-  await t.step("returns negative yardage for terrible blocking", () => {
-    const rng = makeRng(42);
-    const contribs: MatchupContribution[] = [
-      {
-        matchup: {
-          type: "run_block",
-          attacker: makePlayer("ot1", "OT"),
-          defender: makePlayer("idl1", "IDL"),
-        },
-        attackerFit: "neutral",
-        defenderFit: "neutral",
-        score: -25,
-      },
-    ];
-    const result = synthesizeRunOutcome(contribs, makeSituation(), rng);
-    assertEquals(result.yardage <= 0, true);
-  });
-
-  await t.step(
-    "returns moderate yardage for slightly negative blocking",
-    () => {
-      const rng = makeRng(42);
-      const contribs: MatchupContribution[] = [
-        {
-          matchup: {
-            type: "run_block",
-            attacker: makePlayer("ot1", "OT"),
-            defender: makePlayer("idl1", "IDL"),
-          },
-          attackerFit: "neutral",
-          defenderFit: "neutral",
-          score: -10,
-        },
-      ];
-      const result = synthesizeRunOutcome(contribs, makeSituation(), rng);
-      assertEquals(result.yardage >= 1 && result.yardage <= 5, true);
-    },
-  );
-
-  await t.step("tags big_play for great blocking", () => {
-    let bigPlayFound = false;
-    for (let seed = 0; seed < 100; seed++) {
-      const rng = makeRng(seed);
-      const contribs: MatchupContribution[] = [
-        {
-          matchup: {
-            type: "run_block",
-            attacker: makePlayer("ot1", "OT"),
-            defender: makePlayer("idl1", "IDL"),
-          },
-          attackerFit: "neutral",
-          defenderFit: "neutral",
-          score: 20,
-        },
-      ];
-      const result = synthesizeRunOutcome(contribs, makeSituation(), rng);
-      if (result.tags.includes("big_play")) {
-        bigPlayFound = true;
-        break;
-      }
-    }
-    assertEquals(bigPlayFound, true);
-  });
 
   await t.step("can produce fumble outcome", () => {
     let fumbleFound = false;
@@ -162,27 +161,33 @@ Deno.test("synthesizeRunOutcome", async (t) => {
   });
 
   await t.step("tags first_down when yardage meets distance", () => {
-    const rng = makeRng(5);
-    const contribs: MatchupContribution[] = [
-      {
-        matchup: {
-          type: "run_block",
-          attacker: makePlayer("ot1", "OT"),
-          defender: makePlayer("idl1", "IDL"),
+    let found = false;
+    for (let seed = 0; seed < 50; seed++) {
+      const rng = makeRng(seed);
+      const contribs: MatchupContribution[] = [
+        {
+          matchup: {
+            type: "run_block",
+            attacker: makePlayer("ot1", "OT"),
+            defender: makePlayer("idl1", "IDL"),
+          },
+          attackerFit: "neutral",
+          defenderFit: "neutral",
+          score: 10,
         },
-        attackerFit: "neutral",
-        defenderFit: "neutral",
-        score: 10,
-      },
-    ];
-    const result = synthesizeRunOutcome(
-      contribs,
-      makeSituation({ down: 1, distance: 3 }),
-      rng,
-    );
-    if (result.yardage >= 3) {
-      assertEquals(result.tags.includes("first_down"), true);
+      ];
+      const result = synthesizeRunOutcome(
+        contribs,
+        makeSituation({ down: 1, distance: 3 }),
+        rng,
+      );
+      if (result.yardage >= 3) {
+        assertEquals(result.tags.includes("first_down"), true);
+        found = true;
+        break;
+      }
     }
+    assertEquals(found, true);
   });
 
   await t.step("tags RB as ball_carrier", () => {
