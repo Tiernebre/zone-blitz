@@ -1,7 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { toast } from "sonner";
-import type { ColumnDef } from "@tanstack/react-table";
+import type {
+  Column,
+  ColumnDef,
+  Table as ReactTable,
+} from "@tanstack/react-table";
 import type {
   HiringCandidateSummary,
   HiringDecisionView,
@@ -45,7 +49,9 @@ import { useStaffTree } from "../../../hooks/use-staff-tree.ts";
 import { useScoutStaffTree } from "../../../hooks/use-scout-staff-tree.ts";
 import { coachBackgroundLabel, roleLabel } from "../role-labels.ts";
 import {
+  DEFENSIVE_ARCHETYPE_NAMES,
   defensiveArchetypeLabel,
+  OFFENSIVE_ARCHETYPE_NAMES,
   offensiveArchetypeLabel,
   positionGroupLabel,
   scoutRegionLabel,
@@ -857,7 +863,6 @@ function StaffTypeTabs(
 
 type CandidateRow = HiringCandidateSummary & {
   fullName: string;
-  displayRole: string;
   bandMin: number;
   bandMax: number;
   medianSalary: number;
@@ -878,7 +883,6 @@ function toRows(candidates: HiringCandidateSummary[]): CandidateRow[] {
     return {
       ...c,
       fullName: `${c.firstName} ${c.lastName}`,
-      displayRole: roleLabel(c.staffType, c.role),
       bandMin: band.min,
       bandMax: band.max,
       medianSalary: medianSalary(c.staffType, c.role),
@@ -907,13 +911,6 @@ function buildCandidateColumns(
           {row.original.fullName}
         </Link>
       ),
-    },
-    {
-      accessorKey: "displayRole",
-      header: ({ column }) => (
-        <SortableHeader column={column}>Role</SortableHeader>
-      ),
-      cell: ({ row }) => row.original.displayRole,
     },
     {
       accessorKey: "age",
@@ -950,30 +947,36 @@ function buildCandidateColumns(
     cols.push(
       {
         id: "background",
+        accessorFn: (row) => row.specialty ?? "",
         header: "Background",
         cell: ({ row }) => (
           <span data-testid={`candidate-background-${row.original.id}`}>
             {coachBackgroundLabel(row.original.specialty)}
           </span>
         ),
+        filterFn: "equals",
       },
       {
         id: "position",
-        header: "Position",
+        accessorFn: (row) => row.positionBackground ?? "",
+        header: "Position Specialty",
         cell: ({ row }) => (
           <span data-testid={`candidate-position-${row.original.id}`}>
             {positionGroupLabel(row.original.positionBackground) ?? "—"}
           </span>
         ),
+        filterFn: "equals",
       },
       {
         id: "scheme",
+        accessorFn: (row) => coachSchemeKey(row),
         header: "Scheme",
         cell: ({ row }) => (
           <span data-testid={`candidate-scheme-${row.original.id}`}>
             {coachSchemeLabel(row.original)}
           </span>
         ),
+        filterFn: "equals",
       },
     );
   }
@@ -982,21 +985,25 @@ function buildCandidateColumns(
     cols.push(
       {
         id: "region",
+        accessorFn: (row) => row.regionFocus ?? "",
         header: "Region",
         cell: ({ row }) => (
           <span data-testid={`candidate-region-${row.original.id}`}>
             {scoutRegionLabel(row.original.regionFocus) ?? "—"}
           </span>
         ),
+        filterFn: "equals",
       },
       {
         id: "position",
-        header: "Position",
+        accessorFn: (row) => row.positionFocus ?? "",
+        header: "Position Specialty",
         cell: ({ row }) => (
           <span data-testid={`candidate-position-${row.original.id}`}>
             {positionGroupLabel(row.original.positionFocus) ?? "—"}
           </span>
         ),
+        filterFn: "equals",
       },
     );
   }
@@ -1031,6 +1038,132 @@ function buildCandidateColumns(
   return cols;
 }
 
+function coachSchemeKey(c: HiringCandidateSummary): string {
+  if (c.role === "HC" && c.specialty === "ceo") return "ceo";
+  return c.offensiveArchetype ?? c.defensiveArchetype ?? "";
+}
+
+function CandidateFilter(
+  {
+    column,
+    label,
+    formatLabel,
+    testId,
+  }: {
+    column: Column<CandidateRow, unknown> | undefined;
+    label: string;
+    formatLabel: (value: string) => string;
+    testId: string;
+  },
+) {
+  if (!column) return null;
+  const options = Array.from(column.getFacetedUniqueValues().keys())
+    .filter((v): v is string => typeof v === "string" && v.length > 0)
+    .sort((a, b) => formatLabel(a).localeCompare(formatLabel(b)));
+  const current = (column.getFilterValue() as string | undefined) ?? "all";
+  return (
+    <label className="flex items-center gap-2 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <select
+        data-testid={testId}
+        value={current}
+        onChange={(event) => {
+          const next = event.target.value;
+          column.setFilterValue(next === "all" ? undefined : next);
+        }}
+        className="h-8 min-w-40 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 outline-none"
+      >
+        <option value="all">All {label}</option>
+        {options.map((value) => (
+          <option key={value} value={value}>
+            {formatLabel(value)}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function CandidateFilters(
+  {
+    table,
+    staffType,
+    testIdPrefix,
+  }: {
+    table: ReactTable<CandidateRow>;
+    staffType: "coach" | "scout";
+    testIdPrefix: string;
+  },
+) {
+  return (
+    <div
+      className="flex flex-wrap items-center gap-2"
+      data-testid={`${testIdPrefix}-filters`}
+    >
+      {staffType === "coach" && (
+        <>
+          <CandidateFilter
+            column={table.getColumn("background")}
+            label="Background"
+            formatLabel={coachBackgroundLabel}
+            testId={`${testIdPrefix}-filter-background`}
+          />
+          <CandidateFilter
+            column={table.getColumn("position")}
+            label="Position Specialty"
+            formatLabel={positionFilterLabel}
+            testId={`${testIdPrefix}-filter-position`}
+          />
+          <CandidateFilter
+            column={table.getColumn("scheme")}
+            label="Scheme"
+            formatLabel={schemeOptionLabel}
+            testId={`${testIdPrefix}-filter-scheme`}
+          />
+        </>
+      )}
+      {staffType === "scout" && (
+        <>
+          <CandidateFilter
+            column={table.getColumn("region")}
+            label="Region"
+            formatLabel={regionFilterLabel}
+            testId={`${testIdPrefix}-filter-region`}
+          />
+          <CandidateFilter
+            column={table.getColumn("position")}
+            label="Position Specialty"
+            formatLabel={positionFilterLabel}
+            testId={`${testIdPrefix}-filter-position`}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+export function positionFilterLabel(value: string): string {
+  return positionGroupLabel(value) ?? value;
+}
+
+export function regionFilterLabel(value: string): string {
+  return scoutRegionLabel(value) ?? value;
+}
+
+const SCHEME_OPTION_LABELS = new Map<string, string>([
+  ["ceo", "Defers to coordinators"],
+  ...OFFENSIVE_ARCHETYPE_NAMES.map(
+    (name) => [name, offensiveArchetypeLabel(name) ?? name] as const,
+  ),
+  ...DEFENSIVE_ARCHETYPE_NAMES.map(
+    (name) => [name, defensiveArchetypeLabel(name) ?? name] as const,
+  ),
+]);
+
+export function schemeOptionLabel(value: string): string {
+  return SCHEME_OPTION_LABELS.get(value) ?? value;
+}
+
 function CandidateDataTable(
   {
     candidates,
@@ -1043,7 +1176,7 @@ function CandidateDataTable(
     staffType: "coach" | "scout";
     renderAction: (c: HiringCandidateSummary) => React.ReactNode;
     leagueId: string;
-    testId?: string;
+    testId: string;
   },
 ) {
   const rows = useMemo(() => toRows(candidates), [candidates]);
@@ -1058,6 +1191,13 @@ function CandidateDataTable(
         columns={columns}
         data={rows}
         getRowTestId={(row) => `candidate-row-${row.id}`}
+        toolbar={(table) => (
+          <CandidateFilters
+            table={table}
+            staffType={staffType}
+            testIdPrefix={testId}
+          />
+        )}
       />
     </div>
   );

@@ -1,8 +1,19 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { toast } from "sonner";
-import { Hiring } from "./index.tsx";
+import {
+  Hiring,
+  positionFilterLabel,
+  regionFilterLabel,
+  schemeOptionLabel,
+} from "./index.tsx";
 
 const mockUseParams = vi.fn();
 const mockUseLeagueClock = vi.fn();
@@ -111,6 +122,51 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+});
+
+describe("positionFilterLabel", () => {
+  it("polishes a known position group", () => {
+    expect(positionFilterLabel("QB")).toBe("Quarterbacks");
+  });
+
+  it("echoes back unknown position keys so missing labels surface", () => {
+    expect(positionFilterLabel("MASCOT")).toBe("MASCOT");
+  });
+
+  it("falls back to the raw value when the shared label resolver returns null", () => {
+    // positionGroupLabel returns null for an empty string — the wrapper's
+    // `?? value` keeps the dropdown rendering something instead of "null".
+    expect(positionFilterLabel("")).toBe("");
+  });
+});
+
+describe("regionFilterLabel", () => {
+  it("polishes a known region", () => {
+    expect(regionFilterLabel("MIDWEST")).toBe("Midwest");
+  });
+
+  it("echoes back unknown region keys", () => {
+    expect(regionFilterLabel("MARS")).toBe("MARS");
+  });
+
+  it("falls back to the raw value when the shared label resolver returns null", () => {
+    expect(regionFilterLabel("")).toBe("");
+  });
+});
+
+describe("schemeOptionLabel", () => {
+  it("labels the CEO bucket distinctly", () => {
+    expect(schemeOptionLabel("ceo")).toBe("Defers to coordinators");
+  });
+
+  it("returns a polished label for known offensive and defensive schemes", () => {
+    expect(schemeOptionLabel("shanahan_wide_zone")).toBe("Wide Zone");
+    expect(schemeOptionLabel("fangio_two_high")).toBe("Fangio Two-High");
+  });
+
+  it("echoes back unknown scheme keys so missing labels surface visibly", () => {
+    expect(schemeOptionLabel("smashmouth_2026")).toBe("smashmouth_2026");
+  });
 });
 
 describe("Hiring page", () => {
@@ -285,6 +341,86 @@ describe("Market survey view", () => {
     ).toBe("Generalist");
   });
 
+  it("does not render a Role column — every leadership candidate is HC or DIRECTOR", () => {
+    renderPage();
+    expect(
+      screen.queryByRole("columnheader", { name: /^Role$/ }),
+    ).toBeNull();
+  });
+
+  it("labels the position column 'Position Specialty' on the coach tab", () => {
+    renderPage();
+    expect(
+      screen.getByRole("columnheader", { name: /Position Specialty/i }),
+    ).toBeTruthy();
+  });
+
+  it("filters coach candidates by background", async () => {
+    renderPage();
+    fireEvent.change(
+      screen.getByTestId("market-coach-table-filter-background"),
+      { target: { value: "defense" } },
+    );
+    await waitFor(() => {
+      expect(screen.queryByTestId("candidate-row-c1")).toBeNull();
+      expect(screen.getByTestId("candidate-row-c3")).toBeTruthy();
+    });
+  });
+
+  it("filters coach candidates by scheme", async () => {
+    renderPage();
+    fireEvent.change(
+      screen.getByTestId("market-coach-table-filter-scheme"),
+      { target: { value: "shanahan_wide_zone" } },
+    );
+    await waitFor(() => {
+      expect(screen.queryByTestId("candidate-row-c1")).toBeNull();
+      expect(screen.getByTestId("candidate-row-c2")).toBeTruthy();
+    });
+  });
+
+  it("filters coach candidates by position specialty", async () => {
+    renderPage();
+    fireEvent.change(
+      screen.getByTestId("market-coach-table-filter-position"),
+      { target: { value: "DB" } },
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("candidate-row-c3")).toBeTruthy();
+      expect(screen.queryByTestId("candidate-row-c1")).toBeNull();
+    });
+  });
+
+  it("filters coach candidates by CEO scheme bucket", async () => {
+    renderPage();
+    fireEvent.change(
+      screen.getByTestId("market-coach-table-filter-scheme"),
+      { target: { value: "ceo" } },
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("candidate-row-c4")).toBeTruthy();
+      expect(screen.queryByTestId("candidate-row-c1")).toBeNull();
+    });
+  });
+
+  it("clears a filter back to all candidates when 'All' is selected", async () => {
+    renderPage();
+    fireEvent.change(
+      screen.getByTestId("market-coach-table-filter-background"),
+      { target: { value: "defense" } },
+    );
+    await waitFor(() => {
+      expect(screen.queryByTestId("candidate-row-c1")).toBeNull();
+    });
+    fireEvent.change(
+      screen.getByTestId("market-coach-table-filter-background"),
+      { target: { value: "all" } },
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("candidate-row-c1")).toBeTruthy();
+    });
+  });
+
   it("shows a scouting director's region and position focus on the scout tab", () => {
     mockUseHiringCandidates.mockReturnValue({
       data: [
@@ -315,6 +451,56 @@ describe("Market survey view", () => {
     expect(
       screen.getByTestId("candidate-position-s1").textContent,
     ).toBe("Generalist");
+  });
+
+  it("filters scout candidates by region", async () => {
+    mockUseHiringCandidates.mockReturnValue({
+      data: [
+        {
+          id: "s1",
+          leagueId: "lg",
+          staffType: "scout",
+          firstName: "Ron",
+          lastName: "Wolf",
+          role: "DIRECTOR",
+          specialty: null,
+          offensiveArchetype: null,
+          defensiveArchetype: null,
+          age: 58,
+          yearsExperience: 30,
+          positionBackground: null,
+          positionFocus: "GENERALIST",
+          regionFocus: "SOUTHEAST",
+        },
+        {
+          id: "s2",
+          leagueId: "lg",
+          staffType: "scout",
+          firstName: "Bill",
+          lastName: "Polian",
+          role: "DIRECTOR",
+          specialty: null,
+          offensiveArchetype: null,
+          defensiveArchetype: null,
+          age: 60,
+          yearsExperience: 32,
+          positionBackground: null,
+          positionFocus: "QB",
+          regionFocus: "MIDWEST",
+        },
+      ],
+      isLoading: false,
+    });
+    renderPage();
+    fireEvent.click(screen.getByTestId("market-tab-scout"));
+    fireEvent.change(
+      screen.getByTestId("market-scout-table-filter-region"),
+      { target: { value: "MIDWEST" } },
+    );
+    await waitFor(() => {
+      expect(screen.queryByTestId("candidate-row-s1")).toBeNull();
+      expect(screen.getByTestId("candidate-row-s2")).toBeTruthy();
+    });
   });
 
   it("invokes expressInterest on Express Interest click", () => {
