@@ -1,0 +1,265 @@
+{
+  "generated_at": "2026-04-17T18:47:21Z",
+  "seasons": [
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "notes": "OTC contracts feed (nflreadr::load_contracts()) filtered to 1-year deals signed in each league year, cross-referenced against the NFL's published franchise / transition tag amounts by (year, position). A deal is tagged if value is within $0.3M of the published amount; exclusive franchise tags are detected at QB when value > 1.05x the non-exclusive amount. Resolution paths cross-reference load_rosters(): tag-and-sign = multi-year extension with the same team in the same calendar year; tag-and-trade = appears on a different team's roster that season; tag-and-play = on the tagging team's roster with no multi-year deal. Verified 2026-04-17 that load_contracts() does NOT expose is_franchise_tag / is_transition_tag columns, so structural detection is the only available route.",
+  "bands": {
+    "tags_per_offseason": {
+      "n": 15,
+      "mean": 5.2,
+      "sd": 3.3424,
+      "min": 0,
+      "p10": 2,
+      "p25": 2.5,
+      "p50": 6,
+      "p75": 6.5,
+      "p90": 8.6,
+      "max": 13,
+      "by_year": {
+        "2011": 3,
+        "2012": 8,
+        "2013": 6,
+        "2014": 2,
+        "2015": 0,
+        "2016": 6,
+        "2017": 2,
+        "2018": 6,
+        "2019": 3,
+        "2020": 13,
+        "2021": 5,
+        "2022": 7,
+        "2023": 6,
+        "2024": 9,
+        "2025": 2
+      },
+      "seasons_sampled": 15
+    },
+    "tags_by_position": {
+      "DE": {
+        "n": 13,
+        "share": 0.1667,
+        "per_offseason": 0.8667
+      },
+      "WR": {
+        "n": 10,
+        "share": 0.1282,
+        "per_offseason": 0.6667
+      },
+      "S": {
+        "n": 10,
+        "share": 0.1282,
+        "per_offseason": 0.6667
+      },
+      "QB": {
+        "n": 9,
+        "share": 0.1154,
+        "per_offseason": 0.6
+      },
+      "DT": {
+        "n": 9,
+        "share": 0.1154,
+        "per_offseason": 0.6
+      },
+      "OL": {
+        "n": 7,
+        "share": 0.0897,
+        "per_offseason": 0.4667
+      },
+      "RB": {
+        "n": 6,
+        "share": 0.0769,
+        "per_offseason": 0.4
+      },
+      "TE": {
+        "n": 6,
+        "share": 0.0769,
+        "per_offseason": 0.4
+      },
+      "CB": {
+        "n": 4,
+        "share": 0.0513,
+        "per_offseason": 0.2667
+      },
+      "K": {
+        "n": 3,
+        "share": 0.0385,
+        "per_offseason": 0.2
+      },
+      "LB": {
+        "n": 1,
+        "share": 0.0128,
+        "per_offseason": 0.0667
+      }
+    },
+    "tag_type_split": {
+      "exclusive_franchise": {
+        "n": 6,
+        "share": 0.0769
+      },
+      "non_exclusive_franchise": {
+        "n": 65,
+        "share": 0.8333
+      },
+      "transition": {
+        "n": 7,
+        "share": 0.0897
+      }
+    },
+    "resolution_path_distribution": {
+      "overall": {
+        "tag_and_play": {
+          "n": 56,
+          "share": 0.7273
+        },
+        "tag_and_sign": {
+          "n": 14,
+          "share": 0.1818
+        },
+        "tag_and_trade": {
+          "n": 7,
+          "share": 0.0909
+        }
+      },
+      "by_position": {
+        "CB": {
+          "tag_and_play": {
+            "n": 1,
+            "share": 0.25
+          },
+          "tag_and_sign": {
+            "n": 2,
+            "share": 0.5
+          },
+          "tag_and_trade": {
+            "n": 1,
+            "share": 0.25
+          }
+        },
+        "DE": {
+          "tag_and_play": {
+            "n": 9,
+            "share": 0.6923
+          },
+          "tag_and_sign": {
+            "n": 1,
+            "share": 0.0769
+          },
+          "tag_and_trade": {
+            "n": 3,
+            "share": 0.2308
+          }
+        },
+        "DT": {
+          "tag_and_play": {
+            "n": 5,
+            "share": 0.5556
+          },
+          "tag_and_sign": {
+            "n": 4,
+            "share": 0.4444
+          }
+        },
+        "K": {
+          "tag_and_play": {
+            "n": 2,
+            "share": 0.6667
+          },
+          "tag_and_trade": {
+            "n": 1,
+            "share": 0.3333
+          }
+        },
+        "LB": {
+          "tag_and_play": {
+            "n": 1,
+            "share": 1
+          }
+        },
+        "OL": {
+          "tag_and_play": {
+            "n": 6,
+            "share": 0.8571
+          },
+          "tag_and_sign": {
+            "n": 1,
+            "share": 0.1429
+          }
+        },
+        "QB": {
+          "tag_and_play": {
+            "n": 8,
+            "share": 0.8889
+          },
+          "tag_and_sign": {
+            "n": 1,
+            "share": 0.1111
+          }
+        },
+        "RB": {
+          "tag_and_play": {
+            "n": 5,
+            "share": 0.8333
+          },
+          "tag_and_sign": {
+            "n": 1,
+            "share": 0.1667
+          }
+        },
+        "S": {
+          "tag_and_play": {
+            "n": 9,
+            "share": 0.9
+          },
+          "tag_and_sign": {
+            "n": 1,
+            "share": 0.1
+          }
+        },
+        "TE": {
+          "tag_and_play": {
+            "n": 4,
+            "share": 0.6667
+          },
+          "tag_and_sign": {
+            "n": 2,
+            "share": 0.3333
+          }
+        },
+        "WR": {
+          "tag_and_play": {
+            "n": 7,
+            "share": 0.7
+          },
+          "tag_and_sign": {
+            "n": 1,
+            "share": 0.1
+          },
+          "tag_and_trade": {
+            "n": 2,
+            "share": 0.2
+          }
+        }
+      }
+    },
+    "consecutive_tag_events": {
+      "n": 2,
+      "rate_per_offseason": 0.1333,
+      "note": "Count of (player, position) pairs tagged in back-to-back offseasons within the window. Matches the NFL's rare 'second tag at 120% prior cap hit' scenario; the third tag at 144% or position-bump is even rarer."
+    }
+  }
+}
