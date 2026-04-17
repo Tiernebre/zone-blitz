@@ -1,0 +1,661 @@
+{
+  "generated_at": "2026-04-17T18:46:46Z",
+  "seasons": [2019, 2020, 2021, 2022, 2023, 2024],
+  "notes": "UFA pool composition and re-sign-vs-open-market gating derived from year-over-year roster transitions (nflreadr::load_rosters()) rather than contract rows. A player on a season-N roster with years_exp >= 2 is counted as a potential UFA going into offseason N+1; outcome is classified by comparing team_N to team_(N+1): re_sign_before_fa (same team), signed_elsewhere (different team), out_of_league (no roster appearance). open_market_pool = signed_elsewhere + out_of_league, which is the effective sample space for the sim's FA generator AFTER applying the re-sign-before-FA gate. Tier enrichment joins nflreadr::load_contracts() on (gsis_id, offseason=year_signed) to place each transition in an APY tier (top_10 / top_25 / top_50 / rest); unsigned / minimum deals fall to rest. Position groups: QB, RB (incl FB/HB), WR, TE, OT (T/LT/RT), IOL (G/LG/RG/C/OG), EDGE (DE/OLB/ED), IDL (DT/NT/DL), LB (ILB/MLB), CB (incl DB), S (FS/SS/SAF), ST (K/P/LS).",
+  "bands": {
+    "pool_composition_by_position": {
+      "EDGE": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 258.8,
+        "sd_eligible_ufas": 23.253,
+        "mean_open_market_pool_per_offseason": 145.6,
+        "sd_open_market_pool": 21.4429,
+        "open_market_pool_share": 0.136,
+        "mean_re_sign_before_fa": 113.2,
+        "mean_signed_elsewhere": 89.2,
+        "mean_out_of_league": 56.4
+      },
+      "WR": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 234.4,
+        "sd_eligible_ufas": 16.6072,
+        "mean_open_market_pool_per_offseason": 142,
+        "sd_open_market_pool": 20.2978,
+        "open_market_pool_share": 0.1327,
+        "mean_re_sign_before_fa": 92.4,
+        "mean_signed_elsewhere": 86.6,
+        "mean_out_of_league": 55.4
+      },
+      "CB": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 214.2,
+        "sd_eligible_ufas": 10.5214,
+        "mean_open_market_pool_per_offseason": 130,
+        "sd_open_market_pool": 12.9035,
+        "open_market_pool_share": 0.1214,
+        "mean_re_sign_before_fa": 84.2,
+        "mean_signed_elsewhere": 77.8,
+        "mean_out_of_league": 52.2
+      },
+      "IOL": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 191,
+        "sd_eligible_ufas": 3.0822,
+        "mean_open_market_pool_per_offseason": 100.4,
+        "sd_open_market_pool": 8.8487,
+        "open_market_pool_share": 0.0938,
+        "mean_re_sign_before_fa": 90.6,
+        "mean_signed_elsewhere": 60,
+        "mean_out_of_league": 40.4
+      },
+      "IDL": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 151.6,
+        "sd_eligible_ufas": 9.6592,
+        "mean_open_market_pool_per_offseason": 85.6,
+        "sd_open_market_pool": 5.8138,
+        "open_market_pool_share": 0.08,
+        "mean_re_sign_before_fa": 66,
+        "mean_signed_elsewhere": 57.8,
+        "mean_out_of_league": 27.8
+      },
+      "RB": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 142,
+        "sd_eligible_ufas": 6.2048,
+        "mean_open_market_pool_per_offseason": 83.2,
+        "sd_open_market_pool": 8.4083,
+        "open_market_pool_share": 0.0777,
+        "mean_re_sign_before_fa": 58.8,
+        "mean_signed_elsewhere": 46.6,
+        "mean_out_of_league": 36.6
+      },
+      "TE": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 131.4,
+        "sd_eligible_ufas": 2.9665,
+        "mean_open_market_pool_per_offseason": 72.8,
+        "sd_open_market_pool": 7.5631,
+        "open_market_pool_share": 0.068,
+        "mean_re_sign_before_fa": 58.6,
+        "mean_signed_elsewhere": 41.4,
+        "mean_out_of_league": 31.4
+      },
+      "OT": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 144.8,
+        "sd_eligible_ufas": 6.4962,
+        "mean_open_market_pool_per_offseason": 72.6,
+        "sd_open_market_pool": 8.2037,
+        "open_market_pool_share": 0.0678,
+        "mean_re_sign_before_fa": 72.2,
+        "mean_signed_elsewhere": 44.6,
+        "mean_out_of_league": 28
+      },
+      "S": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 143.6,
+        "sd_eligible_ufas": 10.4067,
+        "mean_open_market_pool_per_offseason": 72.4,
+        "sd_open_market_pool": 9.7877,
+        "open_market_pool_share": 0.0676,
+        "mean_re_sign_before_fa": 71.2,
+        "mean_signed_elsewhere": 43,
+        "mean_out_of_league": 29.4
+      },
+      "LB": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 121.4,
+        "sd_eligible_ufas": 5.8566,
+        "mean_open_market_pool_per_offseason": 71.4,
+        "sd_open_market_pool": 3.9115,
+        "open_market_pool_share": 0.0667,
+        "mean_re_sign_before_fa": 50,
+        "mean_signed_elsewhere": 45.2,
+        "mean_out_of_league": 26.2
+      },
+      "QB": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 88.2,
+        "sd_eligible_ufas": 4.4385,
+        "mean_open_market_pool_per_offseason": 47.8,
+        "sd_open_market_pool": 7.9812,
+        "open_market_pool_share": 0.0447,
+        "mean_re_sign_before_fa": 40.4,
+        "mean_signed_elsewhere": 33.8,
+        "mean_out_of_league": 14
+      },
+      "ST": {
+        "seasons_sampled": 5,
+        "mean_eligible_ufas_per_offseason": 109.2,
+        "sd_eligible_ufas": 8.8431,
+        "mean_open_market_pool_per_offseason": 46.6,
+        "sd_open_market_pool": 13.3154,
+        "open_market_pool_share": 0.0435,
+        "mean_re_sign_before_fa": 62.6,
+        "mean_signed_elsewhere": 28,
+        "mean_out_of_league": 18.6
+      }
+    },
+    "resign_rate_by_position": {
+      "ST": {
+        "eligible_ufas": 546,
+        "re_sign_before_fa": 313,
+        "signed_elsewhere": 140,
+        "out_of_league": 93,
+        "re_sign_rate": 0.5733,
+        "signed_elsewhere_rate": 0.2564,
+        "out_of_league_rate": 0.1703
+      },
+      "OT": {
+        "eligible_ufas": 724,
+        "re_sign_before_fa": 361,
+        "signed_elsewhere": 223,
+        "out_of_league": 140,
+        "re_sign_rate": 0.4986,
+        "signed_elsewhere_rate": 0.308,
+        "out_of_league_rate": 0.1934
+      },
+      "S": {
+        "eligible_ufas": 718,
+        "re_sign_before_fa": 356,
+        "signed_elsewhere": 215,
+        "out_of_league": 147,
+        "re_sign_rate": 0.4958,
+        "signed_elsewhere_rate": 0.2994,
+        "out_of_league_rate": 0.2047
+      },
+      "IOL": {
+        "eligible_ufas": 955,
+        "re_sign_before_fa": 453,
+        "signed_elsewhere": 300,
+        "out_of_league": 202,
+        "re_sign_rate": 0.4743,
+        "signed_elsewhere_rate": 0.3141,
+        "out_of_league_rate": 0.2115
+      },
+      "QB": {
+        "eligible_ufas": 441,
+        "re_sign_before_fa": 202,
+        "signed_elsewhere": 169,
+        "out_of_league": 70,
+        "re_sign_rate": 0.458,
+        "signed_elsewhere_rate": 0.3832,
+        "out_of_league_rate": 0.1587
+      },
+      "TE": {
+        "eligible_ufas": 657,
+        "re_sign_before_fa": 293,
+        "signed_elsewhere": 207,
+        "out_of_league": 157,
+        "re_sign_rate": 0.446,
+        "signed_elsewhere_rate": 0.3151,
+        "out_of_league_rate": 0.239
+      },
+      "EDGE": {
+        "eligible_ufas": 1294,
+        "re_sign_before_fa": 566,
+        "signed_elsewhere": 446,
+        "out_of_league": 282,
+        "re_sign_rate": 0.4374,
+        "signed_elsewhere_rate": 0.3447,
+        "out_of_league_rate": 0.2179
+      },
+      "IDL": {
+        "eligible_ufas": 758,
+        "re_sign_before_fa": 330,
+        "signed_elsewhere": 289,
+        "out_of_league": 139,
+        "re_sign_rate": 0.4354,
+        "signed_elsewhere_rate": 0.3813,
+        "out_of_league_rate": 0.1834
+      },
+      "RB": {
+        "eligible_ufas": 710,
+        "re_sign_before_fa": 294,
+        "signed_elsewhere": 233,
+        "out_of_league": 183,
+        "re_sign_rate": 0.4141,
+        "signed_elsewhere_rate": 0.3282,
+        "out_of_league_rate": 0.2577
+      },
+      "LB": {
+        "eligible_ufas": 607,
+        "re_sign_before_fa": 250,
+        "signed_elsewhere": 226,
+        "out_of_league": 131,
+        "re_sign_rate": 0.4119,
+        "signed_elsewhere_rate": 0.3723,
+        "out_of_league_rate": 0.2158
+      },
+      "WR": {
+        "eligible_ufas": 1172,
+        "re_sign_before_fa": 462,
+        "signed_elsewhere": 433,
+        "out_of_league": 277,
+        "re_sign_rate": 0.3942,
+        "signed_elsewhere_rate": 0.3695,
+        "out_of_league_rate": 0.2363
+      },
+      "CB": {
+        "eligible_ufas": 1071,
+        "re_sign_before_fa": 421,
+        "signed_elsewhere": 389,
+        "out_of_league": 261,
+        "re_sign_rate": 0.3931,
+        "signed_elsewhere_rate": 0.3632,
+        "out_of_league_rate": 0.2437
+      }
+    },
+    "resign_rate_by_position_tier": {
+      "CB": {
+        "rest": {
+          "eligible_ufas": 1695,
+          "re_sign_before_fa": 597,
+          "signed_elsewhere": 834,
+          "out_of_league": 264,
+          "re_sign_rate": 0.3522,
+          "signed_elsewhere_rate": 0.492
+        },
+        "top_10": {
+          "eligible_ufas": 10,
+          "re_sign_before_fa": 8,
+          "signed_elsewhere": 2,
+          "out_of_league": 0,
+          "re_sign_rate": 0.8,
+          "signed_elsewhere_rate": 0.2
+        },
+        "top_25": {
+          "eligible_ufas": 15,
+          "re_sign_before_fa": 8,
+          "signed_elsewhere": 7,
+          "out_of_league": 0,
+          "re_sign_rate": 0.5333,
+          "signed_elsewhere_rate": 0.4667
+        },
+        "top_50": {
+          "eligible_ufas": 25,
+          "re_sign_before_fa": 10,
+          "signed_elsewhere": 15,
+          "out_of_league": 0,
+          "re_sign_rate": 0.4,
+          "signed_elsewhere_rate": 0.6
+        }
+      },
+      "EDGE": {
+        "rest": {
+          "eligible_ufas": 1850,
+          "re_sign_before_fa": 698,
+          "signed_elsewhere": 869,
+          "out_of_league": 283,
+          "re_sign_rate": 0.3773,
+          "signed_elsewhere_rate": 0.4697
+        },
+        "top_10": {
+          "eligible_ufas": 12,
+          "re_sign_before_fa": 7,
+          "signed_elsewhere": 5,
+          "out_of_league": 0,
+          "re_sign_rate": 0.5833,
+          "signed_elsewhere_rate": 0.4167
+        },
+        "top_25": {
+          "eligible_ufas": 25,
+          "re_sign_before_fa": 15,
+          "signed_elsewhere": 10,
+          "out_of_league": 0,
+          "re_sign_rate": 0.6,
+          "signed_elsewhere_rate": 0.4
+        },
+        "top_50": {
+          "eligible_ufas": 33,
+          "re_sign_before_fa": 18,
+          "signed_elsewhere": 15,
+          "out_of_league": 0,
+          "re_sign_rate": 0.5455,
+          "signed_elsewhere_rate": 0.4545
+        }
+      },
+      "IDL": {
+        "rest": {
+          "eligible_ufas": 1192,
+          "re_sign_before_fa": 403,
+          "signed_elsewhere": 648,
+          "out_of_league": 141,
+          "re_sign_rate": 0.3381,
+          "signed_elsewhere_rate": 0.5436
+        },
+        "top_10": {
+          "eligible_ufas": 9,
+          "re_sign_before_fa": 9,
+          "signed_elsewhere": 0,
+          "out_of_league": 0,
+          "re_sign_rate": 1,
+          "signed_elsewhere_rate": 0
+        },
+        "top_25": {
+          "eligible_ufas": 11,
+          "re_sign_before_fa": 10,
+          "signed_elsewhere": 1,
+          "out_of_league": 0,
+          "re_sign_rate": 0.9091,
+          "signed_elsewhere_rate": 0.0909
+        },
+        "top_50": {
+          "eligible_ufas": 23,
+          "re_sign_before_fa": 14,
+          "signed_elsewhere": 9,
+          "out_of_league": 0,
+          "re_sign_rate": 0.6087,
+          "signed_elsewhere_rate": 0.3913
+        }
+      },
+      "IOL": {
+        "rest": {
+          "eligible_ufas": 1353,
+          "re_sign_before_fa": 566,
+          "signed_elsewhere": 582,
+          "out_of_league": 205,
+          "re_sign_rate": 0.4183,
+          "signed_elsewhere_rate": 0.4302
+        },
+        "top_10": {
+          "eligible_ufas": 10,
+          "re_sign_before_fa": 9,
+          "signed_elsewhere": 1,
+          "out_of_league": 0,
+          "re_sign_rate": 0.9,
+          "signed_elsewhere_rate": 0.1
+        },
+        "top_25": {
+          "eligible_ufas": 15,
+          "re_sign_before_fa": 10,
+          "signed_elsewhere": 5,
+          "out_of_league": 0,
+          "re_sign_rate": 0.6667,
+          "signed_elsewhere_rate": 0.3333
+        },
+        "top_50": {
+          "eligible_ufas": 23,
+          "re_sign_before_fa": 10,
+          "signed_elsewhere": 13,
+          "out_of_league": 0,
+          "re_sign_rate": 0.4348,
+          "signed_elsewhere_rate": 0.5652
+        }
+      },
+      "LB": {
+        "rest": {
+          "eligible_ufas": 930,
+          "re_sign_before_fa": 293,
+          "signed_elsewhere": 506,
+          "out_of_league": 131,
+          "re_sign_rate": 0.3151,
+          "signed_elsewhere_rate": 0.5441
+        },
+        "top_10": {
+          "eligible_ufas": 9,
+          "re_sign_before_fa": 6,
+          "signed_elsewhere": 3,
+          "out_of_league": 0,
+          "re_sign_rate": 0.6667,
+          "signed_elsewhere_rate": 0.3333
+        },
+        "top_25": {
+          "eligible_ufas": 9,
+          "re_sign_before_fa": 3,
+          "signed_elsewhere": 6,
+          "out_of_league": 0,
+          "re_sign_rate": 0.3333,
+          "signed_elsewhere_rate": 0.6667
+        },
+        "top_50": {
+          "eligible_ufas": 19,
+          "re_sign_before_fa": 9,
+          "signed_elsewhere": 10,
+          "out_of_league": 0,
+          "re_sign_rate": 0.4737,
+          "signed_elsewhere_rate": 0.5263
+        }
+      },
+      "OT": {
+        "rest": {
+          "eligible_ufas": 1000,
+          "re_sign_before_fa": 417,
+          "signed_elsewhere": 442,
+          "out_of_league": 141,
+          "re_sign_rate": 0.417,
+          "signed_elsewhere_rate": 0.442
+        },
+        "top_10": {
+          "eligible_ufas": 10,
+          "re_sign_before_fa": 10,
+          "signed_elsewhere": 0,
+          "out_of_league": 0,
+          "re_sign_rate": 1,
+          "signed_elsewhere_rate": 0
+        },
+        "top_25": {
+          "eligible_ufas": 15,
+          "re_sign_before_fa": 13,
+          "signed_elsewhere": 2,
+          "out_of_league": 0,
+          "re_sign_rate": 0.8667,
+          "signed_elsewhere_rate": 0.1333
+        },
+        "top_50": {
+          "eligible_ufas": 27,
+          "re_sign_before_fa": 19,
+          "signed_elsewhere": 8,
+          "out_of_league": 0,
+          "re_sign_rate": 0.7037,
+          "signed_elsewhere_rate": 0.2963
+        }
+      },
+      "QB": {
+        "rest": {
+          "eligible_ufas": 606,
+          "re_sign_before_fa": 221,
+          "signed_elsewhere": 315,
+          "out_of_league": 70,
+          "re_sign_rate": 0.3647,
+          "signed_elsewhere_rate": 0.5198
+        },
+        "top_10": {
+          "eligible_ufas": 10,
+          "re_sign_before_fa": 10,
+          "signed_elsewhere": 0,
+          "out_of_league": 0,
+          "re_sign_rate": 1,
+          "signed_elsewhere_rate": 0
+        },
+        "top_25": {
+          "eligible_ufas": 16,
+          "re_sign_before_fa": 11,
+          "signed_elsewhere": 5,
+          "out_of_league": 0,
+          "re_sign_rate": 0.6875,
+          "signed_elsewhere_rate": 0.3125
+        },
+        "top_50": {
+          "eligible_ufas": 22,
+          "re_sign_before_fa": 11,
+          "signed_elsewhere": 11,
+          "out_of_league": 0,
+          "re_sign_rate": 0.5,
+          "signed_elsewhere_rate": 0.5
+        }
+      },
+      "RB": {
+        "rest": {
+          "eligible_ufas": 1129,
+          "re_sign_before_fa": 391,
+          "signed_elsewhere": 555,
+          "out_of_league": 183,
+          "re_sign_rate": 0.3463,
+          "signed_elsewhere_rate": 0.4916
+        },
+        "top_10": {
+          "eligible_ufas": 10,
+          "re_sign_before_fa": 9,
+          "signed_elsewhere": 1,
+          "out_of_league": 0,
+          "re_sign_rate": 0.9,
+          "signed_elsewhere_rate": 0.1
+        },
+        "top_25": {
+          "eligible_ufas": 15,
+          "re_sign_before_fa": 12,
+          "signed_elsewhere": 3,
+          "out_of_league": 0,
+          "re_sign_rate": 0.8,
+          "signed_elsewhere_rate": 0.2
+        },
+        "top_50": {
+          "eligible_ufas": 24,
+          "re_sign_before_fa": 13,
+          "signed_elsewhere": 11,
+          "out_of_league": 0,
+          "re_sign_rate": 0.5417,
+          "signed_elsewhere_rate": 0.4583
+        }
+      },
+      "S": {
+        "rest": {
+          "eligible_ufas": 1055,
+          "re_sign_before_fa": 451,
+          "signed_elsewhere": 456,
+          "out_of_league": 148,
+          "re_sign_rate": 0.4275,
+          "signed_elsewhere_rate": 0.4322
+        },
+        "top_10": {
+          "eligible_ufas": 10,
+          "re_sign_before_fa": 8,
+          "signed_elsewhere": 2,
+          "out_of_league": 0,
+          "re_sign_rate": 0.8,
+          "signed_elsewhere_rate": 0.2
+        },
+        "top_25": {
+          "eligible_ufas": 15,
+          "re_sign_before_fa": 12,
+          "signed_elsewhere": 3,
+          "out_of_league": 0,
+          "re_sign_rate": 0.8,
+          "signed_elsewhere_rate": 0.2
+        },
+        "top_50": {
+          "eligible_ufas": 24,
+          "re_sign_before_fa": 13,
+          "signed_elsewhere": 11,
+          "out_of_league": 0,
+          "re_sign_rate": 0.5417,
+          "signed_elsewhere_rate": 0.4583
+        }
+      },
+      "ST": {
+        "rest": {
+          "eligible_ufas": 739,
+          "re_sign_before_fa": 299,
+          "signed_elsewhere": 347,
+          "out_of_league": 93,
+          "re_sign_rate": 0.4046,
+          "signed_elsewhere_rate": 0.4696
+        },
+        "top_10": {
+          "eligible_ufas": 9,
+          "re_sign_before_fa": 8,
+          "signed_elsewhere": 1,
+          "out_of_league": 0,
+          "re_sign_rate": 0.8889,
+          "signed_elsewhere_rate": 0.1111
+        },
+        "top_25": {
+          "eligible_ufas": 15,
+          "re_sign_before_fa": 14,
+          "signed_elsewhere": 1,
+          "out_of_league": 0,
+          "re_sign_rate": 0.9333,
+          "signed_elsewhere_rate": 0.0667
+        },
+        "top_50": {
+          "eligible_ufas": 24,
+          "re_sign_before_fa": 17,
+          "signed_elsewhere": 7,
+          "out_of_league": 0,
+          "re_sign_rate": 0.7083,
+          "signed_elsewhere_rate": 0.2917
+        }
+      },
+      "TE": {
+        "rest": {
+          "eligible_ufas": 955,
+          "re_sign_before_fa": 370,
+          "signed_elsewhere": 427,
+          "out_of_league": 158,
+          "re_sign_rate": 0.3874,
+          "signed_elsewhere_rate": 0.4471
+        },
+        "top_10": {
+          "eligible_ufas": 10,
+          "re_sign_before_fa": 10,
+          "signed_elsewhere": 0,
+          "out_of_league": 0,
+          "re_sign_rate": 1,
+          "signed_elsewhere_rate": 0
+        },
+        "top_25": {
+          "eligible_ufas": 14,
+          "re_sign_before_fa": 11,
+          "signed_elsewhere": 3,
+          "out_of_league": 0,
+          "re_sign_rate": 0.7857,
+          "signed_elsewhere_rate": 0.2143
+        },
+        "top_50": {
+          "eligible_ufas": 24,
+          "re_sign_before_fa": 9,
+          "signed_elsewhere": 15,
+          "out_of_league": 0,
+          "re_sign_rate": 0.375,
+          "signed_elsewhere_rate": 0.625
+        }
+      },
+      "WR": {
+        "rest": {
+          "eligible_ufas": 1936,
+          "re_sign_before_fa": 675,
+          "signed_elsewhere": 978,
+          "out_of_league": 283,
+          "re_sign_rate": 0.3487,
+          "signed_elsewhere_rate": 0.5052
+        },
+        "top_10": {
+          "eligible_ufas": 10,
+          "re_sign_before_fa": 8,
+          "signed_elsewhere": 2,
+          "out_of_league": 0,
+          "re_sign_rate": 0.8,
+          "signed_elsewhere_rate": 0.2
+        },
+        "top_25": {
+          "eligible_ufas": 15,
+          "re_sign_before_fa": 11,
+          "signed_elsewhere": 4,
+          "out_of_league": 0,
+          "re_sign_rate": 0.7333,
+          "signed_elsewhere_rate": 0.2667
+        },
+        "top_50": {
+          "eligible_ufas": 24,
+          "re_sign_before_fa": 19,
+          "signed_elsewhere": 5,
+          "out_of_league": 0,
+          "re_sign_rate": 0.7917,
+          "signed_elsewhere_rate": 0.2083
+        }
+      }
+    }
+  }
+}

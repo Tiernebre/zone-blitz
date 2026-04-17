@@ -29,6 +29,7 @@ flowchart LR
         B3[draft-pick-value]
         B4[draft-hit-rates]
         B5[free-agent-market]
+        B5b[ufa-pool-composition]
         B6[contract-structure]
         B7[career-length]
         B8[comp-picks]
@@ -43,6 +44,7 @@ flowchart LR
         D3[draft-pick-trade-value]
         D4[draft-hit-rates-by-round]
         D5[free-agent-market]
+        D5b[ufa-pool-composition]
         D6[contract-structure]
         D7[career-length-by-position]
         D8[nfl-talent-distribution-by-position]
@@ -56,6 +58,8 @@ flowchart LR
     DRAFT --> B3 --> D3
     DRAFT --> B4 --> D4
     CTR --> B5 --> D5
+    ROS --> B5b --> D5b
+    CTR --> B5b
     CTR --> B6 --> D6
     ROS --> B7 --> D7
     DRAFT --> B8 --> D9
@@ -66,25 +70,26 @@ flowchart LR
     SCH --> B9 --> D10
     ROS --> B10 --> D11
 
-    D0 -. indexes .-> D1 & D2 & D3 & D4 & D5 & D6 & D7
+    D0 -. indexes .-> D1 & D2 & D3 & D4 & D5 & D5b & D6 & D7
 ```
 
 ## Index
 
 ### Meta-game (market & career)
 
-| Doc                                                            | What it covers                                                                                                      | Feeds                                                           |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| [calibration-gaps.md](./calibration-gaps.md)                   | Master index of what's done vs what's missing across play-level, game-level, and season/career realism.             | The roadmap.                                                    |
-| [position-market-sizing.md](./position-market-sizing.md)       | 53-man roster slots by position, meaningful contributors, clear starters. QB is 2, OL is 8, specialists are 1-deep. | Player generator, league init, depth-chart classification.      |
-| [draft-position-tendencies.md](./draft-position-tendencies.md) | Which positions go in which rounds. QB/WR/EDGE/OT/CB are ~65% of top-10; RB/LB double their R1 counts by R7.        | Draft class generator, NPC GM positional-value prior.           |
-| [draft-pick-trade-value.md](./draft-pick-trade-value.md)       | Jimmy Johnson vs Rich Hill vs Chase Stuart — three canonical trade-value charts and when they disagree.             | AI GM trade evaluator, user trade grade.                        |
-| [draft-hit-rates-by-round.md](./draft-hit-rates-by-round.md)   | P(multi-year starter \| round, position). 86% for R1, 7% for R7. Round 4 is the cliff.                              | Prospect generation, post-draft grade UI.                       |
-| [free-agent-market.md](./free-agent-market.md)                 | UFA volume, AAV tiers, signing waves, own-team re-sign rates by position.                                           | FA period generator, NPC bid AI.                                |
-| [contract-structure.md](./contract-structure.md)               | Contract shape — length, guarantee %, signing-bonus share, year-by-year cap hit, void years, restructures.          | Contract offer generator, cap AI, cut/restructure decisions.    |
-| [career-length-by-position.md](./career-length-by-position.md) | Five canonical aging shapes — specialist longevity, QB tail, OL plateau, mid-career cohort, RB/CB cliff.            | Aging system, retirement decisions, franchise-planning windows. |
-| [comp-picks.md](./comp-picks.md)                               | Compensatory picks — 32/yr cap, P(comp \| net UFA losses), round mix, minority-hire supplemental picks.             | AI GM "let him walk for the comp pick" decision, draft supply.  |
-| [ir-usage.md](./ir-usage.md)                                   | IR placements per team-season, ~30% return rate, ~5-week absence, position concentration (CB/OL/LB lead).           | In-season roster-slot pressure, waiver AI, PS elevations.       |
+| Doc                                                            | What it covers                                                                                                                   | Feeds                                                           |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [calibration-gaps.md](./calibration-gaps.md)                   | Master index of what's done vs what's missing across play-level, game-level, and season/career realism.                          | The roadmap.                                                    |
+| [position-market-sizing.md](./position-market-sizing.md)       | 53-man roster slots by position, meaningful contributors, clear starters. QB is 2, OL is 8, specialists are 1-deep.              | Player generator, league init, depth-chart classification.      |
+| [draft-position-tendencies.md](./draft-position-tendencies.md) | Which positions go in which rounds. QB/WR/EDGE/OT/CB are ~65% of top-10; RB/LB double their R1 counts by R7.                     | Draft class generator, NPC GM positional-value prior.           |
+| [draft-pick-trade-value.md](./draft-pick-trade-value.md)       | Jimmy Johnson vs Rich Hill vs Chase Stuart — three canonical trade-value charts and when they disagree.                          | AI GM trade evaluator, user trade grade.                        |
+| [draft-hit-rates-by-round.md](./draft-hit-rates-by-round.md)   | P(multi-year starter \| round, position). 86% for R1, 7% for R7. Round 4 is the cliff.                                           | Prospect generation, post-draft grade UI.                       |
+| [free-agent-market.md](./free-agent-market.md)                 | UFA volume, AAV tiers, signing waves, own-team re-sign rates by position.                                                        | FA period generator, NPC bid AI.                                |
+| [ufa-pool-composition.md](./ufa-pool-composition.md)           | Distinct-player FA pool size per position via roster transitions; re-sign-before-FA vs signed-elsewhere vs out-of-league gating. | FA pool sampler, re-sign gate, attrition model.                 |
+| [contract-structure.md](./contract-structure.md)               | Contract shape — length, guarantee %, signing-bonus share, year-by-year cap hit, void years, restructures.                       | Contract offer generator, cap AI, cut/restructure decisions.    |
+| [career-length-by-position.md](./career-length-by-position.md) | Five canonical aging shapes — specialist longevity, QB tail, OL plateau, mid-career cohort, RB/CB cliff.                         | Aging system, retirement decisions, franchise-planning windows. |
+| [comp-picks.md](./comp-picks.md)                               | Compensatory picks — 32/yr cap, P(comp \| net UFA losses), round mix, minority-hire supplemental picks.                          | AI GM "let him walk for the comp pick" decision, draft supply.  |
+| [ir-usage.md](./ir-usage.md)                                   | IR placements per team-season, ~30% return rate, ~5-week absence, position concentration (CB/OL/LB lead).                        | In-season roster-slot pressure, waiver AI, PS elevations.       |
 
 ### Front-office market (coaches + scouts)
 
