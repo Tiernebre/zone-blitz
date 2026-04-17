@@ -11,6 +11,12 @@ Companion script:
 [`data/R/bands/free-agent-market.R`](../R/bands/free-agent-market.R). Gap index
 row: [calibration-gaps.md #5 (#514)](./calibration-gaps.md).
 
+**Related band**: [`ufa-pool-composition.md`](./ufa-pool-composition.md) sizes
+the FA pool per position using roster transitions (distinct-player counts, not
+contract-row counts) and gates re-sign-before-FA vs. open-market outcomes. Use
+this doc's AAV-tier bands for contract economics, and the pool-composition doc
+for pool sampling and the re-sign gate.
+
 ## Sources
 
 - `nflreadr::load_contracts()` — OverTheCap historical feed, one row per signed
