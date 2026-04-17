@@ -64,15 +64,20 @@ function bucketOf(entry: {
   });
 }
 
+const COMPOSITION_TOTAL = ROSTER_BUCKET_COMPOSITION.reduce(
+  (sum, entry) => sum + entry.count,
+  0,
+);
+
 Deno.test("generates correct number of rostered players per team", () => {
   const result = makeGenerator().generate(INPUT);
   const rostered = result.players.filter(
     (p) => p.player.teamId !== null && p.player.status === "active",
   );
-  assertEquals(rostered.length, TEAM_IDS.length * INPUT.rosterSize);
+  assertEquals(rostered.length, TEAM_IDS.length * COMPOSITION_TOTAL);
   for (const teamId of TEAM_IDS) {
     const teamPlayers = rostered.filter((p) => p.player.teamId === teamId);
-    assertEquals(teamPlayers.length, INPUT.rosterSize);
+    assertEquals(teamPlayers.length, COMPOSITION_TOTAL);
   }
 });
 
@@ -228,13 +233,52 @@ Deno.test("signing bonus produces a bonus proration row with source 'signing'", 
   }
 });
 
-Deno.test("roster composition sums to 53 players", () => {
-  const total = ROSTER_BUCKET_COMPOSITION.reduce(
-    (sum, entry) => sum + entry.count,
-    0,
-  );
-  assertEquals(total, 53);
-});
+Deno.test(
+  "roster composition matches position-market data within ±0.5 per bucket",
+  () => {
+    // Means from data/bands/position-market.json roster_slots_per_team_week.
+    // OL/DL/DB are split between sub-buckets (OT+IOL, EDGE+IDL, CB+S) and
+    // checked as combined totals against the data's combined means.
+    const PER_BUCKET_MEANS: Record<string, number> = {
+      QB: 2.0386,
+      RB: 3.5617,
+      WR: 5.2229,
+      TE: 3.1022,
+      LB: 6.8224,
+      K: 0.9959,
+      P: 1.0059,
+      LS: 0.9996,
+    };
+    const COMBINED_MEANS: Record<string, [readonly string[], number]> = {
+      OL: [["OT", "IOL"], 8.0223],
+      DL: [["EDGE", "IDL"], 7.0316],
+      DB: [["CB", "S"], 9.2181],
+    };
+    const counts = new Map<string, number>(
+      ROSTER_BUCKET_COMPOSITION.map(({ bucket, count }) => [bucket, count]),
+    );
+    for (const [bucket, mean] of Object.entries(PER_BUCKET_MEANS)) {
+      const count = counts.get(bucket) ?? 0;
+      const delta = Math.abs(count - mean);
+      assertEquals(
+        delta <= 0.5,
+        true,
+        `${bucket} count ${count} drifted ${
+          delta.toFixed(2)
+        } from mean ${mean}`,
+      );
+    }
+    for (const [group, [members, mean]] of Object.entries(COMBINED_MEANS)) {
+      const total = members.reduce((s, b) => s + (counts.get(b) ?? 0), 0);
+      const delta = Math.abs(total - mean);
+      assertEquals(
+        delta <= 0.5,
+        true,
+        `${group} total ${total} drifted ${delta.toFixed(2)} from mean ${mean}`,
+      );
+    }
+  },
+);
 
 Deno.test(
   "every generated player classifies into a known neutral bucket",
