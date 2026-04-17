@@ -1,9 +1,13 @@
 import type { PlayOutcome, PlayTag } from "./events.ts";
 import type { MatchupContribution, Situation } from "./resolve-play.ts";
-import { PASS_RESOLUTION, SACK_YARDAGE } from "./resolve-play.ts";
+import { PASS_COEFFICIENTS } from "./outcome-coefficients.ts";
 import type { SeededRng } from "./rng.ts";
 import { observePassScore } from "./score-observer.ts";
 import type { OutcomeResult } from "./synthesize-run-outcome.ts";
+
+function sigmoid(x: number): number {
+  return 1 / (1 + Math.exp(-x));
+}
 
 export function synthesizePassOutcome(
   contributions: MatchupContribution[],
@@ -43,20 +47,24 @@ export function synthesizePassOutcome(
     : avgScore;
   observePassScore(protectionScore, coverageScore);
 
-  const sackProb = Math.max(
-    PASS_RESOLUTION.sack.floor,
-    PASS_RESOLUTION.sack.base -
-      protectionScore * PASS_RESOLUTION.sack.protectionModifier,
+  // Sigmoid probability rolls — no floors/ceilings needed because
+  // σ(·) is already bounded in (0, 1) and monotonic in its argument.
+  const sackProb = sigmoid(
+    PASS_COEFFICIENTS.sack.intercept +
+      PASS_COEFFICIENTS.sack.slope * protectionScore,
   );
+
   if (rng.next() < sackProb) {
     outcome = "sack";
-    yardage = rng.int(SACK_YARDAGE.min, SACK_YARDAGE.max);
+    yardage = rng.int(
+      PASS_COEFFICIENTS.sackYards.min,
+      PASS_COEFFICIENTS.sackYards.max,
+    );
     tags.push("sack", "pressure");
 
     const rusher = contributions.find((c) =>
       c.matchup.type === "pass_rush" ||
-      (c.matchup.type === "pass_protection" &&
-        c.score < 0)
+      (c.matchup.type === "pass_protection" && c.score < 0)
     );
     if (rusher) {
       const idx = participants.findIndex(
@@ -73,7 +81,7 @@ export function synthesizePassOutcome(
       }
     }
 
-    if (rng.next() < PASS_RESOLUTION.fumbleOnSack) {
+    if (rng.next() < PASS_COEFFICIENTS.fumbleOnSack) {
       outcome = "fumble";
       tags.push("fumble", "turnover");
     }
@@ -82,26 +90,17 @@ export function synthesizePassOutcome(
       tags.push("pressure");
     }
 
-    const intProb = Math.max(
-      PASS_RESOLUTION.interception.floor,
-      PASS_RESOLUTION.interception.base -
-        coverageScore * PASS_RESOLUTION.interception.coverageModifier,
+    const intProb = sigmoid(
+      PASS_COEFFICIENTS.interception.intercept +
+        PASS_COEFFICIENTS.interception.slope * coverageScore,
     );
-    const completionProb = Math.max(
-      PASS_RESOLUTION.completion.floor,
-      Math.min(
-        PASS_RESOLUTION.completion.ceiling,
-        PASS_RESOLUTION.completion.base +
-          coverageScore * PASS_RESOLUTION.completion.coverageModifier,
-      ),
+    const completionProb = sigmoid(
+      PASS_COEFFICIENTS.completion.intercept +
+        PASS_COEFFICIENTS.completion.slope * coverageScore,
     );
-    const bigPlayProb = Math.max(
-      PASS_RESOLUTION.bigPlay.floor,
-      Math.min(
-        PASS_RESOLUTION.bigPlay.ceiling,
-        PASS_RESOLUTION.bigPlay.base +
-          coverageScore * PASS_RESOLUTION.bigPlay.coverageModifier,
-      ),
+    const bigPlayProb = sigmoid(
+      PASS_COEFFICIENTS.bigPlay.intercept +
+        PASS_COEFFICIENTS.bigPlay.slope * coverageScore,
     );
 
     const roll = rng.next();
@@ -131,14 +130,14 @@ export function synthesizePassOutcome(
       const isBigPlay = rng.next() < bigPlayProb;
       if (isBigPlay) {
         yardage = rng.int(
-          PASS_RESOLUTION.bigPlay.yards.min,
-          PASS_RESOLUTION.bigPlay.yards.max,
+          PASS_COEFFICIENTS.bigPlayYards.min,
+          PASS_COEFFICIENTS.bigPlayYards.max,
         );
         tags.push("big_play");
       } else {
         yardage = rng.int(
-          PASS_RESOLUTION.completionYards.min,
-          PASS_RESOLUTION.completionYards.max,
+          PASS_COEFFICIENTS.completionYards.min,
+          PASS_COEFFICIENTS.completionYards.max,
         );
       }
       const target = routeContribs.find((c) => c.score > 0) ??
@@ -154,9 +153,7 @@ export function synthesizePassOutcome(
       yardage = 0;
     }
 
-    if (
-      outcome === "pass_complete" && yardage >= situation.distance
-    ) {
+    if (outcome === "pass_complete" && yardage >= situation.distance) {
       tags.push("first_down");
     }
   }

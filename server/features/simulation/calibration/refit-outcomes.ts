@@ -27,6 +27,10 @@ const RUSHING_PATH = new URL(
   "../../../../data/bands/rushing-plays.json",
   import.meta.url,
 );
+const PASSING_PATH = new URL(
+  "../../../../data/bands/passing-plays.json",
+  import.meta.url,
+);
 const DEFAULT_MEASURED_PATH = new URL(
   "./measured-scores.json",
   import.meta.url,
@@ -63,6 +67,17 @@ export function parseRushingOverall(jsonString: string): MetricBand {
   return overall as MetricBand;
 }
 
+export function parsePassingBigPlayRate(jsonString: string): number {
+  const parsed = JSON.parse(jsonString);
+  const rate = parsed?.bands?.big_play_rate?.twenty_plus_per_completion?.rate;
+  if (typeof rate !== "number" || rate <= 0 || rate >= 1) {
+    throw new Error(
+      "passing-plays.json missing bands.big_play_rate.twenty_plus_per_completion.rate",
+    );
+  }
+  return rate;
+}
+
 export interface RunRefitOptions {
   measuredPath?: URL;
   coefficientsPath?: URL;
@@ -77,13 +92,16 @@ export async function computeRefit(): Promise<RefitResult> {
   const measured = measureScores({ seeds: [...CALIBRATION_SEEDS] });
   const bandsJson = await Deno.readTextFile(BANDS_PATH);
   const rushingJson = await Deno.readTextFile(RUSHING_PATH);
+  const passingJson = await Deno.readTextFile(PASSING_PATH);
   const bands = loadBands(bandsJson);
   const rushingOverall = parseRushingOverall(rushingJson);
+  const passingBigPlayRate = parsePassingBigPlayRate(passingJson);
 
   const coefficients = fitOutcomes({
     scores: measured,
     bands,
     rushingOverall,
+    passingBigPlayRate,
   });
 
   const measuredOut = {
