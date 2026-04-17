@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>Zone Blitz</title>
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+	<script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+	<main class="max-w-xl mx-auto p-8">
+		<h1 class="text-3xl font-bold mb-6">Zone Blitz</h1>
+		<p class="mb-4">Hello, world. Click below to ping the database.</p>
+		<button
+			class="px-4 py-2 bg-slate-900 text-white rounded hover:bg-slate-700"
+			hx-get="/api/health"
+			hx-target="#health"
+			hx-swap="innerHTML">
+			Check health
+		</button>
+		<div id="health" class="mt-4"></div>
+	</main>
+</body>
+</html>

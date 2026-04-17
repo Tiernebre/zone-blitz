@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div th:fragment="health"
+		 th:classappend="${dbUp} ? 'bg-green-100 text-green-900' : 'bg-red-100 text-red-900'"
+		 class="p-3 rounded border">
+		<span th:if="${dbUp}">Database reachable</span>
+		<span th:unless="${dbUp}">Database unreachable</span>
+	</div>
+</body>
+</html>
