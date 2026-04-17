@@ -109,6 +109,12 @@ const STAFF_BLUEPRINT: RoleSpec[] = [
 interface TierBand {
   ageMin: number;
   ageMax: number;
+  /** Most-common age (mode) for the triangular age distribution. Keeps
+   * the population shaped like the real NFL — a peak around the mode
+   * with genuinely young and genuinely old coaches appearing in the
+   * tails, instead of a flat uniform roll that clusters every coach in
+   * the middle of a narrow band. */
+  ageMode: number;
   /** Salary band in whole dollars; annual. */
   salaryMin: number;
   salaryMax: number;
@@ -146,8 +152,9 @@ const ROLE_SALARY_OVERRIDES: Partial<
 
 const TIER_BANDS: Record<Tier, TierBand> = {
   HC: {
-    ageMin: 48,
-    ageMax: 60,
+    ageMin: 36,
+    ageMax: 68,
+    ageMode: 51,
     salaryMin: 6_000_000,
     salaryMax: 14_000_000,
     yearsMin: 3,
@@ -156,12 +163,13 @@ const TIER_BANDS: Record<Tier, TierBand> = {
     buyoutYearsMax: 2,
     tenureMin: 0,
     tenureMax: 4,
-    experienceMin: 20,
-    experienceMax: 35,
+    experienceMin: 8,
+    experienceMax: 40,
   },
   COORDINATOR: {
-    ageMin: 40,
-    ageMax: 55,
+    ageMin: 30,
+    ageMax: 62,
+    ageMode: 44,
     salaryMin: 1_000_000,
     salaryMax: 5_000_000,
     yearsMin: 2,
@@ -170,12 +178,13 @@ const TIER_BANDS: Record<Tier, TierBand> = {
     buyoutYearsMax: 2,
     tenureMin: 0,
     tenureMax: 3,
-    experienceMin: 12,
-    experienceMax: 28,
+    experienceMin: 4,
+    experienceMax: 32,
   },
   POSITION: {
-    ageMin: 32,
-    ageMax: 50,
+    ageMin: 26,
+    ageMax: 62,
+    ageMode: 40,
     salaryMin: 400_000,
     salaryMax: 1_400_000,
     yearsMin: 1,
@@ -184,8 +193,8 @@ const TIER_BANDS: Record<Tier, TierBand> = {
     buyoutYearsMax: 1,
     tenureMin: 0,
     tenureMax: 3,
-    experienceMin: 5,
-    experienceMax: 20,
+    experienceMin: 2,
+    experienceMax: 30,
   },
 };
 
@@ -418,6 +427,28 @@ function intInRange(random: () => number, min: number, max: number): number {
   return Math.floor(random() * (max - min + 1)) + min;
 }
 
+/**
+ * Inverse-CDF sample from a triangular distribution with explicit mode.
+ * Produces a population whose histogram peaks at `mode` and tapers toward
+ * both tails — the right shape for ages in a professional league, where
+ * most coaches cluster near a typical career-arc peak but rising stars
+ * (young) and career lifers (old) genuinely exist.
+ */
+function triangularInt(
+  random: () => number,
+  min: number,
+  mode: number,
+  max: number,
+): number {
+  const u = random();
+  const range = max - min;
+  const leftShare = (mode - min) / range;
+  const raw = u < leftShare
+    ? min + Math.sqrt(u * range * (mode - min))
+    : max - Math.sqrt((1 - u) * range * (max - mode));
+  return Math.min(max, Math.max(min, Math.round(raw)));
+}
+
 // Pool sizing is driven by tier-level per-team counts rather than a flat
 // multiplier per blueprint role. The numbers reflect the initial staffing
 // phase the game presents at league creation — teams compete over roughly
@@ -509,7 +540,7 @@ function generateCoach(
   const salaryMin = salaryOverride?.salaryMin ?? band.salaryMin;
   const salaryMax = salaryOverride?.salaryMax ?? band.salaryMax;
 
-  const age = intInRange(random, band.ageMin, band.ageMax);
+  const age = triangularInt(random, band.ageMin, band.ageMode, band.ageMax);
   const contractYears = intInRange(random, band.yearsMin, band.yearsMax);
   const salarySteps = Math.max(
     1,

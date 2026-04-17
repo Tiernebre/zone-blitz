@@ -119,6 +119,11 @@ function distributeByWeight(
 interface RoleBand {
   ageMin: number;
   ageMax: number;
+  /** Most-common age (mode) for the triangular age distribution. Keeps
+   * the pool NFL-shaped with real tails (young cross-checkers, career
+   * area scouts well into their 50s) instead of a flat uniform roll
+   * that clusters everyone near the band's midpoint. */
+  ageMode: number;
   salaryMin: number;
   salaryMax: number;
   yearsMin: number;
@@ -139,8 +144,9 @@ const CAREER_START_AGE = 22;
 
 const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
   DIRECTOR: {
-    ageMin: 50,
-    ageMax: 65,
+    ageMin: 40,
+    ageMax: 70,
+    ageMode: 54,
     salaryMin: 250_000,
     salaryMax: 800_000,
     yearsMin: 3,
@@ -151,12 +157,13 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
     workCapacityMax: 240,
     tenureMin: 0,
     tenureMax: 5,
-    experienceMin: 20,
-    experienceMax: 35,
+    experienceMin: 12,
+    experienceMax: 40,
   },
   NATIONAL_CROSS_CHECKER: {
-    ageMin: 42,
-    ageMax: 58,
+    ageMin: 32,
+    ageMax: 64,
+    ageMode: 46,
     salaryMin: 150_000,
     salaryMax: 400_000,
     yearsMin: 2,
@@ -167,12 +174,13 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
     workCapacityMax: 220,
     tenureMin: 0,
     tenureMax: 4,
-    experienceMin: 12,
-    experienceMax: 25,
+    experienceMin: 6,
+    experienceMax: 30,
   },
   AREA_SCOUT: {
-    ageMin: 30,
-    ageMax: 50,
+    ageMin: 25,
+    ageMax: 58,
+    ageMode: 36,
     salaryMin: 80_000,
     salaryMax: 200_000,
     yearsMin: 1,
@@ -183,8 +191,8 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
     workCapacityMax: 160,
     tenureMin: 0,
     tenureMax: 3,
-    experienceMin: 3,
-    experienceMax: 15,
+    experienceMin: 1,
+    experienceMax: 25,
   },
 };
 
@@ -202,6 +210,27 @@ export interface ScoutsGeneratorOptions {
 
 function intInRange(random: () => number, min: number, max: number): number {
   return Math.floor(random() * (max - min + 1)) + min;
+}
+
+/**
+ * Inverse-CDF sample from a triangular distribution with explicit mode.
+ * Peaks at `mode` and tapers toward both tails — right shape for ages
+ * in a professional scouting department, where most staff cluster near
+ * a typical career-arc peak but rising stars and career lifers exist.
+ */
+function triangularInt(
+  random: () => number,
+  min: number,
+  mode: number,
+  max: number,
+): number {
+  const u = random();
+  const range = max - min;
+  const leftShare = (mode - min) / range;
+  const raw = u < leftShare
+    ? min + Math.sqrt(u * range * (mode - min))
+    : max - Math.sqrt((1 - u) * range * (max - mode));
+  return Math.min(max, Math.max(min, Math.round(raw)));
 }
 
 interface ScoutPreferences {
@@ -349,7 +378,12 @@ export function createScoutsGenerator(
             : idsByKey.get(spec.reportsTo)!;
 
           const band = ROLE_BANDS[spec.role];
-          const age = intInRange(random, band.ageMin, band.ageMax);
+          const age = triangularInt(
+            random,
+            band.ageMin,
+            band.ageMode,
+            band.ageMax,
+          );
           const contractYears = intInRange(
             random,
             band.yearsMin,
@@ -445,7 +479,12 @@ export function createScoutsGenerator(
           const id = crypto.randomUUID();
 
           const band = ROLE_BANDS[spec.role];
-          const age = intInRange(random, band.ageMin, band.ageMax);
+          const age = triangularInt(
+            random,
+            band.ageMin,
+            band.ageMode,
+            band.ageMax,
+          );
           const contractYears = intInRange(
             random,
             band.yearsMin,
