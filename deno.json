@@ -40,6 +40,7 @@
     "sim:calibrate:wr": "deno run --allow-read server/features/simulation/calibration/per-position/run-wr-calibration.ts",
     "sim:calibrate:edge": "deno run --allow-read server/features/simulation/calibration/per-position/run-edge-calibration.ts",
     "sim:calibrate:cb": "deno run --allow-read server/features/simulation/calibration/per-position/run-cb-calibration.ts",
+    "sim:calibrate:s": "deno run --allow-read server/features/simulation/calibration/per-position/run-s-calibration.ts",
     "build": "cd client && deno task build",
     "start": "cd server && deno run --env=../.env --allow-net --allow-env --allow-read --allow-sys main.ts"
   },

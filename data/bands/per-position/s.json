@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-04-17T12:29:04Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "position": "S",
+  "qualifier": "regular-season S-seasons with >=10 games and >=40 total tackles",
+  "ranking_stat": "playmaker_per_game ((INTs + PBUs + forced fumbles + sacks) / games)",
+  "notes": "Starter safety seasons 2020-2024, ranked by playmaker composite (INT + PBU + FF + sack per game) then carved into percentile bands (elite: top 10%, good: 10-30%, average: 30-70%, weak: 70-90%, replacement: bottom 10%). KNOWN GAP: nflreadr's per-player defense feed does not expose targets-allowed or completion-allowed% per safety, so the band set is limited to volume rates (tackles/game, INT/game, PBU/game, forced-fumble/game). A coverage-yield band would require a pbp target-defender join, which is out of scope for this slice.",
+  "bands": {
+    "elite": {
+      "n": 77,
+      "metrics": {
+        "tackles_per_game": {
+          "n": 77,
+          "mean": 4.251,
+          "sd": 0.9671
+        },
+        "int_rate": {
+          "n": 77,
+          "mean": 0.2662,
+          "sd": 0.1352
+        },
+        "pbu_rate": {
+          "n": 77,
+          "mean": 0.9659,
+          "sd": 0.1999
+        },
+        "forced_fumble_rate": {
+          "n": 77,
+          "mean": 0.068,
+          "sd": 0.089
+        }
+      }
+    },
+    "good": {
+      "n": 153,
+      "metrics": {
+        "tackles_per_game": {
+          "n": 153,
+          "mean": 4.4955,
+          "sd": 1.0164
+        },
+        "int_rate": {
+          "n": 153,
+          "mean": 0.1609,
+          "sd": 0.0933
+        },
+        "pbu_rate": {
+          "n": 153,
+          "mean": 0.6981,
+          "sd": 0.1538
+        },
+        "forced_fumble_rate": {
+          "n": 153,
+          "mean": 0.0601,
+          "sd": 0.0826
+        }
+      }
+    },
+    "average": {
+      "n": 306,
+      "metrics": {
+        "tackles_per_game": {
+          "n": 306,
+          "mean": 4.4395,
+          "sd": 1.0774
+        },
+        "int_rate": {
+          "n": 306,
+          "mean": 0.1017,
+          "sd": 0.0754
+        },
+        "pbu_rate": {
+          "n": 306,
+          "mean": 0.4704,
+          "sd": 0.1265
+        },
+        "forced_fumble_rate": {
+          "n": 306,
+          "mean": 0.0471,
+          "sd": 0.0593
+        }
+      }
+    },
+    "weak": {
+      "n": 153,
+      "metrics": {
+        "tackles_per_game": {
+          "n": 153,
+          "mean": 4.5249,
+          "sd": 1.0288
+        },
+        "int_rate": {
+          "n": 153,
+          "mean": 0.0464,
+          "sd": 0.0485
+        },
+        "pbu_rate": {
+          "n": 153,
+          "mean": 0.2945,
+          "sd": 0.0768
+        },
+        "forced_fumble_rate": {
+          "n": 153,
+          "mean": 0.0338,
+          "sd": 0.0439
+        }
+      }
+    },
+    "replacement": {
+      "n": 77,
+      "metrics": {
+        "tackles_per_game": {
+          "n": 77,
+          "mean": 4.3022,
+          "sd": 1.1195
+        },
+        "int_rate": {
+          "n": 77,
+          "mean": 0.0191,
+          "sd": 0.0347
+        },
+        "pbu_rate": {
+          "n": 77,
+          "mean": 0.1202,
+          "sd": 0.0717
+        },
+        "forced_fumble_rate": {
+          "n": 77,
+          "mean": 0.0203,
+          "sd": 0.0338
+        }
+      }
+    }
+  }
+}
