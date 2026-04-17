@@ -1,0 +1,2440 @@
+{
+  "generated_at": "2026-04-17T12:56:04Z",
+  "seasons": [
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "notes": "Career length + aging curves by position. Source: load_rosters() longitudinal, age derived from birth_date at each season's Sept-1 mark. Position canonicalization is coarser than position-market: OL collapses all OT/OG/OC/generic OL tags; CB and generic DB collapse into CB_DB; LB includes OLB/ILB/MLB/generic LB (EDGE-tagged OLBs stay in LB here — PFR's OLB/DE split is too inconsistent longitudinally to separate). p_active_by_age uses an age-22 cohort denominator: for each position, how many age-22 players from the season window survive to each older age. This understates longevity for positions where careers frequently start older than 22 (K, P, LS, late-bloomer OL) but is the cleanest within-source aging curve available. peak_age_modal is the age at which a position has the most player-seasons in the window (modal age). It is a population-level peak, not a per-player best-season metric. retirement_age includes only players whose last observed season is at least 2 years before the end of the window, to avoid counting still- active players as retired. year_over_year_attrition reports 1 - P(returns in season N+1 | active in season N) per age, per position. The final season of the window is excluded (no N+1 observation possible).",
+  "bands": {
+    "p_active_by_age": {
+      "CB_DB": {
+        "age_22": {
+          "active_n": 682,
+          "cohort_n": 682,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 546,
+          "cohort_n": 682,
+          "p_active": 0.8006
+        },
+        "age_24": {
+          "active_n": 473,
+          "cohort_n": 682,
+          "p_active": 0.6935
+        },
+        "age_25": {
+          "active_n": 387,
+          "cohort_n": 682,
+          "p_active": 0.5674
+        },
+        "age_26": {
+          "active_n": 318,
+          "cohort_n": 682,
+          "p_active": 0.4663
+        },
+        "age_27": {
+          "active_n": 235,
+          "cohort_n": 682,
+          "p_active": 0.3446
+        },
+        "age_28": {
+          "active_n": 168,
+          "cohort_n": 682,
+          "p_active": 0.2463
+        },
+        "age_29": {
+          "active_n": 108,
+          "cohort_n": 682,
+          "p_active": 0.1584
+        },
+        "age_30": {
+          "active_n": 74,
+          "cohort_n": 682,
+          "p_active": 0.1085
+        },
+        "age_31": {
+          "active_n": 44,
+          "cohort_n": 682,
+          "p_active": 0.0645
+        },
+        "age_32": {
+          "active_n": 29,
+          "cohort_n": 682,
+          "p_active": 0.0425
+        },
+        "age_33": {
+          "active_n": 20,
+          "cohort_n": 682,
+          "p_active": 0.0293
+        },
+        "age_34": {
+          "active_n": 7,
+          "cohort_n": 682,
+          "p_active": 0.0103
+        },
+        "age_35": {
+          "active_n": 2,
+          "cohort_n": 682,
+          "p_active": 0.0029
+        },
+        "age_36": {
+          "active_n": 2,
+          "cohort_n": 682,
+          "p_active": 0.0029
+        }
+      },
+      "EDGE": {
+        "age_22": {
+          "active_n": 139,
+          "cohort_n": 139,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 96,
+          "cohort_n": 139,
+          "p_active": 0.6906
+        },
+        "age_24": {
+          "active_n": 72,
+          "cohort_n": 139,
+          "p_active": 0.518
+        },
+        "age_25": {
+          "active_n": 51,
+          "cohort_n": 139,
+          "p_active": 0.3669
+        },
+        "age_26": {
+          "active_n": 35,
+          "cohort_n": 139,
+          "p_active": 0.2518
+        },
+        "age_27": {
+          "active_n": 26,
+          "cohort_n": 139,
+          "p_active": 0.1871
+        },
+        "age_28": {
+          "active_n": 18,
+          "cohort_n": 139,
+          "p_active": 0.1295
+        },
+        "age_29": {
+          "active_n": 12,
+          "cohort_n": 139,
+          "p_active": 0.0863
+        },
+        "age_30": {
+          "active_n": 8,
+          "cohort_n": 139,
+          "p_active": 0.0576
+        },
+        "age_31": {
+          "active_n": 5,
+          "cohort_n": 139,
+          "p_active": 0.036
+        },
+        "age_32": {
+          "active_n": 2,
+          "cohort_n": 139,
+          "p_active": 0.0144
+        }
+      },
+      "iDL": {
+        "age_22": {
+          "active_n": 396,
+          "cohort_n": 396,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 312,
+          "cohort_n": 396,
+          "p_active": 0.7879
+        },
+        "age_24": {
+          "active_n": 262,
+          "cohort_n": 396,
+          "p_active": 0.6616
+        },
+        "age_25": {
+          "active_n": 215,
+          "cohort_n": 396,
+          "p_active": 0.5429
+        },
+        "age_26": {
+          "active_n": 171,
+          "cohort_n": 396,
+          "p_active": 0.4318
+        },
+        "age_27": {
+          "active_n": 128,
+          "cohort_n": 396,
+          "p_active": 0.3232
+        },
+        "age_28": {
+          "active_n": 106,
+          "cohort_n": 396,
+          "p_active": 0.2677
+        },
+        "age_29": {
+          "active_n": 79,
+          "cohort_n": 396,
+          "p_active": 0.1995
+        },
+        "age_30": {
+          "active_n": 48,
+          "cohort_n": 396,
+          "p_active": 0.1212
+        },
+        "age_31": {
+          "active_n": 24,
+          "cohort_n": 396,
+          "p_active": 0.0606
+        },
+        "age_32": {
+          "active_n": 15,
+          "cohort_n": 396,
+          "p_active": 0.0379
+        },
+        "age_33": {
+          "active_n": 6,
+          "cohort_n": 396,
+          "p_active": 0.0152
+        },
+        "age_34": {
+          "active_n": 6,
+          "cohort_n": 396,
+          "p_active": 0.0152
+        },
+        "age_35": {
+          "active_n": 4,
+          "cohort_n": 396,
+          "p_active": 0.0101
+        },
+        "age_36": {
+          "active_n": 1,
+          "cohort_n": 396,
+          "p_active": 0.0025
+        },
+        "age_38": {
+          "active_n": 1,
+          "cohort_n": 396,
+          "p_active": 0.0025
+        }
+      },
+      "K": {
+        "age_22": {
+          "active_n": 41,
+          "cohort_n": 41,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 32,
+          "cohort_n": 41,
+          "p_active": 0.7805
+        },
+        "age_24": {
+          "active_n": 28,
+          "cohort_n": 41,
+          "p_active": 0.6829
+        },
+        "age_25": {
+          "active_n": 25,
+          "cohort_n": 41,
+          "p_active": 0.6098
+        },
+        "age_26": {
+          "active_n": 24,
+          "cohort_n": 41,
+          "p_active": 0.5854
+        },
+        "age_27": {
+          "active_n": 23,
+          "cohort_n": 41,
+          "p_active": 0.561
+        },
+        "age_28": {
+          "active_n": 21,
+          "cohort_n": 41,
+          "p_active": 0.5122
+        },
+        "age_29": {
+          "active_n": 17,
+          "cohort_n": 41,
+          "p_active": 0.4146
+        },
+        "age_30": {
+          "active_n": 14,
+          "cohort_n": 41,
+          "p_active": 0.3415
+        },
+        "age_31": {
+          "active_n": 10,
+          "cohort_n": 41,
+          "p_active": 0.2439
+        },
+        "age_32": {
+          "active_n": 9,
+          "cohort_n": 41,
+          "p_active": 0.2195
+        },
+        "age_33": {
+          "active_n": 7,
+          "cohort_n": 41,
+          "p_active": 0.1707
+        },
+        "age_34": {
+          "active_n": 7,
+          "cohort_n": 41,
+          "p_active": 0.1707
+        },
+        "age_35": {
+          "active_n": 6,
+          "cohort_n": 41,
+          "p_active": 0.1463
+        },
+        "age_36": {
+          "active_n": 5,
+          "cohort_n": 41,
+          "p_active": 0.122
+        },
+        "age_37": {
+          "active_n": 4,
+          "cohort_n": 41,
+          "p_active": 0.0976
+        },
+        "age_38": {
+          "active_n": 3,
+          "cohort_n": 41,
+          "p_active": 0.0732
+        },
+        "age_39": {
+          "active_n": 2,
+          "cohort_n": 41,
+          "p_active": 0.0488
+        }
+      },
+      "LB": {
+        "age_22": {
+          "active_n": 519,
+          "cohort_n": 519,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 419,
+          "cohort_n": 519,
+          "p_active": 0.8073
+        },
+        "age_24": {
+          "active_n": 350,
+          "cohort_n": 519,
+          "p_active": 0.6744
+        },
+        "age_25": {
+          "active_n": 294,
+          "cohort_n": 519,
+          "p_active": 0.5665
+        },
+        "age_26": {
+          "active_n": 231,
+          "cohort_n": 519,
+          "p_active": 0.4451
+        },
+        "age_27": {
+          "active_n": 180,
+          "cohort_n": 519,
+          "p_active": 0.3468
+        },
+        "age_28": {
+          "active_n": 137,
+          "cohort_n": 519,
+          "p_active": 0.264
+        },
+        "age_29": {
+          "active_n": 102,
+          "cohort_n": 519,
+          "p_active": 0.1965
+        },
+        "age_30": {
+          "active_n": 61,
+          "cohort_n": 519,
+          "p_active": 0.1175
+        },
+        "age_31": {
+          "active_n": 40,
+          "cohort_n": 519,
+          "p_active": 0.0771
+        },
+        "age_32": {
+          "active_n": 19,
+          "cohort_n": 519,
+          "p_active": 0.0366
+        },
+        "age_33": {
+          "active_n": 11,
+          "cohort_n": 519,
+          "p_active": 0.0212
+        },
+        "age_34": {
+          "active_n": 8,
+          "cohort_n": 519,
+          "p_active": 0.0154
+        },
+        "age_35": {
+          "active_n": 3,
+          "cohort_n": 519,
+          "p_active": 0.0058
+        },
+        "age_36": {
+          "active_n": 1,
+          "cohort_n": 519,
+          "p_active": 0.0019
+        },
+        "age_37": {
+          "active_n": 1,
+          "cohort_n": 519,
+          "p_active": 0.0019
+        }
+      },
+      "LS": {
+        "age_22": {
+          "active_n": 9,
+          "cohort_n": 9,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 8,
+          "cohort_n": 9,
+          "p_active": 0.8889
+        },
+        "age_24": {
+          "active_n": 6,
+          "cohort_n": 9,
+          "p_active": 0.6667
+        },
+        "age_25": {
+          "active_n": 5,
+          "cohort_n": 9,
+          "p_active": 0.5556
+        },
+        "age_26": {
+          "active_n": 5,
+          "cohort_n": 9,
+          "p_active": 0.5556
+        },
+        "age_27": {
+          "active_n": 5,
+          "cohort_n": 9,
+          "p_active": 0.5556
+        },
+        "age_28": {
+          "active_n": 5,
+          "cohort_n": 9,
+          "p_active": 0.5556
+        },
+        "age_29": {
+          "active_n": 5,
+          "cohort_n": 9,
+          "p_active": 0.5556
+        },
+        "age_30": {
+          "active_n": 4,
+          "cohort_n": 9,
+          "p_active": 0.4444
+        },
+        "age_31": {
+          "active_n": 3,
+          "cohort_n": 9,
+          "p_active": 0.3333
+        },
+        "age_32": {
+          "active_n": 2,
+          "cohort_n": 9,
+          "p_active": 0.2222
+        },
+        "age_33": {
+          "active_n": 1,
+          "cohort_n": 9,
+          "p_active": 0.1111
+        },
+        "age_34": {
+          "active_n": 1,
+          "cohort_n": 9,
+          "p_active": 0.1111
+        }
+      },
+      "OL": {
+        "age_22": {
+          "active_n": 441,
+          "cohort_n": 441,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 368,
+          "cohort_n": 441,
+          "p_active": 0.8345
+        },
+        "age_24": {
+          "active_n": 323,
+          "cohort_n": 441,
+          "p_active": 0.7324
+        },
+        "age_25": {
+          "active_n": 280,
+          "cohort_n": 441,
+          "p_active": 0.6349
+        },
+        "age_26": {
+          "active_n": 226,
+          "cohort_n": 441,
+          "p_active": 0.5125
+        },
+        "age_27": {
+          "active_n": 176,
+          "cohort_n": 441,
+          "p_active": 0.3991
+        },
+        "age_28": {
+          "active_n": 129,
+          "cohort_n": 441,
+          "p_active": 0.2925
+        },
+        "age_29": {
+          "active_n": 94,
+          "cohort_n": 441,
+          "p_active": 0.2132
+        },
+        "age_30": {
+          "active_n": 73,
+          "cohort_n": 441,
+          "p_active": 0.1655
+        },
+        "age_31": {
+          "active_n": 47,
+          "cohort_n": 441,
+          "p_active": 0.1066
+        },
+        "age_32": {
+          "active_n": 25,
+          "cohort_n": 441,
+          "p_active": 0.0567
+        },
+        "age_33": {
+          "active_n": 14,
+          "cohort_n": 441,
+          "p_active": 0.0317
+        },
+        "age_34": {
+          "active_n": 7,
+          "cohort_n": 441,
+          "p_active": 0.0159
+        },
+        "age_35": {
+          "active_n": 3,
+          "cohort_n": 441,
+          "p_active": 0.0068
+        },
+        "age_36": {
+          "active_n": 1,
+          "cohort_n": 441,
+          "p_active": 0.0023
+        }
+      },
+      "P": {
+        "age_22": {
+          "active_n": 24,
+          "cohort_n": 24,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 21,
+          "cohort_n": 24,
+          "p_active": 0.875
+        },
+        "age_24": {
+          "active_n": 20,
+          "cohort_n": 24,
+          "p_active": 0.8333
+        },
+        "age_25": {
+          "active_n": 18,
+          "cohort_n": 24,
+          "p_active": 0.75
+        },
+        "age_26": {
+          "active_n": 16,
+          "cohort_n": 24,
+          "p_active": 0.6667
+        },
+        "age_27": {
+          "active_n": 13,
+          "cohort_n": 24,
+          "p_active": 0.5417
+        },
+        "age_28": {
+          "active_n": 9,
+          "cohort_n": 24,
+          "p_active": 0.375
+        },
+        "age_29": {
+          "active_n": 6,
+          "cohort_n": 24,
+          "p_active": 0.25
+        },
+        "age_30": {
+          "active_n": 4,
+          "cohort_n": 24,
+          "p_active": 0.1667
+        },
+        "age_31": {
+          "active_n": 3,
+          "cohort_n": 24,
+          "p_active": 0.125
+        },
+        "age_32": {
+          "active_n": 2,
+          "cohort_n": 24,
+          "p_active": 0.0833
+        },
+        "age_33": {
+          "active_n": 2,
+          "cohort_n": 24,
+          "p_active": 0.0833
+        },
+        "age_34": {
+          "active_n": 2,
+          "cohort_n": 24,
+          "p_active": 0.0833
+        },
+        "age_35": {
+          "active_n": 1,
+          "cohort_n": 24,
+          "p_active": 0.0417
+        },
+        "age_36": {
+          "active_n": 1,
+          "cohort_n": 24,
+          "p_active": 0.0417
+        }
+      },
+      "QB": {
+        "age_22": {
+          "active_n": 97,
+          "cohort_n": 97,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 82,
+          "cohort_n": 97,
+          "p_active": 0.8454
+        },
+        "age_24": {
+          "active_n": 76,
+          "cohort_n": 97,
+          "p_active": 0.7835
+        },
+        "age_25": {
+          "active_n": 63,
+          "cohort_n": 97,
+          "p_active": 0.6495
+        },
+        "age_26": {
+          "active_n": 50,
+          "cohort_n": 97,
+          "p_active": 0.5155
+        },
+        "age_27": {
+          "active_n": 47,
+          "cohort_n": 97,
+          "p_active": 0.4845
+        },
+        "age_28": {
+          "active_n": 37,
+          "cohort_n": 97,
+          "p_active": 0.3814
+        },
+        "age_29": {
+          "active_n": 29,
+          "cohort_n": 97,
+          "p_active": 0.299
+        },
+        "age_30": {
+          "active_n": 23,
+          "cohort_n": 97,
+          "p_active": 0.2371
+        },
+        "age_31": {
+          "active_n": 18,
+          "cohort_n": 97,
+          "p_active": 0.1856
+        },
+        "age_32": {
+          "active_n": 14,
+          "cohort_n": 97,
+          "p_active": 0.1443
+        },
+        "age_33": {
+          "active_n": 11,
+          "cohort_n": 97,
+          "p_active": 0.1134
+        },
+        "age_34": {
+          "active_n": 8,
+          "cohort_n": 97,
+          "p_active": 0.0825
+        },
+        "age_35": {
+          "active_n": 8,
+          "cohort_n": 97,
+          "p_active": 0.0825
+        },
+        "age_36": {
+          "active_n": 5,
+          "cohort_n": 97,
+          "p_active": 0.0515
+        },
+        "age_37": {
+          "active_n": 3,
+          "cohort_n": 97,
+          "p_active": 0.0309
+        },
+        "age_38": {
+          "active_n": 3,
+          "cohort_n": 97,
+          "p_active": 0.0309
+        },
+        "age_39": {
+          "active_n": 1,
+          "cohort_n": 97,
+          "p_active": 0.0103
+        },
+        "age_40": {
+          "active_n": 1,
+          "cohort_n": 97,
+          "p_active": 0.0103
+        }
+      },
+      "RB": {
+        "age_22": {
+          "active_n": 398,
+          "cohort_n": 398,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 312,
+          "cohort_n": 398,
+          "p_active": 0.7839
+        },
+        "age_24": {
+          "active_n": 268,
+          "cohort_n": 398,
+          "p_active": 0.6734
+        },
+        "age_25": {
+          "active_n": 209,
+          "cohort_n": 398,
+          "p_active": 0.5251
+        },
+        "age_26": {
+          "active_n": 170,
+          "cohort_n": 398,
+          "p_active": 0.4271
+        },
+        "age_27": {
+          "active_n": 114,
+          "cohort_n": 398,
+          "p_active": 0.2864
+        },
+        "age_28": {
+          "active_n": 82,
+          "cohort_n": 398,
+          "p_active": 0.206
+        },
+        "age_29": {
+          "active_n": 59,
+          "cohort_n": 398,
+          "p_active": 0.1482
+        },
+        "age_30": {
+          "active_n": 35,
+          "cohort_n": 398,
+          "p_active": 0.0879
+        },
+        "age_31": {
+          "active_n": 20,
+          "cohort_n": 398,
+          "p_active": 0.0503
+        },
+        "age_32": {
+          "active_n": 9,
+          "cohort_n": 398,
+          "p_active": 0.0226
+        },
+        "age_33": {
+          "active_n": 7,
+          "cohort_n": 398,
+          "p_active": 0.0176
+        },
+        "age_34": {
+          "active_n": 4,
+          "cohort_n": 398,
+          "p_active": 0.0101
+        },
+        "age_35": {
+          "active_n": 3,
+          "cohort_n": 398,
+          "p_active": 0.0075
+        },
+        "age_36": {
+          "active_n": 3,
+          "cohort_n": 398,
+          "p_active": 0.0075
+        },
+        "age_37": {
+          "active_n": 2,
+          "cohort_n": 398,
+          "p_active": 0.005
+        },
+        "age_39": {
+          "active_n": 1,
+          "cohort_n": 398,
+          "p_active": 0.0025
+        }
+      },
+      "S": {
+        "age_22": {
+          "active_n": 131,
+          "cohort_n": 131,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 106,
+          "cohort_n": 131,
+          "p_active": 0.8092
+        },
+        "age_24": {
+          "active_n": 85,
+          "cohort_n": 131,
+          "p_active": 0.6489
+        },
+        "age_25": {
+          "active_n": 66,
+          "cohort_n": 131,
+          "p_active": 0.5038
+        },
+        "age_26": {
+          "active_n": 48,
+          "cohort_n": 131,
+          "p_active": 0.3664
+        },
+        "age_27": {
+          "active_n": 36,
+          "cohort_n": 131,
+          "p_active": 0.2748
+        },
+        "age_28": {
+          "active_n": 20,
+          "cohort_n": 131,
+          "p_active": 0.1527
+        },
+        "age_29": {
+          "active_n": 11,
+          "cohort_n": 131,
+          "p_active": 0.084
+        },
+        "age_30": {
+          "active_n": 6,
+          "cohort_n": 131,
+          "p_active": 0.0458
+        },
+        "age_31": {
+          "active_n": 2,
+          "cohort_n": 131,
+          "p_active": 0.0153
+        }
+      },
+      "TE": {
+        "age_22": {
+          "active_n": 189,
+          "cohort_n": 189,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 160,
+          "cohort_n": 189,
+          "p_active": 0.8466
+        },
+        "age_24": {
+          "active_n": 139,
+          "cohort_n": 189,
+          "p_active": 0.7354
+        },
+        "age_25": {
+          "active_n": 115,
+          "cohort_n": 189,
+          "p_active": 0.6085
+        },
+        "age_26": {
+          "active_n": 91,
+          "cohort_n": 189,
+          "p_active": 0.4815
+        },
+        "age_27": {
+          "active_n": 72,
+          "cohort_n": 189,
+          "p_active": 0.381
+        },
+        "age_28": {
+          "active_n": 55,
+          "cohort_n": 189,
+          "p_active": 0.291
+        },
+        "age_29": {
+          "active_n": 36,
+          "cohort_n": 189,
+          "p_active": 0.1905
+        },
+        "age_30": {
+          "active_n": 24,
+          "cohort_n": 189,
+          "p_active": 0.127
+        },
+        "age_31": {
+          "active_n": 14,
+          "cohort_n": 189,
+          "p_active": 0.0741
+        },
+        "age_32": {
+          "active_n": 11,
+          "cohort_n": 189,
+          "p_active": 0.0582
+        },
+        "age_33": {
+          "active_n": 7,
+          "cohort_n": 189,
+          "p_active": 0.037
+        },
+        "age_34": {
+          "active_n": 5,
+          "cohort_n": 189,
+          "p_active": 0.0265
+        },
+        "age_35": {
+          "active_n": 4,
+          "cohort_n": 189,
+          "p_active": 0.0212
+        },
+        "age_36": {
+          "active_n": 2,
+          "cohort_n": 189,
+          "p_active": 0.0106
+        },
+        "age_37": {
+          "active_n": 1,
+          "cohort_n": 189,
+          "p_active": 0.0053
+        },
+        "age_38": {
+          "active_n": 1,
+          "cohort_n": 189,
+          "p_active": 0.0053
+        },
+        "age_39": {
+          "active_n": 1,
+          "cohort_n": 189,
+          "p_active": 0.0053
+        },
+        "age_40": {
+          "active_n": 1,
+          "cohort_n": 189,
+          "p_active": 0.0053
+        }
+      },
+      "WR": {
+        "age_22": {
+          "active_n": 574,
+          "cohort_n": 574,
+          "p_active": 1
+        },
+        "age_23": {
+          "active_n": 452,
+          "cohort_n": 574,
+          "p_active": 0.7875
+        },
+        "age_24": {
+          "active_n": 381,
+          "cohort_n": 574,
+          "p_active": 0.6638
+        },
+        "age_25": {
+          "active_n": 312,
+          "cohort_n": 574,
+          "p_active": 0.5436
+        },
+        "age_26": {
+          "active_n": 244,
+          "cohort_n": 574,
+          "p_active": 0.4251
+        },
+        "age_27": {
+          "active_n": 189,
+          "cohort_n": 574,
+          "p_active": 0.3293
+        },
+        "age_28": {
+          "active_n": 131,
+          "cohort_n": 574,
+          "p_active": 0.2282
+        },
+        "age_29": {
+          "active_n": 92,
+          "cohort_n": 574,
+          "p_active": 0.1603
+        },
+        "age_30": {
+          "active_n": 59,
+          "cohort_n": 574,
+          "p_active": 0.1028
+        },
+        "age_31": {
+          "active_n": 42,
+          "cohort_n": 574,
+          "p_active": 0.0732
+        },
+        "age_32": {
+          "active_n": 23,
+          "cohort_n": 574,
+          "p_active": 0.0401
+        },
+        "age_33": {
+          "active_n": 12,
+          "cohort_n": 574,
+          "p_active": 0.0209
+        },
+        "age_34": {
+          "active_n": 7,
+          "cohort_n": 574,
+          "p_active": 0.0122
+        },
+        "age_35": {
+          "active_n": 4,
+          "cohort_n": 574,
+          "p_active": 0.007
+        },
+        "age_36": {
+          "active_n": 2,
+          "cohort_n": 574,
+          "p_active": 0.0035
+        },
+        "age_37": {
+          "active_n": 2,
+          "cohort_n": 574,
+          "p_active": 0.0035
+        }
+      }
+    },
+    "peak_age_modal": {
+      "CB_DB": {
+        "modal_age": 23,
+        "player_seasons_at_modal_age": 1211
+      },
+      "EDGE": {
+        "modal_age": 24,
+        "player_seasons_at_modal_age": 239
+      },
+      "K": {
+        "modal_age": 24,
+        "player_seasons_at_modal_age": 79
+      },
+      "LB": {
+        "modal_age": 24,
+        "player_seasons_at_modal_age": 1000
+      },
+      "LS": {
+        "modal_age": 27,
+        "player_seasons_at_modal_age": 66
+      },
+      "OL": {
+        "modal_age": 24,
+        "player_seasons_at_modal_age": 1192
+      },
+      "P": {
+        "modal_age": 25,
+        "player_seasons_at_modal_age": 90
+      },
+      "QB": {
+        "modal_age": 24,
+        "player_seasons_at_modal_age": 285
+      },
+      "RB": {
+        "modal_age": 24,
+        "player_seasons_at_modal_age": 666
+      },
+      "S": {
+        "modal_age": 24,
+        "player_seasons_at_modal_age": 254
+      },
+      "TE": {
+        "modal_age": 24,
+        "player_seasons_at_modal_age": 512
+      },
+      "WR": {
+        "modal_age": 23,
+        "player_seasons_at_modal_age": 951
+      },
+      "iDL": {
+        "modal_age": 24,
+        "player_seasons_at_modal_age": 827
+      }
+    },
+    "retirement_age": {
+      "LS": {
+        "n": 77,
+        "mean": 31.0909,
+        "sd": 5.2345,
+        "p10": 24,
+        "p50": 32,
+        "p90": 38,
+        "min": 22,
+        "max": 41
+      },
+      "P": {
+        "n": 105,
+        "mean": 30.2476,
+        "sd": 5.5795,
+        "p10": 24,
+        "p50": 28,
+        "p90": 38,
+        "min": 22,
+        "max": 44
+      },
+      "K": {
+        "n": 109,
+        "mean": 29.8807,
+        "sd": 6.0579,
+        "p10": 23,
+        "p50": 29,
+        "p90": 38.2,
+        "min": 22,
+        "max": 45
+      },
+      "QB": {
+        "n": 305,
+        "mean": 28.4754,
+        "sd": 5.038,
+        "p10": 23,
+        "p50": 27,
+        "p90": 36,
+        "min": 22,
+        "max": 45
+      },
+      "OL": {
+        "n": 1253,
+        "mean": 27.3647,
+        "sd": 3.6536,
+        "p10": 23,
+        "p50": 27,
+        "p90": 33,
+        "min": 21,
+        "max": 42
+      },
+      "iDL": {
+        "n": 916,
+        "mean": 26.869,
+        "sd": 3.4686,
+        "p10": 23,
+        "p50": 26,
+        "p90": 32,
+        "min": 21,
+        "max": 39
+      },
+      "TE": {
+        "n": 553,
+        "mean": 26.8427,
+        "sd": 3.273,
+        "p10": 23,
+        "p50": 26,
+        "p90": 32,
+        "min": 21,
+        "max": 38
+      },
+      "S": {
+        "n": 498,
+        "mean": 26.7671,
+        "sd": 3.2337,
+        "p10": 23,
+        "p50": 26,
+        "p90": 31,
+        "min": 20,
+        "max": 38
+      },
+      "LB": {
+        "n": 1262,
+        "mean": 26.6672,
+        "sd": 3.3539,
+        "p10": 23,
+        "p50": 26,
+        "p90": 31,
+        "min": 21,
+        "max": 40
+      },
+      "EDGE": {
+        "n": 564,
+        "mean": 26.6631,
+        "sd": 3.5241,
+        "p10": 23,
+        "p50": 26,
+        "p90": 32,
+        "min": 20,
+        "max": 37
+      },
+      "RB": {
+        "n": 856,
+        "mean": 26.2664,
+        "sd": 3.1521,
+        "p10": 23,
+        "p50": 26,
+        "p90": 31,
+        "min": 21,
+        "max": 39
+      },
+      "CB_DB": {
+        "n": 1235,
+        "mean": 26.2632,
+        "sd": 3.2656,
+        "p10": 23,
+        "p50": 26,
+        "p90": 31,
+        "min": 20,
+        "max": 38
+      },
+      "WR": {
+        "n": 1081,
+        "mean": 26.062,
+        "sd": 3.2988,
+        "p10": 23,
+        "p50": 25,
+        "p90": 31,
+        "min": 21,
+        "max": 38
+      }
+    },
+    "year_over_year_attrition": {
+      "CB_DB": {
+        "age_22": {
+          "n": 652,
+          "returned": 569,
+          "attrition_rate": 0.1273
+        },
+        "age_23": {
+          "n": 1122,
+          "returned": 933,
+          "attrition_rate": 0.1684
+        },
+        "age_24": {
+          "n": 1073,
+          "returned": 871,
+          "attrition_rate": 0.1883
+        },
+        "age_25": {
+          "n": 893,
+          "returned": 705,
+          "attrition_rate": 0.2105
+        },
+        "age_26": {
+          "n": 697,
+          "returned": 541,
+          "attrition_rate": 0.2238
+        },
+        "age_27": {
+          "n": 531,
+          "returned": 422,
+          "attrition_rate": 0.2053
+        },
+        "age_28": {
+          "n": 417,
+          "returned": 333,
+          "attrition_rate": 0.2014
+        },
+        "age_29": {
+          "n": 326,
+          "returned": 243,
+          "attrition_rate": 0.2546
+        },
+        "age_30": {
+          "n": 239,
+          "returned": 161,
+          "attrition_rate": 0.3264
+        },
+        "age_31": {
+          "n": 163,
+          "returned": 109,
+          "attrition_rate": 0.3313
+        },
+        "age_32": {
+          "n": 115,
+          "returned": 70,
+          "attrition_rate": 0.3913
+        },
+        "age_33": {
+          "n": 70,
+          "returned": 41,
+          "attrition_rate": 0.4143
+        },
+        "age_34": {
+          "n": 39,
+          "returned": 17,
+          "attrition_rate": 0.5641
+        },
+        "age_35": {
+          "n": 17,
+          "returned": 10,
+          "attrition_rate": 0.4118
+        },
+        "age_36": {
+          "n": 11,
+          "returned": 4,
+          "attrition_rate": 0.6364
+        },
+        "age_37": {
+          "n": 3,
+          "returned": 2,
+          "attrition_rate": 0.3333
+        },
+        "age_38": {
+          "n": 3,
+          "returned": 0,
+          "attrition_rate": 1
+        }
+      },
+      "EDGE": {
+        "age_22": {
+          "n": 139,
+          "returned": 121,
+          "attrition_rate": 0.1295
+        },
+        "age_23": {
+          "n": 233,
+          "returned": 190,
+          "attrition_rate": 0.1845
+        },
+        "age_24": {
+          "n": 240,
+          "returned": 203,
+          "attrition_rate": 0.1542
+        },
+        "age_25": {
+          "n": 207,
+          "returned": 178,
+          "attrition_rate": 0.1401
+        },
+        "age_26": {
+          "n": 183,
+          "returned": 152,
+          "attrition_rate": 0.1694
+        },
+        "age_27": {
+          "n": 150,
+          "returned": 125,
+          "attrition_rate": 0.1667
+        },
+        "age_28": {
+          "n": 135,
+          "returned": 103,
+          "attrition_rate": 0.237
+        },
+        "age_29": {
+          "n": 108,
+          "returned": 90,
+          "attrition_rate": 0.1667
+        },
+        "age_30": {
+          "n": 91,
+          "returned": 71,
+          "attrition_rate": 0.2198
+        },
+        "age_31": {
+          "n": 71,
+          "returned": 50,
+          "attrition_rate": 0.2958
+        },
+        "age_32": {
+          "n": 57,
+          "returned": 40,
+          "attrition_rate": 0.2982
+        },
+        "age_33": {
+          "n": 41,
+          "returned": 27,
+          "attrition_rate": 0.3415
+        },
+        "age_34": {
+          "n": 25,
+          "returned": 12,
+          "attrition_rate": 0.52
+        },
+        "age_35": {
+          "n": 9,
+          "returned": 2,
+          "attrition_rate": 0.7778
+        },
+        "age_36": {
+          "n": 3,
+          "returned": 1,
+          "attrition_rate": 0.6667
+        },
+        "age_37": {
+          "n": 1,
+          "returned": 0,
+          "attrition_rate": 1
+        }
+      },
+      "iDL": {
+        "age_22": {
+          "n": 375,
+          "returned": 328,
+          "attrition_rate": 0.1253
+        },
+        "age_23": {
+          "n": 703,
+          "returned": 588,
+          "attrition_rate": 0.1636
+        },
+        "age_24": {
+          "n": 743,
+          "returned": 621,
+          "attrition_rate": 0.1642
+        },
+        "age_25": {
+          "n": 646,
+          "returned": 518,
+          "attrition_rate": 0.1981
+        },
+        "age_26": {
+          "n": 528,
+          "returned": 435,
+          "attrition_rate": 0.1761
+        },
+        "age_27": {
+          "n": 445,
+          "returned": 359,
+          "attrition_rate": 0.1933
+        },
+        "age_28": {
+          "n": 373,
+          "returned": 300,
+          "attrition_rate": 0.1957
+        },
+        "age_29": {
+          "n": 284,
+          "returned": 216,
+          "attrition_rate": 0.2394
+        },
+        "age_30": {
+          "n": 205,
+          "returned": 164,
+          "attrition_rate": 0.2
+        },
+        "age_31": {
+          "n": 160,
+          "returned": 104,
+          "attrition_rate": 0.35
+        },
+        "age_32": {
+          "n": 107,
+          "returned": 76,
+          "attrition_rate": 0.2897
+        },
+        "age_33": {
+          "n": 73,
+          "returned": 49,
+          "attrition_rate": 0.3288
+        },
+        "age_34": {
+          "n": 51,
+          "returned": 22,
+          "attrition_rate": 0.5686
+        },
+        "age_35": {
+          "n": 22,
+          "returned": 12,
+          "attrition_rate": 0.4545
+        },
+        "age_36": {
+          "n": 12,
+          "returned": 7,
+          "attrition_rate": 0.4167
+        },
+        "age_37": {
+          "n": 6,
+          "returned": 3,
+          "attrition_rate": 0.5
+        },
+        "age_38": {
+          "n": 3,
+          "returned": 2,
+          "attrition_rate": 0.3333
+        },
+        "age_39": {
+          "n": 2,
+          "returned": 0,
+          "attrition_rate": 1
+        }
+      },
+      "K": {
+        "age_22": {
+          "n": 39,
+          "returned": 32,
+          "attrition_rate": 0.1795
+        },
+        "age_23": {
+          "n": 68,
+          "returned": 51,
+          "attrition_rate": 0.25
+        },
+        "age_24": {
+          "n": 71,
+          "returned": 61,
+          "attrition_rate": 0.1408
+        },
+        "age_25": {
+          "n": 73,
+          "returned": 63,
+          "attrition_rate": 0.137
+        },
+        "age_26": {
+          "n": 69,
+          "returned": 56,
+          "attrition_rate": 0.1884
+        },
+        "age_27": {
+          "n": 64,
+          "returned": 53,
+          "attrition_rate": 0.1719
+        },
+        "age_28": {
+          "n": 55,
+          "returned": 50,
+          "attrition_rate": 0.0909
+        },
+        "age_29": {
+          "n": 49,
+          "returned": 42,
+          "attrition_rate": 0.1429
+        },
+        "age_30": {
+          "n": 46,
+          "returned": 41,
+          "attrition_rate": 0.1087
+        },
+        "age_31": {
+          "n": 45,
+          "returned": 39,
+          "attrition_rate": 0.1333
+        },
+        "age_32": {
+          "n": 41,
+          "returned": 35,
+          "attrition_rate": 0.1463
+        },
+        "age_33": {
+          "n": 32,
+          "returned": 28,
+          "attrition_rate": 0.125
+        },
+        "age_34": {
+          "n": 29,
+          "returned": 27,
+          "attrition_rate": 0.069
+        },
+        "age_35": {
+          "n": 32,
+          "returned": 25,
+          "attrition_rate": 0.2188
+        },
+        "age_36": {
+          "n": 24,
+          "returned": 20,
+          "attrition_rate": 0.1667
+        },
+        "age_37": {
+          "n": 20,
+          "returned": 17,
+          "attrition_rate": 0.15
+        },
+        "age_38": {
+          "n": 17,
+          "returned": 12,
+          "attrition_rate": 0.2941
+        },
+        "age_39": {
+          "n": 11,
+          "returned": 8,
+          "attrition_rate": 0.2727
+        },
+        "age_40": {
+          "n": 7,
+          "returned": 6,
+          "attrition_rate": 0.1429
+        }
+      },
+      "LB": {
+        "age_22": {
+          "n": 507,
+          "returned": 433,
+          "attrition_rate": 0.146
+        },
+        "age_23": {
+          "n": 937,
+          "returned": 759,
+          "attrition_rate": 0.19
+        },
+        "age_24": {
+          "n": 925,
+          "returned": 766,
+          "attrition_rate": 0.1719
+        },
+        "age_25": {
+          "n": 824,
+          "returned": 665,
+          "attrition_rate": 0.193
+        },
+        "age_26": {
+          "n": 691,
+          "returned": 533,
+          "attrition_rate": 0.2287
+        },
+        "age_27": {
+          "n": 545,
+          "returned": 426,
+          "attrition_rate": 0.2183
+        },
+        "age_28": {
+          "n": 427,
+          "returned": 338,
+          "attrition_rate": 0.2084
+        },
+        "age_29": {
+          "n": 333,
+          "returned": 231,
+          "attrition_rate": 0.3063
+        },
+        "age_30": {
+          "n": 245,
+          "returned": 164,
+          "attrition_rate": 0.3306
+        },
+        "age_31": {
+          "n": 161,
+          "returned": 101,
+          "attrition_rate": 0.3727
+        },
+        "age_32": {
+          "n": 111,
+          "returned": 70,
+          "attrition_rate": 0.3694
+        },
+        "age_33": {
+          "n": 72,
+          "returned": 46,
+          "attrition_rate": 0.3611
+        },
+        "age_34": {
+          "n": 46,
+          "returned": 28,
+          "attrition_rate": 0.3913
+        },
+        "age_35": {
+          "n": 30,
+          "returned": 15,
+          "attrition_rate": 0.5
+        },
+        "age_36": {
+          "n": 16,
+          "returned": 10,
+          "attrition_rate": 0.375
+        },
+        "age_37": {
+          "n": 10,
+          "returned": 4,
+          "attrition_rate": 0.6
+        },
+        "age_38": {
+          "n": 4,
+          "returned": 2,
+          "attrition_rate": 0.5
+        },
+        "age_39": {
+          "n": 2,
+          "returned": 1,
+          "attrition_rate": 0.5
+        },
+        "age_40": {
+          "n": 1,
+          "returned": 0,
+          "attrition_rate": 1
+        }
+      },
+      "LS": {
+        "age_22": {
+          "n": 9,
+          "returned": 8,
+          "attrition_rate": 0.1111
+        },
+        "age_23": {
+          "n": 38,
+          "returned": 31,
+          "attrition_rate": 0.1842
+        },
+        "age_24": {
+          "n": 55,
+          "returned": 45,
+          "attrition_rate": 0.1818
+        },
+        "age_25": {
+          "n": 55,
+          "returned": 53,
+          "attrition_rate": 0.0364
+        },
+        "age_26": {
+          "n": 62,
+          "returned": 57,
+          "attrition_rate": 0.0806
+        },
+        "age_27": {
+          "n": 59,
+          "returned": 55,
+          "attrition_rate": 0.0678
+        },
+        "age_28": {
+          "n": 63,
+          "returned": 60,
+          "attrition_rate": 0.0476
+        },
+        "age_29": {
+          "n": 61,
+          "returned": 58,
+          "attrition_rate": 0.0492
+        },
+        "age_30": {
+          "n": 58,
+          "returned": 55,
+          "attrition_rate": 0.0517
+        },
+        "age_31": {
+          "n": 52,
+          "returned": 48,
+          "attrition_rate": 0.0769
+        },
+        "age_32": {
+          "n": 46,
+          "returned": 38,
+          "attrition_rate": 0.1739
+        },
+        "age_33": {
+          "n": 41,
+          "returned": 32,
+          "attrition_rate": 0.2195
+        },
+        "age_34": {
+          "n": 30,
+          "returned": 26,
+          "attrition_rate": 0.1333
+        },
+        "age_35": {
+          "n": 26,
+          "returned": 21,
+          "attrition_rate": 0.1923
+        },
+        "age_36": {
+          "n": 21,
+          "returned": 18,
+          "attrition_rate": 0.1429
+        },
+        "age_37": {
+          "n": 17,
+          "returned": 15,
+          "attrition_rate": 0.1176
+        },
+        "age_38": {
+          "n": 13,
+          "returned": 7,
+          "attrition_rate": 0.4615
+        },
+        "age_39": {
+          "n": 6,
+          "returned": 0,
+          "attrition_rate": 1
+        }
+      },
+      "OL": {
+        "age_22": {
+          "n": 426,
+          "returned": 371,
+          "attrition_rate": 0.1291
+        },
+        "age_23": {
+          "n": 1023,
+          "returned": 839,
+          "attrition_rate": 0.1799
+        },
+        "age_24": {
+          "n": 1101,
+          "returned": 936,
+          "attrition_rate": 0.1499
+        },
+        "age_25": {
+          "n": 993,
+          "returned": 819,
+          "attrition_rate": 0.1752
+        },
+        "age_26": {
+          "n": 839,
+          "returned": 682,
+          "attrition_rate": 0.1871
+        },
+        "age_27": {
+          "n": 671,
+          "returned": 564,
+          "attrition_rate": 0.1595
+        },
+        "age_28": {
+          "n": 564,
+          "returned": 472,
+          "attrition_rate": 0.1631
+        },
+        "age_29": {
+          "n": 491,
+          "returned": 389,
+          "attrition_rate": 0.2077
+        },
+        "age_30": {
+          "n": 395,
+          "returned": 292,
+          "attrition_rate": 0.2608
+        },
+        "age_31": {
+          "n": 297,
+          "returned": 204,
+          "attrition_rate": 0.3131
+        },
+        "age_32": {
+          "n": 202,
+          "returned": 126,
+          "attrition_rate": 0.3762
+        },
+        "age_33": {
+          "n": 128,
+          "returned": 68,
+          "attrition_rate": 0.4688
+        },
+        "age_34": {
+          "n": 75,
+          "returned": 39,
+          "attrition_rate": 0.48
+        },
+        "age_35": {
+          "n": 42,
+          "returned": 19,
+          "attrition_rate": 0.5476
+        },
+        "age_36": {
+          "n": 21,
+          "returned": 13,
+          "attrition_rate": 0.381
+        },
+        "age_37": {
+          "n": 13,
+          "returned": 9,
+          "attrition_rate": 0.3077
+        },
+        "age_38": {
+          "n": 8,
+          "returned": 2,
+          "attrition_rate": 0.75
+        },
+        "age_39": {
+          "n": 2,
+          "returned": 2,
+          "attrition_rate": 0
+        },
+        "age_40": {
+          "n": 2,
+          "returned": 1,
+          "attrition_rate": 0.5
+        }
+      },
+      "P": {
+        "age_22": {
+          "n": 23,
+          "returned": 23,
+          "attrition_rate": 0
+        },
+        "age_23": {
+          "n": 66,
+          "returned": 56,
+          "attrition_rate": 0.1515
+        },
+        "age_24": {
+          "n": 81,
+          "returned": 72,
+          "attrition_rate": 0.1111
+        },
+        "age_25": {
+          "n": 81,
+          "returned": 68,
+          "attrition_rate": 0.1605
+        },
+        "age_26": {
+          "n": 74,
+          "returned": 63,
+          "attrition_rate": 0.1486
+        },
+        "age_27": {
+          "n": 63,
+          "returned": 49,
+          "attrition_rate": 0.2222
+        },
+        "age_28": {
+          "n": 53,
+          "returned": 45,
+          "attrition_rate": 0.1509
+        },
+        "age_29": {
+          "n": 46,
+          "returned": 41,
+          "attrition_rate": 0.1087
+        },
+        "age_30": {
+          "n": 42,
+          "returned": 34,
+          "attrition_rate": 0.1905
+        },
+        "age_31": {
+          "n": 34,
+          "returned": 31,
+          "attrition_rate": 0.0882
+        },
+        "age_32": {
+          "n": 33,
+          "returned": 26,
+          "attrition_rate": 0.2121
+        },
+        "age_33": {
+          "n": 27,
+          "returned": 24,
+          "attrition_rate": 0.1111
+        },
+        "age_34": {
+          "n": 24,
+          "returned": 18,
+          "attrition_rate": 0.25
+        },
+        "age_35": {
+          "n": 22,
+          "returned": 18,
+          "attrition_rate": 0.1818
+        },
+        "age_36": {
+          "n": 18,
+          "returned": 15,
+          "attrition_rate": 0.1667
+        },
+        "age_37": {
+          "n": 16,
+          "returned": 10,
+          "attrition_rate": 0.375
+        },
+        "age_38": {
+          "n": 10,
+          "returned": 6,
+          "attrition_rate": 0.4
+        },
+        "age_39": {
+          "n": 7,
+          "returned": 5,
+          "attrition_rate": 0.2857
+        },
+        "age_40": {
+          "n": 6,
+          "returned": 3,
+          "attrition_rate": 0.5
+        }
+      },
+      "QB": {
+        "age_22": {
+          "n": 92,
+          "returned": 82,
+          "attrition_rate": 0.1087
+        },
+        "age_23": {
+          "n": 230,
+          "returned": 197,
+          "attrition_rate": 0.1435
+        },
+        "age_24": {
+          "n": 263,
+          "returned": 210,
+          "attrition_rate": 0.2015
+        },
+        "age_25": {
+          "n": 232,
+          "returned": 184,
+          "attrition_rate": 0.2069
+        },
+        "age_26": {
+          "n": 195,
+          "returned": 159,
+          "attrition_rate": 0.1846
+        },
+        "age_27": {
+          "n": 168,
+          "returned": 143,
+          "attrition_rate": 0.1488
+        },
+        "age_28": {
+          "n": 145,
+          "returned": 123,
+          "attrition_rate": 0.1517
+        },
+        "age_29": {
+          "n": 119,
+          "returned": 102,
+          "attrition_rate": 0.1429
+        },
+        "age_30": {
+          "n": 102,
+          "returned": 87,
+          "attrition_rate": 0.1471
+        },
+        "age_31": {
+          "n": 80,
+          "returned": 68,
+          "attrition_rate": 0.15
+        },
+        "age_32": {
+          "n": 76,
+          "returned": 62,
+          "attrition_rate": 0.1842
+        },
+        "age_33": {
+          "n": 70,
+          "returned": 55,
+          "attrition_rate": 0.2143
+        },
+        "age_34": {
+          "n": 60,
+          "returned": 48,
+          "attrition_rate": 0.2
+        },
+        "age_35": {
+          "n": 53,
+          "returned": 42,
+          "attrition_rate": 0.2075
+        },
+        "age_36": {
+          "n": 39,
+          "returned": 29,
+          "attrition_rate": 0.2564
+        },
+        "age_37": {
+          "n": 30,
+          "returned": 23,
+          "attrition_rate": 0.2333
+        },
+        "age_38": {
+          "n": 23,
+          "returned": 13,
+          "attrition_rate": 0.4348
+        },
+        "age_39": {
+          "n": 12,
+          "returned": 6,
+          "attrition_rate": 0.5
+        },
+        "age_40": {
+          "n": 6,
+          "returned": 3,
+          "attrition_rate": 0.5
+        }
+      },
+      "RB": {
+        "age_22": {
+          "n": 380,
+          "returned": 315,
+          "attrition_rate": 0.1711
+        },
+        "age_23": {
+          "n": 611,
+          "returned": 482,
+          "attrition_rate": 0.2111
+        },
+        "age_24": {
+          "n": 618,
+          "returned": 473,
+          "attrition_rate": 0.2346
+        },
+        "age_25": {
+          "n": 512,
+          "returned": 395,
+          "attrition_rate": 0.2285
+        },
+        "age_26": {
+          "n": 419,
+          "returned": 312,
+          "attrition_rate": 0.2554
+        },
+        "age_27": {
+          "n": 342,
+          "returned": 262,
+          "attrition_rate": 0.2339
+        },
+        "age_28": {
+          "n": 265,
+          "returned": 183,
+          "attrition_rate": 0.3094
+        },
+        "age_29": {
+          "n": 180,
+          "returned": 118,
+          "attrition_rate": 0.3444
+        },
+        "age_30": {
+          "n": 130,
+          "returned": 82,
+          "attrition_rate": 0.3692
+        },
+        "age_31": {
+          "n": 90,
+          "returned": 45,
+          "attrition_rate": 0.5
+        },
+        "age_32": {
+          "n": 49,
+          "returned": 29,
+          "attrition_rate": 0.4082
+        },
+        "age_33": {
+          "n": 35,
+          "returned": 17,
+          "attrition_rate": 0.5143
+        },
+        "age_34": {
+          "n": 19,
+          "returned": 10,
+          "attrition_rate": 0.4737
+        },
+        "age_35": {
+          "n": 10,
+          "returned": 6,
+          "attrition_rate": 0.4
+        },
+        "age_36": {
+          "n": 6,
+          "returned": 4,
+          "attrition_rate": 0.3333
+        },
+        "age_37": {
+          "n": 5,
+          "returned": 2,
+          "attrition_rate": 0.6
+        },
+        "age_38": {
+          "n": 2,
+          "returned": 0,
+          "attrition_rate": 1
+        },
+        "age_39": {
+          "n": 1,
+          "returned": 0,
+          "attrition_rate": 1
+        }
+      },
+      "S": {
+        "age_22": {
+          "n": 131,
+          "returned": 115,
+          "attrition_rate": 0.1221
+        },
+        "age_23": {
+          "n": 244,
+          "returned": 208,
+          "attrition_rate": 0.1475
+        },
+        "age_24": {
+          "n": 254,
+          "returned": 214,
+          "attrition_rate": 0.1575
+        },
+        "age_25": {
+          "n": 237,
+          "returned": 185,
+          "attrition_rate": 0.2194
+        },
+        "age_26": {
+          "n": 201,
+          "returned": 164,
+          "attrition_rate": 0.1841
+        },
+        "age_27": {
+          "n": 176,
+          "returned": 136,
+          "attrition_rate": 0.2273
+        },
+        "age_28": {
+          "n": 146,
+          "returned": 114,
+          "attrition_rate": 0.2192
+        },
+        "age_29": {
+          "n": 113,
+          "returned": 77,
+          "attrition_rate": 0.3186
+        },
+        "age_30": {
+          "n": 80,
+          "returned": 50,
+          "attrition_rate": 0.375
+        },
+        "age_31": {
+          "n": 51,
+          "returned": 36,
+          "attrition_rate": 0.2941
+        },
+        "age_32": {
+          "n": 38,
+          "returned": 18,
+          "attrition_rate": 0.5263
+        },
+        "age_33": {
+          "n": 19,
+          "returned": 12,
+          "attrition_rate": 0.3684
+        },
+        "age_34": {
+          "n": 15,
+          "returned": 8,
+          "attrition_rate": 0.4667
+        },
+        "age_35": {
+          "n": 9,
+          "returned": 4,
+          "attrition_rate": 0.5556
+        },
+        "age_36": {
+          "n": 4,
+          "returned": 2,
+          "attrition_rate": 0.5
+        },
+        "age_37": {
+          "n": 3,
+          "returned": 1,
+          "attrition_rate": 0.6667
+        },
+        "age_38": {
+          "n": 1,
+          "returned": 0,
+          "attrition_rate": 1
+        }
+      },
+      "TE": {
+        "age_22": {
+          "n": 186,
+          "returned": 162,
+          "attrition_rate": 0.129
+        },
+        "age_23": {
+          "n": 412,
+          "returned": 349,
+          "attrition_rate": 0.1529
+        },
+        "age_24": {
+          "n": 471,
+          "returned": 380,
+          "attrition_rate": 0.1932
+        },
+        "age_25": {
+          "n": 421,
+          "returned": 336,
+          "attrition_rate": 0.2019
+        },
+        "age_26": {
+          "n": 349,
+          "returned": 264,
+          "attrition_rate": 0.2436
+        },
+        "age_27": {
+          "n": 257,
+          "returned": 200,
+          "attrition_rate": 0.2218
+        },
+        "age_28": {
+          "n": 214,
+          "returned": 168,
+          "attrition_rate": 0.215
+        },
+        "age_29": {
+          "n": 161,
+          "returned": 122,
+          "attrition_rate": 0.2422
+        },
+        "age_30": {
+          "n": 121,
+          "returned": 81,
+          "attrition_rate": 0.3306
+        },
+        "age_31": {
+          "n": 81,
+          "returned": 56,
+          "attrition_rate": 0.3086
+        },
+        "age_32": {
+          "n": 56,
+          "returned": 32,
+          "attrition_rate": 0.4286
+        },
+        "age_33": {
+          "n": 35,
+          "returned": 20,
+          "attrition_rate": 0.4286
+        },
+        "age_34": {
+          "n": 21,
+          "returned": 14,
+          "attrition_rate": 0.3333
+        },
+        "age_35": {
+          "n": 15,
+          "returned": 7,
+          "attrition_rate": 0.5333
+        },
+        "age_36": {
+          "n": 8,
+          "returned": 4,
+          "attrition_rate": 0.5
+        },
+        "age_37": {
+          "n": 6,
+          "returned": 5,
+          "attrition_rate": 0.1667
+        },
+        "age_38": {
+          "n": 4,
+          "returned": 1,
+          "attrition_rate": 0.75
+        },
+        "age_39": {
+          "n": 1,
+          "returned": 1,
+          "attrition_rate": 0
+        }
+      },
+      "WR": {
+        "age_22": {
+          "n": 555,
+          "returned": 460,
+          "attrition_rate": 0.1712
+        },
+        "age_23": {
+          "n": 886,
+          "returned": 698,
+          "attrition_rate": 0.2122
+        },
+        "age_24": {
+          "n": 862,
+          "returned": 654,
+          "attrition_rate": 0.2413
+        },
+        "age_25": {
+          "n": 711,
+          "returned": 533,
+          "attrition_rate": 0.2504
+        },
+        "age_26": {
+          "n": 549,
+          "returned": 425,
+          "attrition_rate": 0.2259
+        },
+        "age_27": {
+          "n": 427,
+          "returned": 324,
+          "attrition_rate": 0.2412
+        },
+        "age_28": {
+          "n": 313,
+          "returned": 225,
+          "attrition_rate": 0.2812
+        },
+        "age_29": {
+          "n": 231,
+          "returned": 160,
+          "attrition_rate": 0.3074
+        },
+        "age_30": {
+          "n": 162,
+          "returned": 115,
+          "attrition_rate": 0.2901
+        },
+        "age_31": {
+          "n": 106,
+          "returned": 77,
+          "attrition_rate": 0.2736
+        },
+        "age_32": {
+          "n": 80,
+          "returned": 54,
+          "attrition_rate": 0.325
+        },
+        "age_33": {
+          "n": 61,
+          "returned": 38,
+          "attrition_rate": 0.377
+        },
+        "age_34": {
+          "n": 39,
+          "returned": 25,
+          "attrition_rate": 0.359
+        },
+        "age_35": {
+          "n": 29,
+          "returned": 16,
+          "attrition_rate": 0.4483
+        },
+        "age_36": {
+          "n": 17,
+          "returned": 8,
+          "attrition_rate": 0.5294
+        },
+        "age_37": {
+          "n": 9,
+          "returned": 2,
+          "attrition_rate": 0.7778
+        },
+        "age_38": {
+          "n": 2,
+          "returned": 0,
+          "attrition_rate": 1
+        }
+      }
+    }
+  }
+}
