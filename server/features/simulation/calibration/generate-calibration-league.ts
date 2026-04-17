@@ -118,7 +118,7 @@ function generateTeamRoster(
   // and cross-team metric spread (notably yards_per_carry sd)
   // collapses well below the NFL band. Applied to starters only so
   // bench quality stays uniform across teams.
-  const teamTalentShift = rng.gaussian(0, 3, -8, 8);
+  const teamTalentShift = rng.gaussian(0, 2.75, -7, 7);
 
   const starters: PlayerRuntime[] = [];
   const bench: PlayerRuntime[] = [];
