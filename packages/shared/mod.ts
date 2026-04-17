@@ -57,6 +57,12 @@ export {
   OFFENSIVE_TENDENCY_KEYS,
 } from "./types/coach-tendencies.ts";
 export type {
+  CoachRatings,
+  CoachRatingsUpsertInput,
+  CoachRatingValues,
+} from "./types/coach-ratings.ts";
+export { COACH_RATING_KEYS } from "./types/coach-ratings.ts";
+export type {
   SchemeFingerprint,
   SchemeFingerprintOverrides,
 } from "./types/scheme-fingerprint.ts";

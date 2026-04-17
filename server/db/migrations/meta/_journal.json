@@ -351,6 +351,13 @@
       "when": 1776556800012,
       "tag": "0049_add_years_experience_to_staff",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1776556800013,
+      "tag": "0050_cultured_slipstream",
+      "breakpoints": true
     }
   ]
 }

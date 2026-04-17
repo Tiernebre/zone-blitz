@@ -28,6 +28,7 @@ export {
   coachSpecialtyEnum,
 } from "../features/coaches/coach.schema.ts";
 export { coachTendencies } from "../features/coaches/coach-tendencies.schema.ts";
+export { coachRatings } from "../features/coaches/coach-ratings.schema.ts";
 export {
   accoladeTypeEnum,
   coachAccolades,
