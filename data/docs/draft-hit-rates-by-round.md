@@ -42,6 +42,25 @@ The headline: a 1st-rounder is ~4x as likely to become a real starter as a
 3rd-rounder, and ~12x as likely as a 7th-rounder. Round 4 is a cliff — the
 chance of "hit" drops from ~47% in round 3 to ~29%.
 
+```mermaid
+xychart-beta
+    title "P(started 16 games in 3 years) by round"
+    x-axis "Round" [1, 2, 3, 4, 5, 6, 7]
+    y-axis "Hit rate (%)" 0 --> 100
+    bar [86, 65, 47, 29, 23, 11, 7]
+```
+
+```mermaid
+xychart-beta
+    title "P(out of league by Y3) by round"
+    x-axis "Round" [1, 2, 3, 4, 5, 6, 7]
+    y-axis "Bust rate (%)" 0 --> 70
+    bar [24, 20, 28, 34, 37, 46, 58]
+```
+
+Hit-rate decays; bust-rate grows. The crossover sits inside round 4 — the "real
+NFL draft cliff" described below.
+
 ## Why round 2 is famously worse than round 1 _and_ round 3 at quarterback
 
 The round 2 hit-rate for QBs is a long-running source of draft discourse. Across

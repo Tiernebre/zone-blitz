@@ -26,6 +26,15 @@ The three layers are what the sim needs:
 - Starters tell it how many every-down anchors exist — the gap between
   contributors and starters is the "rotation tax" (especially big for DL).
 
+```mermaid
+flowchart TB
+    L1[All rostered · 53 active] --> L2[Meaningful contributors · ≥ 25% snap share]
+    L2 --> L3[Clear starters · ≥ 70% snap share]
+    L1 -. "roster builder · how many to stock" .-> USE1([Player generator])
+    L2 -. "how many must be playable" .-> USE2([Depth-chart tiering])
+    L3 -. "every-down anchors" .-> USE3([Scheme / lineup AI])
+```
+
 ## 53-man composition (typical week)
 
 Per-team-week averages (ACT status only, regular season 2020–2024):
@@ -43,6 +52,14 @@ Per-team-week averages (ACT status only, regular season 2020–2024):
 | P           | 1.0        | Binary                                                   |
 | LS          | 1.0        | Binary                                                   |
 | K           | 1.0        | Binary                                                   |
+
+```mermaid
+xychart-beta
+    title "Typical 53-man composition (mean slots per position)"
+    x-axis ["DB", "OL", "iDL", "LB", "WR", "RB", "TE", "QB", "P", "LS", "K"]
+    y-axis "Active slots" 0 --> 10
+    bar [9.2, 8.0, 7.0, 6.8, 5.2, 3.6, 3.1, 2.0, 1.0, 1.0, 1.0]
+```
 
 **53 adds up to ~52** — the remainder goes to FB/emergency QB/practice-squad
 elevations. The sim's roster builder can treat these as the hard base.
@@ -96,6 +113,17 @@ Across 32 teams in a typical season:
 | K        | ~40                        | Barely above 32 — low churn          |
 | P        | ~38                        | Low churn                            |
 | LS       | ~36                        | Lowest churn in the league           |
+
+```mermaid
+xychart-beta
+    title "Unique players per season (league-wide)"
+    x-axis ["OL", "DB", "iDL", "LB", "WR", "RB", "TE", "QB", "K", "P", "LS"]
+    y-axis "Players" 0 --> 400
+    bar [380, 380, 310, 300, 230, 175, 160, 96, 40, 38, 36]
+```
+
+QB is the scarcest non-specialist by a wide margin. LS has the lowest churn of
+any roster spot.
 
 ## Roster-construction conventions the sim must honor
 

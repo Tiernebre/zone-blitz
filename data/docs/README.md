@@ -1,0 +1,109 @@
+# `data/docs/` — NFL calibration references
+
+Narrative companions to the machine-readable bands in
+[`data/bands/`](../bands/). Each doc explains **what the NFL actually does** for
+a slice of league behavior — volumes, tiers, curves, market shapes — so the Zone
+Blitz sim can be calibrated against it.
+
+The JSON in `data/bands/` is what the sim's calibration harness asserts against.
+The Markdown here is what a human (or a coding agent) reads to understand _why_
+those numbers look the way they do, and which narrative priors belong in the AI
+layer when the feed can't answer.
+
+## How the docs fit together
+
+```mermaid
+flowchart LR
+    subgraph Sources["nflreadr / OTC / PFR"]
+        PBP[load_pbp]
+        ROS[load_rosters_weekly]
+        SNAP[load_snap_counts]
+        DRAFT[load_draft_picks]
+        CTR[load_contracts]
+    end
+
+    subgraph Bands["data/bands/*.json"]
+        B1[position-market]
+        B2[draft-position-distribution]
+        B3[draft-pick-value]
+        B4[draft-hit-rates]
+        B5[free-agent-market]
+        B6[contract-structure]
+        B7[career-length]
+    end
+
+    subgraph Docs["data/docs/*.md"]
+        D0[calibration-gaps]
+        D1[position-market-sizing]
+        D2[draft-position-tendencies]
+        D3[draft-pick-trade-value]
+        D4[draft-hit-rates-by-round]
+        D5[free-agent-market]
+        D6[contract-structure]
+        D7[career-length-by-position]
+        D8[nfl-talent-distribution-by-position]
+    end
+
+    ROS --> B1 --> D1
+    DRAFT --> B2 --> D2
+    DRAFT --> B3 --> D3
+    DRAFT --> B4 --> D4
+    CTR --> B5 --> D5
+    CTR --> B6 --> D6
+    ROS --> B7 --> D7
+    PBP -. informs .-> D8
+    SNAP --> B1
+    SNAP --> B4
+
+    D0 -. indexes .-> D1 & D2 & D3 & D4 & D5 & D6 & D7
+```
+
+## Index
+
+### Meta-game (market & career)
+
+| Doc                                                            | What it covers                                                                                                      | Feeds                                                           |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [calibration-gaps.md](./calibration-gaps.md)                   | Master index of what's done vs what's missing across play-level, game-level, and season/career realism.             | The roadmap.                                                    |
+| [position-market-sizing.md](./position-market-sizing.md)       | 53-man roster slots by position, meaningful contributors, clear starters. QB is 2, OL is 8, specialists are 1-deep. | Player generator, league init, depth-chart classification.      |
+| [draft-position-tendencies.md](./draft-position-tendencies.md) | Which positions go in which rounds. QB/WR/EDGE/OT/CB are ~65% of top-10; RB/LB double their R1 counts by R7.        | Draft class generator, NPC GM positional-value prior.           |
+| [draft-pick-trade-value.md](./draft-pick-trade-value.md)       | Jimmy Johnson vs Rich Hill vs Chase Stuart — three canonical trade-value charts and when they disagree.             | AI GM trade evaluator, user trade grade.                        |
+| [draft-hit-rates-by-round.md](./draft-hit-rates-by-round.md)   | P(multi-year starter \| round, position). 86% for R1, 7% for R7. Round 4 is the cliff.                              | Prospect generation, post-draft grade UI.                       |
+| [free-agent-market.md](./free-agent-market.md)                 | UFA volume, AAV tiers, signing waves, own-team re-sign rates by position.                                           | FA period generator, NPC bid AI.                                |
+| [contract-structure.md](./contract-structure.md)               | Contract shape — length, guarantee %, signing-bonus share, year-by-year cap hit, void years, restructures.          | Contract offer generator, cap AI, cut/restructure decisions.    |
+| [career-length-by-position.md](./career-length-by-position.md) | Five canonical aging shapes — specialist longevity, QB tail, OL plateau, mid-career cohort, RB/CB cliff.            | Aging system, retirement decisions, franchise-planning windows. |
+
+### Player-rating calibration
+
+| Doc                                                                                | What it covers                                                                                                               | Feeds                                   |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| [nfl-talent-distribution-by-position.md](./nfl-talent-distribution-by-position.md) | Tier splits (Replacement / Weak / Average / Strong / Elite) per position. QB is bimodal; OL compresses; EDGE rides the tail. | Player-generation rating distributions. |
+
+## Conventions used across these docs
+
+- **Rating midpoint = 50** on the Zone Blitz 0–100 scale. Average is ~50, not
+  ~60. Elite rides the tail.
+- **Tier naming** — `top_10 / top_25 / top_50 / rest` for market bands
+  (APY-ranked within a position group).
+  `Replacement / Weak / Average / Strong
+  / Elite` for rating tiers.
+- **Position canonicalization** — OL collapses T/G/C in roster feeds; CB_DB
+  includes generic `DB`; LB includes OLB / ILB / MLB. Finer splits live in the
+  draft and snap-count data.
+- **Season windows** — market and contract bands use 2020–2024 (post-COVID-cap
+  era). Draft hit-rates use 2013–2020 (`snap_counts` coverage starts 2013, 2020
+  is the latest with a full 5-year runway). Career-length uses 2005–2024 (20
+  years for aging curves).
+
+## Adding a new doc
+
+1. Generate or extend a band under `data/R/bands/` and write JSON to
+   `data/bands/`.
+2. Write the narrative here in `data/docs/`. Lead with what the NFL does and the
+   sim implications, not the R plumbing.
+3. Add a row to [calibration-gaps.md](./calibration-gaps.md) linking the band
+   and doc.
+4. Add a row to the index tables above so the next reader finds it.
+
+Use the [`nflfastr`](../../CLAUDE.md) skill for nflverse-reachable data and the
+[`bigdatabowl`](../../CLAUDE.md) skill for player-tracking-specific questions.

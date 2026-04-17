@@ -23,6 +23,37 @@ The sim has three layers of calibration targets:
    drafted, who retires, who gets fired. Entirely missing. Gaps listed below in
    the **Market & Career** group.
 
+```mermaid
+flowchart TB
+    subgraph L1["Layer 1 · Play-level realism ✓"]
+        direction LR
+        PL1[passing-plays]
+        PL2[rushing-plays]
+        PL3[special-teams]
+        PL4[situational]
+    end
+    subgraph L2["Layer 2 · Game-level realism ◐"]
+        direction LR
+        GL1[team-game]
+        GL2[play-call-tendencies ✓]
+        GL3[red-zone-and-third-down ✓]
+    end
+    subgraph L3["Layer 3 · Season / career realism ◐"]
+        direction LR
+        SC1[position-market ✓]
+        SC2[draft-position-distribution ✓]
+        SC3[draft-pick-value ✓]
+        SC4[draft-hit-rates ✓]
+        SC5[free-agent-market ✓]
+        SC6[contract-structure ✓]
+        SC7[career-length ✓]
+        SC8[coaching-tenure ○]
+    end
+    L1 --> L2 --> L3
+```
+
+Legend: ✓ landed · ◐ in progress · ○ not started.
+
 ## Market & Career (the league-building layer)
 
 | # | Gap                                                                                                                                                                                                           | Primary source                                          | Issue       |
@@ -41,6 +72,32 @@ These directly serve the user-named asks:
 - **Position markets** — #1, #2, #7.
 - **Draft pick economy** — #2, #3, #4.
 - **Roster movement / contracts** — #5, #6, #8.
+
+```mermaid
+flowchart LR
+    ASK1[Position markets]
+    ASK2[Draft pick economy]
+    ASK3[Roster movement & contracts]
+
+    G1[#1 position-market]
+    G2[#2 draft-position-distribution]
+    G3[#3 draft-pick-value]
+    G4[#4 draft-hit-rates]
+    G5[#5 free-agent-market]
+    G6[#6 contract-structure]
+    G7[#7 career-length]
+    G8[#8 coaching-tenure ○]
+
+    G1 --> ASK1
+    G2 --> ASK1
+    G2 --> ASK2
+    G3 --> ASK2
+    G4 --> ASK2
+    G5 --> ASK3
+    G6 --> ASK3
+    G7 --> ASK1
+    G8 --> ASK3
+```
 
 ## Game Flow (the situational-realism layer)
 

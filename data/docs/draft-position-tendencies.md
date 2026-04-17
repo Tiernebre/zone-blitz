@@ -35,6 +35,23 @@ Together they account for roughly 65% of the top 10 but only 40% of the full
 draft. Everything else (RB, TE, iDL, LB, S, OL interior, specialists) is
 disproportionately late.
 
+```mermaid
+pie showData
+    title Top-10 pick share by position (10 drafts)
+    "QB" : 26
+    "WR" : 13
+    "EDGE" : 12
+    "OT" : 8
+    "CB" : 7
+    "RB" : 6
+    "LB" : 6
+    "iDL" : 4
+    "TE" : 2
+    "S" : 1
+    "OG" : 1
+    "Other" : 14
+```
+
 ## Per-round picks per position (mean)
 
 Across the seven rounds, mean picks per position per draft:
@@ -58,6 +75,26 @@ Across the seven rounds, mean picks per position per draft:
 
 (Rounded to nearest tenth. Full distributions with p10/p50/p90 are in the band
 JSON.)
+
+```mermaid
+xychart-beta
+    title "RB picks per round (mean) — the positional-value shift"
+    x-axis "Round" [1, 2, 3, 4, 5, 6, 7]
+    y-axis "Picks per draft" 0 --> 5
+    bar [1.8, 2.5, 2.8, 3.4, 3.5, 3.7, 4.2]
+```
+
+```mermaid
+xychart-beta
+    title "QB picks per round (mean) — the top-heavy shape"
+    x-axis "Round" [1, 2, 3, 4, 5, 6, 7]
+    y-axis "Picks per draft" 0 --> 5
+    bar [2.8, 1.3, 1.2, 1.6, 1.4, 1.4, 1.6]
+```
+
+RB more than doubles its R1 count by R7; QB peaks hard in R1 then flattens.
+These are the two clearest positional-value stories in the last decade of
+drafts.
 
 ### Positional run phenomena to model
 
