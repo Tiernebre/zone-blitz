@@ -30,6 +30,7 @@ flowchart LR
         B5[free-agent-market]
         B6[contract-structure]
         B7[career-length]
+        B8[comp-picks]
     end
 
     subgraph Docs["data/docs/*.md"]
@@ -42,6 +43,7 @@ flowchart LR
         D6[contract-structure]
         D7[career-length-by-position]
         D8[nfl-talent-distribution-by-position]
+        D9[comp-picks]
     end
 
     ROS --> B1 --> D1
@@ -51,6 +53,8 @@ flowchart LR
     CTR --> B5 --> D5
     CTR --> B6 --> D6
     ROS --> B7 --> D7
+    DRAFT --> B8 --> D9
+    CTR --> B8
     PBP -. informs .-> D8
     SNAP --> B1
     SNAP --> B4
@@ -72,6 +76,7 @@ flowchart LR
 | [free-agent-market.md](./free-agent-market.md)                 | UFA volume, AAV tiers, signing waves, own-team re-sign rates by position.                                           | FA period generator, NPC bid AI.                                |
 | [contract-structure.md](./contract-structure.md)               | Contract shape — length, guarantee %, signing-bonus share, year-by-year cap hit, void years, restructures.          | Contract offer generator, cap AI, cut/restructure decisions.    |
 | [career-length-by-position.md](./career-length-by-position.md) | Five canonical aging shapes — specialist longevity, QB tail, OL plateau, mid-career cohort, RB/CB cliff.            | Aging system, retirement decisions, franchise-planning windows. |
+| [comp-picks.md](./comp-picks.md)                               | Compensatory picks — 32/yr cap, P(comp \| net UFA losses), round mix, minority-hire supplemental picks.             | AI GM "let him walk for the comp pick" decision, draft supply.  |
 
 ### Player-rating calibration
 
