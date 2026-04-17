@@ -870,37 +870,162 @@ function rollOrigin(
  * Archetype-driven modifiers applied on top of the position × tier
  * contract-structure prior (see `contract-structure-bands.ts`). Real
  * NFL deals are shaped by position × market tier first; team cap
- * posture nudges the bonus share up/down and governs void-year usage.
+ * posture nudges the bonus share up/down and scales void-year usage.
+ *
+ * `voidYearMultiplier` and `maxVoidYearsCeiling` compose with the
+ * position × tier void-year prior (`VOID_YEAR_PRIOR_BY_POSITION`) so
+ * that team posture is a multiplier on a position-driven rate, not a
+ * replacement for it. A flush team zeroes the rate regardless of
+ * position — they have no cap reason to push cash forward.
  */
 interface ArchetypeModifier {
   /** Additive delta applied to the sampled signing-bonus share. */
   bonusShareDelta: number;
-  voidYearChance: number;
-  maxVoidYears: number;
+  voidYearMultiplier: number;
+  maxVoidYearsCeiling: number;
 }
 
 const ARCHETYPE_MODIFIER: Record<CapArchetype, ArchetypeModifier> = {
   "cap-hell": {
     bonusShareDelta: 0.20,
-    voidYearChance: 0.6,
-    maxVoidYears: 2,
+    voidYearMultiplier: 1.6,
+    maxVoidYearsCeiling: 3,
   },
   tight: {
     bonusShareDelta: 0.10,
-    voidYearChance: 0.3,
-    maxVoidYears: 1,
+    voidYearMultiplier: 1.3,
+    maxVoidYearsCeiling: 2,
   },
   balanced: {
     bonusShareDelta: 0.05,
-    voidYearChance: 0.15,
-    maxVoidYears: 1,
+    voidYearMultiplier: 1.0,
+    maxVoidYearsCeiling: 2,
   },
   flush: {
     bonusShareDelta: -0.10,
-    voidYearChance: 0,
-    maxVoidYears: 0,
+    voidYearMultiplier: 0,
+    maxVoidYearsCeiling: 0,
   },
 };
+
+/**
+ * Position × market-tier void-year priors. Sourced from the
+ * qualitative OTC tracking summarised in
+ * `data/docs/contract-structure.md` and issue #532: top-10 QB deals
+ * carry void years ~30%+ of the time, top-10 EDGE ~20%+, top-10
+ * IDL/WR/OT meaningful but lower, RB/S/CB/specialists rare. The
+ * published OTC feed does not mark void years directly — the band
+ * file's numeric `void_year_usage_rate_by_position` understates real
+ * usage by an order of magnitude. We use the qualitative priors
+ * instead, per the doc's "Known gaps" note.
+ *
+ * TODO(#557): restructure mechanics (post-Y2/Y3 base-to-bonus
+ * conversion, per-team post-June-1 designation) remain deferred —
+ * tracked separately as the restructure follow-up to #532.
+ */
+interface VoidYearPrior {
+  chance: number;
+  maxYears: number;
+}
+
+const VOID_YEAR_REST_PRIOR: VoidYearPrior = { chance: 0, maxYears: 0 };
+
+const VOID_YEAR_PRIOR_BY_POSITION: Record<
+  NeutralBucket,
+  Record<AavTier, VoidYearPrior>
+> = {
+  QB: {
+    top_10: { chance: 0.35, maxYears: 2 },
+    top_25: { chance: 0.18, maxYears: 2 },
+    top_50: { chance: 0.05, maxYears: 1 },
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  EDGE: {
+    top_10: { chance: 0.22, maxYears: 2 },
+    top_25: { chance: 0.1, maxYears: 2 },
+    top_50: { chance: 0.03, maxYears: 1 },
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  IDL: {
+    top_10: { chance: 0.12, maxYears: 2 },
+    top_25: { chance: 0.06, maxYears: 1 },
+    top_50: { chance: 0.02, maxYears: 1 },
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  WR: {
+    top_10: { chance: 0.12, maxYears: 2 },
+    top_25: { chance: 0.06, maxYears: 1 },
+    top_50: { chance: 0.02, maxYears: 1 },
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  OT: {
+    top_10: { chance: 0.1, maxYears: 2 },
+    top_25: { chance: 0.05, maxYears: 1 },
+    top_50: { chance: 0.02, maxYears: 1 },
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  IOL: {
+    top_10: { chance: 0.07, maxYears: 1 },
+    top_25: { chance: 0.03, maxYears: 1 },
+    top_50: { chance: 0.01, maxYears: 1 },
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  TE: {
+    top_10: { chance: 0.06, maxYears: 1 },
+    top_25: { chance: 0.03, maxYears: 1 },
+    top_50: { chance: 0.01, maxYears: 1 },
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  LB: {
+    top_10: { chance: 0.05, maxYears: 1 },
+    top_25: { chance: 0.02, maxYears: 1 },
+    top_50: { chance: 0.01, maxYears: 1 },
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  RB: {
+    top_10: { chance: 0.03, maxYears: 1 },
+    top_25: { chance: 0.01, maxYears: 1 },
+    top_50: VOID_YEAR_REST_PRIOR,
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  CB: {
+    top_10: { chance: 0.03, maxYears: 1 },
+    top_25: { chance: 0.01, maxYears: 1 },
+    top_50: VOID_YEAR_REST_PRIOR,
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  S: {
+    top_10: { chance: 0.03, maxYears: 1 },
+    top_25: { chance: 0.01, maxYears: 1 },
+    top_50: VOID_YEAR_REST_PRIOR,
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  K: {
+    top_10: { chance: 0.01, maxYears: 1 },
+    top_25: VOID_YEAR_REST_PRIOR,
+    top_50: VOID_YEAR_REST_PRIOR,
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  P: {
+    top_10: { chance: 0.01, maxYears: 1 },
+    top_25: VOID_YEAR_REST_PRIOR,
+    top_50: VOID_YEAR_REST_PRIOR,
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+  LS: {
+    top_10: VOID_YEAR_REST_PRIOR,
+    top_25: VOID_YEAR_REST_PRIOR,
+    top_50: VOID_YEAR_REST_PRIOR,
+    rest: VOID_YEAR_REST_PRIOR,
+  },
+};
+
+export function getVoidYearPrior(
+  bucket: NeutralBucket,
+  tier: AavTier,
+): VoidYearPrior {
+  return VOID_YEAR_PRIOR_BY_POSITION[bucket][tier];
+}
 
 function clampRatio(value: number): number {
   return Math.max(0, Math.min(0.95, value));
@@ -1055,15 +1180,27 @@ export function rollVeteranContract(
   const signingBonus = Math.round(totalValue * bonusRatio);
   const remainingBase = totalValue - signingBonus;
 
-  // Void years are an archetype lever only — the league-wide per-
-  // position rate is effectively zero in the data (see
-  // void_year_usage_rate_by_position in contract-structure.json).
+  // Void-year usage is primarily position-driven: the issue #532
+  // qualitative priors (top-10 QB ~30%+, EDGE ~20%+, others lower,
+  // RB/CB/S/specialists rare) drive the base rate, and the team cap
+  // archetype acts as a multiplier and a ceiling on max void years.
+  // A flush team zeroes the multiplier and the ceiling — they have
+  // no cap reason to push cash forward regardless of position.
   let voidYears = 0;
+  const positionVoidPrior = getVoidYearPrior(args.bucket, args.marketTier);
+  const voidChance = Math.max(
+    0,
+    Math.min(0.95, positionVoidPrior.chance * modifier.voidYearMultiplier),
+  );
+  const effectiveMaxVoidYears = Math.min(
+    positionVoidPrior.maxYears,
+    modifier.maxVoidYearsCeiling,
+  );
   if (
-    modifier.maxVoidYears > 0 && realYears >= 2 &&
-    rng.next() < modifier.voidYearChance
+    effectiveMaxVoidYears > 0 && realYears >= 2 &&
+    rng.next() < voidChance
   ) {
-    voidYears = rng.int(1, modifier.maxVoidYears);
+    voidYears = rng.int(1, effectiveMaxVoidYears);
   }
   const totalYears = realYears + voidYears;
 

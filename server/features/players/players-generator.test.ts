@@ -1251,6 +1251,126 @@ Deno.test(
   },
 );
 
+// ---- Void-year usage by position × tier (issue #532) ----
+//
+// OTC reporting (see `data/docs/contract-structure.md`): top-10 QB
+// contracts carry void years ~30%+ of the time, top-10 EDGE ~20%+,
+// top-10 IDL/WR/OT meaningful but lower, RB/S/CB/specialists rare.
+// The prior model drove void-year usage purely off the team cap
+// archetype; this suite pins the position × tier prior that layers
+// on top.
+
+function voidRate(bundles: ReturnType<typeof rollVeteranContract>[]): number {
+  return bundles.filter((b) => b.years.some((y) => y.isVoid)).length /
+    bundles.length;
+}
+
+Deno.test(
+  "top-10 QB contracts carry void years ~30%+ under a balanced archetype",
+  () => {
+    const bundles = sampleVeteranContracts({
+      bucket: "QB",
+      qualityTier: "star",
+      archetype: "balanced",
+      count: 600,
+      seed: 101,
+    });
+    const rate = voidRate(bundles);
+    assertEquals(
+      rate >= 0.25,
+      true,
+      `expected QB top-10 void-year rate >= 0.25; got ${rate.toFixed(3)}`,
+    );
+  },
+);
+
+Deno.test(
+  "top-10 EDGE contracts carry void years ~20%+ under a balanced archetype",
+  () => {
+    const bundles = sampleVeteranContracts({
+      bucket: "EDGE",
+      qualityTier: "star",
+      archetype: "balanced",
+      count: 600,
+      seed: 102,
+    });
+    const rate = voidRate(bundles);
+    assertEquals(
+      rate >= 0.15,
+      true,
+      `expected EDGE top-10 void-year rate >= 0.15; got ${rate.toFixed(3)}`,
+    );
+  },
+);
+
+Deno.test(
+  "top-10 QB void-year rate clearly exceeds top-10 RB / CB / S / specialists",
+  () => {
+    const qb = voidRate(sampleVeteranContracts({
+      bucket: "QB",
+      qualityTier: "star",
+      archetype: "balanced",
+      count: 600,
+      seed: 103,
+    }));
+    for (const bucket of ["RB", "CB", "S", "K"] as const) {
+      const other = voidRate(sampleVeteranContracts({
+        bucket,
+        qualityTier: "star",
+        archetype: "balanced",
+        count: 600,
+        seed: 103,
+      }));
+      assertEquals(
+        qb - other >= 0.15,
+        true,
+        `expected QB void rate (${qb.toFixed(3)}) to exceed ${bucket} (${
+          other.toFixed(3)
+        }) by >= 0.15`,
+      );
+    }
+  },
+);
+
+Deno.test(
+  "sub-top-10 tiers rarely carry void years regardless of position",
+  () => {
+    for (const bucket of ["QB", "EDGE", "WR"] as const) {
+      const rate = voidRate(sampleVeteranContracts({
+        bucket,
+        qualityTier: "depth",
+        archetype: "balanced",
+        count: 600,
+        seed: 104,
+      }));
+      assertEquals(
+        rate <= 0.1,
+        true,
+        `expected sub-top-10 ${bucket} void rate <= 0.10; got ${
+          rate.toFixed(3)
+        }`,
+      );
+    }
+  },
+);
+
+Deno.test(
+  "flush archetype zeroes void-year usage even for top-10 QBs",
+  () => {
+    // Flush teams never need cap tricks; the team archetype gates the
+    // position prior to preserve the existing cap-hell vs flush
+    // invariant (tested at generator scope above).
+    const bundles = sampleVeteranContracts({
+      bucket: "QB",
+      qualityTier: "star",
+      archetype: "flush",
+      count: 400,
+      seed: 105,
+    });
+    assertEquals(voidRate(bundles), 0);
+  },
+);
+
 Deno.test("default archetype (no teamArchetypes provided) still produces valid contracts", () => {
   const generator = makeGenerator();
   const players = Array.from({ length: 53 }, (_, i) => ({
