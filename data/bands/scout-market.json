@@ -1,0 +1,145 @@
+{
+  "generated_at": "2026-04-17T00:00:00Z",
+  "source_window": "2018-2025 reporting-year window for staffing and prospect-coverage patterns. Salary figures are qualitative priors drawn from public reporting; none of the major NFL scouting departments publish per-scout contracts.",
+  "source_kind": "qualitative_priors",
+  "notes": "Scout contract data is not in nflreadr. Numbers below are synthesized from public reporting (PFN beat reporting on front-office pay scales, The Athletic front-office teardown pieces, Over The Cap front-office tracker where available, Hogs Haven / team-beat staff directories, NFL Players Association-adjacent draft-workload analysis, ESPN scouting-department features). Staffing levels are derived from public team media guides and org charts (each NFL front office publishes a scouting staff list; counts by role have been tallied across all 32 teams). Workload figures anchor on the ~3,000-prospect college universe that each scouting department evaluates per draft cycle. All salaries are annual US dollars.",
+  "tiers": {
+    "DIRECTOR": {
+      "description": "Director of college scouting / director of player personnel. One per team (two on some staffs where college and pro personnel directors split). Reports to the GM. Runs the board, sets scouting assignments, and owns the final pre-GM ranking of the draft class.",
+      "source_kind": "qualitative_priors",
+      "count_per_team": { "min": 1, "mode": 1, "max": 2 },
+      "salary_annual_usd": {
+        "mean": 500000,
+        "p10": 300000,
+        "p50": 475000,
+        "p90": 800000,
+        "ceiling": 1200000,
+        "notes": "Top directors (DraftGurus / The Athletic reporting on Eliot Wolf type roles, Monti Ossenfort before KC promoted him to Arizona GM) have been reported in the $700K-$1M range. The median director sits $400K-$500K. Entry-level first-year directors can be $250K-$350K. Assistant GM titles blur into director salaries above $1M."
+      },
+      "contract_length_years": {
+        "mode": 4,
+        "p10": 3,
+        "p50": 4,
+        "p90": 5,
+        "notes": "Directors typically sign 3-5 year deals tied to the GM's contract. When a GM is fired the director often gets absorbed by the replacing regime or signs a short bridge deal."
+      },
+      "buyout_convention": {
+        "kind": "remaining_salary_fully_guaranteed_offsetable",
+        "offset_common": true,
+        "notes": "Front-office contracts follow the same fully-guaranteed-with-offset convention as coaches but at a lower dollar scale. A fired director typically collects the remainder minus whatever they earn in a new director-or-above role."
+      },
+      "work_capacity_prospects_per_cycle": {
+        "mean": 200,
+        "p10": 150,
+        "p50": 200,
+        "p90": 260,
+        "notes": "Directors don't evaluate the full board themselves — they cross-check the top-100 to top-200 prospects and set the final grade spread. The workCapacity value in the scouts generator should reflect 'prospects the director can personally stamp a grade on' which is the top third of the board plus spot-checks. A national scouting staff collectively covers the full ~3,000-prospect college universe; the director's direct-look count is a slice."
+      },
+      "position_focus_split": {
+        "generalist": 0.7,
+        "specialist": 0.3,
+        "notes": "Directors are heavily generalist — by the time someone reaches director they've run drafts across position groups. The 30% specialist share represents directors who remain identified with their rising-through-the-ranks position focus (a long-time DB evaluator who still owns the DB board even as director)."
+      }
+    },
+    "NATIONAL_CROSS_CHECKER": {
+      "description": "National / regional cross-checker. Re-evaluates the top of the board after area scouts file initial reports. Usually 2 per team (East / West split or equivalent). Reports to the director.",
+      "source_kind": "qualitative_priors",
+      "count_per_team": { "min": 1, "mode": 2, "max": 3 },
+      "salary_annual_usd": {
+        "mean": 250000,
+        "p10": 150000,
+        "p50": 225000,
+        "p90": 400000,
+        "ceiling": 550000,
+        "notes": "Mid-tier career scouts. The Athletic's teardown of front-office staffing pegs the cross-checker band at $150K-$400K. Veterans with 15+ years and a strong track record crack $450K."
+      },
+      "contract_length_years": {
+        "mode": 3,
+        "p10": 2,
+        "p50": 3,
+        "p90": 4
+      },
+      "buyout_convention": {
+        "kind": "remaining_salary_partial_or_offsetable",
+        "offset_common": true
+      },
+      "work_capacity_prospects_per_cycle": {
+        "mean": 180,
+        "p10": 140,
+        "p50": 180,
+        "p90": 220,
+        "notes": "Cross-checkers see the top ~200 names on each side of the country plus the full top-100 nationally. They're the volume layer above area scouts."
+      },
+      "position_focus_split": {
+        "generalist": 0.55,
+        "specialist": 0.45,
+        "notes": "Cross-checkers split more evenly between generalist (re-checking all positions in a region) and specialist (a dedicated QB cross-checker, a front-7 cross-checker, etc.). Several teams now run explicit position-specialist cross-checker roles."
+      }
+    },
+    "AREA_SCOUT": {
+      "description": "Area scout. Owns a geographic region's colleges and initial report-writing on everyone in that territory. Usually 4-7 per team. Reports to a cross-checker.",
+      "source_kind": "qualitative_priors",
+      "count_per_team": { "min": 4, "mode": 6, "max": 8 },
+      "salary_annual_usd": {
+        "mean": 120000,
+        "p10": 75000,
+        "p50": 115000,
+        "p90": 180000,
+        "ceiling": 240000,
+        "notes": "Entry-level area scouts sit $65K-$90K. The median career area scout is $100K-$140K. Top-tier veteran area scouts who've been passed over for promotion but are valued for their network sit $180K-$220K. Hogs Haven's annual staff directories and PFN's front-office pay-scale reporting are the anchors."
+      },
+      "contract_length_years": {
+        "mode": 2,
+        "p10": 1,
+        "p50": 2,
+        "p90": 3,
+        "notes": "Area scouts sign shortest of any scouting-staff role. 1-2 year deals dominate; 3+ years is reserved for tenured veterans."
+      },
+      "buyout_convention": {
+        "kind": "remaining_salary_partial_or_none",
+        "offset_common": false,
+        "notes": "Area scouts often carry little or no buyout — the remainder of a 1-2 year deal. When a GM cleans house, area scouts are frequently let go at end-of-contract rather than cut mid-deal."
+      },
+      "work_capacity_prospects_per_cycle": {
+        "mean": 110,
+        "p10": 80,
+        "p50": 110,
+        "p90": 150,
+        "notes": "An area scout's territory typically covers 30-50 schools and 100-150 draftable+UDFA prospects per cycle, with full written reports on the 40-80 who warrant them. The workCapacity value in scouts-generator.ts should anchor on this range. A team's ~4-6 area scouts collectively touching 100-150 prospects each gets the full ~600-900 'reports written' volume real teams produce; the ~3,000 FBS-level pool gets covered by cross-check and area overlap."
+      },
+      "position_focus_split": {
+        "generalist": 0.3,
+        "specialist": 0.7,
+        "notes": "Area scouts are heavily specialist by geography — they become the team's expert on a region's talent across all positions, but within that region they often drift into position-focus (the Big Ten OL guy, the Southeast DB guy) because rep-volume on a position sharpens the grade. 70% of area scouts identify with a primary position focus, 30% stay true generalists."
+      }
+    }
+  },
+  "staffing_totals": {
+    "typical_scouting_department_headcount": {
+      "directors": 1,
+      "assistant_directors": 1,
+      "national_cross_checkers": 2,
+      "area_scouts": 6,
+      "pro_scouts": 3,
+      "scouting_assistants": 2,
+      "total_range": [12, 18],
+      "notes": "Generator scope is college-scouting specifically (director + cross-checkers + area scouts — the STAFF_BLUEPRINT in scouts-generator.ts currently stops at 7 total). Full departments add pro-personnel scouts, BLESTO/National contract scouts, and analytics staff. Expansion to those roles is an explicit sim follow-up."
+    },
+    "total_prospect_universe_per_draft_cycle": {
+      "fbs_seniors_plus_underclassmen": 3000,
+      "combine_invitees": 325,
+      "all_star_game_invitees": 400,
+      "draftable_grade_league_wide": 600,
+      "drafted": 257,
+      "notes": "Each NFL scouting department collectively files reports on the ~3,000-prospect FBS universe, drills down to ~600 draftable grades, and ultimately boards ~250-300. Workload per scout should sum across the staff to cover the 3,000 universe with appropriate cross-check redundancy."
+    }
+  },
+  "sim_consumption_guidance": {
+    "generator_mapping": {
+      "contract_salary": "Use tiers.DIRECTOR / NATIONAL_CROSS_CHECKER / AREA_SCOUT salary_annual_usd bands. Current scouts-generator.ts ROLE_BANDS already uses ranges in the right neighborhood but can be tightened to match the p10/p90 values here.",
+      "contract_years": "Use tiers.*.contract_length_years. Directors mode 4, cross-checkers mode 3, area scouts mode 2 — the current generator's uniform ranges (DIRECTOR yearsMin/Max 3/5, AREA yearsMin/Max 1/3) are close but should sample around the mode rather than uniform.",
+      "workCapacity": "Map to tiers.*.work_capacity_prospects_per_cycle. Directors 150-260, cross-checkers 140-220, area scouts 80-150. Current generator's DIRECTOR 160-240 / NATIONAL_CROSS_CHECKER 140-220 / AREA_SCOUT 80-160 is already a close match.",
+      "positionFocus": "Use tiers.*.position_focus_split to decide generalist vs. specialist before rolling a position group. Current generator rolls uniformly from a 9-option pool (8 groups + generalist) which under-weights the generalist share for directors (should be ~70%, not ~11%) and over-weights generalist for area scouts (should be ~30%, not ~11%)."
+    }
+  }
+}
