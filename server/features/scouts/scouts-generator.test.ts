@@ -86,28 +86,75 @@ Deno.test("generates no scouts when no teams provided", () => {
 
 // ---- Graduated-behaviour assertions ----
 
-Deno.test("director ages span the director tier band (~50-65)", () => {
+Deno.test("director ages span the director tier band (~40-70)", () => {
   const result = makeGenerator().generate(INPUT);
   const directors = result.filter((s) => s.role === "DIRECTOR");
   for (const d of directors) {
-    assertEquals(d.age >= 50 && d.age <= 65, true);
+    assertEquals(d.age >= 40 && d.age <= 70, true);
   }
 });
 
-Deno.test("national cross-checker ages span the cross-checker tier band (~42-58)", () => {
+Deno.test("national cross-checker ages span the cross-checker tier band (~32-64)", () => {
   const result = makeGenerator().generate(INPUT);
   const ccs = result.filter((s) => s.role === "NATIONAL_CROSS_CHECKER");
   for (const cc of ccs) {
-    assertEquals(cc.age >= 42 && cc.age <= 58, true);
+    assertEquals(cc.age >= 32 && cc.age <= 64, true);
   }
 });
 
-Deno.test("area scout ages span the area scout tier band (~30-50)", () => {
+Deno.test("area scout ages span the area scout tier band (~25-58)", () => {
   const result = makeGenerator().generate(INPUT);
   const areas = result.filter((s) => s.role === "AREA_SCOUT");
   for (const a of areas) {
-    assertEquals(a.age >= 30 && a.age <= 50, true);
+    assertEquals(a.age >= 25 && a.age <= 58, true);
   }
+});
+
+Deno.test("scout age distribution peaks near tier mode, not stacked at the midpoint", () => {
+  // Regression guard against the old narrow uniform roll where directors
+  // all landed near 58 and area scouts near 40. A wide triangular roll
+  // should produce tier means within ~3 years of their intended modes.
+  const result = makeGenerator(7).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const dirMean = avg(
+    result.filter((s) => s.role === "DIRECTOR").map((s) => s.age),
+  );
+  const ccMean = avg(
+    result.filter((s) => s.role === "NATIONAL_CROSS_CHECKER").map((s) => s.age),
+  );
+  const areaMean = avg(
+    result.filter((s) => s.role === "AREA_SCOUT").map((s) => s.age),
+  );
+  // Triangular expected mean = (min + mode + max) / 3.
+  assertEquals(
+    Math.abs(dirMean - (40 + 54 + 70) / 3) < 3,
+    true,
+    `director mean=${dirMean}`,
+  );
+  assertEquals(
+    Math.abs(ccMean - (32 + 46 + 64) / 3) < 3,
+    true,
+    `cc mean=${ccMean}`,
+  );
+  assertEquals(
+    Math.abs(areaMean - (25 + 36 + 58) / 3) < 3,
+    true,
+    `area scout mean=${areaMean}`,
+  );
+});
+
+Deno.test("scout pool includes young scouts (<32) and veterans (>55)", () => {
+  const result = makeGenerator(11).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const young = result.filter((s) => s.age < 32).length;
+  const old = result.filter((s) => s.age > 55).length;
+  assertEquals(young > 0, true, "expected at least one scout under 32");
+  assertEquals(old > 0, true, "expected at least one scout over 55");
 });
 
 Deno.test("contract years vary within a role tier across the league", () => {

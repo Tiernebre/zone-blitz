@@ -303,25 +303,25 @@ Deno.test("CEO HCs defer to coordinators (no tendencies)", () => {
 
 // ---- Graduated-behaviour assertions ----
 
-Deno.test("head coach ages span the HC tier band (~48-60)", () => {
+Deno.test("head coach ages span the HC tier band (~36-68)", () => {
   const result = makeGenerator().generate(INPUT);
   const hcs = result.filter((c) => c.role === "HC");
   for (const hc of hcs) {
-    assertEquals(hc.age >= 48 && hc.age <= 60, true);
+    assertEquals(hc.age >= 36 && hc.age <= 68, true);
   }
 });
 
-Deno.test("coordinator ages span the coordinator tier band (~40-55)", () => {
+Deno.test("coordinator ages span the coordinator tier band (~30-62)", () => {
   const result = makeGenerator().generate(INPUT);
   const coords = result.filter(
     (c) => c.role === "OC" || c.role === "DC" || c.role === "STC",
   );
   for (const coord of coords) {
-    assertEquals(coord.age >= 40 && coord.age <= 55, true);
+    assertEquals(coord.age >= 30 && coord.age <= 62, true);
   }
 });
 
-Deno.test("position coach ages span the position tier band (~32-50)", () => {
+Deno.test("position coach ages span the position tier band (~26-62)", () => {
   const result = makeGenerator().generate(INPUT);
   const positionRoles = new Set<CoachRole>([
     "QB",
@@ -336,8 +336,58 @@ Deno.test("position coach ages span the position tier band (~32-50)", () => {
   ]);
   const positions = result.filter((c) => positionRoles.has(c.role));
   for (const coach of positions) {
-    assertEquals(coach.age >= 32 && coach.age <= 50, true);
+    assertEquals(coach.age >= 26 && coach.age <= 62, true);
   }
+});
+
+Deno.test("coach age distribution peaks near tier mode, not stacked at the midpoint", () => {
+  // Regression guard against the old uniform-roll shape where every tier
+  // clustered near its band midpoint. A wide band + triangular roll should
+  // land each tier's mean within ~3 years of its mode across a big pool.
+  const result = makeGenerator(7).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const hcMean = avg(result.filter((c) => c.role === "HC").map((c) => c.age));
+  const coordMean = avg(
+    result
+      .filter((c) => c.role === "OC" || c.role === "DC" || c.role === "STC")
+      .map((c) => c.age),
+  );
+  const posMean = avg(
+    result.filter((c) => c.role === "QB" || c.role === "RB" || c.role === "WR")
+      .map((c) => c.age),
+  );
+  // Triangular expected mean = (min + mode + max) / 3.
+  assertEquals(
+    Math.abs(hcMean - (36 + 51 + 68) / 3) < 3,
+    true,
+    `HC mean=${hcMean}`,
+  );
+  assertEquals(
+    Math.abs(coordMean - (30 + 44 + 62) / 3) < 3,
+    true,
+    `coord mean=${coordMean}`,
+  );
+  assertEquals(
+    Math.abs(posMean - (26 + 40 + 62) / 3) < 3,
+    true,
+    `position mean=${posMean}`,
+  );
+});
+
+Deno.test("coach pool includes young coaches (<40) and veterans (>55)", () => {
+  // Real NFL staffs field McVay-types and Belichick-types; the tails of
+  // the distribution should produce both.
+  const result = makeGenerator(11).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const young = result.filter((c) => c.age < 40).length;
+  const old = result.filter((c) => c.age > 55).length;
+  assertEquals(young > 0, true, "expected at least one coach under 40");
+  assertEquals(old > 0, true, "expected at least one coach over 55");
 });
 
 Deno.test("ages vary within a role across the league (not a single constant)", () => {
