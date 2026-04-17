@@ -355,3 +355,29 @@ Deno.test("generate leaves preference columns null for assigned scouts", () => {
     assertEquals(scout.minimumThreshold, null);
   }
 });
+
+Deno.test("generatePool rolls directors across the full position-focus pool", () => {
+  const result = makeGenerator(7777).generatePool({
+    leagueId: "league-1",
+    numberOfTeams: 40,
+  });
+  const directors = result.filter((s) => s.role === "DIRECTOR");
+  const focusCounts = new Map<string, number>();
+  for (const d of directors) {
+    const focus = d.positionFocus ?? "GENERALIST";
+    focusCounts.set(focus, (focusCounts.get(focus) ?? 0) + 1);
+  }
+
+  assertEquals(
+    focusCounts.size >= 6,
+    true,
+    `expected ≥6 distinct director position focuses, got ${focusCounts.size}`,
+  );
+
+  const generalists = focusCounts.get("GENERALIST") ?? 0;
+  assertEquals(
+    generalists < directors.length * 0.5,
+    true,
+    `expected <50% generalist directors, got ${generalists}/${directors.length}`,
+  );
+});
