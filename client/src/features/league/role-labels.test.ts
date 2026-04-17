@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coachBackgroundLabel, roleLabel } from "./role-labels.ts";
+import { coachArchetypeLabel, roleLabel } from "./role-labels.ts";
 
 describe("roleLabel", () => {
   it("returns the coach label for known coach roles", () => {
@@ -19,29 +19,29 @@ describe("roleLabel", () => {
   });
 });
 
-describe("coachBackgroundLabel", () => {
+describe("coachArchetypeLabel", () => {
   it.each([
-    ["offense", "Offensive background"],
-    ["defense", "Defensive background"],
-    ["ceo", "CEO / manager"],
-    ["special_teams", "Special teams background"],
-    ["quarterbacks", "Quarterbacks background"],
-    ["running_backs", "Running backs background"],
-    ["wide_receivers", "Wide receivers background"],
-    ["tight_ends", "Tight ends background"],
-    ["offensive_line", "Offensive line background"],
-    ["defensive_line", "Defensive line background"],
-    ["linebackers", "Linebackers background"],
-    ["defensive_backs", "Defensive backs background"],
+    ["offense", "Offensive Oriented"],
+    ["defense", "Defensive Oriented"],
+    ["ceo", "On-Field CEO"],
+    ["special_teams", "Special Teams Oriented"],
+    ["quarterbacks", "Quarterbacks Oriented"],
+    ["running_backs", "Running Backs Oriented"],
+    ["wide_receivers", "Wide Receivers Oriented"],
+    ["tight_ends", "Tight Ends Oriented"],
+    ["offensive_line", "Offensive Line Oriented"],
+    ["defensive_line", "Defensive Line Oriented"],
+    ["linebackers", "Linebackers Oriented"],
+    ["defensive_backs", "Defensive Backs Oriented"],
   ])("maps %s specialty to %s", (specialty, label) => {
-    expect(coachBackgroundLabel(specialty)).toBe(label);
+    expect(coachArchetypeLabel(specialty)).toBe(label);
   });
 
   it("returns em dash when specialty is null", () => {
-    expect(coachBackgroundLabel(null)).toBe("—");
+    expect(coachArchetypeLabel(null)).toBe("—");
   });
 
   it("returns em dash for unknown specialties", () => {
-    expect(coachBackgroundLabel("hovercraft_pilot")).toBe("—");
+    expect(coachArchetypeLabel("hovercraft_pilot")).toBe("—");
   });
 });

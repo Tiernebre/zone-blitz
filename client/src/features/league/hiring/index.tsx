@@ -47,7 +47,7 @@ import {
 } from "../../../hooks/use-hiring.ts";
 import { useStaffTree } from "../../../hooks/use-staff-tree.ts";
 import { useScoutStaffTree } from "../../../hooks/use-scout-staff-tree.ts";
-import { coachBackgroundLabel, roleLabel } from "../role-labels.ts";
+import { coachArchetypeLabel, roleLabel } from "../role-labels.ts";
 import {
   DEFENSIVE_ARCHETYPE_NAMES,
   defensiveArchetypeLabel,
@@ -946,12 +946,12 @@ function buildCandidateColumns(
   if (staffType === "coach") {
     cols.push(
       {
-        id: "background",
+        id: "archetype",
         accessorFn: (row) => row.specialty ?? "",
-        header: "Background",
+        header: "Archetype",
         cell: ({ row }) => (
-          <span data-testid={`candidate-background-${row.original.id}`}>
-            {coachBackgroundLabel(row.original.specialty)}
+          <span data-testid={`candidate-archetype-${row.original.id}`}>
+            {coachArchetypeLabel(row.original.specialty)}
           </span>
         ),
         filterFn: "equals",
@@ -1103,10 +1103,10 @@ function CandidateFilters(
       {staffType === "coach" && (
         <>
           <CandidateFilter
-            column={table.getColumn("background")}
-            label="Background"
-            formatLabel={coachBackgroundLabel}
-            testId={`${testIdPrefix}-filter-background`}
+            column={table.getColumn("archetype")}
+            label="Archetype"
+            formatLabel={coachArchetypeLabel}
+            testId={`${testIdPrefix}-filter-archetype`}
           />
           <CandidateFilter
             column={table.getColumn("position")}
