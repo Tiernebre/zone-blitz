@@ -66,6 +66,7 @@ Legend: ✓ landed · ◐ in progress · ○ not started.
 | 6 | Contract structure (length, guarantee %, cap-hit shape by position × tier) — [band](../bands/contract-structure.json) + [doc](./contract-structure.md)                                                        | `load_contracts()` + OTC cross-check                    | #515 (done) |
 | 7 | Career length + aging curves — `P(active \| age, position)`, peak years — [band](../bands/career-length.json) + [doc](./career-length-by-position.md)                                                         | `load_rosters()` longitudinal                           | #516 (done) |
 | 8 | Coaching tenure + firing patterns (HC tenure distribution, W-L triggers, coordinator → HC rates)                                                                                                              | Manual scrape (PFR head-coach history)                  | #517        |
+| 9 | Compensatory pick allocation (per-team mean/sd, round mix, P(comp \| net UFA losses), 32/yr cap, minority-hire specials) — [band](../bands/comp-picks.json) + [doc](./comp-picks.md)                          | `load_draft_picks()` + `load_contracts()`               | #541 (done) |
 
 These directly serve the user-named asks:
 
