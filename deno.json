@@ -34,6 +34,7 @@
     "test:coverage": "./bin/check-coverage",
     "test:e2e": "./bin/test-e2e",
     "sim:calibrate": "deno run --allow-read server/features/simulation/calibration/run-calibration.ts",
+    "sim:calibrate:qb": "deno run --allow-read server/features/simulation/calibration/per-position/run-qb-calibration.ts",
     "build": "cd client && deno task build",
     "start": "cd server && deno run --env=../.env --allow-net --allow-env --allow-read --allow-sys main.ts"
   },
