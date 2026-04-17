@@ -466,6 +466,88 @@ Deno.test("generatePool also populates yearsExperience", () => {
   }
 });
 
+Deno.test("role experience sums to yearsExperience for every coach", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const coach of result) {
+    const sum = coach.headCoachYears + coach.coordinatorYears +
+      coach.positionCoachYears;
+    assertEquals(
+      sum,
+      coach.yearsExperience,
+      `coach ${coach.id} (${coach.role}) role years sum ${sum} != yearsExperience ${coach.yearsExperience}`,
+    );
+    assertEquals(coach.headCoachYears >= 0, true);
+    assertEquals(coach.coordinatorYears >= 0, true);
+    assertEquals(coach.positionCoachYears >= 0, true);
+  }
+});
+
+Deno.test("position coaches have zero HC and coordinator years", () => {
+  const result = makeGenerator().generate(INPUT);
+  const positionRoles = new Set([
+    "QB",
+    "RB",
+    "WR",
+    "TE",
+    "OL",
+    "DL",
+    "LB",
+    "DB",
+    "ST_ASSISTANT",
+  ]);
+  const positionCoaches = result.filter((c) => positionRoles.has(c.role));
+  assertEquals(positionCoaches.length > 0, true);
+  for (const coach of positionCoaches) {
+    assertEquals(coach.headCoachYears, 0);
+    assertEquals(coach.coordinatorYears, 0);
+    assertEquals(coach.positionCoachYears, coach.yearsExperience);
+  }
+});
+
+Deno.test("coordinators have zero HC years", () => {
+  const result = makeGenerator().generate(INPUT);
+  const coordinators = result.filter(
+    (c) => c.role === "OC" || c.role === "DC" || c.role === "STC",
+  );
+  assertEquals(coordinators.length > 0, true);
+  for (const coach of coordinators) {
+    assertEquals(coach.headCoachYears, 0);
+  }
+});
+
+Deno.test("HC pool contains both unproven and proven head coaches", () => {
+  const pool = makeGenerator(98765).generatePool({
+    leagueId: "lg",
+    numberOfTeams: 8,
+  });
+  const hcs = pool.filter((c) => c.role === "HC");
+  assertEquals(hcs.length > 0, true);
+  const unproven = hcs.filter((c) => c.headCoachYears === 0);
+  const proven = hcs.filter((c) => c.headCoachYears >= 3);
+  assertEquals(
+    unproven.length > 0,
+    true,
+    "expected at least one first-time HC candidate in the pool",
+  );
+  assertEquals(
+    proven.length > 0,
+    true,
+    "expected at least one experienced HC candidate in the pool",
+  );
+});
+
+Deno.test("generatePool also populates role experience", () => {
+  const pool = makeGenerator().generatePool({
+    leagueId: "lg",
+    numberOfTeams: 2,
+  });
+  for (const coach of pool) {
+    const sum = coach.headCoachYears + coach.coordinatorYears +
+      coach.positionCoachYears;
+    assertEquals(sum, coach.yearsExperience);
+  }
+});
+
 Deno.test("contract salaries fall within sane bounds per tier", () => {
   const result = makeGenerator().generate(INPUT);
   for (const coach of result) {

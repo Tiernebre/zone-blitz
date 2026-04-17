@@ -56,7 +56,12 @@ import {
   positionGroupLabel,
   scoutRegionLabel,
 } from "@zone-blitz/shared";
-import { bandFor, formatMoney, medianSalary } from "./salary-bands.ts";
+import {
+  bandFor,
+  expectedSalaryForCandidate,
+  formatMoney,
+  roleTenureYears,
+} from "./salary-bands.ts";
 import { stepDescription, stepHeadline, stepViewFor } from "./step-view.ts";
 
 export function Hiring() {
@@ -517,7 +522,7 @@ function OfferRow(
 ) {
   const band = bandFor(candidate.staffType, candidate.role);
   const [salary, setSalary] = useState(
-    existing?.salary ?? medianSalary(candidate.staffType, candidate.role),
+    existing?.salary ?? expectedSalaryForCandidate(candidate),
   );
   const [contractYears, setContractYears] = useState(
     existing?.contractYears ?? 3,
@@ -865,7 +870,8 @@ type CandidateRow = HiringCandidateSummary & {
   fullName: string;
   bandMin: number;
   bandMax: number;
-  medianSalary: number;
+  expectedSalary: number;
+  roleTenure: number;
 };
 
 export function coachSchemeLabel(c: HiringCandidateSummary): string {
@@ -885,7 +891,8 @@ function toRows(candidates: HiringCandidateSummary[]): CandidateRow[] {
       fullName: `${c.firstName} ${c.lastName}`,
       bandMin: band.min,
       bandMax: band.max,
-      medianSalary: medianSalary(c.staffType, c.role),
+      expectedSalary: expectedSalaryForCandidate(c),
+      roleTenure: roleTenureYears(c),
     };
   });
 }
@@ -929,7 +936,7 @@ function buildCandidateColumns(
     {
       accessorKey: "yearsExperience",
       header: ({ column }) => (
-        <SortableHeader column={column}>Experience</SortableHeader>
+        <SortableHeader column={column}>Career</SortableHeader>
       ),
       cell: ({ row }) => (
         <span
@@ -938,6 +945,31 @@ function buildCandidateColumns(
         >
           {row.original.yearsExperience} yr
           {row.original.yearsExperience === 1 ? "" : "s"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "roleTenure",
+      header: ({ column }) => (
+        <SortableHeader column={column}>In Role</SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <span
+          className="tabular-nums"
+          data-testid={`candidate-role-tenure-${row.original.id}`}
+        >
+          {row.original.roleTenure === 0
+            ? (
+              <span
+                className="text-muted-foreground"
+                data-testid={`candidate-role-tenure-first-${row.original.id}`}
+              >
+                First-time
+              </span>
+            )
+            : `${row.original.roleTenure} yr${
+              row.original.roleTenure === 1 ? "" : "s"
+            }`}
         </span>
       ),
     },
@@ -1010,11 +1042,15 @@ function buildCandidateColumns(
 
   cols.push(
     {
-      accessorKey: "medianSalary",
+      accessorKey: "expectedSalary",
       header: ({ column }) => (
         <SortableHeader column={column}>Expected Salary</SortableHeader>
       ),
-      cell: ({ row }) => formatMoney(row.original.medianSalary),
+      cell: ({ row }) => (
+        <span data-testid={`candidate-expected-salary-${row.original.id}`}>
+          {formatMoney(row.original.expectedSalary)}
+        </span>
+      ),
     },
     {
       id: "band",
