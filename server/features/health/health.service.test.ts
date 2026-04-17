@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { createHealthService } from "./health.service.ts";
-import type { HealthStatus } from "@zone-blitz/shared";
+import type { HealthStatus } from "./health.service.interface.ts";
 import pino from "pino";
 
 function createTestLogger() {

@@ -7,7 +7,6 @@ import { requestContextMiddleware } from "./middleware/request-context.ts";
 import { loggerMiddleware } from "./middleware/logger.ts";
 import { spaRouteGuard } from "./middleware/spa-fallback.ts";
 import { sessionMiddleware } from "./middleware/session.ts";
-import { authGuard } from "./middleware/auth-guard.ts";
 import { createFeatureRouters } from "./features/mod.ts";
 import type { AppEnv } from "./env.ts";
 
@@ -29,35 +28,7 @@ const app = new Hono<AppEnv>()
   .use(loggerMiddleware())
   .use(sessionMiddleware(features.auth))
   .route("/api/auth", features.authRouter)
-  .route("/api/health", features.healthRouter)
-  .use("/api/leagues/*", authGuard())
-  .use("/api/leagues", authGuard())
-  .route("/api/leagues", features.leagueRouter)
-  .route("/api/leagues", features.hiringRouter)
-  .use("/api/users/*", authGuard())
-  .use("/api/users", authGuard())
-  .route("/api/users", features.userRouter)
-  .use("/api/teams/*", authGuard())
-  .use("/api/teams", authGuard())
-  .route("/api/teams", features.teamRouter)
-  .use("/api/franchises/*", authGuard())
-  .use("/api/franchises", authGuard())
-  .route("/api/franchises", features.franchiseRouter)
-  .use("/api/coaches/*", authGuard())
-  .use("/api/coaches", authGuard())
-  .route("/api/coaches", features.coachesRouter)
-  .use("/api/scouts/*", authGuard())
-  .use("/api/scouts", authGuard())
-  .route("/api/scouts", features.scoutsRouter)
-  .use("/api/roster/*", authGuard())
-  .use("/api/roster", authGuard())
-  .route("/api/roster", features.rosterRouter)
-  .use("/api/players/*", authGuard())
-  .use("/api/players", authGuard())
-  .route("/api/players", features.playersRouter)
-  .use("/api/league-clock/*", authGuard())
-  .use("/api/league-clock", authGuard())
-  .route("/api/league-clock", features.leagueClockRouter);
+  .route("/api/health", features.healthRouter);
 
 // Domain error handler
 app.onError((err, c) => {

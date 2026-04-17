@@ -12,7 +12,6 @@
  * match a `code` in DEFAULT_STATES.
  */
 import { DEFAULT_COLLEGES } from "../colleges/default-colleges.ts";
-import { INITIAL_FRANCHISES } from "../franchise/initial-franchises.ts";
 
 export interface DefaultCity {
   name: string;
@@ -218,13 +217,7 @@ const COLLEGE_CITIES: DefaultCity[] = DEFAULT_COLLEGES.map((c) => ({
   stateCode: c.state,
 }));
 
-const INITIAL_CITIES: DefaultCity[] = INITIAL_FRANCHISES.map((f) => ({
-  name: f.city,
-  stateCode: f.state,
-}));
-
 export const DEFAULT_CITIES: DefaultCity[] = dedupe([
   ...TOP_US_CITIES,
   ...COLLEGE_CITIES,
-  ...INITIAL_CITIES,
 ]);
