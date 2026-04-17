@@ -5,3 +5,28 @@ scheduled_tasks.lock
 dist/
 coverage/
 .gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Spring Boot / IDE
+HELP.md
+out/
+bin/
+*.log
+
+# Tailwind generated output
+src/main/resources/static/css/app.css
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Eclipse / VS Code
+.classpath
+.project
+.settings/
+.vscode/
+.apt_generated
+.factorypath
