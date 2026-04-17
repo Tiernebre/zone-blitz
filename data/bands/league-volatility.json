@@ -1,0 +1,270 @@
+{
+  "generated_at": "2026-04-17T18:46:13Z",
+  "seasons": [
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "notes": "League-level volatility priors derived from nflreadr::load_schedules(). Standings are computed from game results (sign of home_score - away_score); ties count as half-wins for win_pct ordering only. Playoff qualification is membership in any post-season game for the season. Division churn ranks teams within division by (win_pct, point_diff, points_for) — a practical approximation to NFL tiebreakers sufficient for first/last identification. Playoff seeding is derived from the bracket itself: the bye team(s) in each conference (reached DIV without WC) take the top seed(s); remaining participants are seeded by regular-season record. Franchise continuity is normalised via load_teams() — STL->LAR, SD->LAC, OAK->LV — so a relocated team does not register as a new franchise when pairing Y and Y-1. Seeds 1..6 are observed throughout; seed 7 only exists since 2020 when the playoff field expanded and the top seed lost its second bye.",
+  "bands": {
+    "yoy_correlation": {
+      "n_team_seasons": 607,
+      "pearson_wins": 0.3489,
+      "pearson_win_pct": 0.3508,
+      "pearson_by_era": {
+        "2005_2009": 0.3295,
+        "2010_2014": 0.3251,
+        "2015_2019": 0.3227,
+        "2020_2024": 0.4088
+      }
+    },
+    "playoff_persistence": {
+      "n_transitions": 607,
+      "p_make_playoffs_overall": 0.3921,
+      "p_make_playoffs_given_made": 0.5339,
+      "p_make_playoffs_given_missed": 0.3019
+    },
+    "division_churn": {
+      "n_division_seasons_paired": 152,
+      "p_worst_to_first": 0.1316,
+      "n_worst_transitions": 152,
+      "p_worst_stays_worst": 0.4408,
+      "p_first_to_worst": 0.125,
+      "n_first_transitions": 152,
+      "p_first_stays_first": 0.4342
+    },
+    "playoff_advancement_by_seed": {
+      "overall": {
+        "1": {
+          "n": 40,
+          "reached_wc_n": 0,
+          "reached_div_n": 40,
+          "reached_con_n": 27,
+          "reached_sb_n": 20,
+          "p_win_wc": null,
+          "p_win_div": 0.675,
+          "p_win_con": 0.7407,
+          "p_win_sb": 0.3,
+          "p_reach_sb": 0.5,
+          "p_win_sb_from_seed": 0.15
+        },
+        "2": {
+          "n": 40,
+          "reached_wc_n": 10,
+          "reached_div_n": 39,
+          "reached_con_n": 25,
+          "reached_sb_n": 9,
+          "p_win_wc": 0.9,
+          "p_win_div": 0.641,
+          "p_win_con": 0.36,
+          "p_win_sb": 0.5556,
+          "p_reach_sb": 0.225,
+          "p_win_sb_from_seed": 0.125
+        },
+        "3": {
+          "n": 40,
+          "reached_wc_n": 40,
+          "reached_div_n": 18,
+          "reached_con_n": 8,
+          "reached_sb_n": 0,
+          "p_win_wc": 0.45,
+          "p_win_div": 0.4444,
+          "p_win_con": 0,
+          "p_win_sb": null,
+          "p_reach_sb": 0,
+          "p_win_sb_from_seed": 0
+        },
+        "4": {
+          "n": 40,
+          "reached_wc_n": 40,
+          "reached_div_n": 23,
+          "reached_con_n": 11,
+          "reached_sb_n": 7,
+          "p_win_wc": 0.575,
+          "p_win_div": 0.4783,
+          "p_win_con": 0.6364,
+          "p_win_sb": 1,
+          "p_reach_sb": 0.175,
+          "p_win_sb_from_seed": 0.175
+        },
+        "5": {
+          "n": 40,
+          "reached_wc_n": 40,
+          "reached_div_n": 14,
+          "reached_con_n": 3,
+          "reached_sb_n": 1,
+          "p_win_wc": 0.35,
+          "p_win_div": 0.2143,
+          "p_win_con": 0.3333,
+          "p_win_sb": 0,
+          "p_reach_sb": 0.025,
+          "p_win_sb_from_seed": 0
+        },
+        "6": {
+          "n": 40,
+          "reached_wc_n": 40,
+          "reached_div_n": 22,
+          "reached_con_n": 6,
+          "reached_sb_n": 3,
+          "p_win_wc": 0.55,
+          "p_win_div": 0.2727,
+          "p_win_con": 0.5,
+          "p_win_sb": 0.6667,
+          "p_reach_sb": 0.075,
+          "p_win_sb_from_seed": 0.05
+        },
+        "7": {
+          "n": 10,
+          "reached_wc_n": 10,
+          "reached_div_n": 4,
+          "reached_con_n": 0,
+          "reached_sb_n": 0,
+          "p_win_wc": 0.4,
+          "p_win_div": 0,
+          "p_win_con": null,
+          "p_win_sb": null,
+          "p_reach_sb": 0,
+          "p_win_sb_from_seed": 0
+        }
+      },
+      "since_2020": {
+        "1": {
+          "n": 10,
+          "p_win_wc": null,
+          "p_win_div": 0.7,
+          "p_win_con": 0.7143,
+          "p_win_sb": 0.2,
+          "p_reach_sb": 0.5,
+          "p_win_sb_from_seed": 0.1
+        },
+        "2": {
+          "n": 10,
+          "p_win_wc": 0.9,
+          "p_win_div": 0.5556,
+          "p_win_con": 0.2,
+          "p_win_sb": 1,
+          "p_reach_sb": 0.1,
+          "p_win_sb_from_seed": 0.1
+        },
+        "3": {
+          "n": 10,
+          "p_win_wc": 0.4,
+          "p_win_div": 0.5,
+          "p_win_con": 0,
+          "p_win_sb": null,
+          "p_reach_sb": 0,
+          "p_win_sb_from_seed": 0
+        },
+        "4": {
+          "n": 10,
+          "p_win_wc": 0.6,
+          "p_win_div": 0.6667,
+          "p_win_con": 0.75,
+          "p_win_sb": 1,
+          "p_reach_sb": 0.3,
+          "p_win_sb_from_seed": 0.3
+        },
+        "5": {
+          "n": 10,
+          "p_win_wc": 0.3,
+          "p_win_div": 0.3333,
+          "p_win_con": 1,
+          "p_win_sb": 0,
+          "p_reach_sb": 0.1,
+          "p_win_sb_from_seed": 0
+        },
+        "6": {
+          "n": 10,
+          "p_win_wc": 0.4,
+          "p_win_div": 0.25,
+          "p_win_con": 0,
+          "p_win_sb": null,
+          "p_reach_sb": 0,
+          "p_win_sb_from_seed": 0
+        },
+        "7": {
+          "n": 10,
+          "p_win_wc": 0.4,
+          "p_win_div": 0,
+          "p_win_con": null,
+          "p_win_sb": null,
+          "p_reach_sb": 0,
+          "p_win_sb_from_seed": 0
+        }
+      },
+      "before_2020": {
+        "1": {
+          "n": 30,
+          "p_win_wc": null,
+          "p_win_div": 0.6667,
+          "p_win_con": 0.75,
+          "p_win_sb": 0.3333,
+          "p_reach_sb": 0.5,
+          "p_win_sb_from_seed": 0.1667
+        },
+        "2": {
+          "n": 30,
+          "p_win_wc": null,
+          "p_win_div": 0.6667,
+          "p_win_con": 0.4,
+          "p_win_sb": 0.5,
+          "p_reach_sb": 0.2667,
+          "p_win_sb_from_seed": 0.1333
+        },
+        "3": {
+          "n": 30,
+          "p_win_wc": 0.4667,
+          "p_win_div": 0.4286,
+          "p_win_con": 0,
+          "p_win_sb": null,
+          "p_reach_sb": 0,
+          "p_win_sb_from_seed": 0
+        },
+        "4": {
+          "n": 30,
+          "p_win_wc": 0.5667,
+          "p_win_div": 0.4118,
+          "p_win_con": 0.5714,
+          "p_win_sb": 1,
+          "p_reach_sb": 0.1333,
+          "p_win_sb_from_seed": 0.1333
+        },
+        "5": {
+          "n": 30,
+          "p_win_wc": 0.3667,
+          "p_win_div": 0.1818,
+          "p_win_con": 0,
+          "p_win_sb": null,
+          "p_reach_sb": 0,
+          "p_win_sb_from_seed": 0
+        },
+        "6": {
+          "n": 30,
+          "p_win_wc": 0.6,
+          "p_win_div": 0.2778,
+          "p_win_con": 0.6,
+          "p_win_sb": 0.6667,
+          "p_reach_sb": 0.1,
+          "p_win_sb_from_seed": 0.0667
+        }
+      }
+    }
+  }
+}

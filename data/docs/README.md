@@ -20,6 +20,7 @@ flowchart LR
         SNAP[load_snap_counts]
         DRAFT[load_draft_picks]
         CTR[load_contracts]
+        SCH[load_schedules]
     end
 
     subgraph Bands["data/bands/*.json"]
@@ -31,6 +32,7 @@ flowchart LR
         B6[contract-structure]
         B7[career-length]
         B8[comp-picks]
+        B9[league-volatility]
     end
 
     subgraph Docs["data/docs/*.md"]
@@ -44,6 +46,7 @@ flowchart LR
         D7[career-length-by-position]
         D8[nfl-talent-distribution-by-position]
         D9[comp-picks]
+        D10[league-volatility]
     end
 
     ROS --> B1 --> D1
@@ -58,6 +61,7 @@ flowchart LR
     PBP -. informs .-> D8
     SNAP --> B1
     SNAP --> B4
+    SCH --> B9 --> D10
 
     D0 -. indexes .-> D1 & D2 & D3 & D4 & D5 & D6 & D7
 ```
@@ -89,6 +93,12 @@ These two docs carry **qualitative priors** rather than feed-derived statistics
 — coach and scout contracts are not in nflreadr. Numbers are synthesized from
 OverTheCap, The Athletic, PFF, PFN, team sites, and beat reporting, and should
 be read as the shape public reporting describes rather than asserted values.
+
+### League-level volatility
+
+| Doc                                            | What it covers                                                                                                                                        | Feeds                                                           |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [league-volatility.md](./league-volatility.md) | YoY win correlation (~0.35), playoff persistence (~53 %), division churn (~13 % worst→first), and per-seed playoff advancement (1-seed wins SB 15 %). | Season-sim sanity checks, playoff bracket calibration, UI odds. |
 
 ### Player-rating calibration
 
