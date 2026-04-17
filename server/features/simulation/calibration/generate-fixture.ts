@@ -1,25 +1,23 @@
 import { generateCalibrationLeague } from "./generate-calibration-league.ts";
 import { CALIBRATION_SEED } from "./calibration-seed.ts";
 
-// Primary fixture keeps the original filename so run-calibration.ts
-// and any external consumers continue to resolve it without change.
-// Companion fixtures seeded differently let us run the harness
-// against multiple independent draws when we want to confirm a
-// tuning change holds up beyond a single seed.
-const SEEDS: { seed: number; fileName: string }[] = [
-  { seed: CALIBRATION_SEED, fileName: "calibration-league.json" },
-  { seed: 0xA11CE_11, fileName: "calibration-league-a11ce11.json" },
-  { seed: 0xDEADBEEF, fileName: "calibration-league-deadbeef.json" },
-];
+// Emit a single anchor fixture purely as a human debugging aid —
+// open it to inspect specific teams, starters, or scheme
+// fingerprints. The calibration harness (run-calibration.ts) no
+// longer reads this file; it generates every league in memory from
+// CALIBRATION_SEEDS. That means regenerating the fixture is
+// optional — the harness will always match the current generator.
 
-for (const { seed, fileName } of SEEDS) {
-  const league = generateCalibrationLeague({ seed });
-  const json = JSON.stringify(league, null, 2);
-  const outPath = new URL(`./fixtures/${fileName}`, import.meta.url);
-  await Deno.writeTextFile(outPath, json + "\n");
-  console.log(
-    `Wrote calibration league fixture (${league.teams.length} teams, seed=0x${
-      seed.toString(16)
-    }) to ${outPath.pathname}`,
-  );
-}
+const league = generateCalibrationLeague({ seed: CALIBRATION_SEED });
+const json = JSON.stringify(league, null, 2);
+const outPath = new URL(
+  "./fixtures/calibration-league.json",
+  import.meta.url,
+);
+await Deno.writeTextFile(outPath, json + "\n");
+
+console.log(
+  `Wrote anchor calibration fixture (${league.teams.length} teams, seed=0x${
+    CALIBRATION_SEED.toString(16)
+  }) to ${outPath.pathname}`,
+);
