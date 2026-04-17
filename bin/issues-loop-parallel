@@ -40,12 +40,13 @@ cd "$REPO_ROOT"
 # --- worker mode: invoked by xargs for each issue --------------------------
 if [[ "${ISSUES_LOOP_WORKER:-}" == "1" ]]; then
   issue_number="$1"
-  echo "=== worker start: #$issue_number ==="
 
   issue_json="$(gh issue view "$issue_number" --json number,title,body,labels,url)"
   issue_title="$(printf '%s' "$issue_json" | jq -r '.title')"
   issue_body="$(printf '%s' "$issue_json" | jq -r '.body')"
   issue_url="$(printf '%s' "$issue_json" | jq -r '.url')"
+
+  echo "=== worker start: #$issue_number — $issue_title ==="
 
   prompt=$(cat <<PROMPT
 You are one parallel worker in an autonomous issue fan-out. Other workers

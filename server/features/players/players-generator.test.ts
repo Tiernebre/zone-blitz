@@ -17,11 +17,14 @@ import {
   ELITES_PER_32_TEAMS,
   GENERATIONAL_OVERALL_THRESHOLD,
   type NameGenerator,
+  rollVeteranContract,
   ROSTER_BUCKET_COMPOSITION,
   SALARY_FLOOR,
   SALARY_PER_QUALITY_POINT,
   stubAttributesFor,
 } from "./players-generator.ts";
+import { AGE_CURVE_PRIORS } from "./age-curves.ts";
+import { createRng } from "@zone-blitz/shared";
 
 const TEAM_IDS = ["team-1", "team-2", "team-3"];
 const INPUT = {
@@ -410,10 +413,88 @@ Deno.test("ages span a rookie-to-veteran curve", () => {
   const minAge = Math.min(...ages);
   const maxAge = Math.max(...ages);
   assertEquals(minAge >= 21, true);
-  assertEquals(maxAge <= 36, true);
+  // Position-conditioned curves extend past 36 for QB/OL/specialists —
+  // real NFL rosters routinely carry players into their early 40s at
+  // those positions. Cap the sanity bound at the documented specialist
+  // extreme so the test still fails on a true blow-up.
+  assertEquals(maxAge <= 48, true);
   // There should be both rookies (<=23) and veterans (>=30) in a 144-man pool.
   assertEquals(ages.some((a) => a <= 23), true);
   assertEquals(ages.some((a) => a >= 30), true);
+});
+
+Deno.test("rostered age histograms track per-bucket NFL priors", () => {
+  // Oversample a large league so bucket cohorts are big enough for
+  // stable mean / p90 checks against the real-NFL priors. Per-bucket
+  // rostered counts scale with league size (e.g., 4 RBs × 32 teams =
+  // 128, 2 QBs × 32 = 64), which is enough to resolve the shape of
+  // each position's active-age curve.
+  const teamIds = Array.from({ length: 32 }, (_, i) => `team-${i + 1}`);
+  const result = makeGenerator(777).generate({
+    leagueId: "league-large",
+    seasonId: "season-1",
+    teamIds,
+    rosterSize: 53,
+  });
+  const rostered = result.players.filter(
+    (p) => p.player.teamId !== null && p.player.status === "active",
+  );
+  const agesByBucket = new Map<NeutralBucket, number[]>();
+  for (const entry of rostered) {
+    const bucket = bucketOf(entry);
+    const [year] = entry.player.birthDate.split("-");
+    const age = 2026 - Number(year);
+    const list = agesByBucket.get(bucket) ?? [];
+    list.push(age);
+    agesByBucket.set(bucket, list);
+  }
+  const percentile = (vs: number[], p: number) => {
+    const sorted = [...vs].sort((a, b) => a - b);
+    const idx = Math.min(
+      sorted.length - 1,
+      Math.max(0, Math.floor((p / 100) * sorted.length)),
+    );
+    return sorted[idx];
+  };
+  // Broad bucket coverage — assert mean + p90 per bucket are near the
+  // curve prior. Tolerance is loose enough to absorb the classifier's
+  // bucket drift (the neutralBucket() result can disagree with the
+  // intended slot when signature/non-signature rolls are extreme) and
+  // the finite-sample noise on smaller bucket cohorts.
+  for (const [bucket, ages] of agesByBucket) {
+    if (ages.length < 20) continue;
+    const prior = AGE_CURVE_PRIORS[bucket];
+    const mean = ages.reduce((s, v) => s + v, 0) / ages.length;
+    assertEquals(
+      Math.abs(mean - prior.meanAge) <= 2,
+      true,
+      `${bucket} mean ${mean.toFixed(2)} off from prior ${
+        prior.meanAge.toFixed(2)
+      }`,
+    );
+    const p90 = percentile(ages, 90);
+    assertEquals(
+      Math.abs(p90 - prior.p90Age) <= 3,
+      true,
+      `${bucket} p90 ${p90} off from prior ${prior.p90Age}`,
+    );
+  }
+
+  // Acceptance shape checks: RB cliff, QB tail, specialist tail.
+  const rbAges = agesByBucket.get("RB") ?? [];
+  const qbAges = agesByBucket.get("QB") ?? [];
+  const rb30Plus = rbAges.filter((a) => a >= 30).length / rbAges.length;
+  const qb33Plus = qbAges.filter((a) => a >= 33).length / qbAges.length;
+  assertEquals(
+    rb30Plus <= 0.15,
+    true,
+    `RB 30+ share ${(rb30Plus * 100).toFixed(1)}% too high — cliff missing`,
+  );
+  assertEquals(
+    qb33Plus > rb30Plus * 0.5,
+    true,
+    `QB 33+ share ${(qb33Plus * 100).toFixed(1)}% not a meaningful tail`,
+  );
 });
 
 Deno.test("prospects fall into a draft-eligible age band", () => {
@@ -883,6 +964,175 @@ Deno.test("contract totalYears includes void years, realYears excludes them", ()
     assertEquals(b.years.length, b.contract.totalYears);
   }
 });
+
+// ---- Issue #528: position × tier contract-structure priors ----
+//
+// These tests validate the position × market-tier shape governs
+// generated contracts (length / guarantee years / cap-hit curve).
+// We drive `rollVeteranContract` directly with explicit inputs
+// because the generator's per-slot tier assignment does not map
+// one-per-bucket for the 14 neutral buckets, and the acceptance
+// criteria specifically talk about position × tier comparisons.
+
+function sampleVeteranContracts(
+  args: {
+    bucket: NeutralBucket;
+    qualityTier: "star" | "starter" | "depth";
+    archetype: CapArchetype;
+    count: number;
+    seed?: number;
+  },
+) {
+  const rng = createRng(seededRandom(args.seed ?? 1));
+  const bundles: ReturnType<typeof rollVeteranContract>[] = [];
+  for (let i = 0; i < args.count; i++) {
+    bundles.push(
+      rollVeteranContract(
+        rng,
+        {
+          playerId: `p${i}`,
+          teamId: "team-1",
+          bucket: args.bucket,
+          quality: 85,
+          qualityTier: args.qualityTier,
+          age: 28, // veteran, not subject to age>=32 clamp
+          signedYear: 2026,
+          archetype: args.archetype,
+        },
+        positionalSalaryMultiplier,
+      ),
+    );
+  }
+  return bundles;
+}
+Deno.test(
+  "star-tier CB contracts are visibly shorter than star-tier QB contracts",
+  () => {
+    const qb = sampleVeteranContracts({
+      bucket: "QB",
+      qualityTier: "star",
+      archetype: "balanced",
+      count: 400,
+      seed: 42,
+    });
+    const cb = sampleVeteranContracts({
+      bucket: "CB",
+      qualityTier: "star",
+      archetype: "balanced",
+      count: 400,
+      seed: 42,
+    });
+    const avgLen = (arr: ReturnType<typeof rollVeteranContract>[]) =>
+      arr.reduce((s, b) => s + b.contract.realYears, 0) / arr.length;
+    const qbAvg = avgLen(qb);
+    const cbAvg = avgLen(cb);
+    assertEquals(
+      qbAvg - cbAvg >= 0.75,
+      true,
+      `expected QB avg length to exceed CB avg length by >= 0.75 yr; got qb=${
+        qbAvg.toFixed(2)
+      } cb=${cbAvg.toFixed(2)}`,
+    );
+  },
+);
+
+Deno.test(
+  "IOL top-10 guarantee share exceeds OT top-10 guarantee share in generated contracts",
+  () => {
+    const iol = sampleVeteranContracts({
+      bucket: "IOL",
+      qualityTier: "star",
+      archetype: "balanced",
+      count: 600,
+      seed: 7,
+    });
+    const ot = sampleVeteranContracts({
+      bucket: "OT",
+      qualityTier: "star",
+      archetype: "balanced",
+      count: 600,
+      seed: 7,
+    });
+    const guarRatio = (arr: ReturnType<typeof rollVeteranContract>[]) =>
+      arr.reduce((s, b) => {
+        const gy = b.years
+          .filter((y) => !y.isVoid && y.guaranteeType !== "none").length;
+        return s + gy / b.contract.realYears;
+      }, 0) / arr.length;
+    const iolAvg = guarRatio(iol);
+    const otAvg = guarRatio(ot);
+    assertEquals(
+      iolAvg > otAvg,
+      true,
+      `expected IOL guarantee share > OT; got iol=${iolAvg.toFixed(3)} ot=${
+        otAvg.toFixed(3)
+      }`,
+    );
+  },
+);
+
+Deno.test(
+  "star-tier QB contract cap-hit shape is back-loaded (y1 base share < last year base share)",
+  () => {
+    const bundles = sampleVeteranContracts({
+      bucket: "QB",
+      qualityTier: "star",
+      archetype: "balanced",
+      count: 400,
+      seed: 9,
+    });
+    const longDeals = bundles.filter((b) => b.contract.realYears >= 4);
+    assertEquals(longDeals.length > 20, true);
+    const avgY1 = longDeals.reduce((s, b) => {
+      const total = b.years
+        .filter((y) => !y.isVoid)
+        .reduce((t, y) => t + y.base, 0);
+      return s + b.years[0].base / total;
+    }, 0) / longDeals.length;
+    const avgYLast = longDeals.reduce((s, b) => {
+      const real = b.years.filter((y) => !y.isVoid);
+      const total = real.reduce((t, y) => t + y.base, 0);
+      return s + real[real.length - 1].base / total;
+    }, 0) / longDeals.length;
+    assertEquals(
+      avgY1 < avgYLast,
+      true,
+      `QB top-10 should be back-loaded: y1=${avgY1.toFixed(3)} yLast=${
+        avgYLast.toFixed(3)
+      }`,
+    );
+  },
+);
+
+Deno.test(
+  "cap-hell archetype lifts bonus share above balanced at the same position × tier",
+  () => {
+    // Confirms archetype remains a modifier on top of the position ×
+    // tier prior, not a replacement.
+    const balanced = sampleVeteranContracts({
+      bucket: "WR",
+      qualityTier: "star",
+      archetype: "balanced",
+      count: 400,
+      seed: 11,
+    });
+    const capHell = sampleVeteranContracts({
+      bucket: "WR",
+      qualityTier: "star",
+      archetype: "cap-hell",
+      count: 400,
+      seed: 11,
+    });
+    const avgBonus = (arr: ReturnType<typeof rollVeteranContract>[]) =>
+      arr.reduce((s, b) => {
+        const total = b.years
+          .filter((y) => !y.isVoid)
+          .reduce((t, y) => t + y.base, 0) + b.contract.signingBonus;
+        return total > 0 ? s + b.contract.signingBonus / total : s;
+      }, 0) / arr.length;
+    assertEquals(avgBonus(capHell) > avgBonus(balanced), true);
+  },
+);
 
 Deno.test("default archetype (no teamArchetypes provided) still produces valid contracts", () => {
   const generator = makeGenerator();
