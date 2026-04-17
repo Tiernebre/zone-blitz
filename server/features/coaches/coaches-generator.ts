@@ -460,6 +460,69 @@ const POSITION_WEIGHTS: ReadonlyArray<{ key: CoachRole; weight: number }> = [
   { key: "ST_ASSISTANT", weight: 1 },
 ];
 
+interface RoleExperienceSplit {
+  headCoachYears: number;
+  coordinatorYears: number;
+  positionCoachYears: number;
+}
+
+/**
+ * Split a coach's total career `yearsExperience` across the three career
+ * tiers they've held. The current tier is where most of their recent years
+ * are concentrated; earlier years filter down to lower tiers.
+ *
+ * - **HC tier**: some years as HC (weighted toward 0–3 so first-time head
+ *   coaches are common), remainder split across coordinator and position
+ *   coach buckets.
+ * - **COORDINATOR tier**: no HC years; most years as a coordinator, a
+ *   smaller amount carried back into the position-coach bucket.
+ * - **POSITION tier**: all years concentrate in `positionCoachYears`.
+ *
+ * The three returned fields always sum to `yearsExperience`.
+ */
+function rollRoleExperience(
+  tier: Tier,
+  yearsExperience: number,
+  random: () => number,
+): RoleExperienceSplit {
+  if (yearsExperience <= 0) {
+    return { headCoachYears: 0, coordinatorYears: 0, positionCoachYears: 0 };
+  }
+  if (tier === "POSITION") {
+    return {
+      headCoachYears: 0,
+      coordinatorYears: 0,
+      positionCoachYears: yearsExperience,
+    };
+  }
+  if (tier === "COORDINATOR") {
+    const coordinatorYears = triangularInt(
+      random,
+      0,
+      Math.min(6, yearsExperience),
+      yearsExperience,
+    );
+    return {
+      headCoachYears: 0,
+      coordinatorYears,
+      positionCoachYears: yearsExperience - coordinatorYears,
+    };
+  }
+  const maxHc = Math.min(yearsExperience, 18);
+  // ~35% of HC candidates are first-time head coaches (0 HC years); the rest
+  // have at least one season in the chair. Keeps the hiring market's
+  // "proven vs unproven" spread realistic — the pool always carries both.
+  const headCoachYears = random() < 0.35
+    ? 0
+    : triangularInt(random, 1, Math.min(3, maxHc), Math.max(1, maxHc));
+  const remaining = yearsExperience - headCoachYears;
+  const coordinatorYears = remaining <= 0
+    ? 0
+    : triangularInt(random, 0, Math.min(5, remaining), remaining);
+  const positionCoachYears = remaining - coordinatorYears;
+  return { headCoachYears, coordinatorYears, positionCoachYears };
+}
+
 interface CoachPreferences {
   marketTierPref: number;
   philosophyFitPref: number;
@@ -521,6 +584,11 @@ function generateCoach(
     experienceCeiling,
     intInRange(random, band.experienceMin, band.experienceMax),
   );
+  const roleExperience = rollRoleExperience(
+    spec.tier,
+    yearsExperience,
+    random,
+  );
 
   const collegeId = collegeIds.length > 0
     ? collegeIds[collegeIndex.value++ % collegeIds.length]
@@ -548,6 +616,9 @@ function generateCoach(
     playCaller: spec.role === "HC" ? playCallerForHc(specialty) : null,
     age,
     yearsExperience,
+    headCoachYears: roleExperience.headCoachYears,
+    coordinatorYears: roleExperience.coordinatorYears,
+    positionCoachYears: roleExperience.positionCoachYears,
     hiredAt,
     contractYears,
     contractSalary,

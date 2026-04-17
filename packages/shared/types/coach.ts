@@ -155,6 +155,13 @@ export interface Coach {
   playCaller: CoachPlayCaller | null;
   age: number;
   yearsExperience: number;
+  /** Years this coach has served as a head coach across their career.
+   * A first-time HC candidate is 0; a long-tenured HC may have 10+. */
+  headCoachYears: number;
+  /** Years served as a coordinator (OC/DC/STC). */
+  coordinatorYears: number;
+  /** Years served as a position coach or assistant. */
+  positionCoachYears: number;
   hiredAt: Date;
   contractYears: number;
   contractSalary: number;

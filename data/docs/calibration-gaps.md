@@ -25,16 +25,16 @@ The sim has three layers of calibration targets:
 
 ## Market & Career (the league-building layer)
 
-| # | Gap                                                                                              | Primary source                                          | Issue   |
-| - | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------- | ------- |
-| 1 | Position market sizing (roster slots, starter counts, snap-share thresholds per position)        | `nflreadr::load_rosters_weekly()`, `load_snap_counts()` | ✅ #510 |
-| 2 | Draft position distribution (positions picked per round, last 10 drafts)                         | `nflreadr::load_draft_picks()`                          | ✅ #511 |
-| 3 | Draft pick trade-value (observed vs Jimmy Johnson / Rich Hill curves)                            | `load_draft_picks()` + trade scrape                     | #512    |
-| 4 | Draft hit-rate bands — `P(multi-year starter \| round, position)`                                | `load_draft_picks()` + career snaps                     | #513    |
-| 5 | Free agent market (UFAs signed per offseason by position, AAV bands)                             | `nflreadr::load_contracts()`                            | #514    |
-| 6 | Contract structure (length, guarantee %, cap-hit shape by position × tier)                       | `load_contracts()` + OTC cross-check                    | #515    |
-| 7 | Career length + aging curves — `P(active \| age, position)`, peak years                          | `load_rosters()` longitudinal                           | ✅ #516 |
-| 8 | Coaching tenure + firing patterns (HC tenure distribution, W-L triggers, coordinator → HC rates) | Manual scrape (PFR head-coach history)                  | #517    |
+| # | Gap                                                                                                                                                                                                           | Primary source                                          | Issue       |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ----------- |
+| 1 | Position market sizing (roster slots, starter counts, snap-share thresholds per position) — [band](../bands/position-market.json) + [doc](./position-market-sizing.md)                                        | `nflreadr::load_rosters_weekly()`, `load_snap_counts()` | #510 (done) |
+| 2 | Draft position distribution (positions picked per round, last 10 drafts) — [band](../bands/draft-position-distribution.json) + [doc](./draft-position-tendencies.md)                                          | `nflreadr::load_draft_picks()`                          | #511 (done) |
+| 3 | Draft pick trade-value (observed vs Jimmy Johnson / Rich Hill curves) — **landed** via [`draft-pick-value.json`](../bands/draft-pick-value.json) + [`draft-pick-trade-value.md`](./draft-pick-trade-value.md) | `load_draft_picks()` + trade scrape                     | #512 (done) |
+| 4 | Draft hit-rate bands — `P(multi-year starter \| round, position)` — **landed** via [`draft-hit-rates.json`](../bands/draft-hit-rates.json) + [`draft-hit-rates-by-round.md`](./draft-hit-rates-by-round.md)   | `load_draft_picks()` + career snaps                     | #513 (done) |
+| 5 | Free agent market (UFAs signed per offseason by position, AAV bands) — [band](../bands/free-agent-market.json) + [doc](./free-agent-market.md)                                                                | `nflreadr::load_contracts()`                            | #514 (done) |
+| 6 | Contract structure (length, guarantee %, cap-hit shape by position × tier) — [band](../bands/contract-structure.json) + [doc](./contract-structure.md)                                                        | `load_contracts()` + OTC cross-check                    | #515 (done) |
+| 7 | Career length + aging curves — `P(active \| age, position)`, peak years — [band](../bands/career-length.json) + [doc](./career-length-by-position.md)                                                         | `load_rosters()` longitudinal                           | #516 (done) |
+| 8 | Coaching tenure + firing patterns (HC tenure distribution, W-L triggers, coordinator → HC rates)                                                                                                              | Manual scrape (PFR head-coach history)                  | #517        |
 
 These directly serve the user-named asks:
 
@@ -44,10 +44,10 @@ These directly serve the user-named asks:
 
 ## Game Flow (the situational-realism layer)
 
-| #  | Gap                                                                               | Primary source         | Issue |
-| -- | --------------------------------------------------------------------------------- | ---------------------- | ----- |
-| 9  | Play-call tendencies by situation (pass/run by D&D, score diff, time, field zone) | `nflreadr::load_pbp()` | #518  |
-| 10 | Red-zone + 3rd-down efficiency (play-call mix + conversion rates)                 | `load_pbp()`           | #519  |
+| #  | Gap                                                                               | Primary source         | Issue | Status                                                                         |
+| -- | --------------------------------------------------------------------------------- | ---------------------- | ----- | ------------------------------------------------------------------------------ |
+| 9  | Play-call tendencies by situation (pass/run by D&D, score diff, time, field zone) | `nflreadr::load_pbp()` | #518  | Done — [`play-call-tendencies.json`](../bands/play-call-tendencies.json)       |
+| 10 | Red-zone + 3rd-down efficiency (play-call mix + conversion rates)                 | `load_pbp()`           | #519  | Done — [`red-zone-and-third-down.json`](../bands/red-zone-and-third-down.json) |
 
 ## Future consideration (not yet issue-filed)
 

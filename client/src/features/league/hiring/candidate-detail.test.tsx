@@ -154,6 +154,106 @@ describe("CandidateDetail", () => {
     );
   });
 
+  it("shows the role-experience breakdown for a first-time HC", () => {
+    mockUseHiringCandidateDetail.mockReturnValue({
+      data: {
+        id: "c1",
+        leagueId: "lg",
+        staffType: "coach",
+        firstName: "Andy",
+        lastName: "Reid",
+        role: "HC",
+        age: 40,
+        yearsExperience: 15,
+        headCoachYears: 0,
+        coordinatorYears: 6,
+        positionCoachYears: 9,
+        interviewReveal: null,
+      },
+      isLoading: false,
+    });
+    renderPage();
+    const text = screen.getByTestId("candidate-experience-breakdown")
+      .textContent ?? "";
+    expect(text).toContain("15 yrs coaching");
+    expect(text).toContain("first-time HC");
+    expect(text).toContain("6 yrs as coordinator");
+    expect(text).toContain("9 yrs as position coach");
+  });
+
+  it("shows proven-HC breakdown with role-specific tenure", () => {
+    mockUseHiringCandidateDetail.mockReturnValue({
+      data: {
+        id: "c1",
+        leagueId: "lg",
+        staffType: "coach",
+        firstName: "Bill",
+        lastName: "B",
+        role: "HC",
+        age: 60,
+        yearsExperience: 1,
+        headCoachYears: 1,
+        coordinatorYears: 0,
+        positionCoachYears: 0,
+        interviewReveal: null,
+      },
+      isLoading: false,
+    });
+    renderPage();
+    const text = screen.getByTestId("candidate-experience-breakdown")
+      .textContent ?? "";
+    expect(text).toContain("1 yr coaching");
+    expect(text).toContain("1 yr as HC");
+    expect(screen.getByTestId("candidate-expected-salary").textContent)
+      .toContain("$");
+  });
+
+  it("shows coordinator + position breakdown for an OC candidate", () => {
+    mockUseHiringCandidateDetail.mockReturnValue({
+      data: {
+        id: "c1",
+        leagueId: "lg",
+        staffType: "coach",
+        firstName: "Kyle",
+        lastName: "Shan",
+        role: "OC",
+        age: 42,
+        yearsExperience: 14,
+        headCoachYears: 0,
+        coordinatorYears: 4,
+        positionCoachYears: 10,
+        interviewReveal: null,
+      },
+      isLoading: false,
+    });
+    renderPage();
+    const text = screen.getByTestId("candidate-experience-breakdown")
+      .textContent ?? "";
+    expect(text).toContain("14 yrs coaching");
+    expect(text).toContain("4 yrs as coordinator");
+    expect(text).toContain("10 yrs as position coach");
+    expect(text).not.toContain("HC");
+  });
+
+  it("omits the experience breakdown for scouts", () => {
+    mockUseHiringCandidateDetail.mockReturnValue({
+      data: {
+        id: "s1",
+        leagueId: "lg",
+        staffType: "scout",
+        firstName: "Scout",
+        lastName: "Director",
+        role: "DIRECTOR",
+        age: 50,
+        yearsExperience: 20,
+        interviewReveal: null,
+      },
+      isLoading: false,
+    });
+    renderPage();
+    expect(screen.queryByTestId("candidate-experience-breakdown")).toBeNull();
+  });
+
   it("keeps the reveal locked when the reveal object has only null fields", () => {
     mockUseHiringCandidateDetail.mockReturnValue({
       data: {

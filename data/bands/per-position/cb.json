@@ -1,0 +1,185 @@
+{
+  "generated_at": "2026-04-17T12:29:10Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "position": "CB",
+  "qualifier": "regular-season CB-seasons with >=500 defensive snaps",
+  "ranking_stat": "event_rate ((pbus + 2*ints) / games)",
+  "notes": "Starter CB-seasons 2020-2024, ranked by (pbus + 2*ints)/game then carved into percentile bands (elite: top 10%, good: 10-30%, average: 30-70%, weak: 70-90%, replacement: bottom 10%). DATA GAP: nflverse PBP does not attribute completed targets to covering defenders, so completion_allowed_pct, yards_per_target_allowed, targets_per_game, and pbu_rate are emitted as n=0 placeholders. The calibration harness treats n=0 bands as 'no reference' and skips the check. PBUs/ints per game are the two metrics with real NFL grounding in this fixture; joining FTN or PFF coverage data is the follow-up.",
+  "bands": {
+    "elite": {
+      "n": 34,
+      "metrics": {
+        "targets_per_game": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "completion_allowed_pct": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "yards_per_target_allowed": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "pbu_rate": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "pbus_per_game": {
+          "n": 34,
+          "mean": 1.1156,
+          "sd": 0.2451
+        },
+        "ints_per_game": {
+          "n": 34,
+          "mean": 0.3052,
+          "sd": 0.1292
+        }
+      }
+    },
+    "good": {
+      "n": 67,
+      "metrics": {
+        "targets_per_game": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "completion_allowed_pct": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "yards_per_target_allowed": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "pbu_rate": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "pbus_per_game": {
+          "n": 67,
+          "mean": 0.8395,
+          "sd": 0.1424
+        },
+        "ints_per_game": {
+          "n": 67,
+          "mean": 0.1709,
+          "sd": 0.0683
+        }
+      }
+    },
+    "average": {
+      "n": 136,
+      "metrics": {
+        "targets_per_game": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "completion_allowed_pct": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "yards_per_target_allowed": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "pbu_rate": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "pbus_per_game": {
+          "n": 136,
+          "mean": 0.5919,
+          "sd": 0.1373
+        },
+        "ints_per_game": {
+          "n": 136,
+          "mean": 0.0913,
+          "sd": 0.0598
+        }
+      }
+    },
+    "weak": {
+      "n": 67,
+      "metrics": {
+        "targets_per_game": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "completion_allowed_pct": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "yards_per_target_allowed": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "pbu_rate": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "pbus_per_game": {
+          "n": 67,
+          "mean": 0.4262,
+          "sd": 0.0861
+        },
+        "ints_per_game": {
+          "n": 67,
+          "mean": 0.0325,
+          "sd": 0.0368
+        }
+      }
+    },
+    "replacement": {
+      "n": 34,
+      "metrics": {
+        "targets_per_game": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "completion_allowed_pct": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "yards_per_target_allowed": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "pbu_rate": {
+          "n": 0,
+          "mean": 0,
+          "sd": 0
+        },
+        "pbus_per_game": {
+          "n": 34,
+          "mean": 0.2372,
+          "sd": 0.0886
+        },
+        "ints_per_game": {
+          "n": 34,
+          "mean": 0.0077,
+          "sd": 0.0215
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,887 @@
+{
+  "generated_at": "2026-04-17T12:54:37Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "OTC contracts feed (nflreadr::load_contracts()) filtered to signings with year_signed in the season window. 'External signing' = team != draft_team; 're-sign own team' = team == draft_team (excluding first-year rookie contracts where year_signed == draft_year). AAV tiers ranked within position_group across the full window: top_10, top_25 (11-25), top_50 (26-50), rest. APY and values are reported in millions of nominal dollars (not cap-pct). Position groups: QB, RB (incl FB), WR, TE, OT (LT/RT), IOL (LG/RG/C), EDGE (ED), IDL, LB, CB, S, ST (K/P/LS). Signing-timing waves are documented in data/docs/free-agent-market.md because the feed lacks date_signed.",
+  "bands": {
+    "ufas_signed_per_offseason": {
+      "overall": {
+        "n": 5,
+        "mean": 2963.8,
+        "sd": 243.3263,
+        "min": 2558,
+        "p10": 2716,
+        "p25": 2953,
+        "p50": 3035,
+        "p75": 3076,
+        "p90": 3148.6,
+        "max": 3197
+      },
+      "by_position_group": {
+        "WR": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 425.4,
+          "sd": 53.8219,
+          "min": 330,
+          "max": 457,
+          "total_in_window": 2127
+        },
+        "CB": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 386,
+          "sd": 29.1462,
+          "min": 339,
+          "max": 412,
+          "total_in_window": 1930
+        },
+        "IDL": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 330.8,
+          "sd": 40.7149,
+          "min": 273,
+          "max": 387,
+          "total_in_window": 1654
+        },
+        "IOL": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 266.8,
+          "sd": 23.952,
+          "min": 240,
+          "max": 288,
+          "total_in_window": 1334
+        },
+        "LB": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 265,
+          "sd": 23.5903,
+          "min": 230,
+          "max": 283,
+          "total_in_window": 1325
+        },
+        "RB": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 229.2,
+          "sd": 35.7519,
+          "min": 189,
+          "max": 273,
+          "total_in_window": 1146
+        },
+        "S": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 207.2,
+          "sd": 21.8335,
+          "min": 176,
+          "max": 232,
+          "total_in_window": 1036
+        },
+        "TE": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 199.4,
+          "sd": 20.8279,
+          "min": 180,
+          "max": 233,
+          "total_in_window": 997
+        },
+        "EDGE": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 188,
+          "sd": 29.6816,
+          "min": 163,
+          "max": 236,
+          "total_in_window": 940
+        },
+        "OT": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 181.8,
+          "sd": 19.804,
+          "min": 149,
+          "max": 198,
+          "total_in_window": 909
+        },
+        "ST": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 159.6,
+          "sd": 27.2635,
+          "min": 141,
+          "max": 207,
+          "total_in_window": 798
+        },
+        "QB": {
+          "seasons_sampled": 5,
+          "mean_per_offseason": 124.6,
+          "sd": 10.9453,
+          "min": 114,
+          "max": 138,
+          "total_in_window": 623
+        }
+      }
+    },
+    "aav_distribution_by_position_tier": {
+      "CB": {
+        "rest": {
+          "n": 2810,
+          "mean_apy_millions": 0.7923,
+          "median_apy_millions": 0.7425,
+          "floor_apy_millions": 0,
+          "ceiling_apy_millions": 8.5,
+          "mean_total_value_millions": 1.4282,
+          "mean_years": 1.4751,
+          "mean_guaranteed_millions": 0.355
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 20.8356,
+          "median_apy_millions": 20.05,
+          "floor_apy_millions": 19.5,
+          "ceiling_apy_millions": 24.1,
+          "mean_total_value_millions": 69.0706,
+          "mean_years": 3.3,
+          "mean_guaranteed_millions": 28.523
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 17.0501,
+          "median_apy_millions": 17.25,
+          "floor_apy_millions": 13.5,
+          "ceiling_apy_millions": 19.4,
+          "mean_total_value_millions": 70.4833,
+          "mean_years": 4.0667,
+          "mean_guaranteed_millions": 32.1113
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 10.8156,
+          "median_apy_millions": 10.25,
+          "floor_apy_millions": 8.5,
+          "ceiling_apy_millions": 13.5,
+          "mean_total_value_millions": 31.0835,
+          "mean_years": 2.84,
+          "mean_guaranteed_millions": 17.4179
+        }
+      },
+      "EDGE": {
+        "rest": {
+          "n": 1584,
+          "mean_apy_millions": 1.165,
+          "median_apy_millions": 0.8083,
+          "floor_apy_millions": 0,
+          "ceiling_apy_millions": 13,
+          "mean_total_value_millions": 2.3376,
+          "mean_years": 1.6143,
+          "mean_guaranteed_millions": 0.9291
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 26.7467,
+          "median_apy_millions": 26,
+          "floor_apy_millions": 24.007,
+          "ceiling_apy_millions": 34,
+          "mean_total_value_millions": 101.9275,
+          "mean_years": 3.7,
+          "mean_guaranteed_millions": 53.8465
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 19.406,
+          "median_apy_millions": 19,
+          "floor_apy_millions": 17,
+          "ceiling_apy_millions": 24,
+          "mean_total_value_millions": 66.4069,
+          "mean_years": 3.4,
+          "mean_guaranteed_millions": 26.5775
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 14.6802,
+          "median_apy_millions": 14.5,
+          "floor_apy_millions": 13,
+          "ceiling_apy_millions": 17,
+          "mean_total_value_millions": 43.2146,
+          "mean_years": 2.96,
+          "mean_guaranteed_millions": 21.7475
+        }
+      },
+      "IDL": {
+        "rest": {
+          "n": 2346,
+          "mean_apy_millions": 0.9495,
+          "median_apy_millions": 0.75,
+          "floor_apy_millions": 0,
+          "ceiling_apy_millions": 10.055,
+          "mean_total_value_millions": 1.686,
+          "mean_years": 1.4339,
+          "mean_guaranteed_millions": 0.5187
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 25.6667,
+          "median_apy_millions": 24.125,
+          "floor_apy_millions": 22.5,
+          "ceiling_apy_millions": 31.75,
+          "mean_total_value_millions": 98.075,
+          "mean_years": 3.8,
+          "mean_guaranteed_millions": 47.2141
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 19.8533,
+          "median_apy_millions": 21,
+          "floor_apy_millions": 17,
+          "ceiling_apy_millions": 22.5,
+          "mean_total_value_millions": 66.9379,
+          "mean_years": 3.4,
+          "mean_guaranteed_millions": 27.5675
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 13.1687,
+          "median_apy_millions": 13,
+          "floor_apy_millions": 10.25,
+          "ceiling_apy_millions": 17,
+          "mean_total_value_millions": 33.9561,
+          "mean_years": 2.56,
+          "mean_guaranteed_millions": 18.0597
+        }
+      },
+      "IOL": {
+        "rest": {
+          "n": 2068,
+          "mean_apy_millions": 0.8553,
+          "median_apy_millions": 0.7617,
+          "floor_apy_millions": 0,
+          "ceiling_apy_millions": 8,
+          "mean_total_value_millions": 1.5979,
+          "mean_years": 1.5044,
+          "mean_guaranteed_millions": 0.4037
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 18.9461,
+          "median_apy_millions": 18.4625,
+          "floor_apy_millions": 17,
+          "ceiling_apy_millions": 21,
+          "mean_total_value_millions": 70.7386,
+          "mean_years": 3.7,
+          "mean_guaranteed_millions": 32.6594
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 14.6563,
+          "median_apy_millions": 14.25,
+          "floor_apy_millions": 13,
+          "ceiling_apy_millions": 17,
+          "mean_total_value_millions": 41.9574,
+          "mean_years": 2.8667,
+          "mean_guaranteed_millions": 21.9147
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 10.1115,
+          "median_apy_millions": 10,
+          "floor_apy_millions": 8,
+          "ceiling_apy_millions": 12.5,
+          "mean_total_value_millions": 33.936,
+          "mean_years": 3.36,
+          "mean_guaranteed_millions": 16.3276
+        }
+      },
+      "LB": {
+        "rest": {
+          "n": 2082,
+          "mean_apy_millions": 0.8139,
+          "median_apy_millions": 0.7633,
+          "floor_apy_millions": 0.1428,
+          "ceiling_apy_millions": 6.3,
+          "mean_total_value_millions": 1.364,
+          "mean_years": 1.4669,
+          "mean_guaranteed_millions": 0.2844
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 15.9077,
+          "median_apy_millions": 14.75,
+          "floor_apy_millions": 12.5,
+          "ceiling_apy_millions": 20,
+          "mean_total_value_millions": 60.0555,
+          "mean_years": 3.6,
+          "mean_guaranteed_millions": 26.7365
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 10.5252,
+          "median_apy_millions": 10.25,
+          "floor_apy_millions": 9.5,
+          "ceiling_apy_millions": 12.5,
+          "mean_total_value_millions": 34.434,
+          "mean_years": 3.2667,
+          "mean_guaranteed_millions": 16.938
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 7.5663,
+          "median_apy_millions": 7.25,
+          "floor_apy_millions": 6.3333,
+          "ceiling_apy_millions": 9.3333,
+          "mean_total_value_millions": 18.016,
+          "mean_years": 2.36,
+          "mean_guaranteed_millions": 9.2921
+        }
+      },
+      "OT": {
+        "rest": {
+          "n": 1451,
+          "mean_apy_millions": 0.9836,
+          "median_apy_millions": 0.75,
+          "floor_apy_millions": 0.0618,
+          "ceiling_apy_millions": 12,
+          "mean_total_value_millions": 1.9187,
+          "mean_years": 1.5389,
+          "mean_guaranteed_millions": 0.6864
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 24.8188,
+          "median_apy_millions": 24.25,
+          "floor_apy_millions": 22,
+          "ceiling_apy_millions": 28.125,
+          "mean_total_value_millions": 99.3845,
+          "mean_years": 4,
+          "mean_guaranteed_millions": 43.3905
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 19.015,
+          "median_apy_millions": 19,
+          "floor_apy_millions": 17.5,
+          "ceiling_apy_millions": 20.5,
+          "mean_total_value_millions": 71.105,
+          "mean_years": 3.7333,
+          "mean_guaranteed_millions": 32.9595
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 15.1419,
+          "median_apy_millions": 15,
+          "floor_apy_millions": 12.5,
+          "ceiling_apy_millions": 17.5,
+          "mean_total_value_millions": 48.78,
+          "mean_years": 3.2,
+          "mean_guaranteed_millions": 21.158
+        }
+      },
+      "QB": {
+        "rest": {
+          "n": 855,
+          "mean_apy_millions": 1.055,
+          "median_apy_millions": 0.764,
+          "floor_apy_millions": 0.11,
+          "ceiling_apy_millions": 9.1984,
+          "mean_total_value_millions": 1.9225,
+          "mean_years": 1.4503,
+          "mean_guaranteed_millions": 0.9199
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 53.6872,
+          "median_apy_millions": 53.05,
+          "floor_apy_millions": 50.2717,
+          "ceiling_apy_millions": 60,
+          "mean_total_value_millions": 236.2715,
+          "mean_years": 4.6,
+          "mean_guaranteed_millions": 120.5246
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 41.1272,
+          "median_apy_millions": 40,
+          "floor_apy_millions": 33.3333,
+          "ceiling_apy_millions": 49,
+          "mean_total_value_millions": 183.2282,
+          "mean_years": 4.3333,
+          "mean_guaranteed_millions": 86.2784
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 18.2442,
+          "median_apy_millions": 14,
+          "floor_apy_millions": 9.375,
+          "ceiling_apy_millions": 33,
+          "mean_total_value_millions": 36.0348,
+          "mean_years": 2,
+          "mean_guaranteed_millions": 24.6883
+        }
+      },
+      "RB": {
+        "rest": {
+          "n": 1802,
+          "mean_apy_millions": 0.7066,
+          "median_apy_millions": 0.705,
+          "floor_apy_millions": 0,
+          "ceiling_apy_millions": 4.55,
+          "mean_total_value_millions": 1.2249,
+          "mean_years": 1.4595,
+          "mean_guaranteed_millions": 0.1942
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 13.8149,
+          "median_apy_millions": 12.5917,
+          "floor_apy_millions": 12,
+          "ceiling_apy_millions": 19,
+          "mean_total_value_millions": 47.8913,
+          "mean_years": 3.5,
+          "mean_guaranteed_millions": 20.8441
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 10.0083,
+          "median_apy_millions": 10.091,
+          "floor_apy_millions": 8,
+          "ceiling_apy_millions": 12,
+          "mean_total_value_millions": 21.4683,
+          "mean_years": 2.1333,
+          "mean_guaranteed_millions": 9.9485
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 6.1181,
+          "median_apy_millions": 6,
+          "floor_apy_millions": 4.875,
+          "ceiling_apy_millions": 8,
+          "mean_total_value_millions": 15.2193,
+          "mean_years": 2.48,
+          "mean_guaranteed_millions": 8.7795
+        }
+      },
+      "S": {
+        "rest": {
+          "n": 1667,
+          "mean_apy_millions": 0.8203,
+          "median_apy_millions": 0.7633,
+          "floor_apy_millions": 0.0733,
+          "ceiling_apy_millions": 7,
+          "mean_total_value_millions": 1.4657,
+          "mean_years": 1.5201,
+          "mean_guaranteed_millions": 0.3217
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 17.49,
+          "median_apy_millions": 17.3115,
+          "floor_apy_millions": 15.25,
+          "ceiling_apy_millions": 21.025,
+          "mean_total_value_millions": 63.0231,
+          "mean_years": 3.6,
+          "mean_guaranteed_millions": 26.3306
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 12.9239,
+          "median_apy_millions": 12.911,
+          "floor_apy_millions": 11.25,
+          "ceiling_apy_millions": 14.75,
+          "mean_total_value_millions": 34.4039,
+          "mean_years": 2.6,
+          "mean_guaranteed_millions": 16.1558
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 8.7806,
+          "median_apy_millions": 9,
+          "floor_apy_millions": 7,
+          "ceiling_apy_millions": 11,
+          "mean_total_value_millions": 21.909,
+          "mean_years": 2.52,
+          "mean_guaranteed_millions": 12.4036
+        }
+      },
+      "ST": {
+        "rest": {
+          "n": 1004,
+          "mean_apy_millions": 0.6849,
+          "median_apy_millions": 0.7425,
+          "floor_apy_millions": 0,
+          "ceiling_apy_millions": 2.627,
+          "mean_total_value_millions": 1.1403,
+          "mean_years": 1.4392,
+          "mean_guaranteed_millions": 0.1302
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 5.6401,
+          "median_apy_millions": 5.5005,
+          "floor_apy_millions": 5.275,
+          "ceiling_apy_millions": 6.4,
+          "mean_total_value_millions": 20.4004,
+          "mean_years": 3.6,
+          "mean_guaranteed_millions": 10.1918
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 4.3856,
+          "median_apy_millions": 4.3,
+          "floor_apy_millions": 3.755,
+          "ceiling_apy_millions": 5.1,
+          "mean_total_value_millions": 15.1503,
+          "mean_years": 3.4,
+          "mean_guaranteed_millions": 6.3693
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 3.1534,
+          "median_apy_millions": 3,
+          "floor_apy_millions": 2.6667,
+          "ceiling_apy_millions": 3.75,
+          "mean_total_value_millions": 8.3862,
+          "mean_years": 2.68,
+          "mean_guaranteed_millions": 3.4867
+        }
+      },
+      "TE": {
+        "rest": {
+          "n": 1573,
+          "mean_apy_millions": 0.7264,
+          "median_apy_millions": 0.705,
+          "floor_apy_millions": 0,
+          "ceiling_apy_millions": 6,
+          "mean_total_value_millions": 1.2572,
+          "mean_years": 1.4609,
+          "mean_guaranteed_millions": 0.2125
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 14.8625,
+          "median_apy_millions": 14.2812,
+          "floor_apy_millions": 13,
+          "ceiling_apy_millions": 17.125,
+          "mean_total_value_millions": 54.45,
+          "mean_years": 3.7,
+          "mean_guaranteed_millions": 22.2423
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 11.1819,
+          "median_apy_millions": 10.931,
+          "floor_apy_millions": 9.8333,
+          "ceiling_apy_millions": 12.5,
+          "mean_total_value_millions": 29.3863,
+          "mean_years": 2.6,
+          "mean_guaranteed_millions": 14.2701
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 7.1408,
+          "median_apy_millions": 7,
+          "floor_apy_millions": 6,
+          "ceiling_apy_millions": 9,
+          "mean_total_value_millions": 16.1914,
+          "mean_years": 2.24,
+          "mean_guaranteed_millions": 9.6881
+        }
+      },
+      "WR": {
+        "rest": {
+          "n": 3449,
+          "mean_apy_millions": 0.8059,
+          "median_apy_millions": 0.705,
+          "floor_apy_millions": 0.1069,
+          "ceiling_apy_millions": 13,
+          "mean_total_value_millions": 1.4726,
+          "mean_years": 1.4503,
+          "mean_guaranteed_millions": 0.4215
+        },
+        "top_10": {
+          "n": 10,
+          "mean_apy_millions": 30.4752,
+          "median_apy_millions": 30,
+          "floor_apy_millions": 27.5,
+          "ceiling_apy_millions": 35,
+          "mean_total_value_millions": 115.676,
+          "mean_years": 3.8,
+          "mean_guaranteed_millions": 49.5323
+        },
+        "top_25": {
+          "n": 15,
+          "mean_apy_millions": 23.7576,
+          "median_apy_millions": 23.85,
+          "floor_apy_millions": 20.628,
+          "ceiling_apy_millions": 27.25,
+          "mean_total_value_millions": 65.4357,
+          "mean_years": 2.7333,
+          "mean_guaranteed_millions": 34.1282
+        },
+        "top_50": {
+          "n": 25,
+          "mean_apy_millions": 17.3353,
+          "median_apy_millions": 17.5,
+          "floor_apy_millions": 13.75,
+          "ceiling_apy_millions": 20.5,
+          "mean_total_value_millions": 46.0992,
+          "mean_years": 2.64,
+          "mean_guaranteed_millions": 23.1474
+        }
+      }
+    },
+    "resigning_rate": {
+      "overall": {
+        "external_signing": {
+          "n": 13833,
+          "proportion": 0.8067
+        },
+        "resign_own_team": {
+          "n": 3315,
+          "proportion": 0.1933
+        }
+      },
+      "by_position_group": {
+        "WR": {
+          "vet_contracts": 2601,
+          "resigned_own": 599,
+          "external": 1994,
+          "resign_rate": 0.2303
+        },
+        "OT": {
+          "vet_contracts": 1085,
+          "resigned_own": 248,
+          "external": 837,
+          "resign_rate": 0.2286
+        },
+        "TE": {
+          "vet_contracts": 1178,
+          "resigned_own": 267,
+          "external": 908,
+          "resign_rate": 0.2267
+        },
+        "EDGE": {
+          "vet_contracts": 1151,
+          "resigned_own": 253,
+          "external": 889,
+          "resign_rate": 0.2198
+        },
+        "RB": {
+          "vet_contracts": 1330,
+          "resigned_own": 278,
+          "external": 1048,
+          "resign_rate": 0.209
+        },
+        "S": {
+          "vet_contracts": 1215,
+          "resigned_own": 249,
+          "external": 966,
+          "resign_rate": 0.2049
+        },
+        "LB": {
+          "vet_contracts": 1525,
+          "resigned_own": 308,
+          "external": 1210,
+          "resign_rate": 0.202
+        },
+        "IOL": {
+          "vet_contracts": 1595,
+          "resigned_own": 309,
+          "external": 1247,
+          "resign_rate": 0.1937
+        },
+        "IDL": {
+          "vet_contracts": 1866,
+          "resigned_own": 296,
+          "external": 1570,
+          "resign_rate": 0.1586
+        },
+        "CB": {
+          "vet_contracts": 2081,
+          "resigned_own": 325,
+          "external": 1750,
+          "resign_rate": 0.1562
+        },
+        "QB": {
+          "vet_contracts": 692,
+          "resigned_own": 105,
+          "external": 587,
+          "resign_rate": 0.1517
+        },
+        "ST": {
+          "vet_contracts": 829,
+          "resigned_own": 78,
+          "external": 744,
+          "resign_rate": 0.0941
+        }
+      }
+    },
+    "contract_length_years_external": {
+      "CB": {
+        "n": 1930,
+        "mean_years": 1.2238,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      },
+      "EDGE": {
+        "n": 940,
+        "mean_years": 1.2755,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      },
+      "IDL": {
+        "n": 1654,
+        "mean_years": 1.1923,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      },
+      "IOL": {
+        "n": 1334,
+        "mean_years": 1.2324,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      },
+      "LB": {
+        "n": 1325,
+        "mean_years": 1.1955,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      },
+      "OT": {
+        "n": 909,
+        "mean_years": 1.1969,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      },
+      "QB": {
+        "n": 623,
+        "mean_years": 1.236,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      },
+      "RB": {
+        "n": 1146,
+        "mean_years": 1.1832,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      },
+      "S": {
+        "n": 1036,
+        "mean_years": 1.2066,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      },
+      "ST": {
+        "n": 798,
+        "mean_years": 1.2581,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      },
+      "TE": {
+        "n": 997,
+        "mean_years": 1.1846,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      },
+      "WR": {
+        "n": 2127,
+        "mean_years": 1.166,
+        "median_years": 1,
+        "p10_years": 1,
+        "p90_years": 2
+      }
+    },
+    "guarantee_share_external": {
+      "CB": {
+        "n": 1930,
+        "mean_guarantee_share": 0.0588,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.1889
+      },
+      "EDGE": {
+        "n": 940,
+        "mean_guarantee_share": 0.1179,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.5303
+      },
+      "IDL": {
+        "n": 1653,
+        "mean_guarantee_share": 0.079,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.3786
+      },
+      "IOL": {
+        "n": 1333,
+        "mean_guarantee_share": 0.0814,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.3647
+      },
+      "LB": {
+        "n": 1325,
+        "mean_guarantee_share": 0.0778,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.3594
+      },
+      "OT": {
+        "n": 909,
+        "mean_guarantee_share": 0.0813,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.3389
+      },
+      "QB": {
+        "n": 623,
+        "mean_guarantee_share": 0.1524,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.7474
+      },
+      "RB": {
+        "n": 1146,
+        "mean_guarantee_share": 0.0605,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.2172
+      },
+      "S": {
+        "n": 1036,
+        "mean_guarantee_share": 0.0856,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.4012
+      },
+      "ST": {
+        "n": 796,
+        "mean_guarantee_share": 0.07,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.3422
+      },
+      "TE": {
+        "n": 997,
+        "mean_guarantee_share": 0.0651,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.2628
+      },
+      "WR": {
+        "n": 2127,
+        "mean_guarantee_share": 0.0603,
+        "median_guarantee_share": 0,
+        "p10_guarantee_share": 0,
+        "p90_guarantee_share": 0.162
+      }
+    },
+    "signing_timing_waves": {
+      "source": "data/docs/free-agent-market.md",
+      "note": "OTC feed exposes year_signed only. Wave rates (legal tampering / first 2 weeks / April bargain / June post-draft) are documented in the research doc and should be sampled from there until a dated feed is integrated."
+    }
+  }
+}

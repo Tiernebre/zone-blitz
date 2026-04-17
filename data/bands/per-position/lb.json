@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-04-17T12:32:47Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "position": "LB",
+  "qualifier": "regular-season LB-seasons, >=10 games, >=40 total tackles, excluding OLBs with >=0.4 sacks/game",
+  "ranking_stat": "composite (tackles/gm + 2 * TFL/gm + 2 * PBU/gm)",
+  "notes": "Starter off-ball LB-seasons 2020-2024, ranked by a tackle + TFL + PBU composite then carved into percentile bands (elite: top 10%, good: 10-30%, average: 30-70%, weak: 70-90%, replacement: bottom 10%). Each band reports mean+sd per metric across the LB-seasons in that band. Edge-rushing OLBs (sacks/game >= 0.4) are excluded because Zone Blitz models them in the EDGE bucket.",
+  "bands": {
+    "elite": {
+      "n": 46,
+      "metrics": {
+        "tackles_per_game": {
+          "n": 46,
+          "mean": 8.7667,
+          "sd": 0.729
+        },
+        "tfl_per_game": {
+          "n": 46,
+          "mean": 0.4644,
+          "sd": 0.2052
+        },
+        "solo_tackle_rate": {
+          "n": 46,
+          "mean": 0.5626,
+          "sd": 0.0555
+        },
+        "pbu_per_game": {
+          "n": 46,
+          "mean": 0.3543,
+          "sd": 0.1266
+        }
+      }
+    },
+    "good": {
+      "n": 92,
+      "metrics": {
+        "tackles_per_game": {
+          "n": 92,
+          "mean": 7.2574,
+          "sd": 0.6248
+        },
+        "tfl_per_game": {
+          "n": 92,
+          "mean": 0.4201,
+          "sd": 0.2199
+        },
+        "solo_tackle_rate": {
+          "n": 92,
+          "mean": 0.5645,
+          "sd": 0.0689
+        },
+        "pbu_per_game": {
+          "n": 92,
+          "mean": 0.3139,
+          "sd": 0.1367
+        }
+      }
+    },
+    "average": {
+      "n": 185,
+      "metrics": {
+        "tackles_per_game": {
+          "n": 185,
+          "mean": 5.5688,
+          "sd": 0.8486
+        },
+        "tfl_per_game": {
+          "n": 185,
+          "mean": 0.3358,
+          "sd": 0.2071
+        },
+        "solo_tackle_rate": {
+          "n": 185,
+          "mean": 0.5657,
+          "sd": 0.0737
+        },
+        "pbu_per_game": {
+          "n": 185,
+          "mean": 0.2403,
+          "sd": 0.1557
+        }
+      }
+    },
+    "weak": {
+      "n": 92,
+      "metrics": {
+        "tackles_per_game": {
+          "n": 92,
+          "mean": 3.7825,
+          "sd": 0.5453
+        },
+        "tfl_per_game": {
+          "n": 92,
+          "mean": 0.3328,
+          "sd": 0.234
+        },
+        "solo_tackle_rate": {
+          "n": 92,
+          "mean": 0.571,
+          "sd": 0.0711
+        },
+        "pbu_per_game": {
+          "n": 92,
+          "mean": 0.1409,
+          "sd": 0.1102
+        }
+      }
+    },
+    "replacement": {
+      "n": 46,
+      "metrics": {
+        "tackles_per_game": {
+          "n": 46,
+          "mean": 3.0829,
+          "sd": 0.3569
+        },
+        "tfl_per_game": {
+          "n": 46,
+          "mean": 0.1875,
+          "sd": 0.14
+        },
+        "solo_tackle_rate": {
+          "n": 46,
+          "mean": 0.5476,
+          "sd": 0.0781
+        },
+        "pbu_per_game": {
+          "n": 46,
+          "mean": 0.0831,
+          "sd": 0.079
+        }
+      }
+    }
+  }
+}
