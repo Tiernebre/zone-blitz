@@ -1,5 +1,9 @@
 import type { PositionGroup, ScoutRegion, ScoutRole } from "@zone-blitz/shared";
-import { triangularInt } from "@zone-blitz/shared";
+import {
+  distributeByWeight,
+  intInRange,
+  triangularInt,
+} from "@zone-blitz/shared";
 import {
   createNameGenerator,
   type NameGenerator,
@@ -99,24 +103,6 @@ const NON_DIRECTOR_WEIGHTS: ReadonlyArray<
   { key: "AREA_W", weight: 0.75 },
 ];
 
-function distributeByWeight(
-  total: number,
-  weights: ReadonlyArray<{ key: BlueprintKey; weight: number }>,
-): Map<BlueprintKey, number> {
-  const sumW = weights.reduce((a, w) => a + w.weight, 0);
-  const rows = weights.map((w) => {
-    const exact = (total * w.weight) / sumW;
-    const floor = Math.floor(exact);
-    return { key: w.key, floor, remainder: exact - floor };
-  });
-  const leftover = total - rows.reduce((a, r) => a + r.floor, 0);
-  rows.sort((a, b) => b.remainder - a.remainder);
-  for (let i = 0; i < leftover; i++) rows[i].floor++;
-  const out = new Map<BlueprintKey, number>();
-  for (const r of rows) out.set(r.key, r.floor);
-  return out;
-}
-
 interface RoleBand {
   ageMin: number;
   ageMax: number;
@@ -209,10 +195,6 @@ export interface ScoutsGeneratorOptions {
   now?: () => Date;
 }
 
-function intInRange(random: () => number, min: number, max: number): number {
-  return Math.floor(random() * (max - min + 1)) + min;
-}
-
 interface ScoutPreferences {
   marketTierPref: number;
   philosophyFitPref: number;
@@ -240,14 +222,14 @@ const NULL_PREFERENCES = {
 };
 
 /**
- * Position-group options for an area scout or cross-checker. Real
- * front offices heavily skew toward generalists — an area scout
- * typically evaluates every position in their region — so we weight
- * `GENERALIST` more heavily than any single group.
+ * Position-group options for any scout — area scout, cross-checker, or
+ * director. Most scouts build up deeper reps on a specific position group
+ * over their career (an area scout who spent years on Big Ten OL, a
+ * director who rose through DB evaluation), so each of the eight groups
+ * gets an equal shot alongside a single `GENERALIST` bucket for the true
+ * all-position evaluators and pure board-builders.
  */
 const POSITION_FOCUS_POOL: ReadonlyArray<PositionGroup> = [
-  "GENERALIST",
-  "GENERALIST",
   "GENERALIST",
   "QB",
   "RB",
@@ -273,24 +255,17 @@ function pickFromArray<T>(random: () => number, values: ReadonlyArray<T>): T {
 }
 
 /**
- * Rolls the position-focus value a scout is hireable on. Directors
- * almost always read as `GENERALIST` — their value is board-building
- * and management — but we allow a small chance of a position-focused
- * director (e.g. a former DB coach who runs a DB-centric board).
+ * Rolls the position-focus value a scout is hireable on. All scouts —
+ * including directors, who are former area scouts who built their way up —
+ * draw from the same pool: one generalist slot and eight position-group
+ * slots with equal weight. This gives hiring managers a meaningful fit
+ * decision (a DB-focus director builds a different board than a QB-focus
+ * one) instead of every director reading as an interchangeable generalist.
  */
 function rollPositionFocus(
-  role: ScoutRole,
+  _role: ScoutRole,
   random: () => number,
 ): PositionGroup {
-  if (role === "DIRECTOR") {
-    return random() < 0.2
-      ? pickFromArray(random, [
-        "QB" as const,
-        "DL" as const,
-        "DB" as const,
-      ])
-      : "GENERALIST";
-  }
   return pickFromArray(random, POSITION_FOCUS_POOL);
 }
 

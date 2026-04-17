@@ -1,10 +1,12 @@
 import {
+  createRng,
   mulberry32,
   type NeutralBucket,
   PLAYER_ATTRIBUTE_KEYS,
   type PlayerAttributeKey,
   type PlayerAttributes,
   type SchemeFingerprint,
+  type SeededRng,
 } from "@zone-blitz/shared";
 import { CALIBRATION_SEED } from "./calibration-seed.ts";
 import type { CoachingMods, PlayerRuntime } from "../resolve-play.ts";
@@ -55,34 +57,8 @@ const STARTER_SLOTS: Record<NeutralBucket, number> = {
   LS: 1,
 };
 
-interface Rng {
-  next(): number;
-  int(min: number, max: number): number;
-  pick<T>(arr: readonly T[]): T;
-  gaussian(mean: number, stddev: number, min: number, max: number): number;
-}
-
-function createRng(random: () => number): Rng {
-  return {
-    next: random,
-    int(min, max) {
-      return Math.floor(random() * (max - min + 1)) + min;
-    },
-    pick<T>(arr: readonly T[]): T {
-      return arr[Math.floor(random() * arr.length)];
-    },
-    gaussian(mean, stddev, min, max) {
-      const u1 = Math.max(random(), 1e-9);
-      const u2 = random();
-      const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-      const value = Math.round(mean + z * stddev);
-      return Math.max(min, Math.min(max, value));
-    },
-  };
-}
-
 function rollAttributes(
-  rng: Rng,
+  rng: SeededRng,
   bucket: NeutralBucket,
   quality: number,
 ): PlayerAttributes {
@@ -105,14 +81,17 @@ function rollAttributes(
   return attrs as PlayerAttributes;
 }
 
-function rollQuality(rng: Rng, tier: "star" | "starter" | "depth"): number {
+function rollQuality(
+  rng: SeededRng,
+  tier: "star" | "starter" | "depth",
+): number {
   const mean = tier === "star" ? 82 : tier === "starter" ? 70 : 58;
   const stddev = tier === "star" ? 5 : tier === "starter" ? 6 : 7;
   return rng.gaussian(mean, stddev, 30, 95);
 }
 
 function generatePlayer(
-  rng: Rng,
+  rng: SeededRng,
   bucket: NeutralBucket,
   teamIndex: number,
   playerIndex: number,
@@ -130,7 +109,7 @@ function generatePlayer(
 }
 
 function generateTeamRoster(
-  rng: Rng,
+  rng: SeededRng,
   teamIndex: number,
 ): { starters: PlayerRuntime[]; bench: PlayerRuntime[] } {
   // Team-wide talent shift: mirrors the NFL reality that some
@@ -172,7 +151,10 @@ function generateTeamRoster(
   return { starters, bench };
 }
 
-function generateFingerprint(rng: Rng, teamIndex: number): SchemeFingerprint {
+function generateFingerprint(
+  rng: SeededRng,
+  teamIndex: number,
+): SchemeFingerprint {
   const offArchetype =
     OFFENSIVE_ARCHETYPES[teamIndex % OFFENSIVE_ARCHETYPES.length];
   const defArchetype =
@@ -195,7 +177,7 @@ function generateFingerprint(rng: Rng, teamIndex: number): SchemeFingerprint {
   };
 }
 
-function generateCoachingMods(rng: Rng): CoachingMods {
+function generateCoachingMods(rng: SeededRng): CoachingMods {
   // Calibration draws three raw mod values from the main rng — same
   // number and order of `rng.int` calls as the pre-ratings baseline —
   // then synthesizes the hidden ratings that would have produced them.

@@ -1,5 +1,7 @@
 import {
   type CapArchetype,
+  clamp,
+  createRng,
   NEUTRAL_BUCKETS,
   type NeutralBucket,
   neutralBucket,
@@ -7,6 +9,7 @@ import {
   type PlayerAttributeKey,
   type PlayerAttributes,
   positionalSalaryMultiplier,
+  type SeededRng,
 } from "@zone-blitz/shared";
 import {
   createNameGenerator,
@@ -424,40 +427,11 @@ const VETERAN_AGE_MAX = 36;
 const PROSPECT_AGE_MIN = 20;
 const PROSPECT_AGE_MAX = 23;
 
-interface Rng {
-  next(): number;
-  int(min: number, max: number): number;
-  pick<T>(arr: readonly T[]): T;
-  gaussian(mean: number, stddev: number, min: number, max: number): number;
-}
-
-function createRng(random: () => number): Rng {
-  return {
-    next: random,
-    int(min, max) {
-      return Math.floor(random() * (max - min + 1)) + min;
-    },
-    pick<T>(arr: readonly T[]): T {
-      return arr[Math.floor(random() * arr.length)];
-    },
-    gaussian(mean, stddev, min, max) {
-      // Box-Muller, clamped. Two uniforms in, one normal out per call; the
-      // RNG stream advances deterministically per attribute roll.
-      const u1 = Math.max(random(), 1e-9);
-      const u2 = random();
-      const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-      const value = Math.round(mean + z * stddev);
-      return Math.max(min, Math.min(max, value));
-    },
-  };
-}
-
-function clamp(n: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, n));
-}
-
 /** Rough overall score in [30, 95] per tier. */
-function rollQuality(rng: Rng, tier: "star" | "starter" | "depth"): number {
+function rollQuality(
+  rng: SeededRng,
+  tier: "star" | "starter" | "depth",
+): number {
   const mean = tier === "star" ? 82 : tier === "starter" ? 70 : 58;
   const stddev = tier === "star" ? 5 : tier === "starter" ? 6 : 7;
   return rng.gaussian(mean, stddev, 30, 95);
@@ -475,7 +449,7 @@ function qualityTierForIndex(
 }
 
 function rollAttributesFor(
-  rng: Rng,
+  rng: SeededRng,
   bucket: NeutralBucket,
   quality: number,
 ): PlayerAttributes {
@@ -530,7 +504,7 @@ function lockInBucket(
 }
 
 function rollPotentials(
-  rng: Rng,
+  rng: SeededRng,
   attributes: PlayerAttributes,
   age: number,
 ): void {
@@ -548,7 +522,7 @@ function rollPotentials(
   }
 }
 
-function rollHeightWeight(rng: Rng, bucket: NeutralBucket): {
+function rollHeightWeight(rng: SeededRng, bucket: NeutralBucket): {
   heightInches: number;
   weightPounds: number;
 } {
@@ -561,7 +535,7 @@ function rollHeightWeight(rng: Rng, bucket: NeutralBucket): {
 }
 
 function rollAge(
-  rng: Rng,
+  rng: SeededRng,
   status: "rostered" | "free-agent" | "prospect",
 ): number {
   if (status === "prospect") {
@@ -573,7 +547,11 @@ function rollAge(
   return VETERAN_AGE_MIN + Math.round(raw * span);
 }
 
-function birthDateForAge(age: number, currentYear: number, rng: Rng): string {
+function birthDateForAge(
+  age: number,
+  currentYear: number,
+  rng: SeededRng,
+): string {
   const year = currentYear - age;
   const month = rng.int(1, 12);
   const day = rng.int(1, 28);
@@ -582,17 +560,17 @@ function birthDateForAge(age: number, currentYear: number, rng: Rng): string {
   }`;
 }
 
-function pickCollege(rng: Rng): string {
+function pickCollege(rng: SeededRng): string {
   return rng.pick(DEFAULT_COLLEGES).shortName;
 }
 
-function pickHometown(rng: Rng): string {
+function pickHometown(rng: SeededRng): string {
   const city = rng.pick(DEFAULT_CITIES);
   return `${city.name}, ${city.stateCode}`;
 }
 
 function rollOrigin(
-  rng: Rng,
+  rng: SeededRng,
   age: number,
   currentYear: number,
   draftingTeamId: string | null,
@@ -688,7 +666,7 @@ interface RolledContractBundle {
 }
 
 function rollContract(
-  rng: Rng,
+  rng: SeededRng,
   args: {
     playerId: string;
     teamId: string;
@@ -710,7 +688,7 @@ function rollContract(
 }
 
 function rollRookieContract(
-  rng: Rng,
+  rng: SeededRng,
   args: {
     playerId: string;
     teamId: string;
@@ -768,7 +746,7 @@ function rollRookieContract(
 }
 
 function rollVeteranContract(
-  rng: Rng,
+  rng: SeededRng,
   args: {
     playerId: string;
     teamId: string;
