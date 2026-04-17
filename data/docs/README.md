@@ -33,6 +33,7 @@ flowchart LR
         B7[career-length]
         B8[comp-picks]
         B9[league-volatility]
+        B10[ir-usage]
     end
 
     subgraph Docs["data/docs/*.md"]
@@ -47,6 +48,7 @@ flowchart LR
         D8[nfl-talent-distribution-by-position]
         D9[comp-picks]
         D10[league-volatility]
+        D11[ir-usage]
     end
 
     ROS --> B1 --> D1
@@ -62,6 +64,7 @@ flowchart LR
     SNAP --> B1
     SNAP --> B4
     SCH --> B9 --> D10
+    ROS --> B10 --> D11
 
     D0 -. indexes .-> D1 & D2 & D3 & D4 & D5 & D6 & D7
 ```
@@ -81,6 +84,7 @@ flowchart LR
 | [contract-structure.md](./contract-structure.md)               | Contract shape — length, guarantee %, signing-bonus share, year-by-year cap hit, void years, restructures.          | Contract offer generator, cap AI, cut/restructure decisions.    |
 | [career-length-by-position.md](./career-length-by-position.md) | Five canonical aging shapes — specialist longevity, QB tail, OL plateau, mid-career cohort, RB/CB cliff.            | Aging system, retirement decisions, franchise-planning windows. |
 | [comp-picks.md](./comp-picks.md)                               | Compensatory picks — 32/yr cap, P(comp \| net UFA losses), round mix, minority-hire supplemental picks.             | AI GM "let him walk for the comp pick" decision, draft supply.  |
+| [ir-usage.md](./ir-usage.md)                                   | IR placements per team-season, ~30% return rate, ~5-week absence, position concentration (CB/OL/LB lead).           | In-season roster-slot pressure, waiver AI, PS elevations.       |
 
 ### Front-office market (coaches + scouts)
 
