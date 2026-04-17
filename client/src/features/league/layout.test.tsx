@@ -425,6 +425,17 @@ describe("LeagueLayout", () => {
     expect(screen.getByText("Alphas")).toBeDefined();
   });
 
+  it("uses a high-contrast text color over the team gradient, not the accent", async () => {
+    renderWithProviders();
+    const header = await screen.findByTestId("league-sidebar-header");
+    await waitFor(() => {
+      expect((header as HTMLElement).style.color).not.toBe("");
+    });
+    const color = (header as HTMLElement).style.color;
+    expect(color).toMatch(/rgb\(255,\s*255,\s*255\)|#ffffff/);
+    expect(color).not.toMatch(/rgb\(255,\s*204,\s*0\)|#ffcc00/);
+  });
+
   it("omits team-color styles when the league has no userTeamId", async () => {
     mockLeagueGet.mockResolvedValue({
       json: () =>
