@@ -1,0 +1,444 @@
+{
+  "generated_at": "2026-04-17T12:53:33Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Position market sizing. Regular season only. Derived from load_rosters_weekly() and load_snap_counts(). Position canonicalization collapses variants: RB includes FB/HB; OT merges T/OT/LT/RT; OG merges G/OG/LG/RG; OC is center; EDGE is DE; iDL is DT/NT; OLB is reported separately ('EDGE_or_LB') because teams use the tag for both 3-4 rush backers and 4-3 WILLs. Roster slots measure active-roster (status == 'ACT') counts per team-week. Contributor counts use snap share: offense players use offense_snaps / (team_offense_snaps / 11); defense players use defense_snaps / (team_defense_snaps / 11). Meaningful = season snap share >= 25%; starter = >= 70%. League-wide counts are unique gsis_ids active in at least one regular-season week per season.",
+  "bands": {
+    "roster_slots_per_team_week": {
+      "DB": {
+        "n_team_weeks": 2692,
+        "mean": 9.2181,
+        "sd": 0.7184,
+        "min": 6,
+        "p10": 8,
+        "p50": 9,
+        "p90": 10,
+        "max": 12
+      },
+      "OL": {
+        "n_team_weeks": 2692,
+        "mean": 8.0223,
+        "sd": 0.2028,
+        "min": 7,
+        "p10": 8,
+        "p50": 8,
+        "p90": 8,
+        "max": 11
+      },
+      "iDL": {
+        "n_team_weeks": 2692,
+        "mean": 7.0316,
+        "sd": 1.4977,
+        "min": 4,
+        "p10": 5,
+        "p50": 7,
+        "p90": 9,
+        "max": 11
+      },
+      "LB": {
+        "n_team_weeks": 2692,
+        "mean": 6.8224,
+        "sd": 1.5823,
+        "min": 3,
+        "p10": 5,
+        "p50": 7,
+        "p90": 9,
+        "max": 12
+      },
+      "WR": {
+        "n_team_weeks": 2692,
+        "mean": 5.2229,
+        "sd": 0.6271,
+        "min": 3,
+        "p10": 5,
+        "p50": 5,
+        "p90": 6,
+        "max": 7
+      },
+      "RB": {
+        "n_team_weeks": 2692,
+        "mean": 3.5617,
+        "sd": 0.679,
+        "min": 2,
+        "p10": 3,
+        "p50": 4,
+        "p90": 4,
+        "max": 6
+      },
+      "TE": {
+        "n_team_weeks": 2692,
+        "mean": 3.1022,
+        "sd": 0.585,
+        "min": 1,
+        "p10": 2,
+        "p50": 3,
+        "p90": 4,
+        "max": 6
+      },
+      "QB": {
+        "n_team_weeks": 2692,
+        "mean": 2.0386,
+        "sd": 0.1985,
+        "min": 1,
+        "p10": 2,
+        "p50": 2,
+        "p90": 2,
+        "max": 4
+      },
+      "P": {
+        "n_team_weeks": 2692,
+        "mean": 1.0059,
+        "sd": 0.0816,
+        "min": 0,
+        "p10": 1,
+        "p50": 1,
+        "p90": 1,
+        "max": 2
+      },
+      "LS": {
+        "n_team_weeks": 2692,
+        "mean": 0.9996,
+        "sd": 0.0334,
+        "min": 0,
+        "p10": 1,
+        "p50": 1,
+        "p90": 1,
+        "max": 2
+      },
+      "K": {
+        "n_team_weeks": 2692,
+        "mean": 0.9959,
+        "sd": 0.0924,
+        "min": 0,
+        "p10": 1,
+        "p50": 1,
+        "p90": 1,
+        "max": 2
+      }
+    },
+    "contributors_per_team_season": {
+      "LB": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 4.1562,
+          "sd": 1.3852,
+          "p10": 3,
+          "p50": 4,
+          "p90": 6
+        },
+        "starter_70pct": {
+          "mean": 1.4562,
+          "sd": 0.8749,
+          "p10": 0,
+          "p50": 1,
+          "p90": 3
+        }
+      },
+      "WR": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 3.9375,
+          "sd": 0.7985,
+          "p10": 3,
+          "p50": 4,
+          "p90": 5
+        },
+        "starter_70pct": {
+          "mean": 1.2563,
+          "sd": 0.856,
+          "p10": 0,
+          "p50": 1,
+          "p90": 2
+        }
+      },
+      "CB": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 3.7375,
+          "sd": 0.8936,
+          "p10": 3,
+          "p50": 4,
+          "p90": 5
+        },
+        "starter_70pct": {
+          "mean": 1.2812,
+          "sd": 0.7019,
+          "p10": 0,
+          "p50": 1,
+          "p90": 2
+        }
+      },
+      "iDL": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 3.0375,
+          "sd": 1.0454,
+          "p10": 2,
+          "p50": 3,
+          "p90": 4
+        },
+        "starter_70pct": {
+          "mean": 0.3062,
+          "sd": 0.526,
+          "p10": 0,
+          "p50": 0,
+          "p90": 1
+        }
+      },
+      "S": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 2.9,
+          "sd": 0.8333,
+          "p10": 2,
+          "p50": 3,
+          "p90": 4
+        },
+        "starter_70pct": {
+          "mean": 1.4688,
+          "sd": 0.6997,
+          "p10": 1,
+          "p50": 2,
+          "p90": 2
+        }
+      },
+      "OT": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 2.6375,
+          "sd": 0.9549,
+          "p10": 2,
+          "p50": 3,
+          "p90": 4
+        },
+        "starter_70pct": {
+          "mean": 1.425,
+          "sd": 0.7053,
+          "p10": 1,
+          "p50": 1,
+          "p90": 2
+        }
+      },
+      "EDGE": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 2.5375,
+          "sd": 1.3958,
+          "p10": 1,
+          "p50": 3,
+          "p90": 4
+        },
+        "starter_70pct": {
+          "mean": 0.3125,
+          "sd": 0.5401,
+          "p10": 0,
+          "p50": 0,
+          "p90": 1
+        }
+      },
+      "OG": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 2.3188,
+          "sd": 0.9475,
+          "p10": 1,
+          "p50": 2,
+          "p90": 3
+        },
+        "starter_70pct": {
+          "mean": 1.3188,
+          "sd": 0.7719,
+          "p10": 0,
+          "p50": 1,
+          "p90": 2
+        }
+      },
+      "TE": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 2.2062,
+          "sd": 0.6644,
+          "p10": 1,
+          "p50": 2,
+          "p90": 3
+        },
+        "starter_70pct": {
+          "mean": 0.3688,
+          "sd": 0.484,
+          "p10": 0,
+          "p50": 0,
+          "p90": 1
+        }
+      },
+      "RB": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 1.8188,
+          "sd": 0.5593,
+          "p10": 1,
+          "p50": 2,
+          "p90": 2
+        },
+        "starter_70pct": {
+          "mean": 0.075,
+          "sd": 0.2642,
+          "p10": 0,
+          "p50": 0,
+          "p90": 0
+        }
+      },
+      "QB": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 1.3313,
+          "sd": 0.5227,
+          "p10": 1,
+          "p50": 1,
+          "p90": 2
+        },
+        "starter_70pct": {
+          "mean": 0.7,
+          "sd": 0.4597,
+          "p10": 0,
+          "p50": 1,
+          "p90": 1
+        }
+      },
+      "OC": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 1.1313,
+          "sd": 0.5841,
+          "p10": 0.9,
+          "p50": 1,
+          "p90": 2
+        },
+        "starter_70pct": {
+          "mean": 0.7312,
+          "sd": 0.4853,
+          "p10": 0,
+          "p50": 1,
+          "p90": 1
+        }
+      },
+      "OL": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 0.3188,
+          "sd": 1.2151,
+          "p10": 0,
+          "p50": 0,
+          "p90": 0
+        },
+        "starter_70pct": {
+          "mean": 0.1438,
+          "sd": 0.6229,
+          "p10": 0,
+          "p50": 0,
+          "p90": 0
+        }
+      },
+      "DB": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 0.1812,
+          "sd": 0.7678,
+          "p10": 0,
+          "p50": 0,
+          "p90": 0
+        },
+        "starter_70pct": {
+          "mean": 0.0625,
+          "sd": 0.4149,
+          "p10": 0,
+          "p50": 0,
+          "p90": 0
+        }
+      },
+      "EDGE_or_LB": {
+        "n_team_seasons": 160,
+        "meaningful_25pct": {
+          "mean": 0.0875,
+          "sd": 0.4677,
+          "p10": 0,
+          "p50": 0,
+          "p90": 0
+        },
+        "starter_70pct": {
+          "mean": 0.0125,
+          "sd": 0.1115,
+          "p10": 0,
+          "p50": 0,
+          "p90": 0
+        }
+      }
+    },
+    "unique_players_per_season_league_wide": {
+      "DB": {
+        "mean": 442.8,
+        "sd": 10.1341,
+        "min": 436,
+        "max": 460
+      },
+      "OL": {
+        "mean": 373.8,
+        "sd": 8.4083,
+        "min": 367,
+        "max": 388
+      },
+      "iDL": {
+        "mean": 338.8,
+        "sd": 12.1943,
+        "min": 322,
+        "max": 353
+      },
+      "LB": {
+        "mean": 317.4,
+        "sd": 8.4439,
+        "min": 304,
+        "max": 327
+      },
+      "WR": {
+        "mean": 257.4,
+        "sd": 10.2127,
+        "min": 247,
+        "max": 274
+      },
+      "RB": {
+        "mean": 175.2,
+        "sd": 10.895,
+        "min": 164,
+        "max": 188
+      },
+      "TE": {
+        "mean": 144,
+        "sd": 5.9582,
+        "min": 138,
+        "max": 154
+      },
+      "QB": {
+        "mean": 96.4,
+        "sd": 4.3932,
+        "min": 90,
+        "max": 102
+      },
+      "K": {
+        "mean": 43.8,
+        "sd": 3.3466,
+        "min": 39,
+        "max": 47
+      },
+      "P": {
+        "mean": 38,
+        "sd": 1.5811,
+        "min": 36,
+        "max": 40
+      },
+      "LS": {
+        "mean": 36.6,
+        "sd": 1.1402,
+        "min": 35,
+        "max": 38
+      }
+    }
+  }
+}

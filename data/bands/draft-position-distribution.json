@@ -1,0 +1,2031 @@
+{
+  "generated_at": "2026-04-17T12:54:33Z",
+  "seasons": [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+  "notes": "NFL draft positional distribution. Source: load_draft_picks(). Position canonicalization: RB includes FB/HB; OT merges T/OT/LT/RT; OG merges G/OG/LG/RG; OC is center; EDGE is DE; iDL is DT/NT/generic DL; OLB reported separately as 'EDGE_or_LB' because PFR tags both 3-4 rush backers and off-ball OLBs under the same label. Per round × position: picks_per_draft and share_of_round are distributions across the drafts in the season window (one observation per draft). Top-of-draft concentration is computed across all drafts in the window pooled (share = n_at_pos / n_at_cutoff summed across drafts). Rounds outside 1-7 (supplemental / rare) are dropped.",
+  "bands": {
+    "by_round_and_position": {
+      "round_1": {
+        "WR": {
+          "picks": {
+            "mean": 4.5,
+            "sd": 1.7795,
+            "p10": 2,
+            "p50": 4.5,
+            "p90": 6.1
+          },
+          "share_of_round": {
+            "mean": 0.1414,
+            "sd": 0.0554
+          }
+        },
+        "QB": {
+          "picks": {
+            "mean": 3.5,
+            "sd": 1.5092,
+            "p10": 1.9,
+            "p50": 3,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.11,
+            "sd": 0.047
+          }
+        },
+        "iDL": {
+          "picks": {
+            "mean": 3.2,
+            "sd": 1.6865,
+            "p10": 1.8,
+            "p50": 3,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.1009,
+            "sd": 0.0535
+          }
+        },
+        "CB": {
+          "picks": {
+            "mean": 3.1,
+            "sd": 2.0248,
+            "p10": 0.9,
+            "p50": 3.5,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.0975,
+            "sd": 0.0637
+          }
+        },
+        "EDGE": {
+          "picks": {
+            "mean": 3,
+            "sd": 1.5635,
+            "p10": 1.9,
+            "p50": 2.5,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.0944,
+            "sd": 0.0489
+          }
+        },
+        "OL": {
+          "picks": {
+            "mean": 2.5,
+            "sd": 3.4075,
+            "p10": 0,
+            "p50": 0,
+            "p90": 6.3
+          },
+          "share_of_round": {
+            "mean": 0.0786,
+            "sd": 0.1069
+          }
+        },
+        "OT": {
+          "picks": {
+            "mean": 2.5,
+            "sd": 2.1213,
+            "p10": 0,
+            "p50": 2.5,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.0785,
+            "sd": 0.0666
+          }
+        },
+        "LB": {
+          "picks": {
+            "mean": 2.4,
+            "sd": 1.3499,
+            "p10": 0.9,
+            "p50": 3,
+            "p90": 4
+          },
+          "share_of_round": {
+            "mean": 0.0752,
+            "sd": 0.0421
+          }
+        },
+        "RB": {
+          "picks": {
+            "mean": 1.4,
+            "sd": 0.9661,
+            "p10": 0,
+            "p50": 1.5,
+            "p90": 2.1
+          },
+          "share_of_round": {
+            "mean": 0.0441,
+            "sd": 0.0303
+          }
+        },
+        "EDGE_or_LB": {
+          "picks": {
+            "mean": 1.2,
+            "sd": 1.3166,
+            "p10": 0,
+            "p50": 1,
+            "p90": 2.2
+          },
+          "share_of_round": {
+            "mean": 0.0379,
+            "sd": 0.0414
+          }
+        },
+        "S": {
+          "picks": {
+            "mean": 1.2,
+            "sd": 1.2293,
+            "p10": 0,
+            "p50": 1,
+            "p90": 3
+          },
+          "share_of_round": {
+            "mean": 0.0377,
+            "sd": 0.0386
+          }
+        },
+        "DB": {
+          "picks": {
+            "mean": 1.1,
+            "sd": 1.7288,
+            "p10": 0,
+            "p50": 0,
+            "p90": 3.2
+          },
+          "share_of_round": {
+            "mean": 0.0347,
+            "sd": 0.0544
+          }
+        },
+        "TE": {
+          "picks": {
+            "mean": 0.9,
+            "sd": 0.9944,
+            "p10": 0,
+            "p50": 1,
+            "p90": 2.1
+          },
+          "share_of_round": {
+            "mean": 0.0282,
+            "sd": 0.0311
+          }
+        },
+        "OG": {
+          "picks": {
+            "mean": 0.7,
+            "sd": 0.8233,
+            "p10": 0,
+            "p50": 0.5,
+            "p90": 2
+          },
+          "share_of_round": {
+            "mean": 0.0221,
+            "sd": 0.0261
+          }
+        },
+        "OC": {
+          "picks": {
+            "mean": 0.6,
+            "sd": 0.6992,
+            "p10": 0,
+            "p50": 0.5,
+            "p90": 1.1
+          },
+          "share_of_round": {
+            "mean": 0.0189,
+            "sd": 0.0219
+          }
+        },
+        "K": {
+          "picks": {
+            "mean": 0,
+            "sd": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "share_of_round": {
+            "mean": 0,
+            "sd": 0
+          }
+        },
+        "LS": {
+          "picks": {
+            "mean": 0,
+            "sd": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "share_of_round": {
+            "mean": 0,
+            "sd": 0
+          }
+        },
+        "P": {
+          "picks": {
+            "mean": 0,
+            "sd": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "share_of_round": {
+            "mean": 0,
+            "sd": 0
+          }
+        }
+      },
+      "round_2": {
+        "WR": {
+          "picks": {
+            "mean": 4.9,
+            "sd": 1.7288,
+            "p10": 3,
+            "p50": 4.5,
+            "p90": 7
+          },
+          "share_of_round": {
+            "mean": 0.1531,
+            "sd": 0.054
+          }
+        },
+        "CB": {
+          "picks": {
+            "mean": 3.7,
+            "sd": 2.406,
+            "p10": 0,
+            "p50": 4.5,
+            "p90": 6.1
+          },
+          "share_of_round": {
+            "mean": 0.1156,
+            "sd": 0.0752
+          }
+        },
+        "iDL": {
+          "picks": {
+            "mean": 3.2,
+            "sd": 2.2998,
+            "p10": 1,
+            "p50": 2.5,
+            "p90": 5.3
+          },
+          "share_of_round": {
+            "mean": 0.1,
+            "sd": 0.0719
+          }
+        },
+        "S": {
+          "picks": {
+            "mean": 2.7,
+            "sd": 1.8886,
+            "p10": 0.9,
+            "p50": 2.5,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.0844,
+            "sd": 0.059
+          }
+        },
+        "EDGE": {
+          "picks": {
+            "mean": 2.4,
+            "sd": 2.0111,
+            "p10": 0,
+            "p50": 2,
+            "p90": 5
+          },
+          "share_of_round": {
+            "mean": 0.075,
+            "sd": 0.0628
+          }
+        },
+        "RB": {
+          "picks": {
+            "mean": 2.1,
+            "sd": 1.4491,
+            "p10": 1,
+            "p50": 1.5,
+            "p90": 4.1
+          },
+          "share_of_round": {
+            "mean": 0.0656,
+            "sd": 0.0453
+          }
+        },
+        "DB": {
+          "picks": {
+            "mean": 1.9,
+            "sd": 3.1073,
+            "p10": 0,
+            "p50": 0,
+            "p90": 5.4
+          },
+          "share_of_round": {
+            "mean": 0.0594,
+            "sd": 0.0971
+          }
+        },
+        "OL": {
+          "picks": {
+            "mean": 1.9,
+            "sd": 2.6854,
+            "p10": 0,
+            "p50": 0,
+            "p90": 6
+          },
+          "share_of_round": {
+            "mean": 0.0594,
+            "sd": 0.0839
+          }
+        },
+        "LB": {
+          "picks": {
+            "mean": 1.8,
+            "sd": 0.9189,
+            "p10": 0.9,
+            "p50": 2,
+            "p90": 3
+          },
+          "share_of_round": {
+            "mean": 0.0562,
+            "sd": 0.0287
+          }
+        },
+        "OT": {
+          "picks": {
+            "mean": 1.8,
+            "sd": 1.6865,
+            "p10": 0,
+            "p50": 1,
+            "p90": 4.1
+          },
+          "share_of_round": {
+            "mean": 0.0562,
+            "sd": 0.0527
+          }
+        },
+        "TE": {
+          "picks": {
+            "mean": 1.7,
+            "sd": 1.2517,
+            "p10": 1,
+            "p50": 1,
+            "p90": 2.3
+          },
+          "share_of_round": {
+            "mean": 0.0531,
+            "sd": 0.0391
+          }
+        },
+        "EDGE_or_LB": {
+          "picks": {
+            "mean": 1.4,
+            "sd": 1.4298,
+            "p10": 0,
+            "p50": 1.5,
+            "p90": 3.1
+          },
+          "share_of_round": {
+            "mean": 0.0438,
+            "sd": 0.0447
+          }
+        },
+        "OG": {
+          "picks": {
+            "mean": 1,
+            "sd": 1.0541,
+            "p10": 0,
+            "p50": 1,
+            "p90": 2.1
+          },
+          "share_of_round": {
+            "mean": 0.0312,
+            "sd": 0.0329
+          }
+        },
+        "OC": {
+          "picks": {
+            "mean": 0.8,
+            "sd": 0.7888,
+            "p10": 0,
+            "p50": 1,
+            "p90": 2
+          },
+          "share_of_round": {
+            "mean": 0.025,
+            "sd": 0.0247
+          }
+        },
+        "QB": {
+          "picks": {
+            "mean": 0.6,
+            "sd": 0.5164,
+            "p10": 0,
+            "p50": 1,
+            "p90": 1
+          },
+          "share_of_round": {
+            "mean": 0.0188,
+            "sd": 0.0161
+          }
+        },
+        "K": {
+          "picks": {
+            "mean": 0.1,
+            "sd": 0.3162,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.1
+          },
+          "share_of_round": {
+            "mean": 0.0031,
+            "sd": 0.0099
+          }
+        },
+        "LS": {
+          "picks": {
+            "mean": 0,
+            "sd": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "share_of_round": {
+            "mean": 0,
+            "sd": 0
+          }
+        },
+        "P": {
+          "picks": {
+            "mean": 0,
+            "sd": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "share_of_round": {
+            "mean": 0,
+            "sd": 0
+          }
+        }
+      },
+      "round_3": {
+        "WR": {
+          "picks": {
+            "mean": 4.4,
+            "sd": 1.8379,
+            "p10": 2,
+            "p50": 4.5,
+            "p90": 6.2
+          },
+          "share_of_round": {
+            "mean": 0.1131,
+            "sd": 0.0436
+          }
+        },
+        "LB": {
+          "picks": {
+            "mean": 4.2,
+            "sd": 2.5734,
+            "p10": 1,
+            "p50": 5,
+            "p90": 7.1
+          },
+          "share_of_round": {
+            "mean": 0.1062,
+            "sd": 0.0624
+          }
+        },
+        "iDL": {
+          "picks": {
+            "mean": 4,
+            "sd": 1.8856,
+            "p10": 2,
+            "p50": 4.5,
+            "p90": 6.1
+          },
+          "share_of_round": {
+            "mean": 0.1039,
+            "sd": 0.0506
+          }
+        },
+        "EDGE": {
+          "picks": {
+            "mean": 3.6,
+            "sd": 1.2649,
+            "p10": 1.9,
+            "p50": 4,
+            "p90": 5
+          },
+          "share_of_round": {
+            "mean": 0.094,
+            "sd": 0.0334
+          }
+        },
+        "RB": {
+          "picks": {
+            "mean": 3.1,
+            "sd": 1.3703,
+            "p10": 1,
+            "p50": 3.5,
+            "p90": 4.1
+          },
+          "share_of_round": {
+            "mean": 0.0803,
+            "sd": 0.0352
+          }
+        },
+        "CB": {
+          "picks": {
+            "mean": 3,
+            "sd": 2.1082,
+            "p10": 0.9,
+            "p50": 2.5,
+            "p90": 5.2
+          },
+          "share_of_round": {
+            "mean": 0.0778,
+            "sd": 0.0545
+          }
+        },
+        "OL": {
+          "picks": {
+            "mean": 2.6,
+            "sd": 3.7476,
+            "p10": 0,
+            "p50": 0,
+            "p90": 7.3
+          },
+          "share_of_round": {
+            "mean": 0.0672,
+            "sd": 0.0992
+          }
+        },
+        "TE": {
+          "picks": {
+            "mean": 2.6,
+            "sd": 1.075,
+            "p10": 1,
+            "p50": 3,
+            "p90": 4
+          },
+          "share_of_round": {
+            "mean": 0.0673,
+            "sd": 0.0268
+          }
+        },
+        "OT": {
+          "picks": {
+            "mean": 2.1,
+            "sd": 2.2828,
+            "p10": 0,
+            "p50": 1.5,
+            "p90": 4.3
+          },
+          "share_of_round": {
+            "mean": 0.0557,
+            "sd": 0.062
+          }
+        },
+        "S": {
+          "picks": {
+            "mean": 2.1,
+            "sd": 1.6633,
+            "p10": 0,
+            "p50": 2,
+            "p90": 4.1
+          },
+          "share_of_round": {
+            "mean": 0.0547,
+            "sd": 0.0431
+          }
+        },
+        "DB": {
+          "picks": {
+            "mean": 2,
+            "sd": 2.7889,
+            "p10": 0,
+            "p50": 0.5,
+            "p90": 5.3
+          },
+          "share_of_round": {
+            "mean": 0.0506,
+            "sd": 0.07
+          }
+        },
+        "QB": {
+          "picks": {
+            "mean": 1.4,
+            "sd": 0.9661,
+            "p10": 0,
+            "p50": 1.5,
+            "p90": 2.1
+          },
+          "share_of_round": {
+            "mean": 0.0362,
+            "sd": 0.0245
+          }
+        },
+        "EDGE_or_LB": {
+          "picks": {
+            "mean": 1.3,
+            "sd": 1.567,
+            "p10": 0,
+            "p50": 0.5,
+            "p90": 3.1
+          },
+          "share_of_round": {
+            "mean": 0.0349,
+            "sd": 0.0425
+          }
+        },
+        "OG": {
+          "picks": {
+            "mean": 1.3,
+            "sd": 1.3375,
+            "p10": 0,
+            "p50": 1,
+            "p90": 3
+          },
+          "share_of_round": {
+            "mean": 0.0346,
+            "sd": 0.0371
+          }
+        },
+        "OC": {
+          "picks": {
+            "mean": 0.8,
+            "sd": 0.7888,
+            "p10": 0,
+            "p50": 1,
+            "p90": 2
+          },
+          "share_of_round": {
+            "mean": 0.0209,
+            "sd": 0.0208
+          }
+        },
+        "K": {
+          "picks": {
+            "mean": 0.1,
+            "sd": 0.3162,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.1
+          },
+          "share_of_round": {
+            "mean": 0.0026,
+            "sd": 0.0081
+          }
+        },
+        "LS": {
+          "picks": {
+            "mean": 0,
+            "sd": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "share_of_round": {
+            "mean": 0,
+            "sd": 0
+          }
+        },
+        "P": {
+          "picks": {
+            "mean": 0,
+            "sd": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "share_of_round": {
+            "mean": 0,
+            "sd": 0
+          }
+        }
+      },
+      "round_4": {
+        "RB": {
+          "picks": {
+            "mean": 4.3,
+            "sd": 1.6364,
+            "p10": 2.8,
+            "p50": 4,
+            "p90": 6.1
+          },
+          "share_of_round": {
+            "mean": 0.1153,
+            "sd": 0.0456
+          }
+        },
+        "WR": {
+          "picks": {
+            "mean": 4.1,
+            "sd": 1.4491,
+            "p10": 2.9,
+            "p50": 4,
+            "p90": 5.2
+          },
+          "share_of_round": {
+            "mean": 0.11,
+            "sd": 0.0381
+          }
+        },
+        "iDL": {
+          "picks": {
+            "mean": 3.4,
+            "sd": 1.5776,
+            "p10": 1.9,
+            "p50": 3,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.091,
+            "sd": 0.042
+          }
+        },
+        "CB": {
+          "picks": {
+            "mean": 3.3,
+            "sd": 1.8886,
+            "p10": 1,
+            "p50": 3.5,
+            "p90": 6
+          },
+          "share_of_round": {
+            "mean": 0.0864,
+            "sd": 0.046
+          }
+        },
+        "TE": {
+          "picks": {
+            "mean": 2.9,
+            "sd": 2.1833,
+            "p10": 0.9,
+            "p50": 2,
+            "p90": 6
+          },
+          "share_of_round": {
+            "mean": 0.0774,
+            "sd": 0.0598
+          }
+        },
+        "EDGE": {
+          "picks": {
+            "mean": 2.7,
+            "sd": 1.767,
+            "p10": 1,
+            "p50": 2.5,
+            "p90": 5
+          },
+          "share_of_round": {
+            "mean": 0.073,
+            "sd": 0.0481
+          }
+        },
+        "OG": {
+          "picks": {
+            "mean": 2.6,
+            "sd": 2.9515,
+            "p10": 0,
+            "p50": 1,
+            "p90": 7
+          },
+          "share_of_round": {
+            "mean": 0.0692,
+            "sd": 0.0782
+          }
+        },
+        "S": {
+          "picks": {
+            "mean": 2.6,
+            "sd": 1.5055,
+            "p10": 1,
+            "p50": 3,
+            "p90": 4.1
+          },
+          "share_of_round": {
+            "mean": 0.0695,
+            "sd": 0.0408
+          }
+        },
+        "LB": {
+          "picks": {
+            "mean": 2.4,
+            "sd": 1.075,
+            "p10": 1,
+            "p50": 2,
+            "p90": 4
+          },
+          "share_of_round": {
+            "mean": 0.0634,
+            "sd": 0.0257
+          }
+        },
+        "OL": {
+          "picks": {
+            "mean": 1.9,
+            "sd": 3.035,
+            "p10": 0,
+            "p50": 0,
+            "p90": 5.4
+          },
+          "share_of_round": {
+            "mean": 0.0545,
+            "sd": 0.0905
+          }
+        },
+        "DB": {
+          "picks": {
+            "mean": 1.7,
+            "sd": 2.4967,
+            "p10": 0,
+            "p50": 0,
+            "p90": 6
+          },
+          "share_of_round": {
+            "mean": 0.0472,
+            "sd": 0.0691
+          }
+        },
+        "OT": {
+          "picks": {
+            "mean": 1.7,
+            "sd": 1.3375,
+            "p10": 0,
+            "p50": 2,
+            "p90": 3
+          },
+          "share_of_round": {
+            "mean": 0.0442,
+            "sd": 0.0346
+          }
+        },
+        "QB": {
+          "picks": {
+            "mean": 1.5,
+            "sd": 0.9718,
+            "p10": 0.9,
+            "p50": 1,
+            "p90": 3
+          },
+          "share_of_round": {
+            "mean": 0.0403,
+            "sd": 0.0269
+          }
+        },
+        "EDGE_or_LB": {
+          "picks": {
+            "mean": 1,
+            "sd": 1.0541,
+            "p10": 0,
+            "p50": 1,
+            "p90": 2.1
+          },
+          "share_of_round": {
+            "mean": 0.0264,
+            "sd": 0.0269
+          }
+        },
+        "OC": {
+          "picks": {
+            "mean": 0.6,
+            "sd": 0.6992,
+            "p10": 0,
+            "p50": 0.5,
+            "p90": 1.1
+          },
+          "share_of_round": {
+            "mean": 0.0156,
+            "sd": 0.0185
+          }
+        },
+        "P": {
+          "picks": {
+            "mean": 0.4,
+            "sd": 0.6992,
+            "p10": 0,
+            "p50": 0,
+            "p90": 1.1
+          },
+          "share_of_round": {
+            "mean": 0.0109,
+            "sd": 0.0188
+          }
+        },
+        "K": {
+          "picks": {
+            "mean": 0.2,
+            "sd": 0.4216,
+            "p10": 0,
+            "p50": 0,
+            "p90": 1
+          },
+          "share_of_round": {
+            "mean": 0.0057,
+            "sd": 0.012
+          }
+        },
+        "LS": {
+          "picks": {
+            "mean": 0,
+            "sd": 0,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0
+          },
+          "share_of_round": {
+            "mean": 0,
+            "sd": 0
+          }
+        }
+      },
+      "round_5": {
+        "LB": {
+          "picks": {
+            "mean": 4.6,
+            "sd": 3.0623,
+            "p10": 1.9,
+            "p50": 4,
+            "p90": 6.6
+          },
+          "share_of_round": {
+            "mean": 0.1218,
+            "sd": 0.0865
+          }
+        },
+        "WR": {
+          "picks": {
+            "mean": 4.3,
+            "sd": 1.767,
+            "p10": 2.9,
+            "p50": 4,
+            "p90": 6.2
+          },
+          "share_of_round": {
+            "mean": 0.1149,
+            "sd": 0.0541
+          }
+        },
+        "CB": {
+          "picks": {
+            "mean": 3.6,
+            "sd": 1.4298,
+            "p10": 2,
+            "p50": 3.5,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.0942,
+            "sd": 0.0344
+          }
+        },
+        "RB": {
+          "picks": {
+            "mean": 3.6,
+            "sd": 1.7764,
+            "p10": 1,
+            "p50": 4,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.0941,
+            "sd": 0.0467
+          }
+        },
+        "iDL": {
+          "picks": {
+            "mean": 3.1,
+            "sd": 1.5239,
+            "p10": 1.9,
+            "p50": 3,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.0827,
+            "sd": 0.0418
+          }
+        },
+        "EDGE": {
+          "picks": {
+            "mean": 2.8,
+            "sd": 1.6865,
+            "p10": 1.9,
+            "p50": 2,
+            "p90": 4.3
+          },
+          "share_of_round": {
+            "mean": 0.076,
+            "sd": 0.0527
+          }
+        },
+        "DB": {
+          "picks": {
+            "mean": 2.5,
+            "sd": 3.171,
+            "p10": 0,
+            "p50": 1,
+            "p90": 7
+          },
+          "share_of_round": {
+            "mean": 0.0621,
+            "sd": 0.0771
+          }
+        },
+        "TE": {
+          "picks": {
+            "mean": 2.5,
+            "sd": 2.0683,
+            "p10": 0,
+            "p50": 3,
+            "p90": 5
+          },
+          "share_of_round": {
+            "mean": 0.0638,
+            "sd": 0.0516
+          }
+        },
+        "S": {
+          "picks": {
+            "mean": 2.2,
+            "sd": 0.7888,
+            "p10": 1,
+            "p50": 2,
+            "p90": 3
+          },
+          "share_of_round": {
+            "mean": 0.0583,
+            "sd": 0.0203
+          }
+        },
+        "OL": {
+          "picks": {
+            "mean": 1.7,
+            "sd": 2.2632,
+            "p10": 0,
+            "p50": 0,
+            "p90": 5
+          },
+          "share_of_round": {
+            "mean": 0.0427,
+            "sd": 0.0565
+          }
+        },
+        "OG": {
+          "picks": {
+            "mean": 1.5,
+            "sd": 1.5811,
+            "p10": 0,
+            "p50": 1.5,
+            "p90": 4
+          },
+          "share_of_round": {
+            "mean": 0.0404,
+            "sd": 0.042
+          }
+        },
+        "OT": {
+          "picks": {
+            "mean": 1.5,
+            "sd": 2.0683,
+            "p10": 0,
+            "p50": 1,
+            "p90": 2.5
+          },
+          "share_of_round": {
+            "mean": 0.041,
+            "sd": 0.0573
+          }
+        },
+        "QB": {
+          "picks": {
+            "mean": 1.4,
+            "sd": 1.075,
+            "p10": 0.9,
+            "p50": 1,
+            "p90": 2.2
+          },
+          "share_of_round": {
+            "mean": 0.0364,
+            "sd": 0.0256
+          }
+        },
+        "EDGE_or_LB": {
+          "picks": {
+            "mean": 1,
+            "sd": 1.633,
+            "p10": 0,
+            "p50": 0,
+            "p90": 2.3
+          },
+          "share_of_round": {
+            "mean": 0.0255,
+            "sd": 0.0411
+          }
+        },
+        "K": {
+          "picks": {
+            "mean": 0.6,
+            "sd": 0.6992,
+            "p10": 0,
+            "p50": 0.5,
+            "p90": 1.1
+          },
+          "share_of_round": {
+            "mean": 0.0164,
+            "sd": 0.0196
+          }
+        },
+        "OC": {
+          "picks": {
+            "mean": 0.5,
+            "sd": 0.7071,
+            "p10": 0,
+            "p50": 0,
+            "p90": 1.1
+          },
+          "share_of_round": {
+            "mean": 0.0136,
+            "sd": 0.0204
+          }
+        },
+        "P": {
+          "picks": {
+            "mean": 0.5,
+            "sd": 0.9718,
+            "p10": 0,
+            "p50": 0,
+            "p90": 1.2
+          },
+          "share_of_round": {
+            "mean": 0.0135,
+            "sd": 0.0263
+          }
+        },
+        "LS": {
+          "picks": {
+            "mean": 0.1,
+            "sd": 0.3162,
+            "p10": 0,
+            "p50": 0,
+            "p90": 0.1
+          },
+          "share_of_round": {
+            "mean": 0.0025,
+            "sd": 0.0079
+          }
+        }
+      },
+      "round_6": {
+        "WR": {
+          "picks": {
+            "mean": 5.7,
+            "sd": 2.4967,
+            "p10": 1.9,
+            "p50": 6,
+            "p90": 8.1
+          },
+          "share_of_round": {
+            "mean": 0.137,
+            "sd": 0.0583
+          }
+        },
+        "iDL": {
+          "picks": {
+            "mean": 4.3,
+            "sd": 1.8288,
+            "p10": 2.8,
+            "p50": 4.5,
+            "p90": 6.1
+          },
+          "share_of_round": {
+            "mean": 0.1064,
+            "sd": 0.0459
+          }
+        },
+        "CB": {
+          "picks": {
+            "mean": 4.2,
+            "sd": 2.044,
+            "p10": 1.9,
+            "p50": 4.5,
+            "p90": 6.2
+          },
+          "share_of_round": {
+            "mean": 0.101,
+            "sd": 0.0475
+          }
+        },
+        "RB": {
+          "picks": {
+            "mean": 3.9,
+            "sd": 1.9692,
+            "p10": 1.8,
+            "p50": 4,
+            "p90": 6
+          },
+          "share_of_round": {
+            "mean": 0.0938,
+            "sd": 0.0478
+          }
+        },
+        "LB": {
+          "picks": {
+            "mean": 3.7,
+            "sd": 1.9465,
+            "p10": 2,
+            "p50": 3.5,
+            "p90": 5.3
+          },
+          "share_of_round": {
+            "mean": 0.0906,
+            "sd": 0.0466
+          }
+        },
+        "OL": {
+          "picks": {
+            "mean": 2.7,
+            "sd": 3.4976,
+            "p10": 0,
+            "p50": 0.5,
+            "p90": 7.2
+          },
+          "share_of_round": {
+            "mean": 0.0639,
+            "sd": 0.0815
+          }
+        },
+        "S": {
+          "picks": {
+            "mean": 2.6,
+            "sd": 1.3499,
+            "p10": 0.9,
+            "p50": 3,
+            "p90": 4
+          },
+          "share_of_round": {
+            "mean": 0.065,
+            "sd": 0.0369
+          }
+        },
+        "OT": {
+          "picks": {
+            "mean": 2.5,
+            "sd": 1.9579,
+            "p10": 0.9,
+            "p50": 2,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.0642,
+            "sd": 0.0553
+          }
+        },
+        "EDGE": {
+          "picks": {
+            "mean": 2.1,
+            "sd": 1.4491,
+            "p10": 0.9,
+            "p50": 2,
+            "p90": 4
+          },
+          "share_of_round": {
+            "mean": 0.0506,
+            "sd": 0.0346
+          }
+        },
+        "TE": {
+          "picks": {
+            "mean": 2,
+            "sd": 1.9437,
+            "p10": 0,
+            "p50": 1,
+            "p90": 5
+          },
+          "share_of_round": {
+            "mean": 0.0484,
+            "sd": 0.0458
+          }
+        },
+        "DB": {
+          "picks": {
+            "mean": 1.7,
+            "sd": 2.0575,
+            "p10": 0,
+            "p50": 0.5,
+            "p90": 4.1
+          },
+          "share_of_round": {
+            "mean": 0.0408,
+            "sd": 0.0487
+          }
+        },
+        "QB": {
+          "picks": {
+            "mean": 1.4,
+            "sd": 1.1738,
+            "p10": 0,
+            "p50": 1,
+            "p90": 2.2
+          },
+          "share_of_round": {
+            "mean": 0.0332,
+            "sd": 0.0255
+          }
+        },
+        "OG": {
+          "picks": {
+            "mean": 1.1,
+            "sd": 1.1005,
+            "p10": 0,
+            "p50": 1,
+            "p90": 2.1
+          },
+          "share_of_round": {
+            "mean": 0.0263,
+            "sd": 0.0261
+          }
+        },
+        "EDGE_or_LB": {
+          "picks": {
+            "mean": 1,
+            "sd": 1.8856,
+            "p10": 0,
+            "p50": 0,
+            "p90": 4.1
+          },
+          "share_of_round": {
+            "mean": 0.0236,
+            "sd": 0.043
+          }
+        },
+        "OC": {
+          "picks": {
+            "mean": 0.7,
+            "sd": 0.6749,
+            "p10": 0,
+            "p50": 1,
+            "p90": 1.1
+          },
+          "share_of_round": {
+            "mean": 0.0181,
+            "sd": 0.0188
+          }
+        },
+        "K": {
+          "picks": {
+            "mean": 0.5,
+            "sd": 0.9718,
+            "p10": 0,
+            "p50": 0,
+            "p90": 1.2
+          },
+          "share_of_round": {
+            "mean": 0.0122,
+            "sd": 0.0226
+          }
+        },
+        "LS": {
+          "picks": {
+            "mean": 0.5,
+            "sd": 0.7071,
+            "p10": 0,
+            "p50": 0,
+            "p90": 1.1
+          },
+          "share_of_round": {
+            "mean": 0.0125,
+            "sd": 0.0172
+          }
+        },
+        "P": {
+          "picks": {
+            "mean": 0.5,
+            "sd": 0.7071,
+            "p10": 0,
+            "p50": 0,
+            "p90": 1.1
+          },
+          "share_of_round": {
+            "mean": 0.0124,
+            "sd": 0.0177
+          }
+        }
+      },
+      "round_7": {
+        "WR": {
+          "picks": {
+            "mean": 4.7,
+            "sd": 1.1595,
+            "p10": 3,
+            "p50": 5,
+            "p90": 6
+          },
+          "share_of_round": {
+            "mean": 0.1277,
+            "sd": 0.039
+          }
+        },
+        "RB": {
+          "picks": {
+            "mean": 3.5,
+            "sd": 1.5811,
+            "p10": 2.7,
+            "p50": 3.5,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.095,
+            "sd": 0.0469
+          }
+        },
+        "EDGE": {
+          "picks": {
+            "mean": 3.2,
+            "sd": 1.6193,
+            "p10": 2,
+            "p50": 2.5,
+            "p90": 6
+          },
+          "share_of_round": {
+            "mean": 0.0868,
+            "sd": 0.0487
+          }
+        },
+        "CB": {
+          "picks": {
+            "mean": 3,
+            "sd": 1.633,
+            "p10": 1,
+            "p50": 3,
+            "p90": 5.1
+          },
+          "share_of_round": {
+            "mean": 0.0775,
+            "sd": 0.0377
+          }
+        },
+        "LB": {
+          "picks": {
+            "mean": 3,
+            "sd": 2.2111,
+            "p10": 0.9,
+            "p50": 2.5,
+            "p90": 5.2
+          },
+          "share_of_round": {
+            "mean": 0.079,
+            "sd": 0.0553
+          }
+        },
+        "iDL": {
+          "picks": {
+            "mean": 3,
+            "sd": 2.1602,
+            "p10": 0.9,
+            "p50": 2.5,
+            "p90": 6
+          },
+          "share_of_round": {
+            "mean": 0.0792,
+            "sd": 0.0572
+          }
+        },
+        "DB": {
+          "picks": {
+            "mean": 2.6,
+            "sd": 2.7568,
+            "p10": 0,
+            "p50": 2.5,
+            "p90": 7
+          },
+          "share_of_round": {
+            "mean": 0.0675,
+            "sd": 0.0676
+          }
+        },
+        "OL": {
+          "picks": {
+            "mean": 2.5,
+            "sd": 3.2059,
+            "p10": 0,
+            "p50": 0.5,
+            "p90": 7.1
+          },
+          "share_of_round": {
+            "mean": 0.0651,
+            "sd": 0.0807
+          }
+        },
+        "S": {
+          "picks": {
+            "mean": 2.3,
+            "sd": 1.7029,
+            "p10": 0.9,
+            "p50": 2,
+            "p90": 5
+          },
+          "share_of_round": {
+            "mean": 0.0611,
+            "sd": 0.0443
+          }
+        },
+        "OT": {
+          "picks": {
+            "mean": 1.8,
+            "sd": 1.6193,
+            "p10": 0,
+            "p50": 1.5,
+            "p90": 4.1
+          },
+          "share_of_round": {
+            "mean": 0.0473,
+            "sd": 0.0412
+          }
+        },
+        "TE": {
+          "picks": {
+            "mean": 1.8,
+            "sd": 1.3166,
+            "p10": 0.9,
+            "p50": 1.5,
+            "p90": 4
+          },
+          "share_of_round": {
+            "mean": 0.047,
+            "sd": 0.0336
+          }
+        },
+        "EDGE_or_LB": {
+          "picks": {
+            "mean": 1.5,
+            "sd": 1.2693,
+            "p10": 0,
+            "p50": 1.5,
+            "p90": 3
+          },
+          "share_of_round": {
+            "mean": 0.0415,
+            "sd": 0.0352
+          }
+        },
+        "QB": {
+          "picks": {
+            "mean": 1.5,
+            "sd": 1.354,
+            "p10": 0,
+            "p50": 1,
+            "p90": 3.1
+          },
+          "share_of_round": {
+            "mean": 0.0386,
+            "sd": 0.0333
+          }
+        },
+        "OG": {
+          "picks": {
+            "mean": 1.1,
+            "sd": 0.9944,
+            "p10": 0,
+            "p50": 1,
+            "p90": 2.1
+          },
+          "share_of_round": {
+            "mean": 0.0298,
+            "sd": 0.0261
+          }
+        },
+        "OC": {
+          "picks": {
+            "mean": 0.8,
+            "sd": 0.6325,
+            "p10": 0,
+            "p50": 1,
+            "p90": 1.1
+          },
+          "share_of_round": {
+            "mean": 0.0215,
+            "sd": 0.0172
+          }
+        },
+        "P": {
+          "picks": {
+            "mean": 0.7,
+            "sd": 0.6749,
+            "p10": 0,
+            "p50": 1,
+            "p90": 1.1
+          },
+          "share_of_round": {
+            "mean": 0.0194,
+            "sd": 0.0201
+          }
+        },
+        "K": {
+          "picks": {
+            "mean": 0.4,
+            "sd": 0.6992,
+            "p10": 0,
+            "p50": 0,
+            "p90": 1.1
+          },
+          "share_of_round": {
+            "mean": 0.0108,
+            "sd": 0.0194
+          }
+        },
+        "LS": {
+          "picks": {
+            "mean": 0.2,
+            "sd": 0.4216,
+            "p10": 0,
+            "p50": 0,
+            "p90": 1
+          },
+          "share_of_round": {
+            "mean": 0.0051,
+            "sd": 0.0108
+          }
+        }
+      }
+    },
+    "per_draft_totals": {
+      "WR": {
+        "picks_per_draft": {
+          "mean": 32.6,
+          "sd": 2.7968,
+          "p10": 28,
+          "p50": 33.5,
+          "p90": 35
+        },
+        "share_of_draft": 0.1272
+      },
+      "iDL": {
+        "picks_per_draft": {
+          "mean": 24.2,
+          "sd": 5.0067,
+          "p10": 19.8,
+          "p50": 22.5,
+          "p90": 31.2
+        },
+        "share_of_draft": 0.0943
+      },
+      "CB": {
+        "picks_per_draft": {
+          "mean": 23.9,
+          "sd": 6.871,
+          "p10": 15.7,
+          "p50": 26.5,
+          "p90": 31.1
+        },
+        "share_of_draft": 0.0934
+      },
+      "LB": {
+        "picks_per_draft": {
+          "mean": 22.1,
+          "sd": 6.9354,
+          "p10": 13,
+          "p50": 20.5,
+          "p90": 32.1
+        },
+        "share_of_draft": 0.0862
+      },
+      "RB": {
+        "picks_per_draft": {
+          "mean": 21.9,
+          "sd": 3.6652,
+          "p10": 18,
+          "p50": 21.5,
+          "p90": 25.5
+        },
+        "share_of_draft": 0.0855
+      },
+      "EDGE": {
+        "picks_per_draft": {
+          "mean": 19.8,
+          "sd": 3.7059,
+          "p10": 14.8,
+          "p50": 20,
+          "p90": 24.1
+        },
+        "share_of_draft": 0.0772
+      },
+      "OL": {
+        "picks_per_draft": {
+          "mean": 15.8,
+          "sd": 20.2419,
+          "p10": 0,
+          "p50": 1,
+          "p90": 39.8
+        },
+        "share_of_draft": 0.061
+      },
+      "S": {
+        "picks_per_draft": {
+          "mean": 15.7,
+          "sd": 6.0194,
+          "p10": 9.8,
+          "p50": 15.5,
+          "p90": 24
+        },
+        "share_of_draft": 0.0614
+      },
+      "TE": {
+        "picks_per_draft": {
+          "mean": 14.4,
+          "sd": 2.9889,
+          "p10": 11,
+          "p50": 14.5,
+          "p90": 19
+        },
+        "share_of_draft": 0.0561
+      },
+      "OT": {
+        "picks_per_draft": {
+          "mean": 13.9,
+          "sd": 7.9784,
+          "p10": 3.7,
+          "p50": 16.5,
+          "p90": 22
+        },
+        "share_of_draft": 0.0544
+      },
+      "DB": {
+        "picks_per_draft": {
+          "mean": 13.5,
+          "sd": 15.5581,
+          "p10": 0,
+          "p50": 4.5,
+          "p90": 33.1
+        },
+        "share_of_draft": 0.0522
+      },
+      "QB": {
+        "picks_per_draft": {
+          "mean": 11.3,
+          "sd": 2.4518,
+          "p10": 8.8,
+          "p50": 11,
+          "p90": 14.1
+        },
+        "share_of_draft": 0.0441
+      },
+      "OG": {
+        "picks_per_draft": {
+          "mean": 9.3,
+          "sd": 6.7995,
+          "p10": 1.9,
+          "p50": 9.5,
+          "p90": 17.1
+        },
+        "share_of_draft": 0.0365
+      },
+      "EDGE_or_LB": {
+        "picks_per_draft": {
+          "mean": 8.4,
+          "sd": 8.4748,
+          "p10": 0,
+          "p50": 5,
+          "p90": 21.2
+        },
+        "share_of_draft": 0.0329
+      },
+      "OC": {
+        "picks_per_draft": {
+          "mean": 4.8,
+          "sd": 2.9364,
+          "p10": 1.8,
+          "p50": 5.5,
+          "p90": 8.1
+        },
+        "share_of_draft": 0.0188
+      },
+      "P": {
+        "picks_per_draft": {
+          "mean": 2.1,
+          "sd": 1.3703,
+          "p10": 0.9,
+          "p50": 2,
+          "p90": 4
+        },
+        "share_of_draft": 0.0082
+      },
+      "K": {
+        "picks_per_draft": {
+          "mean": 1.9,
+          "sd": 1.1005,
+          "p10": 0.9,
+          "p50": 2,
+          "p90": 3
+        },
+        "share_of_draft": 0.0074
+      },
+      "LS": {
+        "picks_per_draft": {
+          "mean": 0.8,
+          "sd": 0.6325,
+          "p10": 0,
+          "p50": 1,
+          "p90": 1.1
+        },
+        "share_of_draft": 0.0031
+      }
+    },
+    "top_of_draft_concentration": {
+      "top_10": {
+        "QB": {
+          "n": 26,
+          "share": 0.26
+        },
+        "WR": {
+          "n": 13,
+          "share": 0.13
+        },
+        "EDGE": {
+          "n": 12,
+          "share": 0.12
+        },
+        "OT": {
+          "n": 8,
+          "share": 0.08
+        },
+        "CB": {
+          "n": 7,
+          "share": 0.07
+        },
+        "OL": {
+          "n": 7,
+          "share": 0.07
+        },
+        "LB": {
+          "n": 6,
+          "share": 0.06
+        },
+        "RB": {
+          "n": 6,
+          "share": 0.06
+        },
+        "EDGE_or_LB": {
+          "n": 4,
+          "share": 0.04
+        },
+        "iDL": {
+          "n": 4,
+          "share": 0.04
+        },
+        "DB": {
+          "n": 3,
+          "share": 0.03
+        },
+        "TE": {
+          "n": 2,
+          "share": 0.02
+        },
+        "OG": {
+          "n": 1,
+          "share": 0.01
+        },
+        "S": {
+          "n": 1,
+          "share": 0.01
+        }
+      },
+      "top_32": {
+        "WR": {
+          "n": 45,
+          "share": 0.1406
+        },
+        "QB": {
+          "n": 35,
+          "share": 0.1094
+        },
+        "CB": {
+          "n": 32,
+          "share": 0.1
+        },
+        "iDL": {
+          "n": 32,
+          "share": 0.1
+        },
+        "EDGE": {
+          "n": 31,
+          "share": 0.0969
+        },
+        "OL": {
+          "n": 25,
+          "share": 0.0781
+        },
+        "OT": {
+          "n": 25,
+          "share": 0.0781
+        },
+        "LB": {
+          "n": 24,
+          "share": 0.075
+        },
+        "RB": {
+          "n": 14,
+          "share": 0.0438
+        },
+        "EDGE_or_LB": {
+          "n": 12,
+          "share": 0.0375
+        },
+        "S": {
+          "n": 12,
+          "share": 0.0375
+        },
+        "DB": {
+          "n": 11,
+          "share": 0.0344
+        },
+        "TE": {
+          "n": 9,
+          "share": 0.0281
+        },
+        "OG": {
+          "n": 7,
+          "share": 0.0219
+        },
+        "OC": {
+          "n": 6,
+          "share": 0.0188
+        }
+      },
+      "top_64": {
+        "WR": {
+          "n": 94,
+          "share": 0.1469
+        },
+        "CB": {
+          "n": 68,
+          "share": 0.1062
+        },
+        "iDL": {
+          "n": 65,
+          "share": 0.1016
+        },
+        "EDGE": {
+          "n": 54,
+          "share": 0.0844
+        },
+        "OL": {
+          "n": 44,
+          "share": 0.0688
+        },
+        "OT": {
+          "n": 43,
+          "share": 0.0672
+        },
+        "LB": {
+          "n": 42,
+          "share": 0.0656
+        },
+        "QB": {
+          "n": 41,
+          "share": 0.0641
+        },
+        "S": {
+          "n": 40,
+          "share": 0.0625
+        },
+        "RB": {
+          "n": 35,
+          "share": 0.0547
+        },
+        "DB": {
+          "n": 30,
+          "share": 0.0469
+        },
+        "EDGE_or_LB": {
+          "n": 26,
+          "share": 0.0406
+        },
+        "TE": {
+          "n": 26,
+          "share": 0.0406
+        },
+        "OG": {
+          "n": 17,
+          "share": 0.0266
+        },
+        "OC": {
+          "n": 14,
+          "share": 0.0219
+        },
+        "K": {
+          "n": 1,
+          "share": 0.0016
+        }
+      }
+    }
+  }
+}

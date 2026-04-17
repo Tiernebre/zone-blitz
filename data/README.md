@@ -129,6 +129,27 @@ without depending on network or R at test time. Regenerate them when:
   year). See
   [`docs/draft-pick-trade-value.md`](./docs/draft-pick-trade-value.md) for
   references and worked examples of real trades.
+- **`position-market.json`** — position market sizing. Per-team-week active
+  roster slots by position (mean/sd/p10/p50/p90), per-team-season meaningful
+  contributor and clear-starter counts (25% and 70% snap-share thresholds), and
+  league-wide unique-player counts per season. Derived from
+  `load_rosters_weekly()` and `load_snap_counts()`. Feeds player-generation
+  scarcity, league-init allocation, and depth-chart classification. See
+  [`docs/position-market-sizing.md`](./docs/position-market-sizing.md).
+- **`draft-position-distribution.json`** — positional distribution of NFL draft
+  picks. Per round × position: picks per draft (mean/sd/p10/p50/p90) and share
+  of round. Plus full-draft positional frequency and top-10 / top-32 / top-64
+  concentration. 10-draft window (2015–2024) via `load_draft_picks()`. Feeds
+  draft class generator, NPC GM positional-value prior, and consensus big-board
+  variance. See
+  [`docs/draft-position-tendencies.md`](./docs/draft-position-tendencies.md).
+- **`career-length.json`** — career length and aging curves by position.
+  `P(active | age)` for ages 22–40 using an age-22 cohort denominator;
+  year-over-year attrition rate per age × position; retirement-age distribution
+  (mean/sd/p10/p50/p90); modal (population-peak) age. 20-year longitudinal
+  window (2005–2024) from `load_rosters()`. Feeds the player-aging system and
+  retirement decisions. See
+  [`docs/career-length-by-position.md`](./docs/career-length-by-position.md).
 - **`injuries.json`** — injury rate bands by position, severity, and category.
   Derived from `nflreadr::load_injuries()` joined to
   `nflreadr::load_rosters_weekly()` to determine actual weeks missed (severity
