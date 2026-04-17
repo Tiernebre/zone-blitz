@@ -41,6 +41,7 @@ import {
   createRosterService,
 } from "./roster/mod.ts";
 import {
+  createScoutRatingsRepository,
   createScoutsGenerator,
   createScoutsRepository,
   createScoutsRouter,
@@ -114,6 +115,7 @@ export function createFeatureRouters(
   const coachRatingsRepo = createCoachRatingsRepository({ db, log });
   const rosterRepo = createRosterRepository({ db, log });
   const scoutsRepo = createScoutsRepository({ db, log });
+  const scoutRatingsRepo = createScoutRatingsRepository({ db, log });
   const playersRepo = createPlayersRepository({ db, log });
 
   // Services
@@ -137,6 +139,7 @@ export function createFeatureRouters(
   const scoutsService = createScoutsService({
     generator: createScoutsGenerator(),
     repo: scoutsRepo,
+    ratingsRepo: scoutRatingsRepo,
     db,
     log,
   });

@@ -100,6 +100,12 @@ export type {
   ScoutSummary,
 } from "./types/scout.ts";
 export type {
+  ScoutRatings,
+  ScoutRatingsUpsertInput,
+  ScoutRatingValues,
+} from "./types/scout-ratings.ts";
+export { SCOUT_RATING_KEYS } from "./types/scout-ratings.ts";
+export type {
   ActiveRoster,
   DepthChart,
   DepthChartInactive,

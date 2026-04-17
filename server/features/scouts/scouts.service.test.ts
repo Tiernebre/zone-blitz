@@ -1,9 +1,16 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { DomainError } from "@zone-blitz/shared";
-import type { ScoutDetail, ScoutNode } from "@zone-blitz/shared";
+import type {
+  ScoutDetail,
+  ScoutNode,
+  ScoutRatings,
+  ScoutRatingsUpsertInput,
+  ScoutRatingValues,
+} from "@zone-blitz/shared";
 import { createScoutsService } from "./scouts.service.ts";
 import type { ScoutsGenerator } from "./scouts.generator.interface.ts";
 import type { ScoutsRepository } from "./scouts.repository.interface.ts";
+import type { ScoutRatingsRepository } from "./scout-ratings.repository.ts";
 
 function createTestLogger() {
   return {
@@ -34,6 +41,49 @@ function createMockRepo(
     ...overrides,
   };
 }
+
+function createMockRatingsRepo(): {
+  repo: ScoutRatingsRepository;
+  upserts: ScoutRatingsUpsertInput[];
+} {
+  const upserts: ScoutRatingsUpsertInput[] = [];
+  const repo: ScoutRatingsRepository = {
+    getByScoutId: () => Promise.resolve(undefined),
+    upsert: (input) => {
+      upserts.push(input);
+      const ratings: ScoutRatings = {
+        scoutId: input.scoutId,
+        current: input.current,
+        ceiling: input.ceiling,
+        growthRate: input.growthRate,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      return Promise.resolve(ratings);
+    },
+  };
+  return { repo, upserts };
+}
+
+const sampleRatingValues: ScoutRatingValues = {
+  accuracy: 55,
+  projection: 50,
+  intangibleRead: 48,
+  confidenceCalibration: 52,
+  biasResistance: 50,
+};
+
+const sampleRatings = {
+  current: sampleRatingValues,
+  ceiling: {
+    accuracy: 80,
+    projection: 75,
+    intangibleRead: 70,
+    confidenceCalibration: 78,
+    biasResistance: 72,
+  } satisfies ScoutRatingValues,
+  growthRate: 55,
+};
 
 interface InsertCall {
   table: unknown;
@@ -122,6 +172,7 @@ const baseGenerated = {
   staffFitPref: null,
   compensationPref: null,
   minimumThreshold: null,
+  ratings: sampleRatings,
 };
 
 Deno.test("scouts.service", async (t) => {
@@ -139,6 +190,7 @@ Deno.test("scouts.service", async (t) => {
       const service = createScoutsService({
         generator,
         repo: createMockRepo(),
+        ratingsRepo: createMockRatingsRepo().repo,
         db,
         log: createTestLogger(),
       });
@@ -160,6 +212,7 @@ Deno.test("scouts.service", async (t) => {
       const service = createScoutsService({
         generator: createMockGenerator(),
         repo: createMockRepo(),
+        ratingsRepo: createMockRatingsRepo().repo,
         db,
         log: createTestLogger(),
       });
@@ -188,6 +241,7 @@ Deno.test("scouts.service", async (t) => {
       const service = createScoutsService({
         generator,
         repo: createMockRepo(),
+        ratingsRepo: createMockRatingsRepo().repo,
         db,
         log: createTestLogger(),
       });
@@ -213,6 +267,7 @@ Deno.test("scouts.service", async (t) => {
             return Promise.resolve(nodes);
           },
         }),
+        ratingsRepo: createMockRatingsRepo().repo,
         db,
         log: createTestLogger(),
       });
@@ -230,6 +285,7 @@ Deno.test("scouts.service", async (t) => {
       repo: createMockRepo({
         getScoutDetailById: () => Promise.resolve(detail),
       }),
+      ratingsRepo: createMockRatingsRepo().repo,
       db,
       log: createTestLogger(),
     });
@@ -245,6 +301,7 @@ Deno.test("scouts.service", async (t) => {
       const service = createScoutsService({
         generator: createMockGenerator(),
         repo: createMockRepo(),
+        ratingsRepo: createMockRatingsRepo().repo,
         db,
         log: createTestLogger(),
       });
@@ -283,6 +340,7 @@ Deno.test("scouts.service", async (t) => {
       const service = createScoutsService({
         generator,
         repo: createMockRepo(),
+        ratingsRepo: createMockRatingsRepo().repo,
         db,
         log: createTestLogger(),
       });
@@ -304,6 +362,7 @@ Deno.test("scouts.service", async (t) => {
       const service = createScoutsService({
         generator: createMockGenerator(),
         repo: createMockRepo(),
+        ratingsRepo: createMockRatingsRepo().repo,
         db,
         log: createTestLogger(),
       });
@@ -338,6 +397,7 @@ Deno.test("scouts.service", async (t) => {
       const service = createScoutsService({
         generator,
         repo: createMockRepo(),
+        ratingsRepo: createMockRatingsRepo().repo,
         db,
         log: createTestLogger(),
       });
@@ -349,6 +409,76 @@ Deno.test("scouts.service", async (t) => {
 
       assertEquals(dbCalls.length, 0);
       assertEquals(txCalls.length, 1);
+    },
+  );
+
+  await t.step(
+    "generate routes hidden ratings to the ratings repo per scout",
+    async () => {
+      const { db } = createMockDb();
+      const generator = createMockGenerator({
+        generate: () => [
+          { ...baseGenerated, id: "s1", firstName: "A", lastName: "B" },
+          { ...baseGenerated, id: "s2", firstName: "C", lastName: "D" },
+        ],
+      });
+      const { repo: ratingsRepo, upserts } = createMockRatingsRepo();
+
+      const service = createScoutsService({
+        generator,
+        repo: createMockRepo(),
+        ratingsRepo,
+        db,
+        log: createTestLogger(),
+      });
+
+      await service.generate({ leagueId: "l1", teamIds: ["t1"] });
+
+      assertEquals(upserts.length, 2);
+      assertEquals(upserts[0].scoutId, "s1");
+      assertEquals(upserts[0].current, sampleRatings.current);
+      assertEquals(upserts[0].ceiling, sampleRatings.ceiling);
+      assertEquals(upserts[0].growthRate, sampleRatings.growthRate);
+      assertEquals(upserts[1].scoutId, "s2");
+    },
+  );
+
+  await t.step(
+    "generatePool routes hidden ratings to the ratings repo per scout",
+    async () => {
+      const { db } = createMockDb();
+      const generator = createMockGenerator({
+        generatePool: () => [
+          {
+            ...baseGenerated,
+            id: "s1",
+            firstName: "A",
+            lastName: "B",
+            teamId: null,
+          },
+          {
+            ...baseGenerated,
+            id: "s2",
+            firstName: "C",
+            lastName: "D",
+            teamId: null,
+          },
+        ],
+      });
+      const { repo: ratingsRepo, upserts } = createMockRatingsRepo();
+
+      const service = createScoutsService({
+        generator,
+        repo: createMockRepo(),
+        ratingsRepo,
+        db,
+        log: createTestLogger(),
+      });
+
+      await service.generatePool({ leagueId: "l1", numberOfTeams: 2 });
+
+      assertEquals(upserts.length, 2);
+      assertEquals(upserts.map((u) => u.scoutId).sort(), ["s1", "s2"]);
     },
   );
 });

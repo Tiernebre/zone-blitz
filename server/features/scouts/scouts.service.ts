@@ -5,11 +5,13 @@ import { chunkedInsert } from "../../db/chunked-insert.ts";
 import { scouts } from "./scout.schema.ts";
 import type { ScoutsGenerator } from "./scouts.generator.interface.ts";
 import type { ScoutsRepository } from "./scouts.repository.interface.ts";
+import type { ScoutRatingsRepository } from "./scout-ratings.repository.ts";
 import type { ScoutsService } from "./scouts.service.interface.ts";
 
 export function createScoutsService(deps: {
   generator: ScoutsGenerator;
   repo: ScoutsRepository;
+  ratingsRepo: ScoutRatingsRepository;
   db: Database;
   log: pino.Logger;
 }): ScoutsService {
@@ -25,7 +27,16 @@ export function createScoutsService(deps: {
       });
 
       if (generated.length > 0) {
-        await chunkedInsert(tx ?? deps.db, scouts, generated);
+        const scoutRows = generated.map(({ ratings: _r, ...row }) => row);
+        await chunkedInsert(tx ?? deps.db, scouts, scoutRows);
+        for (const scout of generated) {
+          await deps.ratingsRepo.upsert({
+            scoutId: scout.id,
+            current: scout.ratings.current,
+            ceiling: scout.ratings.ceiling,
+            growthRate: scout.ratings.growthRate,
+          }, tx);
+        }
       }
 
       log.info(
@@ -45,7 +56,16 @@ export function createScoutsService(deps: {
       });
 
       if (generated.length > 0) {
-        await chunkedInsert(tx ?? deps.db, scouts, generated);
+        const scoutRows = generated.map(({ ratings: _r, ...row }) => row);
+        await chunkedInsert(tx ?? deps.db, scouts, scoutRows);
+        for (const scout of generated) {
+          await deps.ratingsRepo.upsert({
+            scoutId: scout.id,
+            current: scout.ratings.current,
+            ceiling: scout.ratings.ceiling,
+            growthRate: scout.ratings.growthRate,
+          }, tx);
+        }
       }
 
       log.info(

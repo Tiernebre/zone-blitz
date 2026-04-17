@@ -1,7 +1,13 @@
-import type { PositionGroup, ScoutRegion, ScoutRole } from "@zone-blitz/shared";
+import type {
+  PositionGroup,
+  ScoutRatingValues,
+  ScoutRegion,
+  ScoutRole,
+} from "@zone-blitz/shared";
 import {
   distributeByWeight,
   intInRange,
+  SCOUT_RATING_KEYS,
   triangularInt,
 } from "@zone-blitz/shared";
 import {
@@ -10,6 +16,7 @@ import {
 } from "../../shared/name-generator.ts";
 import type {
   GeneratedScout,
+  GeneratedScoutRatings,
   ScoutsGenerator,
   ScoutsGeneratorInput,
   ScoutsPoolInput,
@@ -292,6 +299,77 @@ function rollRegionFocus(
   return pickFromArray(random, AREA_REGIONS);
 }
 
+// Hidden scout ratings follow the same Geno Smith Line scale contract
+// as coach ratings (see `docs/product/north-star/player-attributes.md`):
+// 50 is the Mendoza line, 70+ franchise-caliber, 85+ elite, 95+
+// generational. Means cluster on 50 with a right-skewed bell generated
+// from an Irwin-Hall n=3 sample; role tilts are kept small so the
+// population average stays at 50 and the full 0-99 scale carries
+// meaning. Elite evaluators emerge from the bell's tail — not from a
+// pre-loaded mean.
+const BASE_RATING_MEAN = 50;
+const RATING_MIN = 1;
+const RATING_MAX = 99;
+const RATING_SCALE = 60;
+const ROLE_TILT = 4;
+
+const SCOUT_ROLE_TILTS: Record<ScoutRole, Partial<ScoutRatingValues>> = {
+  DIRECTOR: { accuracy: ROLE_TILT, intangibleRead: ROLE_TILT },
+  NATIONAL_CROSS_CHECKER: { accuracy: ROLE_TILT, biasResistance: ROLE_TILT },
+  AREA_SCOUT: { projection: ROLE_TILT },
+};
+
+function bellSample(random: () => number): number {
+  return (random() + random() + random()) / 3;
+}
+
+function rollScoutRating(random: () => number, tilt: number): number {
+  const bell = bellSample(random) - 0.5;
+  const value = Math.round(BASE_RATING_MEAN + tilt + bell * RATING_SCALE);
+  if (value < RATING_MIN) return RATING_MIN;
+  if (value > RATING_MAX) return RATING_MAX;
+  return value;
+}
+
+function scoutCeilingHeadroom(
+  random: () => number,
+  age: number,
+  band: RoleBand,
+): number {
+  const span = Math.max(1, band.ageMax - band.ageMin);
+  const ageRatio = Math.min(1, Math.max(0, (age - band.ageMin) / span));
+  const maxGap = Math.round((1 - ageRatio) * 30) + 3;
+  return Math.floor(random() * (maxGap + 1));
+}
+
+function rollScoutRatings(
+  random: () => number,
+  role: ScoutRole,
+  age: number,
+  band: RoleBand,
+): GeneratedScoutRatings {
+  const tilts = SCOUT_ROLE_TILTS[role];
+  const current = {} as ScoutRatingValues;
+  const ceiling = {} as ScoutRatingValues;
+  for (const key of SCOUT_RATING_KEYS) {
+    const tilt = tilts[key] ?? 0;
+    const c = rollScoutRating(random, tilt);
+    const gap = scoutCeilingHeadroom(random, age, band);
+    current[key] = c;
+    ceiling[key] = Math.min(RATING_MAX, c + gap);
+  }
+
+  // Younger scouts grow faster. Same age-ratio conversion coaches use
+  // — youngest get ~75, oldest ~30, with noise.
+  const span = Math.max(1, band.ageMax - band.ageMin);
+  const ageRatio = Math.min(1, Math.max(0, (age - band.ageMin) / span));
+  const baseGrowth = Math.round(75 - ageRatio * 40);
+  const growthNoise = Math.floor(random() * 15) - 7;
+  const growthRate = Math.min(95, Math.max(10, baseGrowth + growthNoise));
+
+  return { current, ceiling, growthRate };
+}
+
 function coverageToRegion(coverage: string | null): ScoutRegion | null {
   switch (coverage) {
     case "Northeast":
@@ -383,6 +461,8 @@ export function createScoutsGenerator(
             random,
           );
 
+          const ratings = rollScoutRatings(random, spec.role, age, band);
+
           scouts.push({
             id,
             leagueId: input.leagueId,
@@ -403,6 +483,7 @@ export function createScoutsGenerator(
             workCapacity,
             isVacancy: false,
             ...NULL_PREFERENCES,
+            ratings,
           });
         }
       }
@@ -482,6 +563,8 @@ export function createScoutsGenerator(
             random,
           );
 
+          const ratings = rollScoutRatings(random, spec.role, age, band);
+
           scouts.push({
             id,
             leagueId: input.leagueId,
@@ -502,6 +585,7 @@ export function createScoutsGenerator(
             workCapacity,
             isVacancy: false,
             ...rollPreferences(random),
+            ratings,
           });
         }
       }

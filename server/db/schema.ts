@@ -43,6 +43,7 @@ export {
   tenureUnitSideEnum,
 } from "../features/coaches/coach-history.schema.ts";
 export { scoutRoleEnum, scouts } from "../features/scouts/scout.schema.ts";
+export { scoutRatings } from "../features/scouts/scout-ratings.schema.ts";
 export {
   scoutCareerStops,
   scoutConnectionRelationEnum,
