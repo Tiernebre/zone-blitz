@@ -162,8 +162,11 @@ const TIER_BANDS: Record<Tier, TierBand> = {
     ageMode: 51,
     salaryMin: 6_000_000,
     salaryMax: 14_000_000,
+    // Contract length for coaches is rolled via CONTRACT_LENGTH_WEIGHTS
+    // (weighted mode-aware), not by uniform intInRange on this band. These
+    // bounds are retained as documentation of the realistic range. See #543.
     yearsMin: 3,
-    yearsMax: 5,
+    yearsMax: 6,
     buyoutYearsMin: 1,
     buyoutYearsMax: 2,
     tenureMin: 0,
@@ -480,10 +483,79 @@ interface RoleExperienceSplit {
  *
  * The three returned fields always sum to `yearsExperience`.
  */
+/**
+ * Contract length distributions per tier. Real NFL contracts cluster
+ * heavily at modal lengths rather than spreading uniformly across the
+ * tier's min/max band: HCs are almost always signed to 5-year deals,
+ * coordinators to 3-year deals, and position coaches to 2-year deals.
+ * A uniform roll across `yearsMin..yearsMax` underweighted the mode and
+ * overproduced short contracts — e.g., ~33% of HCs on 3-year deals,
+ * which is essentially unseen in the modern league. These weights honor
+ * the mode while still leaving tails for the occasional longer or
+ * shorter deal. See #543.
+ */
+const CONTRACT_LENGTH_WEIGHTS: Record<
+  Tier,
+  ReadonlyArray<{ years: number; weight: number }>
+> = {
+  HC: [
+    { years: 3, weight: 0.10 },
+    { years: 4, weight: 0.20 },
+    { years: 5, weight: 0.55 },
+    { years: 6, weight: 0.15 },
+  ],
+  COORDINATOR: [
+    { years: 2, weight: 0.25 },
+    { years: 3, weight: 0.55 },
+    { years: 4, weight: 0.20 },
+  ],
+  POSITION: [
+    { years: 1, weight: 0.20 },
+    { years: 2, weight: 0.55 },
+    { years: 3, weight: 0.25 },
+  ],
+};
+
+function pickWeighted<T>(
+  random: () => number,
+  options: ReadonlyArray<{ value: T; weight: number }>,
+): T {
+  const total = options.reduce((sum, o) => sum + o.weight, 0);
+  let roll = random() * total;
+  for (const option of options) {
+    roll -= option.weight;
+    if (roll <= 0) return option.value;
+  }
+  return options[options.length - 1].value;
+}
+
+function pickContractYears(tier: Tier, random: () => number): number {
+  const weights = CONTRACT_LENGTH_WEIGHTS[tier];
+  return pickWeighted(
+    random,
+    weights.map((w) => ({ value: w.years, weight: w.weight })),
+  );
+}
+
+/**
+ * First-time HC probability by age bucket. Modern NFL first-time HCs
+ * overwhelmingly come from the mid-30s to mid-40s coaching tree — McVay
+ * (30), Steichen (37), Ben Johnson (38), LaFleur (39), Shanahan (37).
+ * First-timers in their 50s exist but are rare; first-timers 55+ are
+ * effectively unheard of. A flat 35% roll produced 65-year-old first-
+ * time HCs, which is not a realistic hiring market. See #543.
+ */
+function firstTimeHcProbability(age: number): number {
+  if (age < 45) return 0.50;
+  if (age < 55) return 0.20;
+  return 0.05;
+}
+
 function rollRoleExperience(
   tier: Tier,
   yearsExperience: number,
   random: () => number,
+  age: number,
 ): RoleExperienceSplit {
   if (yearsExperience <= 0) {
     return { headCoachYears: 0, coordinatorYears: 0, positionCoachYears: 0 };
@@ -509,10 +581,12 @@ function rollRoleExperience(
     };
   }
   const maxHc = Math.min(yearsExperience, 18);
-  // ~35% of HC candidates are first-time head coaches (0 HC years); the rest
-  // have at least one season in the chair. Keeps the hiring market's
-  // "proven vs unproven" spread realistic — the pool always carries both.
-  const headCoachYears = random() < 0.35
+  // First-time HC probability is age-gated (see firstTimeHcProbability).
+  // Young candidates are overwhelmingly first-timers; older candidates have
+  // almost certainly already been in the chair somewhere. This preserves a
+  // realistic "proven vs unproven" pool shape while eliminating the
+  // implausible 60+-year-old first-time HC. See #543.
+  const headCoachYears = random() < firstTimeHcProbability(age)
     ? 0
     : triangularInt(random, 1, Math.min(3, maxHc), Math.max(1, maxHc));
   const remaining = yearsExperience - headCoachYears;
@@ -561,7 +635,7 @@ function generateCoach(
   const salaryMax = salaryOverride?.salaryMax ?? band.salaryMax;
 
   const age = triangularInt(random, band.ageMin, band.ageMode, band.ageMax);
-  const contractYears = intInRange(random, band.yearsMin, band.yearsMax);
+  const contractYears = pickContractYears(spec.tier, random);
   const salarySteps = Math.max(
     1,
     Math.floor((salaryMax - salaryMin) / 50_000),
@@ -588,6 +662,7 @@ function generateCoach(
     spec.tier,
     yearsExperience,
     random,
+    age,
   );
 
   const collegeId = collegeIds.length > 0
