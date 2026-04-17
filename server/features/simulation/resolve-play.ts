@@ -55,6 +55,12 @@ export interface CoachingMods {
   schemeFitBonus: number;
   situationalBonus: number;
   aggressiveness: number;
+  /**
+   * Penalty-rate multiplier. 1.0 = league-average (baseline PER_PLAY_PENALTY_RATE).
+   * Values below 1 indicate a disciplined team (fewer flags); above 1, sloppier.
+   * Driven by HC `leadership`.
+   */
+  penaltyDiscipline: number;
 }
 
 export type MatchupType =
@@ -435,6 +441,7 @@ export function synthesizeOutcome(
   rng: SeededRng,
   offensePlayerIds?: string[],
   defensePlayerIds?: string[],
+  penaltyDisciplineMultiplier = 1,
 ): PlayEvent {
   const isRunPlay = RUN_CONCEPTS.has(call.concept);
 
@@ -504,7 +511,7 @@ export function synthesizeOutcome(
   }
 
   let penalty: PenaltyInfo | undefined;
-  if (shouldPenaltyOccur(rng)) {
+  if (shouldPenaltyOccur(rng, penaltyDisciplineMultiplier)) {
     const offPositions = contributions
       .filter((c) => OFFENSIVE_POSITIONS.has(c.matchup.attacker.neutralBucket))
       .map((c) => c.matchup.attacker.neutralBucket);
@@ -622,7 +629,18 @@ export function resolvePlay(
     });
   });
 
-  const event = synthesizeOutcome(call, coverage, contributions, state, rng);
+  const penaltyDiscipline = (offense.coachingMods.penaltyDiscipline +
+    defense.coachingMods.penaltyDiscipline) / 2;
+  const event = synthesizeOutcome(
+    call,
+    coverage,
+    contributions,
+    state,
+    rng,
+    undefined,
+    undefined,
+    penaltyDiscipline,
+  );
   if (twoMinute) {
     event.tags.push("two_minute");
   }

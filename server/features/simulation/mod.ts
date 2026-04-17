@@ -137,9 +137,13 @@ export type {
 export {
   decidePenaltyAcceptance,
   PENALTY_CATALOG,
+  PER_PLAY_PENALTY_RATE,
   pickPenalty,
   shouldPenaltyOccur,
 } from "./resolve-penalty.ts";
+
+export { coachRatingsToMods } from "./coach-mods-from-ratings.ts";
+export type { CoachStaffRatings } from "./coach-mods-from-ratings.ts";
 export type {
   AcceptanceContext,
   PenaltyCandidate,

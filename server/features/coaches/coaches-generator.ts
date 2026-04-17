@@ -188,41 +188,44 @@ const TIER_BANDS: Record<Tier, TierBand> = {
   },
 };
 
-// Role-tier-specific mean rating values. Each entry is the expected
-// midpoint for a tier; a roll spreads ±RATING_SPREAD around it, then is
-// clamped to 1..99. HCs emphasize leadership + gameManagement;
-// coordinators emphasize schemeMastery; position coaches emphasize
-// playerDevelopment. These are calibration handles — adjust as we tune.
-const RATING_MEANS: Record<Tier, CoachRatingValues> = {
-  HC: {
-    leadership: 66,
-    gameManagement: 64,
-    schemeMastery: 55,
-    playerDevelopment: 52,
-    adaptability: 58,
-  },
-  COORDINATOR: {
-    leadership: 55,
-    gameManagement: 58,
-    schemeMastery: 66,
-    playerDevelopment: 55,
-    adaptability: 56,
-  },
-  POSITION: {
-    leadership: 50,
-    gameManagement: 46,
-    schemeMastery: 52,
-    playerDevelopment: 62,
-    adaptability: 52,
-  },
+// All coach ratings are drawn from a bell curve centered on 50 — the
+// league-average midpoint mandated by the rating-scale contract
+// (see docs/product/north-star/player-attributes.md). Role specialization
+// is expressed as a *small* tilt (+4) on role-relevant ratings rather than
+// a shifted mean, so a population of coaches averages 50 league-wide and
+// the full 0–99 scale carries meaning. Elite HCs and McVay-type
+// coordinators emerge from the tail of the bell, not from a pre-loaded
+// mean.
+const ROLE_TILT = 4;
+const TIER_TILTS: Record<Tier, Partial<CoachRatingValues>> = {
+  HC: { leadership: ROLE_TILT, gameManagement: ROLE_TILT },
+  COORDINATOR: { schemeMastery: ROLE_TILT },
+  POSITION: { playerDevelopment: ROLE_TILT },
 };
-const RATING_SPREAD = 22;
+
+const BASE_RATING_MEAN = 50;
 const RATING_MIN = 1;
 const RATING_MAX = 99;
 
-function rollRatingAroundMean(random: () => number, mean: number): number {
-  const offset = Math.floor(random() * (RATING_SPREAD * 2 + 1)) - RATING_SPREAD;
-  const value = mean + offset;
+/**
+ * Irwin–Hall n=3 — sum of three uniforms, normalized. Produces a
+ * bell-shaped distribution with mean 0.5 and stddev ≈ 0.167.
+ */
+function bellSample(random: () => number): number {
+  return (random() + random() + random()) / 3;
+}
+
+/**
+ * Rolls a rating around the 50 midpoint using a bell-curve sample, then
+ * applies a per-tier role tilt. Stddev ≈ 10 at the default scale — wide
+ * enough for meaningful variance, narrow enough that elite (80+) and poor
+ * (20−) coaches are genuinely rare.
+ */
+const RATING_SCALE = 60;
+
+function rollRatingAroundMean(random: () => number, tilt: number): number {
+  const bell = bellSample(random) - 0.5; // -0.5..0.5, mean 0
+  const value = Math.round(BASE_RATING_MEAN + tilt + bell * RATING_SCALE);
   if (value < RATING_MIN) return RATING_MIN;
   if (value > RATING_MAX) return RATING_MAX;
   return value;
@@ -252,11 +255,12 @@ function rollRatings(
   age: number,
   band: TierBand,
 ): GeneratedCoachRatings {
-  const means = RATING_MEANS[tier];
+  const tilts = TIER_TILTS[tier];
   const current = {} as CoachRatingValues;
   const ceiling = {} as CoachRatingValues;
   for (const key of COACH_RATING_KEYS) {
-    const c = rollRatingAroundMean(random, means[key]);
+    const tilt = tilts[key] ?? 0;
+    const c = rollRatingAroundMean(random, tilt);
     const gap = ceilingHeadroom(random, age, band);
     const ceil = Math.min(RATING_MAX, c + gap);
     current[key] = c;

@@ -173,10 +173,21 @@ function generateFingerprint(rng: Rng, teamIndex: number): SchemeFingerprint {
 }
 
 function generateCoachingMods(rng: Rng): CoachingMods {
+  // Calibration draws three raw mod values from the main rng — same
+  // number and order of `rng.int` calls as the pre-ratings baseline —
+  // then synthesizes the hidden ratings that would have produced them.
+  // Keeping the rng consumption pattern unchanged preserves the NFL
+  // bands that were validated against the original stream. Production
+  // coaches generate ratings directly (see `coaches-generator.ts`) and
+  // call `coachRatingsToMods` on the way in.
+  const schemeFitBonus = rng.int(0, 5);
+  const situationalBonus = rng.int(0, 3);
+  const aggressiveness = rng.int(30, 70);
   return {
-    schemeFitBonus: rng.int(0, 5),
-    situationalBonus: rng.int(0, 3),
-    aggressiveness: rng.int(30, 70),
+    schemeFitBonus,
+    situationalBonus,
+    aggressiveness,
+    penaltyDiscipline: 1,
   };
 }
 

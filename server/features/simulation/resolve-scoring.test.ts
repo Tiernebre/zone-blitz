@@ -121,6 +121,7 @@ function makeTeam(prefix: string): SimTeam {
       schemeFitBonus: 2,
       situationalBonus: 1,
       aggressiveness: 50,
+      penaltyDiscipline: 1,
     },
   };
 }

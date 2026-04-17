@@ -734,6 +734,26 @@ Deno.test("HC tier ratings bias toward leadership/gameManagement on average", ()
   assertEquals(hcLeadership > positionLeadership, true);
 });
 
+Deno.test("ratings across the pool are bell-centered on 50 (within 2 pts)", () => {
+  // Rating-scale contract: 50 is league average. A big-enough pool should
+  // have a per-key mean within ~2 points of 50, with only small role
+  // tilts nudging role-relevant ratings a bit higher.
+  const result = makePoolGenerator().generatePool({
+    leagueId: "lg",
+    numberOfTeams: 32,
+  });
+  const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  for (const key of COACH_RATING_KEYS) {
+    const mean = avg(result.map((c) => c.ratings.current[key]));
+    const delta = Math.abs(mean - 50);
+    assertEquals(
+      delta < 5,
+      true,
+      `${key} mean=${mean.toFixed(1)} drifted >5 from 50`,
+    );
+  }
+});
+
 Deno.test("generatePool two leagues produce independent pools with no shared ids", () => {
   const gen = makePoolGenerator();
   const poolA = gen.generatePool({ leagueId: "league-a", numberOfTeams: 4 });

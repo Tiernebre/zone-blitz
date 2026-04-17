@@ -174,10 +174,20 @@ export const PENALTY_CATALOG: PenaltyCandidate[] = [
   },
 ];
 
-const PER_PLAY_PENALTY_RATE = 0.017;
+export const PER_PLAY_PENALTY_RATE = 0.017;
 
-export function shouldPenaltyOccur(rng: SeededRng): boolean {
-  return rng.next() < PER_PLAY_PENALTY_RATE;
+/**
+ * `disciplineMultiplier` scales the base rate — 1.0 preserves the calibrated
+ * baseline; lower values reflect disciplined teams (HC leadership), higher
+ * values sloppy ones. Clamped to [0.5, 1.5] so a single coach can't erase
+ * flags entirely.
+ */
+export function shouldPenaltyOccur(
+  rng: SeededRng,
+  disciplineMultiplier = 1,
+): boolean {
+  const clamped = Math.min(1.5, Math.max(0.5, disciplineMultiplier));
+  return rng.next() < PER_PLAY_PENALTY_RATE * clamped;
 }
 
 export function pickPenalty(

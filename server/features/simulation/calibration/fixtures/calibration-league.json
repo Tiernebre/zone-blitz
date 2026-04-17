@@ -2896,7 +2896,8 @@
       "coachingMods": {
         "schemeFitBonus": 2,
         "situationalBonus": 2,
-        "aggressiveness": 55
+        "aggressiveness": 55,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -5794,7 +5795,8 @@
       "coachingMods": {
         "schemeFitBonus": 5,
         "situationalBonus": 3,
-        "aggressiveness": 61
+        "aggressiveness": 61,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -8692,7 +8694,8 @@
       "coachingMods": {
         "schemeFitBonus": 0,
         "situationalBonus": 1,
-        "aggressiveness": 57
+        "aggressiveness": 57,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -11590,7 +11593,8 @@
       "coachingMods": {
         "schemeFitBonus": 5,
         "situationalBonus": 3,
-        "aggressiveness": 38
+        "aggressiveness": 38,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -14488,7 +14492,8 @@
       "coachingMods": {
         "schemeFitBonus": 0,
         "situationalBonus": 3,
-        "aggressiveness": 68
+        "aggressiveness": 68,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -17386,7 +17391,8 @@
       "coachingMods": {
         "schemeFitBonus": 1,
         "situationalBonus": 3,
-        "aggressiveness": 65
+        "aggressiveness": 65,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -20284,7 +20290,8 @@
       "coachingMods": {
         "schemeFitBonus": 1,
         "situationalBonus": 1,
-        "aggressiveness": 54
+        "aggressiveness": 54,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -23182,7 +23189,8 @@
       "coachingMods": {
         "schemeFitBonus": 1,
         "situationalBonus": 1,
-        "aggressiveness": 38
+        "aggressiveness": 38,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -26080,7 +26088,8 @@
       "coachingMods": {
         "schemeFitBonus": 3,
         "situationalBonus": 2,
-        "aggressiveness": 52
+        "aggressiveness": 52,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -28978,7 +28987,8 @@
       "coachingMods": {
         "schemeFitBonus": 0,
         "situationalBonus": 2,
-        "aggressiveness": 37
+        "aggressiveness": 37,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -31876,7 +31886,8 @@
       "coachingMods": {
         "schemeFitBonus": 4,
         "situationalBonus": 3,
-        "aggressiveness": 32
+        "aggressiveness": 32,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -34774,7 +34785,8 @@
       "coachingMods": {
         "schemeFitBonus": 0,
         "situationalBonus": 2,
-        "aggressiveness": 36
+        "aggressiveness": 36,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -37672,7 +37684,8 @@
       "coachingMods": {
         "schemeFitBonus": 5,
         "situationalBonus": 0,
-        "aggressiveness": 54
+        "aggressiveness": 54,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -40570,7 +40583,8 @@
       "coachingMods": {
         "schemeFitBonus": 3,
         "situationalBonus": 2,
-        "aggressiveness": 44
+        "aggressiveness": 44,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -43468,7 +43482,8 @@
       "coachingMods": {
         "schemeFitBonus": 3,
         "situationalBonus": 1,
-        "aggressiveness": 40
+        "aggressiveness": 40,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -46366,7 +46381,8 @@
       "coachingMods": {
         "schemeFitBonus": 0,
         "situationalBonus": 1,
-        "aggressiveness": 55
+        "aggressiveness": 55,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -49264,7 +49280,8 @@
       "coachingMods": {
         "schemeFitBonus": 1,
         "situationalBonus": 2,
-        "aggressiveness": 70
+        "aggressiveness": 70,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -52162,7 +52179,8 @@
       "coachingMods": {
         "schemeFitBonus": 0,
         "situationalBonus": 0,
-        "aggressiveness": 44
+        "aggressiveness": 44,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -55060,7 +55078,8 @@
       "coachingMods": {
         "schemeFitBonus": 1,
         "situationalBonus": 3,
-        "aggressiveness": 62
+        "aggressiveness": 62,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -57958,7 +57977,8 @@
       "coachingMods": {
         "schemeFitBonus": 4,
         "situationalBonus": 0,
-        "aggressiveness": 57
+        "aggressiveness": 57,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -60856,7 +60876,8 @@
       "coachingMods": {
         "schemeFitBonus": 3,
         "situationalBonus": 0,
-        "aggressiveness": 58
+        "aggressiveness": 58,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -63754,7 +63775,8 @@
       "coachingMods": {
         "schemeFitBonus": 5,
         "situationalBonus": 1,
-        "aggressiveness": 49
+        "aggressiveness": 49,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -66652,7 +66674,8 @@
       "coachingMods": {
         "schemeFitBonus": 5,
         "situationalBonus": 3,
-        "aggressiveness": 30
+        "aggressiveness": 30,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -69550,7 +69573,8 @@
       "coachingMods": {
         "schemeFitBonus": 0,
         "situationalBonus": 1,
-        "aggressiveness": 58
+        "aggressiveness": 58,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -72448,7 +72472,8 @@
       "coachingMods": {
         "schemeFitBonus": 3,
         "situationalBonus": 2,
-        "aggressiveness": 67
+        "aggressiveness": 67,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -75346,7 +75371,8 @@
       "coachingMods": {
         "schemeFitBonus": 5,
         "situationalBonus": 1,
-        "aggressiveness": 63
+        "aggressiveness": 63,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -78244,7 +78270,8 @@
       "coachingMods": {
         "schemeFitBonus": 4,
         "situationalBonus": 2,
-        "aggressiveness": 53
+        "aggressiveness": 53,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -81142,7 +81169,8 @@
       "coachingMods": {
         "schemeFitBonus": 2,
         "situationalBonus": 3,
-        "aggressiveness": 40
+        "aggressiveness": 40,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -84040,7 +84068,8 @@
       "coachingMods": {
         "schemeFitBonus": 2,
         "situationalBonus": 2,
-        "aggressiveness": 69
+        "aggressiveness": 69,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -86938,7 +86967,8 @@
       "coachingMods": {
         "schemeFitBonus": 2,
         "situationalBonus": 3,
-        "aggressiveness": 37
+        "aggressiveness": 37,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -89836,7 +89866,8 @@
       "coachingMods": {
         "schemeFitBonus": 2,
         "situationalBonus": 2,
-        "aggressiveness": 63
+        "aggressiveness": 63,
+        "penaltyDiscipline": 1
       }
     },
     {
@@ -92734,7 +92765,8 @@
       "coachingMods": {
         "schemeFitBonus": 4,
         "situationalBonus": 0,
-        "aggressiveness": 49
+        "aggressiveness": 49,
+        "penaltyDiscipline": 1
       }
     }
   ]
