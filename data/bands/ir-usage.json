@@ -1,0 +1,254 @@
+{
+  "generated_at": "2026-04-17T18:47:08Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "IR usage bands derived from nflreadr::load_rosters_weekly(). Regular season only. IR buckets are keyed on the `status_description_abbr` code — R01=IR (season-ending), R23/R30=IR-R (designated to return), R04/R06=PUP, R27/R40=NFI. Placement events are week-over-week transitions from an active or practice/other bucket into an IR-family bucket; pre-season carries (already on the list in week 1 with no prior ACT row) are excluded. Return events are IR -> first subsequent ACT week in the same season (the weekly snapshot rarely surfaces the transient R23 designated-for-return tag, so we treat every R01 placement as a potential return candidate). The fine-grained abbr only populates reliably from 2020 on (the pre-2019 `status` field collapses all reserve types to \"RES\"), so this band is restricted to 2020-2024. Position groups: QB, RB (incl FB/HB), WR, TE, OL, EDGE (DE), iDL (DT/NT/DL), LB, CB_DB, S, K, P, LS.",
+  "bands": {
+    "placements_per_team_season": {
+      "n": 160,
+      "mean": 13.0687,
+      "sd": 5.1103,
+      "min": 3,
+      "p10": 7,
+      "p25": 9,
+      "p50": 12,
+      "p75": 16,
+      "p90": 20.1,
+      "max": 27
+    },
+    "placements_per_team_season_by_bucket": {
+      "IR": {
+        "n": 160,
+        "mean": 12.5062,
+        "sd": 5.0594,
+        "min": 3,
+        "p10": 7,
+        "p25": 8.75,
+        "p50": 12,
+        "p75": 15,
+        "p90": 20,
+        "max": 26
+      },
+      "IR_R": {
+        "n": 160,
+        "mean": 0.0125,
+        "sd": 0.1115,
+        "min": 0,
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0,
+        "max": 1
+      },
+      "NFI": {
+        "n": 160,
+        "mean": 0.4438,
+        "sd": 0.6891,
+        "min": 0,
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 1,
+        "p90": 1,
+        "max": 3
+      },
+      "PUP": {
+        "n": 160,
+        "mean": 0.1062,
+        "sd": 0.3651,
+        "min": 0,
+        "p10": 0,
+        "p25": 0,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0,
+        "max": 3
+      }
+    },
+    "ir_return_rate": {
+      "placements": 2001,
+      "returned": 615,
+      "p_return": 0.3073
+    },
+    "weeks_on_ir_before_return": {
+      "n": 615,
+      "mean": 5.5772,
+      "sd": 2.4825,
+      "min": 1,
+      "p10": 3,
+      "p25": 4,
+      "p50": 5,
+      "p75": 7,
+      "p90": 9,
+      "max": 16
+    },
+    "position_distribution_all_placements": {
+      "CB_DB": {
+        "count": 467,
+        "proportion": 0.2233
+      },
+      "OL": {
+        "count": 366,
+        "proportion": 0.175
+      },
+      "LB": {
+        "count": 317,
+        "proportion": 0.1516
+      },
+      "iDL": {
+        "count": 285,
+        "proportion": 0.1363
+      },
+      "WR": {
+        "count": 232,
+        "proportion": 0.111
+      },
+      "RB": {
+        "count": 180,
+        "proportion": 0.0861
+      },
+      "TE": {
+        "count": 138,
+        "proportion": 0.066
+      },
+      "QB": {
+        "count": 47,
+        "proportion": 0.0225
+      },
+      "K": {
+        "count": 30,
+        "proportion": 0.0143
+      },
+      "LS": {
+        "count": 16,
+        "proportion": 0.0077
+      },
+      "P": {
+        "count": 13,
+        "proportion": 0.0062
+      }
+    },
+    "position_distribution_by_bucket": {
+      "IR": {
+        "CB_DB": {
+          "count": 452,
+          "proportion": 0.2259
+        },
+        "OL": {
+          "count": 350,
+          "proportion": 0.1749
+        },
+        "LB": {
+          "count": 307,
+          "proportion": 0.1534
+        },
+        "iDL": {
+          "count": 261,
+          "proportion": 0.1304
+        },
+        "WR": {
+          "count": 219,
+          "proportion": 0.1094
+        },
+        "RB": {
+          "count": 176,
+          "proportion": 0.088
+        },
+        "TE": {
+          "count": 133,
+          "proportion": 0.0665
+        },
+        "QB": {
+          "count": 46,
+          "proportion": 0.023
+        },
+        "K": {
+          "count": 30,
+          "proportion": 0.015
+        },
+        "LS": {
+          "count": 14,
+          "proportion": 0.007
+        },
+        "P": {
+          "count": 13,
+          "proportion": 0.0065
+        }
+      },
+      "IR_R": {
+        "WR": {
+          "count": 2,
+          "proportion": 1
+        }
+      },
+      "NFI": {
+        "iDL": {
+          "count": 20,
+          "proportion": 0.2817
+        },
+        "CB_DB": {
+          "count": 13,
+          "proportion": 0.1831
+        },
+        "OL": {
+          "count": 12,
+          "proportion": 0.169
+        },
+        "WR": {
+          "count": 10,
+          "proportion": 0.1408
+        },
+        "LB": {
+          "count": 6,
+          "proportion": 0.0845
+        },
+        "TE": {
+          "count": 4,
+          "proportion": 0.0563
+        },
+        "RB": {
+          "count": 3,
+          "proportion": 0.0423
+        },
+        "LS": {
+          "count": 2,
+          "proportion": 0.0282
+        },
+        "QB": {
+          "count": 1,
+          "proportion": 0.0141
+        }
+      },
+      "PUP": {
+        "LB": {
+          "count": 4,
+          "proportion": 0.2353
+        },
+        "OL": {
+          "count": 4,
+          "proportion": 0.2353
+        },
+        "iDL": {
+          "count": 4,
+          "proportion": 0.2353
+        },
+        "CB_DB": {
+          "count": 2,
+          "proportion": 0.1176
+        },
+        "RB": {
+          "count": 1,
+          "proportion": 0.0588
+        },
+        "TE": {
+          "count": 1,
+          "proportion": 0.0588
+        },
+        "WR": {
+          "count": 1,
+          "proportion": 0.0588
+        }
+      }
+    }
+  }
+}
