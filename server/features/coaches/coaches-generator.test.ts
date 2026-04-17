@@ -143,7 +143,8 @@ Deno.test("all coaches have the correct leagueId, non-empty names, plausible age
     assertEquals(coach.leagueId, INPUT.leagueId);
     assertEquals(coach.firstName.length > 0, true);
     assertEquals(coach.lastName.length > 0, true);
-    assertEquals(coach.age >= 30 && coach.age <= 75, true);
+    // Position-tier floor is 26 (TIER_BANDS.POSITION.ageMin); HC ceiling is 68.
+    assertEquals(coach.age >= 26 && coach.age <= 75, true);
     assertEquals(coach.contractYears >= 1, true);
     assertEquals(coach.isVacancy, false);
   }
@@ -957,3 +958,141 @@ Deno.test("generate leaves preference columns null for assigned staff", () => {
     assertEquals(coach.minimumThreshold, null);
   }
 });
+
+// ---- Contract length modal calibration (#543) ----
+
+// Large pool so the modal-length histogram is statistically meaningful.
+// 120 teams * 13 coaches = 1,560 coaches per role tier slice.
+const LENGTH_POOL_INPUT = {
+  leagueId: "league-length",
+  numberOfTeams: 120,
+};
+
+function modeOf(values: number[]): number {
+  const counts = new Map<number, number>();
+  for (const v of values) counts.set(v, (counts.get(v) ?? 0) + 1);
+  let best = values[0];
+  let bestCount = -1;
+  for (const [v, c] of counts) {
+    if (c > bestCount) {
+      best = v;
+      bestCount = c;
+    }
+  }
+  return best;
+}
+
+Deno.test("HC contract length has a visible mode at 5 years (#543)", () => {
+  const pool = createCoachesGenerator({
+    random: seededRandom(4321),
+    nameGenerator: fixedNameGenerator(),
+  }).generatePool(LENGTH_POOL_INPUT);
+  const hcYears = pool.filter((c) => c.role === "HC").map((c) =>
+    c.contractYears
+  );
+  assertEquals(hcYears.length > 100, true);
+  assertEquals(modeOf(hcYears), 5);
+  const fiveCount = hcYears.filter((y) => y === 5).length;
+  const share = fiveCount / hcYears.length;
+  // Weighted spec is 0.55 at 5 years; allow generous slack around that prior.
+  assertEquals(
+    share >= 0.45 && share <= 0.65,
+    true,
+    `expected 5yr share in [0.45,0.65], got ${share.toFixed(3)}`,
+  );
+  // Contract bounds: 3..6 inclusive (new weighted spec extends past old 5-cap).
+  for (const y of hcYears) {
+    assertEquals(y >= 3 && y <= 6, true, `unexpected HC contract years ${y}`);
+  }
+});
+
+Deno.test("Coordinator contract length is modal at 3 years (#543)", () => {
+  const pool = createCoachesGenerator({
+    random: seededRandom(4322),
+    nameGenerator: fixedNameGenerator(),
+  }).generatePool(LENGTH_POOL_INPUT);
+  const coordYears = pool
+    .filter((c) => c.role === "OC" || c.role === "DC" || c.role === "STC")
+    .map((c) => c.contractYears);
+  assertEquals(coordYears.length > 100, true);
+  assertEquals(modeOf(coordYears), 3);
+});
+
+Deno.test("Position coach contract length is modal at 2 years (#543)", () => {
+  const pool = createCoachesGenerator({
+    random: seededRandom(4323),
+    nameGenerator: fixedNameGenerator(),
+  }).generatePool(LENGTH_POOL_INPUT);
+  const positionRoles = new Set([
+    "QB",
+    "RB",
+    "WR",
+    "TE",
+    "OL",
+    "DL",
+    "LB",
+    "DB",
+    "ST_ASSISTANT",
+  ]);
+  const years = pool
+    .filter((c) => positionRoles.has(c.role))
+    .map((c) => c.contractYears);
+  assertEquals(years.length > 100, true);
+  assertEquals(modeOf(years), 2);
+});
+
+// ---- First-time HC age gating (#543) ----
+
+Deno.test(
+  "first-time HC rate is age-gated: young >> middle >> senior (#543)",
+  () => {
+    // Use generatePool (which rolls HCs) across many teams to get decent
+    // sample counts in each age band.
+    const pool = createCoachesGenerator({
+      random: seededRandom(7777),
+      nameGenerator: fixedNameGenerator(),
+    }).generatePool({ leagueId: "lg-age", numberOfTeams: 200 });
+    const hcs = pool.filter((c) => c.role === "HC");
+    const young = hcs.filter((c) => c.age < 45);
+    const middle = hcs.filter((c) => c.age >= 45 && c.age < 55);
+    const senior = hcs.filter((c) => c.age >= 55);
+    // With ageMode 51 and range 36–68, all three buckets should be populated.
+    assertEquals(young.length > 20, true, `young sample ${young.length}`);
+    assertEquals(middle.length > 20, true, `middle sample ${middle.length}`);
+    assertEquals(senior.length > 20, true, `senior sample ${senior.length}`);
+
+    const rate = (arr: typeof hcs) =>
+      arr.filter((c) => c.headCoachYears === 0).length / arr.length;
+    const youngRate = rate(young);
+    const middleRate = rate(middle);
+    const seniorRate = rate(senior);
+
+    // Spec: <45 = 0.50, 45–54 = 0.20, 55+ = 0.05.
+    assertEquals(
+      youngRate >= 0.35 && youngRate <= 0.65,
+      true,
+      `young first-time rate ${youngRate.toFixed(3)} outside [0.35,0.65]`,
+    );
+    assertEquals(
+      middleRate >= 0.10 && middleRate <= 0.32,
+      true,
+      `middle first-time rate ${middleRate.toFixed(3)} outside [0.10,0.32]`,
+    );
+    assertEquals(
+      seniorRate <= 0.15,
+      true,
+      `senior first-time rate ${seniorRate.toFixed(3)} above 0.15`,
+    );
+    // Ordering must hold: young strictly > middle > senior.
+    assertEquals(
+      youngRate > middleRate,
+      true,
+      `young ${youngRate} !> middle ${middleRate}`,
+    );
+    assertEquals(
+      middleRate > seniorRate,
+      true,
+      `middle ${middleRate} !> senior ${seniorRate}`,
+    );
+  },
+);
