@@ -436,6 +436,16 @@ describe("LeagueLayout", () => {
     expect(color).not.toMatch(/rgb\(255,\s*204,\s*0\)|#ffcc00/);
   });
 
+  it("uses a high-contrast text color on the league-name strip over the darkened gradient", async () => {
+    renderWithProviders();
+    const strip = await screen.findByTestId("league-sidebar-name-strip");
+    await waitFor(() => {
+      expect((strip as HTMLElement).style.color).not.toBe("");
+    });
+    const color = (strip as HTMLElement).style.color;
+    expect(color).toMatch(/rgb\(255,\s*255,\s*255\)|#ffffff/);
+  });
+
   it("omits team-color styles when the league has no userTeamId", async () => {
     mockLeagueGet.mockResolvedValue({
       json: () =>

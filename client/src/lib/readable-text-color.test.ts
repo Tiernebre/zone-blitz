@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readableTextColor } from "./readable-text-color.ts";
+import { blendHex, readableTextColor } from "./readable-text-color.ts";
 
 describe("readableTextColor", () => {
   it("returns white text on a dark gradient", () => {
@@ -27,5 +27,28 @@ describe("readableTextColor", () => {
 
   it("is case-insensitive for hex input", () => {
     expect(readableTextColor("#3D0F0A", "#A12A12")).toBe("#ffffff");
+  });
+});
+
+describe("blendHex", () => {
+  it("returns the base color when overlay alpha is 0", () => {
+    expect(blendHex("#ff8800", "#000000", 0)).toBe("#ff8800");
+  });
+
+  it("returns the overlay color when alpha is 1", () => {
+    expect(blendHex("#ff8800", "#000000", 1)).toBe("#000000");
+  });
+
+  it("darkens a base color when blended with black at 20% alpha", () => {
+    expect(blendHex("#ffffff", "#000000", 0.2)).toBe("#cccccc");
+  });
+
+  it("clamps alpha to the [0, 1] range", () => {
+    expect(blendHex("#ffffff", "#000000", -1)).toBe("#ffffff");
+    expect(blendHex("#ffffff", "#000000", 2)).toBe("#000000");
+  });
+
+  it("accepts shorthand hex for base and overlay", () => {
+    expect(blendHex("#fff", "#000", 0.5)).toBe("#808080");
   });
 });
