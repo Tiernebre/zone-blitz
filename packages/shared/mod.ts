@@ -26,6 +26,13 @@ export {
   OFFENSIVE_ARCHETYPE_NAMES,
   offensiveArchetypeLabel,
 } from "./types/scheme-archetypes.ts";
+export {
+  POSITION_GROUPS,
+  positionGroupLabel,
+  SCOUT_REGIONS,
+  scoutRegionLabel,
+} from "./types/position-groups.ts";
+export type { PositionGroup, ScoutRegion } from "./types/position-groups.ts";
 export type {
   DefensiveArchetypeName,
   OffensiveArchetypeName,

@@ -787,6 +787,9 @@ export function createHiringService(deps: {
             defensiveArchetype: archetypes.defensive,
             age: coach.age,
             yearsExperience: coach.yearsExperience,
+            positionBackground: coach.positionBackground,
+            positionFocus: null,
+            regionFocus: null,
           });
         }
       }
@@ -806,6 +809,9 @@ export function createHiringService(deps: {
             defensiveArchetype: null,
             age: scout.age,
             yearsExperience: scout.yearsExperience,
+            positionBackground: null,
+            positionFocus: scout.positionFocus,
+            regionFocus: scout.regionFocus,
           });
         }
       }
@@ -861,6 +867,15 @@ export function createHiringService(deps: {
         defensiveArchetype: archetypes.defensive,
         age: hit.candidate.age,
         yearsExperience: hit.candidate.yearsExperience,
+        positionBackground: hit.staffType === "coach"
+          ? hit.candidate.positionBackground
+          : null,
+        positionFocus: hit.staffType === "scout"
+          ? hit.candidate.positionFocus
+          : null,
+        regionFocus: hit.staffType === "scout"
+          ? hit.candidate.regionFocus
+          : null,
         marketTierPref: hit.candidate.marketTierPref,
         philosophyFitPref: hit.candidate.philosophyFitPref,
         staffFitPref: hit.candidate.staffFitPref,

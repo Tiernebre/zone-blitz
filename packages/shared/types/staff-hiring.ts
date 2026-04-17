@@ -38,6 +38,15 @@ export interface HiringCandidateSummary {
    * specific team — distinguishes the 25-year veteran from the rising
    * first-timer at a glance. */
   yearsExperience: number;
+  /** Coach-only. Position group the coach built their career on
+   * (e.g. `QB`, `DL`, `GENERALIST`). Null for scouts. */
+  positionBackground: string | null;
+  /** Scout-only. Position group the scout's evaluation work focuses on
+   * (e.g. `QB`, `GENERALIST`). Null for coaches. */
+  positionFocus: string | null;
+  /** Scout-only. Region this scout's network is strongest in
+   * (`NORTHEAST`, `NATIONAL`, etc.). Null for coaches. */
+  regionFocus: string | null;
 }
 
 export interface HiringInterviewReveal {

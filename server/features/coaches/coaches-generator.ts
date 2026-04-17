@@ -3,6 +3,7 @@ import type {
   CoachRatingValues,
   CoachRole,
   CoachSpecialty,
+  PositionGroup,
 } from "@zone-blitz/shared";
 import { COACH_RATING_KEYS } from "@zone-blitz/shared";
 import {
@@ -327,6 +328,75 @@ function playCallerForHc(specialty: CoachSpecialty): CoachPlayCaller {
   return "ceo";
 }
 
+/**
+ * Map each offensive / defensive side-of-ball to the position groups a
+ * coach on that side would plausibly have come up through. Used to roll
+ * `positionBackground` for HCs and coordinators whose own record tracks
+ * side-of-ball rather than a single position.
+ */
+const OFFENSIVE_POSITION_GROUPS: ReadonlyArray<PositionGroup> = [
+  "QB",
+  "RB",
+  "WR",
+  "TE",
+  "OL",
+];
+const DEFENSIVE_POSITION_GROUPS: ReadonlyArray<PositionGroup> = [
+  "DL",
+  "LB",
+  "DB",
+];
+
+function pickFromArray<T>(random: () => number, values: ReadonlyArray<T>): T {
+  return values[Math.floor(random() * values.length)];
+}
+
+/**
+ * Position-coach roles map 1:1 to a position group — a QBs coach came
+ * up through QBs. HC/OC/DC/STC roll a position group consistent with
+ * the side of ball their career sits on; CEO HCs come back as
+ * `GENERALIST` because their value is organizational, not positional.
+ */
+function positionBackgroundFor(
+  role: CoachRole,
+  specialty: CoachSpecialty,
+  random: () => number,
+): PositionGroup {
+  switch (role) {
+    case "QB":
+      return "QB";
+    case "RB":
+      return "RB";
+    case "WR":
+      return "WR";
+    case "TE":
+      return "TE";
+    case "OL":
+      return "OL";
+    case "DL":
+      return "DL";
+    case "LB":
+      return "LB";
+    case "DB":
+      return "DB";
+    case "STC":
+    case "ST_ASSISTANT":
+      return "ST";
+    case "OC":
+      return pickFromArray(random, OFFENSIVE_POSITION_GROUPS);
+    case "DC":
+      return pickFromArray(random, DEFENSIVE_POSITION_GROUPS);
+    case "HC":
+      if (specialty === "offense") {
+        return pickFromArray(random, OFFENSIVE_POSITION_GROUPS);
+      }
+      if (specialty === "defense") {
+        return pickFromArray(random, DEFENSIVE_POSITION_GROUPS);
+      }
+      return "GENERALIST";
+  }
+}
+
 export interface CoachesGeneratorOptions {
   /**
    * Injected name generator. Defaults to the shared server-wide
@@ -469,6 +539,11 @@ function generateCoach(
     : spec.specialty;
   const tendencies = buildTendencies(spec.role, specialty, id);
   const ratings = rollRatings(random, spec.tier, age, band);
+  const positionBackground = positionBackgroundFor(
+    spec.role,
+    specialty,
+    random,
+  );
 
   return {
     id,
@@ -487,6 +562,7 @@ function generateCoach(
     contractBuyout,
     collegeId,
     specialty,
+    positionBackground,
     isVacancy: false,
     mentorCoachId: null,
     marketTierPref: preferences?.marketTierPref ?? null,

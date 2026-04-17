@@ -1,4 +1,4 @@
-import type { ScoutRole } from "@zone-blitz/shared";
+import type { PositionGroup, ScoutRegion, ScoutRole } from "@zone-blitz/shared";
 import {
   createNameGenerator,
   type NameGenerator,
@@ -230,6 +230,99 @@ const NULL_PREFERENCES = {
   minimumThreshold: null,
 };
 
+/**
+ * Position-group options for an area scout or cross-checker. Real
+ * front offices heavily skew toward generalists — an area scout
+ * typically evaluates every position in their region — so we weight
+ * `GENERALIST` more heavily than any single group.
+ */
+const POSITION_FOCUS_POOL: ReadonlyArray<PositionGroup> = [
+  "GENERALIST",
+  "GENERALIST",
+  "GENERALIST",
+  "QB",
+  "RB",
+  "WR",
+  "TE",
+  "OL",
+  "DL",
+  "LB",
+  "DB",
+];
+
+/** Regions an area scout can be rolled against. National is reserved
+ * for directors / cross-checkers whose network spans every region. */
+const AREA_REGIONS: ReadonlyArray<ScoutRegion> = [
+  "NORTHEAST",
+  "SOUTHEAST",
+  "MIDWEST",
+  "WEST",
+];
+
+function pickFromArray<T>(random: () => number, values: ReadonlyArray<T>): T {
+  return values[Math.floor(random() * values.length)];
+}
+
+/**
+ * Rolls the position-focus value a scout is hireable on. Directors
+ * almost always read as `GENERALIST` — their value is board-building
+ * and management — but we allow a small chance of a position-focused
+ * director (e.g. a former DB coach who runs a DB-centric board).
+ */
+function rollPositionFocus(
+  role: ScoutRole,
+  random: () => number,
+): PositionGroup {
+  if (role === "DIRECTOR") {
+    return random() < 0.2
+      ? pickFromArray(random, [
+        "QB" as const,
+        "DL" as const,
+        "DB" as const,
+      ])
+      : "GENERALIST";
+  }
+  return pickFromArray(random, POSITION_FOCUS_POOL);
+}
+
+/**
+ * Rolls the region this scout's network is strongest in. Directors
+ * come back with an earlier-career region — a director who rose
+ * through the Southeast brings that network with them — while
+ * cross-checkers default to NATIONAL unless their current coverage
+ * already implies a sub-region. Area scouts line up with whatever
+ * region they currently staff.
+ */
+function rollRegionFocus(
+  role: ScoutRole,
+  coverage: string | null,
+  random: () => number,
+): ScoutRegion {
+  if (role === "AREA_SCOUT") {
+    return coverageToRegion(coverage) ?? pickFromArray(random, AREA_REGIONS);
+  }
+  if (role === "NATIONAL_CROSS_CHECKER") {
+    return "NATIONAL";
+  }
+  // Directors bring a career-origin region with them.
+  return pickFromArray(random, AREA_REGIONS);
+}
+
+function coverageToRegion(coverage: string | null): ScoutRegion | null {
+  switch (coverage) {
+    case "Northeast":
+      return "NORTHEAST";
+    case "Southeast":
+      return "SOUTHEAST";
+    case "Midwest":
+      return "MIDWEST";
+    case "West Coast":
+      return "WEST";
+    default:
+      return null;
+  }
+}
+
 export function createScoutsGenerator(
   options: ScoutsGeneratorOptions = {},
 ): ScoutsGenerator {
@@ -294,6 +387,13 @@ export function createScoutsGenerator(
             intInRange(random, band.experienceMin, band.experienceMax),
           );
 
+          const positionFocus = rollPositionFocus(spec.role, random);
+          const regionFocus = rollRegionFocus(
+            spec.role,
+            spec.coverage,
+            random,
+          );
+
           scouts.push({
             id,
             leagueId: input.leagueId,
@@ -303,6 +403,8 @@ export function createScoutsGenerator(
             role: spec.role,
             reportsToId,
             coverage: spec.coverage,
+            positionFocus,
+            regionFocus,
             age,
             yearsExperience,
             hiredAt,
@@ -379,6 +481,13 @@ export function createScoutsGenerator(
             intInRange(random, band.experienceMin, band.experienceMax),
           );
 
+          const positionFocus = rollPositionFocus(spec.role, random);
+          const regionFocus = rollRegionFocus(
+            spec.role,
+            spec.coverage,
+            random,
+          );
+
           scouts.push({
             id,
             leagueId: input.leagueId,
@@ -388,6 +497,8 @@ export function createScoutsGenerator(
             role: spec.role,
             reportsToId: null,
             coverage: spec.coverage,
+            positionFocus,
+            regionFocus,
             age,
             yearsExperience,
             hiredAt,

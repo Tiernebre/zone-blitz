@@ -107,6 +107,8 @@ const baseGenerated = {
   role: "AREA_SCOUT" as const,
   reportsToId: null,
   coverage: "Northeast",
+  positionFocus: "GENERALIST" as const,
+  regionFocus: "NORTHEAST" as const,
   age: 42,
   yearsExperience: 12,
   hiredAt: new Date(),

@@ -74,6 +74,7 @@ export const coaches = pgTable("coaches", {
     onDelete: "set null",
   }),
   specialty: coachSpecialtyEnum("specialty"),
+  positionBackground: text("position_background"),
   isVacancy: boolean("is_vacancy").notNull().default(false),
   mentorCoachId: uuid("mentor_coach_id").references(
     (): AnyPgColumn => coaches.id,

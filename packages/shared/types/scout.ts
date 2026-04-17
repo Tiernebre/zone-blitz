@@ -126,6 +126,8 @@ export interface Scout {
   role: ScoutRole;
   reportsToId: string | null;
   coverage: string | null;
+  positionFocus: string | null;
+  regionFocus: string | null;
   age: number;
   yearsExperience: number;
   hiredAt: Date;
