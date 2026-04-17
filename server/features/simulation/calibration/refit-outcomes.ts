@@ -1,24 +1,30 @@
 /**
  * CLI entry point for `deno task sim:refit`.
  *
- * 1. Runs a seed sweep with the score observer installed to measure the
- *    blockScore / protectionScore / coverageScore distributions.
- * 2. Loads the NFL bands from data/bands/team-game.json.
+ * 1. Runs a seed sweep of calibration leagues with the score observer
+ *    installed to measure the blockScore / protectionScore /
+ *    coverageScore distributions.
+ * 2. Loads the NFL bands from data/bands/team-game.json and the per-rush
+ *    overall band from data/bands/rushing-plays.json.
  * 3. Feeds both to the fit-outcomes pipeline.
  * 4. Writes the measured distribution and fitted coefficients to
  *    checked-in JSON artifacts alongside this file.
  *
- * The artifacts are regenerable and intended to be committed so CI can
- * enforce agreement between the fitter and the on-disk constants (PR 4).
- * In PR 1 the artifacts are produced but not yet consumed by resolve-play.
+ * `computeRefit` is the pure pipeline (no filesystem writes) so tests
+ * can exercise it without the `--allow-write` flag; `runRefit` is the
+ * thin CLI wrapper that handles the actual file writes.
  */
 import { CALIBRATION_SEEDS } from "./calibration-seeds.ts";
-import { loadBands } from "./band-loader.ts";
+import { loadBands, type MetricBand } from "./band-loader.ts";
 import { fitOutcomes } from "./fit-outcomes.ts";
 import { measureScores } from "./measure-scores.ts";
 
 const BANDS_PATH = new URL(
   "../../../../data/bands/team-game.json",
+  import.meta.url,
+);
+const RUSHING_PATH = new URL(
+  "../../../../data/bands/rushing-plays.json",
   import.meta.url,
 );
 const DEFAULT_MEASURED_PATH = new URL(
@@ -30,6 +36,33 @@ const DEFAULT_COEFFICIENTS_PATH = new URL(
   import.meta.url,
 );
 
+const REQUIRED_BAND_FIELDS: (keyof MetricBand)[] = [
+  "n",
+  "mean",
+  "sd",
+  "min",
+  "p10",
+  "p25",
+  "p50",
+  "p75",
+  "p90",
+  "max",
+];
+
+export function parseRushingOverall(jsonString: string): MetricBand {
+  const parsed = JSON.parse(jsonString);
+  const overall = parsed?.bands?.overall;
+  if (!overall || typeof overall !== "object") {
+    throw new Error("rushing-plays.json missing bands.overall");
+  }
+  for (const field of REQUIRED_BAND_FIELDS) {
+    if (typeof overall[field] !== "number") {
+      throw new Error(`rushing-plays overall band missing field "${field}"`);
+    }
+  }
+  return overall as MetricBand;
+}
+
 export interface RunRefitOptions {
   measuredPath?: URL;
   coefficientsPath?: URL;
@@ -40,16 +73,18 @@ export interface RefitResult {
   coefficientsJson: string;
 }
 
-/**
- * Runs the measure → load bands → fit pipeline and returns the serialized
- * outputs. Pure enough to be covered by tests without write permissions;
- * the CLI wrapper below handles the actual file writes.
- */
 export async function computeRefit(): Promise<RefitResult> {
   const measured = measureScores({ seeds: [...CALIBRATION_SEEDS] });
   const bandsJson = await Deno.readTextFile(BANDS_PATH);
+  const rushingJson = await Deno.readTextFile(RUSHING_PATH);
   const bands = loadBands(bandsJson);
-  const coefficients = fitOutcomes({ scores: measured, bands });
+  const rushingOverall = parseRushingOverall(rushingJson);
+
+  const coefficients = fitOutcomes({
+    scores: measured,
+    bands,
+    rushingOverall,
+  });
 
   const measuredOut = {
     generated_by: "deno task sim:refit",

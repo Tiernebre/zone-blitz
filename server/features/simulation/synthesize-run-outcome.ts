@@ -1,6 +1,6 @@
 import type { PlayOutcome, PlayTag } from "./events.ts";
 import type { MatchupContribution, Situation } from "./resolve-play.ts";
-import { RUN_RESOLUTION } from "./resolve-play.ts";
+import { RUN_COEFFICIENTS } from "./outcome-coefficients.ts";
 import type { SeededRng } from "./rng.ts";
 import { observeRunScore } from "./score-observer.ts";
 
@@ -37,32 +37,27 @@ export function synthesizeRunOutcome(
     : avgScore;
   observeRunScore(blockScore);
 
-  let yardage: number;
-  if (blockScore < RUN_RESOLUTION.stuffThreshold) {
-    yardage = rng.int(
-      RUN_RESOLUTION.stuffYards.min,
-      RUN_RESOLUTION.stuffYards.max,
-    );
-  } else if (blockScore < RUN_RESOLUTION.shortGainThreshold) {
-    yardage = rng.int(
-      RUN_RESOLUTION.shortGainYards.min,
-      RUN_RESOLUTION.shortGainYards.max,
-    );
-  } else if (blockScore > RUN_RESOLUTION.bigPlayThreshold) {
-    yardage = rng.int(
-      RUN_RESOLUTION.bigPlayYards.min,
-      RUN_RESOLUTION.bigPlayYards.max,
-    );
+  // Continuous monotonic yardage model: a single Gaussian centered on
+  // `yardageIntercept + yardageSlope · blockScore`, clamped to the
+  // configured realistic NFL rush range. No cliffs — a 1-point blockScore
+  // shift moves yardage by β yards in expectation.
+  const yardageMean = RUN_COEFFICIENTS.yardageIntercept +
+    RUN_COEFFICIENTS.yardageSlope * blockScore;
+  const yardage = Math.round(
+    rng.gaussian(
+      yardageMean,
+      RUN_COEFFICIENTS.yardageStddev,
+      RUN_COEFFICIENTS.yardageMin,
+      RUN_COEFFICIENTS.yardageMax,
+    ),
+  );
+
+  if (yardage >= RUN_COEFFICIENTS.bigPlayCutoff) {
     tags.push("big_play");
-  } else {
-    yardage = rng.int(
-      RUN_RESOLUTION.normalYards.min,
-      RUN_RESOLUTION.normalYards.max,
-    );
   }
 
   let outcome: PlayOutcome;
-  if (rng.next() < RUN_RESOLUTION.fumbleRate) {
+  if (rng.next() < RUN_COEFFICIENTS.fumbleRate) {
     outcome = "fumble";
     tags.push("fumble", "turnover");
   } else {
