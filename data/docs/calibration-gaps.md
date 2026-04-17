@@ -48,6 +48,7 @@ flowchart TB
         SC6[contract-structure ✓]
         SC7[career-length ✓]
         SC8[coaching-tenure ○]
+        SC9[udfa-market ✓]
     end
     L1 --> L2 --> L3
 ```
@@ -88,6 +89,7 @@ flowchart LR
     G6[#6 contract-structure]
     G7[#7 career-length]
     G8[#8 coaching-tenure ○]
+    G9[#9 udfa-market]
 
     G1 --> ASK1
     G2 --> ASK1
@@ -98,6 +100,8 @@ flowchart LR
     G6 --> ASK3
     G7 --> ASK1
     G8 --> ASK3
+    G9 --> ASK2
+    G9 --> ASK3
 ```
 
 ## Game Flow (the situational-realism layer)
@@ -109,9 +113,10 @@ flowchart LR
 
 ## Season / League (the standings-realism layer)
 
-| #  | Gap                                                                                                                                                                 | Primary source                                | Issue       |
-| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ----------- |
-| 11 | YoY win correlation + playoff persistence + division churn + per-seed playoff advancement — [band](../bands/league-volatility.json) + [doc](./league-volatility.md) | `nflreadr::load_schedules()` + `load_teams()` | #535 (done) |
+| #  | Gap                                                                                                                                                                 | Primary source                                          | Issue       |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ----------- |
+| 11 | YoY win correlation + playoff persistence + division churn + per-seed playoff advancement — [band](../bands/league-volatility.json) + [doc](./league-volatility.md) | `nflreadr::load_schedules()` + `load_teams()`           | #535 (done) |
+| 12 | UDFA market (signings per team/offseason by position, hit rate vs late-round picks) — [band](../bands/udfa-market.json) + [doc](./udfa-market.md)                   | `load_rosters()` left-anti `load_draft_picks()` + snaps | #536 (done) |
 
 ## Future consideration (not yet issue-filed)
 
