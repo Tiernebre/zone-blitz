@@ -8,7 +8,6 @@ import {
   PLAYER_ATTRIBUTE_KEYS,
   type PlayerAttributeKey,
   type PlayerAttributes,
-  positionalSalaryMultiplier,
   type SeededRng,
 } from "@zone-blitz/shared";
 import {
@@ -428,7 +427,217 @@ const FREE_AGENT_COUNT = 50;
 const DRAFT_PROSPECT_COUNT = 250;
 
 export const SALARY_FLOOR = 750_000;
-export const SALARY_PER_QUALITY_POINT = 250_000;
+
+/**
+ * Tier-sampled AAV bands sourced from `data/bands/free-agent-market.json`
+ * (OTC contracts feed, 2020-2024 signings, ranked within position group).
+ * Linear `SALARY_FLOOR + excess * perPoint * positionalMultiplier` cannot
+ * reproduce the NFL's step-changes between tiers — top-10 QBs sit a chasm
+ * above top-25, top-25 WRs make roughly half of top-10 WRs. Tier sampling
+ * encodes those cliffs directly.
+ *
+ * `sd` is synthesized as `(ceiling - floor) / 4` because the upstream
+ * bands feed reports min/median/max but not standard deviation. This
+ * keeps ~95% of draws inside the band while still allowing tail
+ * variance.
+ *
+ * Specialist buckets (K, P, LS) all map to the ST band — OTC groups
+ * kickers, punters, and long snappers together.
+ */
+export type AavTier = "top_10" | "top_25" | "top_50" | "rest";
+
+export interface AavTierBand {
+  meanMillions: number;
+  floorMillions: number;
+  ceilingMillions: number;
+}
+
+const ST_BANDS: Record<AavTier, AavTierBand> = {
+  top_10: { meanMillions: 5.6401, floorMillions: 5.275, ceilingMillions: 6.4 },
+  top_25: { meanMillions: 4.3856, floorMillions: 3.755, ceilingMillions: 5.1 },
+  top_50: {
+    meanMillions: 3.1534,
+    floorMillions: 2.6667,
+    ceilingMillions: 3.75,
+  },
+  rest: { meanMillions: 0.6849, floorMillions: 0, ceilingMillions: 2.627 },
+};
+
+export const AAV_TIER_BANDS: Record<
+  NeutralBucket,
+  Record<AavTier, AavTierBand>
+> = {
+  // QB top_10 is set above the rolling 2020-2024 OTC mean ($53.7M) to
+  // reflect the rapid franchise-QB inflation since (Burrow $55M,
+  // projected next-deal Mahomes $65M+, post-2025 caps clearing $290M).
+  // Without this lift, after-cap-scaling AAV in the simulator falls
+  // short of the $35M acceptance floor in the issue.
+  QB: {
+    top_10: { meanMillions: 65, floorMillions: 60, ceilingMillions: 78 },
+    top_25: {
+      meanMillions: 41.1272,
+      floorMillions: 33.3333,
+      ceilingMillions: 49,
+    },
+    top_50: {
+      meanMillions: 18.2442,
+      floorMillions: 9.375,
+      ceilingMillions: 33,
+    },
+    rest: { meanMillions: 1.055, floorMillions: 0.11, ceilingMillions: 9.1984 },
+  },
+  RB: {
+    top_10: { meanMillions: 13.8149, floorMillions: 12, ceilingMillions: 19 },
+    top_25: { meanMillions: 10.0083, floorMillions: 8, ceilingMillions: 12 },
+    top_50: { meanMillions: 6.1181, floorMillions: 4.875, ceilingMillions: 8 },
+    rest: { meanMillions: 0.7066, floorMillions: 0, ceilingMillions: 4.55 },
+  },
+  WR: {
+    top_10: { meanMillions: 30.4752, floorMillions: 27.5, ceilingMillions: 35 },
+    top_25: {
+      meanMillions: 23.7576,
+      floorMillions: 20.628,
+      ceilingMillions: 27.25,
+    },
+    top_50: {
+      meanMillions: 17.3353,
+      floorMillions: 13.75,
+      ceilingMillions: 20.5,
+    },
+    rest: { meanMillions: 0.8059, floorMillions: 0.1069, ceilingMillions: 13 },
+  },
+  TE: {
+    top_10: {
+      meanMillions: 14.8625,
+      floorMillions: 13,
+      ceilingMillions: 17.125,
+    },
+    top_25: {
+      meanMillions: 11.1819,
+      floorMillions: 9.8333,
+      ceilingMillions: 12.5,
+    },
+    top_50: { meanMillions: 7.1408, floorMillions: 6, ceilingMillions: 9 },
+    rest: { meanMillions: 0.7264, floorMillions: 0, ceilingMillions: 6 },
+  },
+  OT: {
+    top_10: {
+      meanMillions: 24.8188,
+      floorMillions: 22,
+      ceilingMillions: 28.125,
+    },
+    top_25: {
+      meanMillions: 19.015,
+      floorMillions: 17.5,
+      ceilingMillions: 20.5,
+    },
+    top_50: {
+      meanMillions: 15.1419,
+      floorMillions: 12.5,
+      ceilingMillions: 17.5,
+    },
+    rest: { meanMillions: 0.9836, floorMillions: 0.0618, ceilingMillions: 12 },
+  },
+  IOL: {
+    top_10: { meanMillions: 18.9461, floorMillions: 17, ceilingMillions: 21 },
+    top_25: { meanMillions: 14.6563, floorMillions: 13, ceilingMillions: 17 },
+    top_50: { meanMillions: 10.1115, floorMillions: 8, ceilingMillions: 12.5 },
+    rest: { meanMillions: 0.8553, floorMillions: 0, ceilingMillions: 8 },
+  },
+  // EDGE top-10 mean is bumped above the OTC 2020-2024 average ($26.7M)
+  // toward the 2024-2025 elite-deal level (Watt $41M, Crosby $35.5M, Bosa
+  // $34M). The issue's acceptance criterion calls for "elite pass rushers
+  // are QB-adjacent" — without this lift, raw band data produces top-10
+  // EDGE near 50% of top-10 QB rather than the 70-80% the modern market
+  // shows. The other tiers stay at band values.
+  EDGE: {
+    top_10: { meanMillions: 50, floorMillions: 44, ceilingMillions: 60 },
+    top_25: { meanMillions: 19.406, floorMillions: 17, ceilingMillions: 24 },
+    top_50: { meanMillions: 14.6802, floorMillions: 13, ceilingMillions: 17 },
+    rest: { meanMillions: 1.165, floorMillions: 0, ceilingMillions: 13 },
+  },
+  IDL: {
+    top_10: {
+      meanMillions: 25.6667,
+      floorMillions: 22.5,
+      ceilingMillions: 31.75,
+    },
+    top_25: { meanMillions: 19.8533, floorMillions: 17, ceilingMillions: 22.5 },
+    top_50: {
+      meanMillions: 13.1687,
+      floorMillions: 10.25,
+      ceilingMillions: 17,
+    },
+    rest: { meanMillions: 0.9495, floorMillions: 0, ceilingMillions: 10.055 },
+  },
+  LB: {
+    top_10: { meanMillions: 15.9077, floorMillions: 12.5, ceilingMillions: 20 },
+    top_25: {
+      meanMillions: 10.5252,
+      floorMillions: 9.5,
+      ceilingMillions: 12.5,
+    },
+    top_50: {
+      meanMillions: 7.5663,
+      floorMillions: 6.3333,
+      ceilingMillions: 9.3333,
+    },
+    rest: { meanMillions: 0.8139, floorMillions: 0.1428, ceilingMillions: 6.3 },
+  },
+  CB: {
+    top_10: {
+      meanMillions: 20.8356,
+      floorMillions: 19.5,
+      ceilingMillions: 24.1,
+    },
+    top_25: {
+      meanMillions: 17.0501,
+      floorMillions: 13.5,
+      ceilingMillions: 19.4,
+    },
+    top_50: {
+      meanMillions: 10.8156,
+      floorMillions: 8.5,
+      ceilingMillions: 13.5,
+    },
+    rest: { meanMillions: 0.7923, floorMillions: 0, ceilingMillions: 8.5 },
+  },
+  S: {
+    top_10: {
+      meanMillions: 17.49,
+      floorMillions: 15.25,
+      ceilingMillions: 21.025,
+    },
+    top_25: {
+      meanMillions: 12.9239,
+      floorMillions: 11.25,
+      ceilingMillions: 14.75,
+    },
+    top_50: { meanMillions: 8.7806, floorMillions: 7, ceilingMillions: 11 },
+    rest: { meanMillions: 0.8203, floorMillions: 0.0733, ceilingMillions: 7 },
+  },
+  K: ST_BANDS,
+  P: ST_BANDS,
+  LS: ST_BANDS,
+};
+
+function sampleTieredAav(
+  rng: SeededRng,
+  bucket: NeutralBucket,
+  tier: AavTier,
+): number {
+  const band = AAV_TIER_BANDS[bucket][tier];
+  // rng.gaussian rounds to integer, so feed it dollars (not millions) to
+  // preserve sub-million precision.
+  const meanDollars = band.meanMillions * 1_000_000;
+  const sdDollars = Math.max(
+    100_000,
+    ((band.ceilingMillions - band.floorMillions) / 4) * 1_000_000,
+  );
+  const floorDollars = Math.max(SALARY_FLOOR, band.floorMillions * 1_000_000);
+  const ceilingDollars = band.ceilingMillions * 1_000_000;
+  return rng.gaussian(meanDollars, sdDollars, floorDollars, ceilingDollars);
+}
 
 const ROOKIE_SCALE_AGE_THRESHOLD = 25;
 
@@ -732,8 +941,8 @@ function rollContract(
     age: number;
     signedYear: number;
     archetype: CapArchetype;
+    marketTier: AavTier;
   },
-  multiplierFn: SalaryMultiplierFn,
 ): RolledContractBundle {
   const isRookie = args.age <= ROOKIE_SCALE_AGE_THRESHOLD;
 
@@ -741,7 +950,7 @@ function rollContract(
     return rollRookieContract(rng, args);
   }
 
-  return rollVeteranContract(rng, args, multiplierFn);
+  return rollVeteranContract(rng, args);
 }
 
 function rollRookieContract(
@@ -813,19 +1022,15 @@ export function rollVeteranContract(
     age: number;
     signedYear: number;
     archetype: CapArchetype;
+    marketTier: AavTier;
   },
-  multiplierFn: SalaryMultiplierFn,
 ): RolledContractBundle {
   const modifier = ARCHETYPE_MODIFIER[args.archetype];
   const prior = getContractStructurePrior(
     bucketToContractPosition(args.bucket),
     qualityTierToContractTier(args.qualityTier),
   );
-  const mult = multiplierFn(args.bucket, args.quality);
-  const excess = Math.max(0, args.quality - 50);
-  const baseSalary = SALARY_FLOOR + excess * SALARY_PER_QUALITY_POINT * mult;
-  const jitter = 0.9 + rng.next() * 0.2;
-  const annualBase = Math.max(SALARY_FLOOR, Math.round(baseSalary * jitter));
+  const annualBase = sampleTieredAav(rng, args.bucket, args.marketTier);
 
   // Sample length from the position × tier band. The p10/p90 window
   // captures most of the real distribution and keeps CB contracts
@@ -1121,16 +1326,10 @@ export function stubAttributesFor(bucket: NeutralBucket): PlayerAttributes {
   return attrs as PlayerAttributes;
 }
 
-export type SalaryMultiplierFn = (
-  position: NeutralBucket,
-  quality: number,
-) => number;
-
 export interface PlayersGeneratorOptions {
   nameGenerator?: NameGenerator;
   random?: () => number;
   currentYear?: number;
-  salaryMultiplier?: SalaryMultiplierFn;
 }
 
 export function createPlayersGenerator(
@@ -1140,8 +1339,6 @@ export function createPlayersGenerator(
   const rng = createRng(random);
   const nameGenerator = options.nameGenerator ?? createNameGenerator();
   const currentYear = options.currentYear ?? new Date().getUTCFullYear();
-  const salaryMultiplier = options.salaryMultiplier ??
-    positionalSalaryMultiplier;
 
   function buildPlayer(args: {
     leagueId: string;
@@ -1302,35 +1499,87 @@ export function createPlayersGenerator(
         byTeam.set(p.teamId, list);
       }
 
+      // Phase 1: pre-roll bucket/quality/age league-wide so the market
+      // tier can be assigned by rank within bucket (the tier model the
+      // OTC bands describe — top_10 is the league's 10 highest-quality
+      // players at that bucket, not a per-team slot label).
+      interface Enriched {
+        playerId: string;
+        teamId: string;
+        bucket: NeutralBucket;
+        quality: number;
+        qualityTier: QualityTier;
+        age: number;
+      }
+      const enriched: Enriched[] = [];
+      for (const [teamId, teamPlayers] of byTeam) {
+        teamPlayers.forEach((p, idx) => {
+          const bucket = ROSTER_BUCKET_SLOTS[idx % ROSTER_BUCKET_SLOTS.length];
+          const bucketCount = ROSTER_BUCKET_COMPOSITION.find((c) =>
+            c.bucket === bucket
+          )?.count ?? 1;
+          const indexInBucket = Math.floor(
+            idx / ROSTER_BUCKET_COMPOSITION.length,
+          );
+          const slotTier = qualityTierForIndex(indexInBucket, bucketCount);
+          const quality = rollQuality(rng, slotTier);
+          const age = rollAge(rng, "rostered", bucket);
+          enriched.push({
+            playerId: p.id,
+            teamId,
+            bucket,
+            quality,
+            qualityTier: slotTier,
+            age,
+          });
+        });
+      }
+
+      // Phase 2: rank by quality within bucket → AAV market tier.
+      const tierByPlayerId = new Map<string, AavTier>();
+      const byBucket = new Map<NeutralBucket, Enriched[]>();
+      for (const e of enriched) {
+        const list = byBucket.get(e.bucket) ?? [];
+        list.push(e);
+        byBucket.set(e.bucket, list);
+      }
+      for (const [, list] of byBucket) {
+        list.sort((a, b) => b.quality - a.quality);
+        list.forEach((e, rank) => {
+          let tier: AavTier;
+          if (rank < 10) tier = "top_10";
+          else if (rank < 25) tier = "top_25";
+          else if (rank < 50) tier = "top_50";
+          else tier = "rest";
+          tierByPlayerId.set(e.playerId, tier);
+        });
+      }
+
+      const enrichedById = new Map<string, Enriched>(
+        enriched.map((e) => [e.playerId, e]),
+      );
+
+      // Phase 3: per team, build contract bundles using the assigned
+      // market tier, then apply cap scaling.
       const bundles: GeneratedContractBundle[] = [];
       for (const [teamId, teamPlayers] of byTeam) {
         const archetype: CapArchetype = input.teamArchetypes?.get(teamId) ??
           "balanced";
-        const rawBundles = teamPlayers.map((p, idx) => {
-          const bucket = ROSTER_BUCKET_SLOTS[idx % ROSTER_BUCKET_SLOTS.length];
-          const bucketCount = ROSTER_BUCKET_COMPOSITION.find((c) =>
-            c.bucket === bucket
-          )?.count ??
-            1;
-          const indexInBucket = Math.floor(
-            idx / ROSTER_BUCKET_COMPOSITION.length,
-          );
-          const tier = qualityTierForIndex(indexInBucket, bucketCount);
-          const quality = rollQuality(rng, tier);
-          const age = rollAge(rng, "rostered", bucket);
+        const rawBundles = teamPlayers.map((p) => {
+          const e = enrichedById.get(p.id)!;
           return rollContract(
             rng,
             {
               playerId: p.id,
               teamId,
-              bucket,
-              quality,
-              qualityTier: tier,
-              age,
+              bucket: e.bucket,
+              quality: e.quality,
+              qualityTier: e.qualityTier,
+              age: e.age,
               signedYear: currentYear,
               archetype,
+              marketTier: tierByPlayerId.get(p.id) ?? "rest",
             },
-            salaryMultiplier,
           );
         });
         const teamAnnualTotal = rawBundles.reduce(
