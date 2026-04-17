@@ -5,7 +5,14 @@ plugins {
     id("nu.studer.jooq") version "10.1"
     id("org.flywaydb.flyway") version "11.14.0"
     id("com.diffplug.spotless") version "7.0.2"
+    idea
     jacoco
+}
+
+idea {
+    module {
+        excludeDirs.add(file(".claude"))
+    }
 }
 
 group = "app.zoneblitz"
