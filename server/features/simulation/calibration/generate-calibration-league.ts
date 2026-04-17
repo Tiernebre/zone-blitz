@@ -2,19 +2,15 @@ import {
   createRng,
   mulberry32,
   type NeutralBucket,
-  PLAYER_ATTRIBUTE_KEYS,
-  type PlayerAttributeKey,
-  type PlayerAttributes,
+  neutralBucket,
   type SchemeFingerprint,
   type SeededRng,
 } from "@zone-blitz/shared";
 import { CALIBRATION_SEED } from "./calibration-seed.ts";
 import type { CoachingMods, PlayerRuntime } from "../resolve-play.ts";
 import type { SimTeam } from "../simulate-game.ts";
-import {
-  BUCKET_PROFILES,
-  ROSTER_BUCKET_COMPOSITION,
-} from "../../players/players-generator.ts";
+import { createPlayersGenerator } from "../../players/players-generator.ts";
+import type { PlayersGenerator } from "../../players/players.generator.interface.ts";
 import {
   DEFENSIVE_ARCHETYPES,
   defensiveVectorFromArchetype,
@@ -28,18 +24,29 @@ export interface CalibrationLeague {
 }
 
 // Calibration fixtures use a larger-than-NFL team count to shrink
-// between-seed sampling noise on league-wide metrics. 32 teams gives
-// the full fixture a realistic league shape; 64 teams halves the
-// standard error of the mean on metrics like YPC so three seeded
+// between-seed sampling noise on league-wide metrics. 64 teams halves
+// the standard error of the mean on metrics like YPC so the seeded
 // fixtures can all land inside the NFL bands (±0.07 tolerances)
 // without asking the engine to be luckier than statistics allows.
 const DEFAULT_TEAM_COUNT = 64;
+const ROSTER_SIZE = 53;
 
 export interface GenerateCalibrationLeagueOptions {
   seed?: number;
   teamCount?: number;
+  /**
+   * Player generator used to produce rostered players. Defaults to the
+   * production `createPlayersGenerator` seeded from the calibration
+   * seed so calibration tracks whatever distribution production
+   * currently ships — no duplicated quality/attribute math.
+   */
+  playersGenerator?: PlayersGenerator;
 }
 
+// Depth-chart split per bucket. Independent of the generator's quality
+// tiers — these numbers answer "how many of each bucket start on
+// Sunday", not "how many of each bucket are elite". The generator
+// still owns which rostered players get star/starter/depth means.
 const STARTER_SLOTS: Record<NeutralBucket, number> = {
   QB: 1,
   RB: 1,
@@ -56,100 +63,6 @@ const STARTER_SLOTS: Record<NeutralBucket, number> = {
   P: 1,
   LS: 1,
 };
-
-function rollAttributes(
-  rng: SeededRng,
-  bucket: NeutralBucket,
-  quality: number,
-): PlayerAttributes {
-  const profile = BUCKET_PROFILES[bucket];
-  const signatureSet = new Set<PlayerAttributeKey>(profile.signature);
-  const deEmphasizedSet = new Set<PlayerAttributeKey>(profile.deEmphasized);
-
-  const attrs: Record<string, number> = {};
-  for (const key of PLAYER_ATTRIBUTE_KEYS) {
-    let mean: number;
-    if (signatureSet.has(key)) {
-      mean = quality + 10;
-    } else if (deEmphasizedSet.has(key)) {
-      mean = Math.max(25, Math.round(quality * 0.55));
-    } else {
-      mean = Math.round(quality * 0.85);
-    }
-    attrs[key] = rng.gaussian(mean, 5, 25, 99);
-  }
-  return attrs as PlayerAttributes;
-}
-
-function rollQuality(
-  rng: SeededRng,
-  tier: "star" | "starter" | "depth",
-): number {
-  const mean = tier === "star" ? 82 : tier === "starter" ? 70 : 58;
-  const stddev = tier === "star" ? 5 : tier === "starter" ? 6 : 7;
-  return rng.gaussian(mean, stddev, 30, 95);
-}
-
-function generatePlayer(
-  rng: SeededRng,
-  bucket: NeutralBucket,
-  teamIndex: number,
-  playerIndex: number,
-  tier: "star" | "starter" | "depth",
-  qualityShift: number,
-): PlayerRuntime {
-  const baseQuality = rollQuality(rng, tier);
-  const quality = Math.max(30, Math.min(95, baseQuality + qualityShift));
-  const attributes = rollAttributes(rng, bucket, quality);
-  return {
-    playerId: `cal-t${teamIndex}-${bucket.toLowerCase()}-${playerIndex}`,
-    neutralBucket: bucket,
-    attributes,
-  };
-}
-
-function generateTeamRoster(
-  rng: SeededRng,
-  teamIndex: number,
-): { starters: PlayerRuntime[]; bench: PlayerRuntime[] } {
-  // Team-wide talent shift: mirrors the NFL reality that some
-  // rosters are systemically stronger than others. Without this,
-  // every calibration team samples from the same tier distributions
-  // and cross-team metric spread (notably yards_per_carry sd)
-  // collapses well below the NFL band. Applied to starters only so
-  // bench quality stays uniform across teams.
-  const teamTalentShift = rng.gaussian(0, 2.75, -7, 7);
-
-  const starters: PlayerRuntime[] = [];
-  const bench: PlayerRuntime[] = [];
-
-  let playerCounter = 0;
-
-  for (const { bucket, count } of ROSTER_BUCKET_COMPOSITION) {
-    const starterCount = STARTER_SLOTS[bucket];
-    for (let i = 0; i < count; i++) {
-      const tier = i === 0 ? "star" : i < starterCount ? "starter" : "depth";
-      const isStarter = i < starterCount;
-      const player = generatePlayer(
-        rng,
-        bucket,
-        teamIndex,
-        playerCounter,
-        tier,
-        isStarter ? teamTalentShift : 0,
-      );
-      playerCounter++;
-
-      if (isStarter) {
-        starters.push(player);
-      } else {
-        bench.push(player);
-      }
-    }
-  }
-
-  return { starters, bench };
-}
 
 function generateFingerprint(
   rng: SeededRng,
@@ -201,26 +114,71 @@ export function generateCalibrationLeague(
 ): CalibrationLeague {
   const seed = options.seed ?? CALIBRATION_SEED;
   const teamCount = options.teamCount ?? DEFAULT_TEAM_COUNT;
-  const random = mulberry32(seed);
-  const rng = createRng(random);
+  // Dedicated rng for fingerprints + coaching mods. Kept separate from
+  // the player-generator stream so a change to player generation
+  // doesn't shift every downstream fingerprint/mod roll — if production
+  // swaps a roll in, calibration's scheme mix stays stable and only
+  // the player distribution shifts in the harness output.
+  const schemeRng = createRng(mulberry32(seed ^ 0xfacefeed));
 
-  const teams: SimTeam[] = [];
-  for (let i = 0; i < teamCount; i++) {
-    const { starters, bench } = generateTeamRoster(rng, i);
-    const fingerprint = generateFingerprint(rng, i);
-    const coachingMods = generateCoachingMods(rng);
+  const playersGenerator = options.playersGenerator ??
+    createPlayersGenerator({ random: mulberry32(seed) });
 
-    teams.push({
-      teamId: `cal-team-${i}`,
-      starters,
-      bench,
-      fingerprint,
-      coachingMods,
-    });
+  const teamIds = Array.from(
+    { length: teamCount },
+    (_, i) => `cal-team-${i}`,
+  );
+  const generated = playersGenerator.generate({
+    leagueId: "cal-league",
+    seasonId: "cal-season",
+    teamIds,
+    rosterSize: ROSTER_SIZE,
+  });
+
+  const rosteredByTeam = new Map<
+    string,
+    ReadonlyArray<typeof generated.players[number]>
+  >();
+  for (const teamId of teamIds) {
+    rosteredByTeam.set(
+      teamId,
+      generated.players.filter((p) => p.player.teamId === teamId),
+    );
   }
 
   return {
     calibrationSeed: seed,
-    teams,
+    teams: teamIds.map((teamId, i) => {
+      const roster = rosteredByTeam.get(teamId) ?? [];
+      const bucketSeen = new Map<NeutralBucket, number>();
+      const starters: PlayerRuntime[] = [];
+      const bench: PlayerRuntime[] = [];
+
+      for (const gp of roster) {
+        const bucket = neutralBucket({
+          attributes: gp.attributes,
+          heightInches: gp.player.heightInches,
+          weightPounds: gp.player.weightPounds,
+        });
+        const indexInBucket = bucketSeen.get(bucket) ?? 0;
+        bucketSeen.set(bucket, indexInBucket + 1);
+
+        const runtime: PlayerRuntime = {
+          playerId: `cal-t${i}-${bucket.toLowerCase()}-${indexInBucket}`,
+          neutralBucket: bucket,
+          attributes: gp.attributes,
+        };
+        if (indexInBucket < STARTER_SLOTS[bucket]) starters.push(runtime);
+        else bench.push(runtime);
+      }
+
+      return {
+        teamId,
+        starters,
+        bench,
+        fingerprint: generateFingerprint(schemeRng, i),
+        coachingMods: generateCoachingMods(schemeRng),
+      };
+    }),
   };
 }
