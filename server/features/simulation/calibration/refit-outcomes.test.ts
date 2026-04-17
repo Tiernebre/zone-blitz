@@ -13,10 +13,6 @@ Deno.test("computeRefit reproduces the checked-in artifacts byte-for-byte", asyn
 
   const result = await computeRefit();
 
-  // A fresh refit against the same simulator + bands + seeds must
-  // reproduce the committed JSON exactly. Drift signals that a sim
-  // behavior change was not followed by re-running `sim:refit`, or that
-  // non-determinism is leaking into the pipeline.
   assertEquals(result.measuredJson, diskMeasured);
   assertEquals(result.coefficientsJson, diskCoefficients);
 });
@@ -29,5 +25,5 @@ Deno.test("computeRefit produces well-formed JSON", async () => {
   assert(Array.isArray(measured.seeds) && measured.seeds.length > 0);
   assertEquals(typeof measured.blockScore.mean, "number");
   assertEquals(typeof coefficients.pass.completion.base, "number");
-  assertEquals(typeof coefficients.run.stuffThreshold, "number");
+  assertEquals(typeof coefficients.run.yardageIntercept, "number");
 });

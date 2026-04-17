@@ -1181,7 +1181,7 @@ Deno.test("synthesizeOutcome handles negative run blocking", () => {
   assertEquals(event.yardage <= 0, true);
 });
 
-Deno.test("synthesizeOutcome handles slightly negative run blocking", () => {
+Deno.test("synthesizeOutcome run yardage is monotonic in block score on average", () => {
   const runCall: OffensiveCall = {
     concept: "inside_zone",
     personnel: "11",
@@ -1193,27 +1193,34 @@ Deno.test("synthesizeOutcome handles slightly negative run blocking", () => {
     coverage: "cover_3",
     pressure: "four_man",
   };
-  const rng = makeRng(42);
-  const contribs: MatchupContribution[] = [
-    {
-      matchup: {
-        type: "run_block",
-        attacker: makePlayer("ot1", "OT"),
-        defender: makePlayer("idl1", "IDL"),
-      },
-      attackerFit: "neutral",
-      defenderFit: "neutral",
-      score: -10,
-    },
-  ];
-  const event = synthesizeOutcome(
-    runCall,
-    coverageCall,
-    contribs,
-    makeGameState(),
-    rng,
-  );
-  assertEquals(event.yardage >= 1 && event.yardage <= 5, true);
+  const trials = 200;
+  const meanYards = (blockScore: number) => {
+    let total = 0;
+    for (let i = 0; i < trials; i++) {
+      const rng = makeRng(i);
+      const contribs: MatchupContribution[] = [
+        {
+          matchup: {
+            type: "run_block",
+            attacker: makePlayer("ot1", "OT"),
+            defender: makePlayer("idl1", "IDL"),
+          },
+          attackerFit: "neutral",
+          defenderFit: "neutral",
+          score: blockScore,
+        },
+      ];
+      total += synthesizeOutcome(
+        runCall,
+        coverageCall,
+        contribs,
+        makeGameState(),
+        rng,
+      ).yardage;
+    }
+    return total / trials;
+  };
+  assertEquals(meanYards(-10) < meanYards(10), true);
 });
 
 // ── resolvePlay (integration) ───────────────────────────────────────

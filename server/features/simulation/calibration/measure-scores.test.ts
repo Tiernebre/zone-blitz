@@ -28,9 +28,11 @@ Deno.test("summarizeSamples computes mean and population stddev", () => {
 });
 
 Deno.test("measureScores runs the simulator and produces non-empty distributions", () => {
-  // Single seed with default season shape is enough to prove wiring; the
-  // full 8-seed sweep is exercised by sim:refit.
-  const measured = measureScores({ seeds: [CALIBRATION_SEED] });
+  // A small gamesPerSeed proves the wiring without a ~20s full sweep.
+  const measured = measureScores({
+    seeds: [CALIBRATION_SEED],
+    gamesPerSeed: 32,
+  });
   assertEquals(measured.seeds, [CALIBRATION_SEED]);
   assert(measured.sampleCounts.blockScore > 0);
   assert(measured.sampleCounts.protectionScore > 0);
