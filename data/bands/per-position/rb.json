@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-04-17T12:12:14Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "position": "RB",
+  "qualifier": "regular-season RB-seasons with >=100 carries",
+  "ranking_stat": "epa_per_play (rushing EPA / carries)",
+  "notes": "Starter RB-seasons 2020-2024, ranked by rushing EPA/play then carved into percentile bands (elite: top 10%, good: 10-30%, average: 30-70%, weak: 70-90%, replacement: bottom 10%). Each band reports mean+sd per metric across the RB-seasons in that band. YPC, rush_td_rate, and fumble_rate use carries as denominator; yards_per_game uses games played. Receiving production is intentionally excluded from the ranking stat — the sim's RB attribution covers rush attempts only.",
+  "bands": {
+    "elite": {
+      "n": 23,
+      "metrics": {
+        "yards_per_carry": {
+          "n": 23,
+          "mean": 5.4537,
+          "sd": 0.6484
+        },
+        "rush_td_rate": {
+          "n": 23,
+          "mean": 0.0455,
+          "sd": 0.0186
+        },
+        "yards_per_game": {
+          "n": 23,
+          "mean": 75.444,
+          "sd": 25.9033
+        },
+        "fumble_rate": {
+          "n": 23,
+          "mean": 0.0027,
+          "sd": 0.0029
+        }
+      }
+    },
+    "good": {
+      "n": 47,
+      "metrics": {
+        "yards_per_carry": {
+          "n": 47,
+          "mean": 4.7262,
+          "sd": 0.4273
+        },
+        "rush_td_rate": {
+          "n": 47,
+          "mean": 0.037,
+          "sd": 0.0172
+        },
+        "yards_per_game": {
+          "n": 47,
+          "mean": 60.3748,
+          "sd": 16.9955
+        },
+        "fumble_rate": {
+          "n": 47,
+          "mean": 0.0022,
+          "sd": 0.0033
+        }
+      }
+    },
+    "average": {
+      "n": 94,
+      "metrics": {
+        "yards_per_carry": {
+          "n": 94,
+          "mean": 4.2986,
+          "sd": 0.3675
+        },
+        "rush_td_rate": {
+          "n": 94,
+          "mean": 0.0338,
+          "sd": 0.015
+        },
+        "yards_per_game": {
+          "n": 94,
+          "mean": 56.55,
+          "sd": 16.7054
+        },
+        "fumble_rate": {
+          "n": 94,
+          "mean": 0.004,
+          "sd": 0.0053
+        }
+      }
+    },
+    "weak": {
+      "n": 47,
+      "metrics": {
+        "yards_per_carry": {
+          "n": 47,
+          "mean": 3.9522,
+          "sd": 0.357
+        },
+        "rush_td_rate": {
+          "n": 47,
+          "mean": 0.0232,
+          "sd": 0.0111
+        },
+        "yards_per_game": {
+          "n": 47,
+          "mean": 47.8297,
+          "sd": 13.8238
+        },
+        "fumble_rate": {
+          "n": 47,
+          "mean": 0.0058,
+          "sd": 0.0051
+        }
+      }
+    },
+    "replacement": {
+      "n": 23,
+      "metrics": {
+        "yards_per_carry": {
+          "n": 23,
+          "mean": 3.6072,
+          "sd": 0.4261
+        },
+        "rush_td_rate": {
+          "n": 23,
+          "mean": 0.0215,
+          "sd": 0.0088
+        },
+        "yards_per_game": {
+          "n": 23,
+          "mean": 42.6217,
+          "sd": 15.8636
+        },
+        "fumble_rate": {
+          "n": 23,
+          "mean": 0.0078,
+          "sd": 0.0048
+        }
+      }
+    }
+  }
+}
