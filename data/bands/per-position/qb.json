@@ -1,0 +1,160 @@
+{
+  "generated_at": "2026-04-17T11:46:54Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "position": "QB",
+  "qualifier": "regular-season QB-seasons with >=200 attempts",
+  "ranking_stat": "epa_per_play (dropback EPA / (attempts + sacks))",
+  "notes": "Starter QB-seasons 2020-2024, ranked by EPA/play then carved into percentile bands (elite: top 10%, good: 10-30%, average: 30-70%, weak: 70-90%, replacement: bottom 10%). Each band reports mean+sd per metric across the QB-seasons in that band. Completion%, YPA, TD%, INT% use attempts as denominator; sack_rate uses dropbacks.",
+  "bands": {
+    "elite": {
+      "n": 18,
+      "metrics": {
+        "completion_pct": {
+          "n": 18,
+          "mean": 0.6802,
+          "sd": 0.0257
+        },
+        "yards_per_attempt": {
+          "n": 18,
+          "mean": 8.189,
+          "sd": 0.6163
+        },
+        "td_rate": {
+          "n": 18,
+          "mean": 0.0637,
+          "sd": 0.0118
+        },
+        "int_rate": {
+          "n": 18,
+          "mean": 0.0167,
+          "sd": 0.006
+        },
+        "sack_rate": {
+          "n": 18,
+          "mean": 0.0481,
+          "sd": 0.0126
+        }
+      }
+    },
+    "good": {
+      "n": 35,
+      "metrics": {
+        "completion_pct": {
+          "n": 35,
+          "mean": 0.671,
+          "sd": 0.0223
+        },
+        "yards_per_attempt": {
+          "n": 35,
+          "mean": 7.6587,
+          "sd": 0.423
+        },
+        "td_rate": {
+          "n": 35,
+          "mean": 0.0557,
+          "sd": 0.0088
+        },
+        "int_rate": {
+          "n": 35,
+          "mean": 0.0198,
+          "sd": 0.0058
+        },
+        "sack_rate": {
+          "n": 35,
+          "mean": 0.055,
+          "sd": 0.0169
+        }
+      }
+    },
+    "average": {
+      "n": 70,
+      "metrics": {
+        "completion_pct": {
+          "n": 70,
+          "mean": 0.6548,
+          "sd": 0.0241
+        },
+        "yards_per_attempt": {
+          "n": 70,
+          "mean": 7.1505,
+          "sd": 0.4561
+        },
+        "td_rate": {
+          "n": 70,
+          "mean": 0.0431,
+          "sd": 0.0092
+        },
+        "int_rate": {
+          "n": 70,
+          "mean": 0.022,
+          "sd": 0.0068
+        },
+        "sack_rate": {
+          "n": 70,
+          "mean": 0.063,
+          "sd": 0.016
+        }
+      }
+    },
+    "weak": {
+      "n": 35,
+      "metrics": {
+        "completion_pct": {
+          "n": 35,
+          "mean": 0.6315,
+          "sd": 0.0306
+        },
+        "yards_per_attempt": {
+          "n": 35,
+          "mean": 6.5688,
+          "sd": 0.4137
+        },
+        "td_rate": {
+          "n": 35,
+          "mean": 0.0331,
+          "sd": 0.0076
+        },
+        "int_rate": {
+          "n": 35,
+          "mean": 0.0245,
+          "sd": 0.0072
+        },
+        "sack_rate": {
+          "n": 35,
+          "mean": 0.0765,
+          "sd": 0.0184
+        }
+      }
+    },
+    "replacement": {
+      "n": 18,
+      "metrics": {
+        "completion_pct": {
+          "n": 18,
+          "mean": 0.598,
+          "sd": 0.0387
+        },
+        "yards_per_attempt": {
+          "n": 18,
+          "mean": 6.2154,
+          "sd": 0.4956
+        },
+        "td_rate": {
+          "n": 18,
+          "mean": 0.029,
+          "sd": 0.009
+        },
+        "int_rate": {
+          "n": 18,
+          "mean": 0.0307,
+          "sd": 0.0085
+        },
+        "sack_rate": {
+          "n": 18,
+          "mean": 0.0951,
+          "sd": 0.0263
+        }
+      }
+    }
+  }
+}

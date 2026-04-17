@@ -1,11 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { toast } from "sonner";
-import type {
-  Column,
-  ColumnDef,
-  Table as ReactTable,
-} from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import type {
   HiringCandidateSummary,
   HiringDecisionView,
@@ -918,6 +914,7 @@ function buildCandidateColumns(
           {row.original.fullName}
         </Link>
       ),
+      meta: { filterVariant: "text", filterPlaceholder: "Name…" },
     },
     {
       accessorKey: "age",
@@ -932,6 +929,7 @@ function buildCandidateColumns(
           {row.original.age}
         </span>
       ),
+      meta: { filterVariant: "range" },
     },
     {
       accessorKey: "yearsExperience",
@@ -947,6 +945,7 @@ function buildCandidateColumns(
           {row.original.yearsExperience === 1 ? "" : "s"}
         </span>
       ),
+      meta: { filterVariant: "range" },
     },
     {
       accessorKey: "roleTenure",
@@ -972,6 +971,7 @@ function buildCandidateColumns(
             }`}
         </span>
       ),
+      meta: { filterVariant: "range" },
     },
   ];
 
@@ -986,7 +986,10 @@ function buildCandidateColumns(
             {coachArchetypeLabel(row.original.specialty)}
           </span>
         ),
-        filterFn: "equals",
+        meta: {
+          filterVariant: "multi-select",
+          filterFormatLabel: coachArchetypeLabel,
+        },
       },
       {
         id: "position",
@@ -997,7 +1000,10 @@ function buildCandidateColumns(
             {positionGroupLabel(row.original.positionBackground) ?? "—"}
           </span>
         ),
-        filterFn: "equals",
+        meta: {
+          filterVariant: "multi-select",
+          filterFormatLabel: positionFilterLabel,
+        },
       },
       {
         id: "scheme",
@@ -1008,7 +1014,10 @@ function buildCandidateColumns(
             {coachSchemeLabel(row.original)}
           </span>
         ),
-        filterFn: "equals",
+        meta: {
+          filterVariant: "multi-select",
+          filterFormatLabel: schemeOptionLabel,
+        },
       },
     );
   }
@@ -1024,7 +1033,10 @@ function buildCandidateColumns(
             {scoutRegionLabel(row.original.regionFocus) ?? "—"}
           </span>
         ),
-        filterFn: "equals",
+        meta: {
+          filterVariant: "multi-select",
+          filterFormatLabel: regionFilterLabel,
+        },
       },
       {
         id: "position",
@@ -1035,7 +1047,10 @@ function buildCandidateColumns(
             {positionGroupLabel(row.original.positionFocus) ?? "—"}
           </span>
         ),
-        filterFn: "equals",
+        meta: {
+          filterVariant: "multi-select",
+          filterFormatLabel: positionFilterLabel,
+        },
       },
     );
   }
@@ -1051,6 +1066,7 @@ function buildCandidateColumns(
           {formatMoney(row.original.expectedSalary)}
         </span>
       ),
+      meta: { filterVariant: "range" },
     },
     {
       id: "band",
@@ -1077,105 +1093,6 @@ function buildCandidateColumns(
 function coachSchemeKey(c: HiringCandidateSummary): string {
   if (c.role === "HC" && c.specialty === "ceo") return "ceo";
   return c.offensiveArchetype ?? c.defensiveArchetype ?? "";
-}
-
-function CandidateFilter(
-  {
-    column,
-    label,
-    formatLabel,
-    testId,
-  }: {
-    column: Column<CandidateRow, unknown> | undefined;
-    label: string;
-    formatLabel: (value: string) => string;
-    testId: string;
-  },
-) {
-  if (!column) return null;
-  const options = Array.from(column.getFacetedUniqueValues().keys())
-    .filter((v): v is string => typeof v === "string" && v.length > 0)
-    .sort((a, b) => formatLabel(a).localeCompare(formatLabel(b)));
-  const current = (column.getFilterValue() as string | undefined) ?? "all";
-  return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <select
-        data-testid={testId}
-        value={current}
-        onChange={(event) => {
-          const next = event.target.value;
-          column.setFilterValue(next === "all" ? undefined : next);
-        }}
-        className="h-8 min-w-40 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 outline-none"
-      >
-        <option value="all">All {label}</option>
-        {options.map((value) => (
-          <option key={value} value={value}>
-            {formatLabel(value)}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function CandidateFilters(
-  {
-    table,
-    staffType,
-    testIdPrefix,
-  }: {
-    table: ReactTable<CandidateRow>;
-    staffType: "coach" | "scout";
-    testIdPrefix: string;
-  },
-) {
-  return (
-    <div
-      className="flex flex-wrap items-center gap-2"
-      data-testid={`${testIdPrefix}-filters`}
-    >
-      {staffType === "coach" && (
-        <>
-          <CandidateFilter
-            column={table.getColumn("archetype")}
-            label="Archetype"
-            formatLabel={coachArchetypeLabel}
-            testId={`${testIdPrefix}-filter-archetype`}
-          />
-          <CandidateFilter
-            column={table.getColumn("position")}
-            label="Position Specialty"
-            formatLabel={positionFilterLabel}
-            testId={`${testIdPrefix}-filter-position`}
-          />
-          <CandidateFilter
-            column={table.getColumn("scheme")}
-            label="Scheme"
-            formatLabel={schemeOptionLabel}
-            testId={`${testIdPrefix}-filter-scheme`}
-          />
-        </>
-      )}
-      {staffType === "scout" && (
-        <>
-          <CandidateFilter
-            column={table.getColumn("region")}
-            label="Region"
-            formatLabel={regionFilterLabel}
-            testId={`${testIdPrefix}-filter-region`}
-          />
-          <CandidateFilter
-            column={table.getColumn("position")}
-            label="Position Specialty"
-            formatLabel={positionFilterLabel}
-            testId={`${testIdPrefix}-filter-position`}
-          />
-        </>
-      )}
-    </div>
-  );
 }
 
 export function positionFilterLabel(value: string): string {
@@ -1222,19 +1139,18 @@ function CandidateDataTable(
   );
 
   return (
-    <div data-testid={testId}>
-      <DataTable
-        columns={columns}
-        data={rows}
-        getRowTestId={(row) => `candidate-row-${row.id}`}
-        toolbar={(table) => (
-          <CandidateFilters
-            table={table}
-            staffType={staffType}
-            testIdPrefix={testId}
-          />
-        )}
-      />
-    </div>
+    <DataTable
+      columns={columns}
+      data={rows}
+      getRowTestId={(row) => `candidate-row-${row.id}`}
+      enableGlobalFilter
+      enableColumnFilters
+      enableDensityToggle
+      initiallyShowColumnFilters
+      searchPlaceholder={staffType === "coach"
+        ? "Search coaches…"
+        : "Search scouts…"}
+      testIdPrefix={testId}
+    />
   );
 }
