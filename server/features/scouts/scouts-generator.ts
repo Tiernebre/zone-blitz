@@ -80,7 +80,41 @@ const STAFF_BLUEPRINT: RoleSpec[] = [
 
 export const SCOUTS_PER_TEAM = STAFF_BLUEPRINT.length;
 
-const POOL_MULTIPLIER = 1.5;
+// Pool sizing is tier-driven: directors vs. non-directors. Non-director
+// weights mirror NFL scouting staffs — roughly 1 cross-checker per 3 area
+// scouts — then split across East/West (cross-checkers) and the four
+// regions (area scouts) so league coverage is preserved in aggregate.
+const DIRECTOR_POOL_PER_TEAM = 2;
+const NON_DIRECTOR_POOL_PER_TEAM = 4;
+
+const NON_DIRECTOR_WEIGHTS: ReadonlyArray<
+  { key: BlueprintKey; weight: number }
+> = [
+  { key: "EAST_CC", weight: 0.5 },
+  { key: "WEST_CC", weight: 0.5 },
+  { key: "AREA_NE", weight: 0.75 },
+  { key: "AREA_SE", weight: 0.75 },
+  { key: "AREA_MW", weight: 0.75 },
+  { key: "AREA_W", weight: 0.75 },
+];
+
+function distributeByWeight(
+  total: number,
+  weights: ReadonlyArray<{ key: BlueprintKey; weight: number }>,
+): Map<BlueprintKey, number> {
+  const sumW = weights.reduce((a, w) => a + w.weight, 0);
+  const rows = weights.map((w) => {
+    const exact = (total * w.weight) / sumW;
+    const floor = Math.floor(exact);
+    return { key: w.key, floor, remainder: exact - floor };
+  });
+  const leftover = total - rows.reduce((a, r) => a + r.floor, 0);
+  rows.sort((a, b) => b.remainder - a.remainder);
+  for (let i = 0; i < leftover; i++) rows[i].floor++;
+  const out = new Map<BlueprintKey, number>();
+  for (const r of rows) out.set(r.key, r.floor);
+  return out;
+}
 
 interface RoleBand {
   ageMin: number;
@@ -290,10 +324,21 @@ export function createScoutsGenerator(
 
       const scouts: GeneratedScout[] = [];
       const anchor = now();
-      const countPerRole = Math.ceil(input.numberOfTeams * POOL_MULTIPLIER);
+      const N = input.numberOfTeams;
+      const keyCounts = new Map<BlueprintKey, number>();
+      keyCounts.set("DIRECTOR", DIRECTOR_POOL_PER_TEAM * N);
+      for (
+        const [key, count] of distributeByWeight(
+          NON_DIRECTOR_POOL_PER_TEAM * N,
+          NON_DIRECTOR_WEIGHTS,
+        )
+      ) {
+        keyCounts.set(key, count);
+      }
 
       for (const spec of STAFF_BLUEPRINT) {
-        for (let i = 0; i < countPerRole; i++) {
+        const count = keyCounts.get(spec.key) ?? 0;
+        for (let i = 0; i < count; i++) {
           const { firstName, lastName } = nameGenerator.next();
           const id = crypto.randomUUID();
 

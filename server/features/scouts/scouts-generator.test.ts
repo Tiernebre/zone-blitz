@@ -257,22 +257,24 @@ Deno.test("generatePool creates unassigned scouts with no teamId", () => {
   }
 });
 
-Deno.test("generatePool creates 1.5x scouts per role per team count", () => {
+Deno.test("generatePool sizes each tier by per-team count with NFL 1:3 CC-to-area split", () => {
+  const N = 4;
   const result = makeGenerator().generatePool({
     leagueId: "league-1",
-    numberOfTeams: 4,
+    numberOfTeams: N,
   });
 
-  const countPerRole = Math.ceil(4 * 1.5);
   const directors = result.filter((s) => s.role === "DIRECTOR");
   const crossCheckers = result.filter(
     (s) => s.role === "NATIONAL_CROSS_CHECKER",
   );
   const areaScouts = result.filter((s) => s.role === "AREA_SCOUT");
 
-  assertEquals(directors.length, countPerRole);
-  assertEquals(crossCheckers.length, countPerRole * 2); // 2 cross-checker slots
-  assertEquals(areaScouts.length, countPerRole * 4); // 4 area scout slots
+  assertEquals(directors.length, 2 * N);
+  assertEquals(crossCheckers.length + areaScouts.length, 4 * N);
+  // 1:3 cross-checker to area-scout ratio mirrors real NFL clubs.
+  assertEquals(crossCheckers.length, N);
+  assertEquals(areaScouts.length, 3 * N);
 });
 
 Deno.test("generatePool returns empty array when numberOfTeams is 0", () => {

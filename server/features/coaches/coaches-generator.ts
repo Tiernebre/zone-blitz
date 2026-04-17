@@ -344,9 +344,59 @@ function intInRange(random: () => number, min: number, max: number): number {
   return Math.floor(random() * (max - min + 1)) + min;
 }
 
-const POOL_MULTIPLIER = 1.5;
+// Pool sizing is driven by tier-level per-team counts rather than a flat
+// multiplier per blueprint role. The numbers reflect the initial staffing
+// phase the game presents at league creation — teams compete over roughly
+// this many candidates per team, with sub-roles within each tier distributed
+// by NFL-realistic weights (defined below).
+const HC_POOL_PER_TEAM = 2;
+const COORDINATOR_POOL_PER_TEAM = 4;
+const POSITION_POOL_PER_TEAM = 6;
 
 const COORDINATOR_ROLES = new Set<CoachRole>(["OC", "DC", "STC"]);
+
+const COORDINATOR_WEIGHTS: ReadonlyArray<{ role: CoachRole; weight: number }> =
+  [
+    { role: "OC", weight: 1 },
+    { role: "DC", weight: 1 },
+    { role: "STC", weight: 1 },
+  ];
+
+// Position-coach weights track real-NFL staff composition: OL, LB, and DB
+// rooms typically carry two coaches (head + assistant or inside/outside
+// split); other position groups run with a single coach.
+const POSITION_WEIGHTS: ReadonlyArray<{ role: CoachRole; weight: number }> = [
+  { role: "QB", weight: 1 },
+  { role: "RB", weight: 1 },
+  { role: "WR", weight: 1 },
+  { role: "TE", weight: 1 },
+  { role: "OL", weight: 2 },
+  { role: "DL", weight: 1 },
+  { role: "LB", weight: 2 },
+  { role: "DB", weight: 2 },
+  { role: "ST_ASSISTANT", weight: 1 },
+];
+
+// Largest-remainder apportionment: distribute `total` units across
+// `weights` so each role's share approximates total*weight/sumW, and the
+// rounding remainder goes to roles with the largest fractional part.
+function distributeByWeight(
+  total: number,
+  weights: ReadonlyArray<{ role: CoachRole; weight: number }>,
+): Map<CoachRole, number> {
+  const sumW = weights.reduce((a, w) => a + w.weight, 0);
+  const rows = weights.map((w) => {
+    const exact = (total * w.weight) / sumW;
+    const floor = Math.floor(exact);
+    return { role: w.role, floor, remainder: exact - floor };
+  });
+  const leftover = total - rows.reduce((a, r) => a + r.floor, 0);
+  rows.sort((a, b) => b.remainder - a.remainder);
+  for (let i = 0; i < leftover; i++) rows[i].floor++;
+  const out = new Map<CoachRole, number>();
+  for (const r of rows) out.set(r.role, r.floor);
+  return out;
+}
 
 interface CoachPreferences {
   marketTierPref: number;
@@ -556,12 +606,29 @@ export function createCoachesGenerator(
       const collegeIndex = { value: 0 };
       const collegeIds = input.collegeIds ?? [];
 
-      const countPerRole = Math.ceil(
-        input.numberOfTeams * POOL_MULTIPLIER,
-      );
+      const N = input.numberOfTeams;
+      const roleCounts = new Map<CoachRole, number>();
+      roleCounts.set("HC", HC_POOL_PER_TEAM * N);
+      for (
+        const [role, count] of distributeByWeight(
+          COORDINATOR_POOL_PER_TEAM * N,
+          COORDINATOR_WEIGHTS,
+        )
+      ) {
+        roleCounts.set(role, count);
+      }
+      for (
+        const [role, count] of distributeByWeight(
+          POSITION_POOL_PER_TEAM * N,
+          POSITION_WEIGHTS,
+        )
+      ) {
+        roleCounts.set(role, count);
+      }
 
       for (const spec of STAFF_BLUEPRINT) {
-        for (let i = 0; i < countPerRole; i++) {
+        const count = roleCounts.get(spec.role) ?? 0;
+        for (let i = 0; i < count; i++) {
           const coach = generateCoach(
             spec,
             input.leagueId,
