@@ -73,6 +73,18 @@ flowchart LR
 | [contract-structure.md](./contract-structure.md)               | Contract shape — length, guarantee %, signing-bonus share, year-by-year cap hit, void years, restructures.          | Contract offer generator, cap AI, cut/restructure decisions.    |
 | [career-length-by-position.md](./career-length-by-position.md) | Five canonical aging shapes — specialist longevity, QB tail, OL plateau, mid-career cohort, RB/CB cliff.            | Aging system, retirement decisions, franchise-planning windows. |
 
+### Front-office market (coaches + scouts)
+
+| Doc                                  | What it covers                                                                                                                          | Feeds                                                                  |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| [coach-market.md](./coach-market.md) | HC / OC / DC / STC / position-coach salary + contract length + buyout conventions; HC age (mid-30s first-timer mode) and coaching tree. | Coach generator, hiring-carousel AI, HC / coordinator contract offers. |
+| [scout-market.md](./scout-market.md) | Director / cross-checker / area-scout salary + contract length + buyout; staffing levels, prospect workload, position-focus by tier.    | Scout generator, scouting-assignment AI, `workCapacity` calibration.   |
+
+These two docs carry **qualitative priors** rather than feed-derived statistics
+— coach and scout contracts are not in nflreadr. Numbers are synthesized from
+OverTheCap, The Athletic, PFF, PFN, team sites, and beat reporting, and should
+be read as the shape public reporting describes rather than asserted values.
+
 ### Player-rating calibration
 
 | Doc                                                                                | What it covers                                                                                                               | Feeds                                   |

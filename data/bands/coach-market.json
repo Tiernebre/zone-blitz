@@ -1,0 +1,182 @@
+{
+  "generated_at": "2026-04-17T00:00:00Z",
+  "source_window": "2018-2025 reporting-year window for contract data; 2010-2025 for HC age and coaching-tree pattern-matching.",
+  "source_kind": "qualitative_priors",
+  "notes": "Coach contract details are not published in nflreadr. Numbers below are synthesized from public reporting (OverTheCap partial coach salary tracker, The Athletic and PFF annual coach contract roundups, ESPN front-office tenure records, team-site press releases, PFN beat reporting). Point estimates are priors — they describe the shape and range public reporting shows, not exact feed-derived statistics. Salaries are annual in whole US dollars. Contract-length and buyout figures are in years. Tenure and firing patterns are tracked separately under issue #517 (data/docs/coaching-tenure-and-firings.md when it lands) and cross-referenced, not duplicated, here.",
+  "tiers": {
+    "HC": {
+      "description": "Head coach. Ownership-level hire, reports to GM/owner. Modern market has diverged into three bands: franchise-defining hires (Belichick/Harbaugh/Reid/McVay tier), market-rate hires (the median first-timer or journeyman retread), and low-budget or interim hires.",
+      "source_kind": "qualitative_priors",
+      "salary_annual_usd": {
+        "mean": 9000000,
+        "p10": 5500000,
+        "p50": 8500000,
+        "p90": 14000000,
+        "ceiling": 20000000,
+        "notes": "Belichick (NE, reported $25M+ in final years), Harbaugh (LAC 2024, ~5y/$80M), Payton (DEN 2023, ~5y/$90M+) and Reid (KC, extended through 2029 at a reported $25M/yr) sit at the ceiling. First-time HCs in 2024-2025 (Ben Johnson CHI reportedly ~$13M/yr, Macdonald SEA ~$8M/yr, DeMeco Ryans HOU ~$7M/yr) show the p10 has risen sharply post-2022. The Athletic's 2024 and PFF's 2024 coordinator-and-HC roundups peg median HC AAV at $8-9M."
+      },
+      "contract_length_years": {
+        "mode": 5,
+        "p10": 4,
+        "p50": 5,
+        "p90": 6,
+        "notes": "5-year deals are the modal HC contract by a wide margin (Harbaugh LAC 5y, Ben Johnson CHI 5y, Payton DEN 5y, Carroll SEA multiple 5y extensions, DeMeco Ryans HOU 6y). 4-year deals appear for retread or lower-leverage hires. 6+ year deals are reserved for top-of-market hires with maximum team option years."
+      },
+      "buyout_convention": {
+        "kind": "remaining_salary_fully_guaranteed_offsetable",
+        "offset_common": true,
+        "notes": "HC contracts are effectively fully guaranteed. When fired, the coach is paid the remainder of the deal; offset language reduces the owed amount by whatever the coach earns in a new HC or coordinator job during the remaining years. Model as buyout = remaining_years * annual_salary with offset applied if the coach re-hires."
+      },
+      "age_distribution": {
+        "mode": 43,
+        "p10": 37,
+        "p50": 46,
+        "p90": 60,
+        "min": 32,
+        "max": 72,
+        "notes": "The modern first-timer pattern is mid-30s to early-40s (McVay 30, Shanahan 37, LaFleur 39, Sirianni 39, Steichen 38, Ben Johnson 38, Aaron Glenn 2025 52, Dan Quinn retread 53). The 'proven retread' tier sits mid-50s to mid-60s (Payton 59, Harbaugh 60, Carroll 72 at final tenure, Belichick 71). The current generator's mode of 51 is too old for the post-2017 hiring pattern — left-shift the mode to ~43 and keep a right tail for retreads."
+      },
+      "experience_distribution": {
+        "years_experience_mean": 18,
+        "years_experience_p10": 10,
+        "years_experience_p90": 35,
+        "first_time_hc_rate": 0.55,
+        "notes": "Roughly half of any given HC cycle's hires are first-time HCs (headCoachYears == 0). The remainder are retreads or coordinator-to-HC promotions with 1-10 prior HC years. Coordinator-to-HC promotion is the dominant path (~65% of cycle hires). College-to-NFL is rare (~5%); demoted-HC returning as coordinator is tracked under #517."
+      },
+      "coaching_tree_branch_share": {
+        "description": "Frequency that an HC hire can be traced to a recent branch-head mentor. Qualitative — derived from a decade of HC-hire write-ups (The Athletic, ESPN, Pro Football Focus).",
+        "shanahan_mcvay": 0.25,
+        "belichick": 0.1,
+        "andy_reid": 0.1,
+        "harbaugh_brothers": 0.05,
+        "sean_payton": 0.05,
+        "pete_carroll": 0.05,
+        "other_or_unaffiliated": 0.4,
+        "notes": "Shanahan/McVay is the dominant modern offensive tree (LaFleur, Taylor, Stefanski, O'Connell, Ben Johnson adjacent). The Belichick tree has cooled since 2020 (Patricia, McDaniels, Judge washed out) but still represents ~10%. Reid tree (Nagy, Bieniemy, Pederson, Steichen adjacent) ~10%. Harbaugh brothers and Payton trees are smaller but persistent. 'other' is the baseline — coaches who pre-date or sit outside a branch (Tomlin, Carroll, Ryans)."
+      },
+      "playcaller_specialty_split": {
+        "offense": 0.55,
+        "defense": 0.3,
+        "ceo": 0.15,
+        "notes": "Offensive HCs dominate since 2017. Defensive HCs survive but have a lower hiring share than 2000-2015 (Macdonald SEA, DeMeco Ryans HOU, Aaron Glenn 2025 are the exceptions). 'CEO' HCs (Tomlin, John Harbaugh, Reid when not primary PC) are ~15% — HCs who run the building but delegate play-calling to a coordinator."
+      }
+    },
+    "OC": {
+      "description": "Offensive coordinator. Play-caller in roughly 70% of staffs (in others the HC calls plays and the OC is a passing-game or QB specialist). Elite OCs are prime HC candidates and get NFL HC interview leverage.",
+      "source_kind": "qualitative_priors",
+      "salary_annual_usd": {
+        "mean": 2500000,
+        "p10": 1500000,
+        "p50": 2300000,
+        "p90": 4000000,
+        "ceiling": 6500000,
+        "notes": "Ben Johnson (DET 2024 pre-HC jump) was reported at ~$4M. Bobby Slowik, Shane Waldron, Kellen Moore have all hit the $3-4M band. The ceiling reflects ownership paying to block an HC poach (2024 retention bumps). OverTheCap's partial coach tracker and PFF's 2024 coordinator roundup anchor the band."
+      },
+      "contract_length_years": {
+        "mode": 3,
+        "p10": 2,
+        "p50": 3,
+        "p90": 4,
+        "notes": "3 years is modal, typically tied to the HC's own contract so the OC rolls over or exits with the staff."
+      },
+      "buyout_convention": {
+        "kind": "remaining_salary_fully_guaranteed_offsetable",
+        "offset_common": true,
+        "notes": "Same shape as HC but dollar-scale an order of magnitude smaller. Hired-away-to-HC promotions typically waive remaining buyout because the destination team pays it off."
+      }
+    },
+    "DC": {
+      "description": "Defensive coordinator. Mirror of OC in staff structure; the defensive HC pipeline has narrowed so DC-to-HC promotion rate is lower than OC-to-HC.",
+      "source_kind": "qualitative_priors",
+      "salary_annual_usd": {
+        "mean": 2300000,
+        "p10": 1400000,
+        "p50": 2100000,
+        "p90": 3800000,
+        "ceiling": 6000000,
+        "notes": "Vic Fangio's retention-tier DC market (MIA ~$4.5M, then PHI) defined the post-2022 ceiling. Macdonald's 2023 BAL DC salary (~$3M) before the SEA HC jump is a representative top-tier DC point. Most DCs sit $1.5-$2.5M."
+      },
+      "contract_length_years": {
+        "mode": 3,
+        "p10": 2,
+        "p50": 3,
+        "p90": 4
+      },
+      "buyout_convention": {
+        "kind": "remaining_salary_fully_guaranteed_offsetable",
+        "offset_common": true
+      }
+    },
+    "STC": {
+      "description": "Special teams coordinator. Lowest-paid coordinator tier. STC-to-HC promotion is rare; John Harbaugh (ex-PHI STC) is the canonical exception.",
+      "source_kind": "qualitative_priors",
+      "salary_annual_usd": {
+        "mean": 1200000,
+        "p10": 700000,
+        "p50": 1100000,
+        "p90": 1800000,
+        "ceiling": 2500000,
+        "notes": "STCs cluster tight. Dave Toub (KC), Darren Rizzi (NO pre-HC interim) are near the ceiling; most teams pay their STC $800K-$1.3M."
+      },
+      "contract_length_years": {
+        "mode": 3,
+        "p10": 2,
+        "p50": 3,
+        "p90": 4
+      },
+      "buyout_convention": {
+        "kind": "remaining_salary_fully_guaranteed_offsetable",
+        "offset_common": true
+      }
+    },
+    "POSITION_COACH": {
+      "description": "Position coaches — QB, RB, WR, TE, OL, DL, LB, DB, assistant ST. QB and OL coaches sit at the top of this tier; ST assistants at the bottom.",
+      "source_kind": "qualitative_priors",
+      "salary_annual_usd": {
+        "mean": 900000,
+        "p10": 400000,
+        "p50": 850000,
+        "p90": 1500000,
+        "ceiling": 2500000,
+        "notes": "QB coaches on offensive-HC staffs (Zac Robinson LAR pre-ATL, Klint Kubiak NO pre-OC) sit at the top of this band. Veteran OL coaches (Juan Castillo, Bill Callahan) have historically cracked $2M. Most position coaches sit $600K-$1.1M. Entry-level ST assistants are $300K-$500K."
+      },
+      "salary_by_role_adjustment_usd": {
+        "QB": { "p50": 1100000, "p90": 1800000 },
+        "OL": { "p50": 1200000, "p90": 2000000 },
+        "DL": { "p50": 900000, "p90": 1500000 },
+        "RB": { "p50": 700000, "p90": 1100000 },
+        "WR": { "p50": 900000, "p90": 1400000 },
+        "TE": { "p50": 700000, "p90": 1100000 },
+        "LB": { "p50": 800000, "p90": 1200000 },
+        "DB": { "p50": 900000, "p90": 1400000 },
+        "ST_ASSISTANT": { "p50": 450000, "p90": 700000 }
+      },
+      "contract_length_years": {
+        "mode": 2,
+        "p10": 1,
+        "p50": 2,
+        "p90": 3,
+        "notes": "Position coaches sign short, tied to staff retention. 1-year rollovers are common for veteran assistants."
+      },
+      "buyout_convention": {
+        "kind": "remaining_salary_partial_or_none",
+        "offset_common": true,
+        "notes": "Position coaches often have offsetable remaining-year guarantees, but many are fired with less than a full payout because the replacing HC absorbs them on new terms. Model as 0-1 years of annual salary."
+      }
+    }
+  },
+  "tenure_and_firing": {
+    "cross_reference_doc": "data/docs/coaching-tenure-and-firings.md",
+    "cross_reference_issue": 517,
+    "notes": "HC tenure distribution, firing W-L triggers, coordinator-to-HC promotion rates, and retread patterns are covered under issue #517. This file does not duplicate them. The generator should sample hiredAt and tenure from the #517 artifact and contract length, salary, and age from this file."
+  },
+  "sim_consumption_guidance": {
+    "generator_mapping": {
+      "age": "HC.age_distribution — triangular around mode 43, min 32, max 72. Current generator (coaches-generator.ts TIER_BANDS.HC.ageMode=51) is too old and should shift down.",
+      "contract_years": "HC.contract_length_years — mode 5, not uniform 3-5. Current generator uses intInRange(3, 5) which flattens the mode.",
+      "contract_salary": "HC.salary_annual_usd — sample from triangular around p50 $8.5M with ceiling $20M. Current generator uses $6M-$14M uniform.",
+      "contract_buyout": "remaining_years * annual_salary — reflects the fully-guaranteed-with-offset convention.",
+      "coaching_tree": "Optional branch tag on HC generation to feed coherence / hiring-narrative features."
+    }
+  }
+}
