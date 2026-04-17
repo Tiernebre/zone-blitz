@@ -118,6 +118,24 @@ without depending on network or R at test time. Regenerate them when:
   injury category distribution (soft-tissue, knee, ankle, concussion, etc.),
   severity split (0 games / 1 game / 2-3 weeks / 4-7 weeks / season-ending), and
   re-injury rate. Non-injury reports (illness, rest, personal) excluded.
+- **`free-agent-market.json`** — UFA market volume and AAV bands from
+  `nflreadr::load_contracts()` (OverTheCap feed). Covers external UFA signings
+  per offseason by position group, AAV distribution by position × tier (top_10 /
+  top_25 / top_50 / rest) with mean / median / floor / ceiling APY, own-team
+  re-sign rate, contract length (years) and guarantee share for external
+  signings, plus a pointer to
+  [`docs/free-agent-market.md`](./docs/free-agent-market.md) for the
+  signing-timing wave narrative (legal-tampering / first-two-weeks / April /
+  post-draft). Pairs with the doc for tier-level examples (Burrow / Jefferson /
+  Barkley market anchors).
+- **`contract-structure.json`** — contract shape bands from the OTC feed's
+  nested `cols` cap ledger. Covers length (years) by position × tier, guarantee
+  share, signing-bonus share (year-1 prorated × years), and the year-by-year
+  cap-hit shape (Y1..Y5 as % of total cap) so the sim's offer generator and cap
+  AI can reproduce real back-loaded / front-loaded shapes. Void-year usage and
+  restructure frequency are documented in
+  [`docs/contract-structure.md`](./docs/contract-structure.md) with qualitative
+  priors because the feed does not tag them reliably.
 
 ## Planned bands (follow-up work)
 
