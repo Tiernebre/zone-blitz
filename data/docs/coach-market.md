@@ -58,8 +58,8 @@ reuse that shape.
 
 ### Salary
 
-- **Ceiling (~~$20M/yr)** — Belichick's final NE years, Reid's 2024
-  extension, Harbaugh LAC (5y/~$80M), Payton DEN (5y/~~$90M+).
+- **Ceiling (approx $20M/yr)** — Belichick's final NE years, Reid's 2024
+  extension, Harbaugh LAC (5y/approx $80M), Payton DEN (5y/approx $90M+).
 - **p90 (~$14M/yr)** — Ben Johnson CHI 2025 (reported ~$13M), second-cycle
   retread hires, top-end first-time HCs with maximum leverage.
 - **p50 (~$8.5M/yr)** — the median HC. First-time hires coming out of
