@@ -1,0 +1,334 @@
+{
+  "generated_at": "2026-04-17T18:48:08Z",
+  "seasons": [
+    2005,
+    2006,
+    2007,
+    2008,
+    2009,
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "notes": "UDFA market bands. Undrafted population built from load_rosters(2005:2024) left-anti-joined to load_draft_picks(2005:2024) on gsis_id (primary) and pfr_id (fallback). UDFA attribution: earliest roster row per player, signing team = draft_club (fallback: team). signings_per_team_per_offseason is computed over a full (season x team) grid so teams that signed zero at a position contribute zeroes; distributions report mean/sd/p10-p90 over team-seasons. hit_rate window is 2013:2020 (snap-count coverage + 5y runway): p_started_16_in_3y uses load_snap_counts() with starts defined as >= 50% offense or defense snaps in a REG game (same rule as draft-hit-rates.json). p_active_y2_roster = appears on any weekly roster row in udfa_year + 1. p_out_of_league_by_y3 = no weekly rows in udfa_year + 3. Position groups match draft-hit-rates: QB, RB (incl FB/HB), WR, TE, OL, DL, LB (incl EDGE/OLB), CB, S, ST (K/P/LS).",
+  "bands": {
+    "signings_per_team_per_offseason": {
+      "seasons_window": [2005, 2024],
+      "total": {
+        "n": 780,
+        "mean": 7.8179,
+        "sd": 6.6807,
+        "min": 0,
+        "p10": 0,
+        "p25": 3,
+        "p50": 6,
+        "p75": 12,
+        "p90": 18,
+        "max": 35
+      },
+      "by_position_group": {
+        "CB": {
+          "n": 780,
+          "mean": 1.3436,
+          "sd": 1.5772,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "p50": 1,
+          "p75": 2,
+          "p90": 4,
+          "max": 8
+        },
+        "DL": {
+          "n": 780,
+          "mean": 1.0615,
+          "sd": 1.2973,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "p50": 1,
+          "p75": 2,
+          "p90": 3,
+          "max": 8
+        },
+        "LB": {
+          "n": 780,
+          "mean": 1.0513,
+          "sd": 1.2586,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "p50": 1,
+          "p75": 2,
+          "p90": 3,
+          "max": 6
+        },
+        "OL": {
+          "n": 780,
+          "mean": 1.1897,
+          "sd": 1.3671,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "p50": 1,
+          "p75": 2,
+          "p90": 3,
+          "max": 7
+        },
+        "OTHER": {
+          "n": 780,
+          "mean": 0.0179,
+          "sd": 0.1887,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0,
+          "p75": 0,
+          "p90": 0,
+          "max": 3
+        },
+        "QB": {
+          "n": 780,
+          "mean": 0.2,
+          "sd": 0.44,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0,
+          "p75": 0,
+          "p90": 1,
+          "max": 2
+        },
+        "RB": {
+          "n": 780,
+          "mean": 0.7103,
+          "sd": 0.8824,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0.5,
+          "p75": 1,
+          "p90": 2,
+          "max": 6
+        },
+        "S": {
+          "n": 780,
+          "mean": 0.1026,
+          "sd": 0.3319,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0,
+          "p75": 0,
+          "p90": 0,
+          "max": 2
+        },
+        "ST": {
+          "n": 780,
+          "mean": 0.3628,
+          "sd": 0.6412,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0,
+          "p75": 1,
+          "p90": 1,
+          "max": 4
+        },
+        "TE": {
+          "n": 780,
+          "mean": 0.5718,
+          "sd": 0.8131,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "p50": 0,
+          "p75": 1,
+          "p90": 2,
+          "max": 4
+        },
+        "WR": {
+          "n": 780,
+          "mean": 1.2064,
+          "sd": 1.4259,
+          "min": 0,
+          "p10": 0,
+          "p25": 0,
+          "p50": 1,
+          "p75": 2,
+          "p90": 3,
+          "max": 8
+        }
+      }
+    },
+    "league_total_by_year": {
+      "2005": 166,
+      "2006": 158,
+      "2007": 135,
+      "2008": 127,
+      "2009": 157,
+      "2010": 174,
+      "2011": 181,
+      "2012": 205,
+      "2013": 201,
+      "2014": 215,
+      "2015": 220,
+      "2016": 618,
+      "2017": 539,
+      "2018": 539,
+      "2019": 514,
+      "2020": 382,
+      "2021": 242,
+      "2022": 457,
+      "2023": 421,
+      "2024": 447
+    },
+    "position_share": {
+      "CB": {
+        "n": 1048,
+        "share": 0.1719
+      },
+      "WR": {
+        "n": 941,
+        "share": 0.1543
+      },
+      "OL": {
+        "n": 928,
+        "share": 0.1522
+      },
+      "DL": {
+        "n": 828,
+        "share": 0.1358
+      },
+      "LB": {
+        "n": 820,
+        "share": 0.1345
+      },
+      "RB": {
+        "n": 554,
+        "share": 0.0908
+      },
+      "TE": {
+        "n": 446,
+        "share": 0.0731
+      },
+      "ST": {
+        "n": 283,
+        "share": 0.0464
+      },
+      "QB": {
+        "n": 156,
+        "share": 0.0256
+      },
+      "S": {
+        "n": 80,
+        "share": 0.0131
+      },
+      "OTHER": {
+        "n": 14,
+        "share": 0.0023
+      }
+    },
+    "hit_rate": {
+      "seasons_window": [2013, 2020],
+      "overall": {
+        "n": 2302,
+        "p_started_16_in_3y": 0.0482,
+        "p_active_y2_roster": 0.7528,
+        "p_out_of_league_by_y3": 0.4957,
+        "sample_warning": false
+      },
+      "by_position_group": {
+        "CB": {
+          "n": 396,
+          "p_started_16_in_3y": 0.0732,
+          "p_active_y2_roster": 0.7803,
+          "p_out_of_league_by_y3": 0.4747,
+          "sample_warning": false
+        },
+        "DL": {
+          "n": 300,
+          "p_started_16_in_3y": 0.0233,
+          "p_active_y2_roster": 0.7333,
+          "p_out_of_league_by_y3": 0.51,
+          "sample_warning": false
+        },
+        "LB": {
+          "n": 304,
+          "p_started_16_in_3y": 0.0428,
+          "p_active_y2_roster": 0.7599,
+          "p_out_of_league_by_y3": 0.5362,
+          "sample_warning": false
+        },
+        "OL": {
+          "n": 351,
+          "p_started_16_in_3y": 0.0912,
+          "p_active_y2_roster": 0.7322,
+          "p_out_of_league_by_y3": 0.453,
+          "sample_warning": false
+        },
+        "OTHER": {
+          "n": 4,
+          "p_started_16_in_3y": 0,
+          "p_active_y2_roster": 0,
+          "p_out_of_league_by_y3": 1,
+          "sample_warning": true
+        },
+        "QB": {
+          "n": 54,
+          "p_started_16_in_3y": 0.0185,
+          "p_active_y2_roster": 0.7037,
+          "p_out_of_league_by_y3": 0.5185,
+          "sample_warning": false
+        },
+        "RB": {
+          "n": 212,
+          "p_started_16_in_3y": 0.0094,
+          "p_active_y2_roster": 0.717,
+          "p_out_of_league_by_y3": 0.6038,
+          "sample_warning": false
+        },
+        "S": {
+          "n": 28,
+          "p_started_16_in_3y": 0.1429,
+          "p_active_y2_roster": 0.8214,
+          "p_out_of_league_by_y3": 0.4286,
+          "sample_warning": true
+        },
+        "ST": {
+          "n": 108,
+          "p_started_16_in_3y": 0,
+          "p_active_y2_roster": 0.7315,
+          "p_out_of_league_by_y3": 0.2963,
+          "sample_warning": false
+        },
+        "TE": {
+          "n": 182,
+          "p_started_16_in_3y": 0.011,
+          "p_active_y2_roster": 0.8022,
+          "p_out_of_league_by_y3": 0.467,
+          "sample_warning": false
+        },
+        "WR": {
+          "n": 363,
+          "p_started_16_in_3y": 0.0579,
+          "p_active_y2_roster": 0.7658,
+          "p_out_of_league_by_y3": 0.5207,
+          "sample_warning": false
+        }
+      }
+    }
+  }
+}

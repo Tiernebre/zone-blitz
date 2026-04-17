@@ -36,6 +36,7 @@ flowchart LR
         B9[league-volatility]
         B10[ir-usage]
         B11[tag-usage]
+        B12[udfa-market]
     end
 
     subgraph Docs["data/docs/*.md"]
@@ -53,6 +54,7 @@ flowchart LR
         D10[league-volatility]
         D11[ir-usage]
         D12[tag-usage]
+        D13[udfa-market]
     end
 
     ROS --> B1 --> D1
@@ -73,6 +75,9 @@ flowchart LR
     ROS --> B10 --> D11
     CTR --> B11 --> D12
     ROS --> B11
+    ROS --> B12 --> D13
+    DRAFT --> B12
+    SNAP --> B12
 
     D0 -. indexes .-> D1 & D2 & D3 & D4 & D5 & D5b & D6 & D7
 ```
@@ -95,6 +100,7 @@ flowchart LR
 | [career-length-by-position.md](./career-length-by-position.md) | Five canonical aging shapes — specialist longevity, QB tail, OL plateau, mid-career cohort, RB/CB cliff.                         | Aging system, retirement decisions, franchise-planning windows. |
 | [comp-picks.md](./comp-picks.md)                               | Compensatory picks — 32/yr cap, P(comp \| net UFA losses), round mix, minority-hire supplemental picks.                          | AI GM "let him walk for the comp pick" decision, draft supply.  |
 | [ir-usage.md](./ir-usage.md)                                   | IR placements per team-season, ~30% return rate, ~5-week absence, position concentration (CB/OL/LB lead).                        | In-season roster-slot pressure, waiver AI, PS elevations.       |
+| [udfa-market.md](./udfa-market.md)                             | UDFA signing volume per team/offseason, position concentration (WR/CB/OL overrepresented), priority-UDFA hit rates.              | Rookie class generator, waiver-wire churn, late-round vs UDFA relative value. |
 
 ### Front-office market (coaches + scouts)
 
