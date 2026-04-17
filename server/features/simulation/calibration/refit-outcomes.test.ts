@@ -1,5 +1,5 @@
-import { assertEquals } from "@std/assert";
-import { runRefit } from "./refit-outcomes.ts";
+import { assert, assertEquals } from "@std/assert";
+import { computeRefit } from "./refit-outcomes.ts";
 
 const MEASURED_PATH = new URL("./measured-scores.json", import.meta.url);
 const COEFFICIENTS_PATH = new URL(
@@ -7,19 +7,27 @@ const COEFFICIENTS_PATH = new URL(
   import.meta.url,
 );
 
-Deno.test("runRefit regenerates the checked-in artifacts deterministically", async () => {
-  const beforeMeasured = await Deno.readTextFile(MEASURED_PATH);
-  const beforeCoeffs = await Deno.readTextFile(COEFFICIENTS_PATH);
+Deno.test("computeRefit reproduces the checked-in artifacts byte-for-byte", async () => {
+  const diskMeasured = await Deno.readTextFile(MEASURED_PATH);
+  const diskCoefficients = await Deno.readTextFile(COEFFICIENTS_PATH);
 
-  await runRefit();
+  const result = await computeRefit();
 
-  const afterMeasured = await Deno.readTextFile(MEASURED_PATH);
-  const afterCoeffs = await Deno.readTextFile(COEFFICIENTS_PATH);
+  // A fresh refit against the same simulator + bands + seeds must
+  // reproduce the committed JSON exactly. Drift signals that a sim
+  // behavior change was not followed by re-running `sim:refit`, or that
+  // non-determinism is leaking into the pipeline.
+  assertEquals(result.measuredJson, diskMeasured);
+  assertEquals(result.coefficientsJson, diskCoefficients);
+});
 
-  // Idempotent: rerunning the refit against the same code + bands must
-  // reproduce the committed artifacts byte-for-byte. Drift here signals
-  // either a sim-behavior change that wasn't accompanied by a re-commit of
-  // these files, or non-determinism leaking into the pipeline.
-  assertEquals(beforeMeasured, afterMeasured);
-  assertEquals(beforeCoeffs, afterCoeffs);
+Deno.test("computeRefit produces well-formed JSON", async () => {
+  const result = await computeRefit();
+  const measured = JSON.parse(result.measuredJson);
+  const coefficients = JSON.parse(result.coefficientsJson);
+
+  assert(Array.isArray(measured.seeds) && measured.seeds.length > 0);
+  assertEquals(typeof measured.blockScore.mean, "number");
+  assertEquals(typeof coefficients.pass.completion.base, "number");
+  assertEquals(typeof coefficients.run.stuffThreshold, "number");
 });

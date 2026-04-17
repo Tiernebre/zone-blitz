@@ -21,13 +21,31 @@ const BANDS_PATH = new URL(
   "../../../../data/bands/team-game.json",
   import.meta.url,
 );
-const MEASURED_PATH = new URL("./measured-scores.json", import.meta.url);
-const COEFFICIENTS_PATH = new URL(
+const DEFAULT_MEASURED_PATH = new URL(
+  "./measured-scores.json",
+  import.meta.url,
+);
+const DEFAULT_COEFFICIENTS_PATH = new URL(
   "./outcome-coefficients.json",
   import.meta.url,
 );
 
-export async function runRefit(): Promise<void> {
+export interface RunRefitOptions {
+  measuredPath?: URL;
+  coefficientsPath?: URL;
+}
+
+export interface RefitResult {
+  measuredJson: string;
+  coefficientsJson: string;
+}
+
+/**
+ * Runs the measure → load bands → fit pipeline and returns the serialized
+ * outputs. Pure enough to be covered by tests without write permissions;
+ * the CLI wrapper below handles the actual file writes.
+ */
+export async function computeRefit(): Promise<RefitResult> {
   const measured = measureScores({ seeds: [...CALIBRATION_SEEDS] });
   const bandsJson = await Deno.readTextFile(BANDS_PATH);
   const bands = loadBands(bandsJson);
@@ -42,21 +60,27 @@ export async function runRefit(): Promise<void> {
     coverageScore: measured.coverageScore,
   };
 
-  await Deno.writeTextFile(
-    MEASURED_PATH,
-    JSON.stringify(measuredOut, null, 2) + "\n",
-  );
-  await Deno.writeTextFile(
-    COEFFICIENTS_PATH,
-    JSON.stringify(
+  return {
+    measuredJson: JSON.stringify(measuredOut, null, 2) + "\n",
+    coefficientsJson: JSON.stringify(
       { generated_by: "deno task sim:refit", ...coefficients },
       null,
       2,
     ) + "\n",
-  );
+  };
+}
 
-  console.log(`Wrote ${MEASURED_PATH.pathname}`);
-  console.log(`Wrote ${COEFFICIENTS_PATH.pathname}`);
+export async function runRefit(options: RunRefitOptions = {}): Promise<void> {
+  const measuredPath = options.measuredPath ?? DEFAULT_MEASURED_PATH;
+  const coefficientsPath = options.coefficientsPath ??
+    DEFAULT_COEFFICIENTS_PATH;
+
+  const result = await computeRefit();
+  await Deno.writeTextFile(measuredPath, result.measuredJson);
+  await Deno.writeTextFile(coefficientsPath, result.coefficientsJson);
+
+  console.log(`Wrote ${measuredPath.pathname}`);
+  console.log(`Wrote ${coefficientsPath.pathname}`);
 }
 
 if (import.meta.main) {
