@@ -422,10 +422,44 @@ export const SALARY_PER_QUALITY_POINT = 250_000;
 
 const ROOKIE_SCALE_AGE_THRESHOLD = 25;
 
-const VETERAN_AGE_MIN = 21;
-const VETERAN_AGE_MAX = 36;
 const PROSPECT_AGE_MIN = 20;
 const PROSPECT_AGE_MAX = 23;
+
+export interface PositionAgeBand {
+  /** Minimum active age — specialists debut slightly later than skill positions. */
+  min: number;
+  /** Modal (p50) active age, driving the peak of the triangular draw. */
+  mode: number;
+  /** Maximum active age (approximately p90 of retirement). */
+  max: number;
+}
+
+/**
+ * Per-position triangular (min, mode=p50, max=p90) age bands derived from
+ * `data/bands/career-length.json` retirement bands. Centralizing these here
+ * replaces the old single 21–36 triangular draw that blurred the RB cliff,
+ * the QB longevity tail, and the specialist ageless tail.
+ *
+ * Triangular(min, mode, max) has expected value (min + mode + max) / 3, so
+ * each bucket's mean lands within ~1 year of the underlying retirement
+ * mean without needing a separate parameter.
+ */
+export const POSITION_AGE_BANDS: Record<NeutralBucket, PositionAgeBand> = {
+  QB: { min: 21, mode: 27, max: 36 },
+  RB: { min: 21, mode: 26, max: 31 },
+  WR: { min: 21, mode: 25, max: 31 },
+  TE: { min: 21, mode: 26, max: 32 },
+  OT: { min: 21, mode: 27, max: 33 },
+  IOL: { min: 21, mode: 27, max: 33 },
+  EDGE: { min: 21, mode: 26, max: 32 },
+  IDL: { min: 21, mode: 26, max: 32 },
+  LB: { min: 21, mode: 26, max: 31 },
+  CB: { min: 21, mode: 26, max: 31 },
+  S: { min: 21, mode: 26, max: 31 },
+  K: { min: 22, mode: 29, max: 38 },
+  P: { min: 22, mode: 28, max: 38 },
+  LS: { min: 22, mode: 32, max: 38 },
+};
 
 /**
  * Rolls an overall-quality score anchored to the Geno Smith Line — the
@@ -574,17 +608,30 @@ function rollHeightWeight(rng: SeededRng, bucket: NeutralBucket): {
   return { heightInches, weightPounds };
 }
 
+function sampleTriangular(
+  rng: SeededRng,
+  min: number,
+  mode: number,
+  max: number,
+): number {
+  const u = rng.next();
+  const c = (mode - min) / (max - min);
+  if (u < c) {
+    return min + Math.sqrt(u * (max - min) * (mode - min));
+  }
+  return max - Math.sqrt((1 - u) * (max - min) * (max - mode));
+}
+
 function rollAge(
   rng: SeededRng,
+  bucket: NeutralBucket,
   status: "rostered" | "free-agent" | "prospect",
 ): number {
   if (status === "prospect") {
     return rng.int(PROSPECT_AGE_MIN, PROSPECT_AGE_MAX);
   }
-  // Triangular-ish around the middle of the playing-age band.
-  const raw = (rng.next() + rng.next()) / 2;
-  const span = VETERAN_AGE_MAX - VETERAN_AGE_MIN;
-  return VETERAN_AGE_MIN + Math.round(raw * span);
+  const band = POSITION_AGE_BANDS[bucket];
+  return Math.round(sampleTriangular(rng, band.min, band.mode, band.max));
 }
 
 function birthDateForAge(
@@ -1091,7 +1138,7 @@ export function createPlayersGenerator(
       rng,
       qualityTierForIndex(args.indexInBucket, args.bucketCount),
     );
-    const age = rollAge(rng, args.statusKind);
+    const age = rollAge(rng, args.bucket, args.statusKind);
     const { heightInches, weightPounds } = rollHeightWeight(rng, args.bucket);
     const attributes = rollAttributesFor(rng, args.bucket, quality);
     lockInBucket(attributes, args.bucket, heightInches, weightPounds);
@@ -1244,7 +1291,7 @@ export function createPlayersGenerator(
           );
           const tier = qualityTierForIndex(indexInBucket, bucketCount);
           const quality = rollQuality(rng, tier);
-          const age = rollAge(rng, "rostered");
+          const age = rollAge(rng, bucket, "rostered");
           return rollContract(
             rng,
             {

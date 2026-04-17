@@ -17,6 +17,7 @@ import {
   ELITES_PER_32_TEAMS,
   GENERATIONAL_OVERALL_THRESHOLD,
   type NameGenerator,
+  POSITION_AGE_BANDS,
   ROSTER_BUCKET_COMPOSITION,
   SALARY_FLOOR,
   SALARY_PER_QUALITY_POINT,
@@ -366,12 +367,143 @@ Deno.test("ages span a rookie-to-veteran curve", () => {
     return 2026 - Number(year);
   });
   const minAge = Math.min(...ages);
-  const maxAge = Math.max(...ages);
+  // Every bucket's band starts at >=21; upper end varies by position so no
+  // league-wide ceiling assertion (QB/K/P/LS tails run into the late 30s).
   assertEquals(minAge >= 21, true);
-  assertEquals(maxAge <= 36, true);
   // There should be both rookies (<=23) and veterans (>=30) in a 159-man pool.
   assertEquals(ages.some((a) => a <= 23), true);
   assertEquals(ages.some((a) => a >= 30), true);
+});
+
+function pooledRosteredByBucket(
+  seeds: readonly number[],
+): Map<NeutralBucket, number[]> {
+  const byBucket = new Map<NeutralBucket, number[]>();
+  for (const seed of seeds) {
+    const result = makeGenerator(seed).generate({
+      ...INPUT,
+      teamIds: Array.from({ length: 8 }, (_, i) => `team-${seed}-${i}`),
+    });
+    const rostered = result.players.filter(
+      (p) => p.player.teamId !== null && p.player.status === "active",
+    );
+    for (const entry of rostered) {
+      const bucket = bucketOf(entry);
+      const age = 2026 - Number(entry.player.birthDate.split("-")[0]);
+      const list = byBucket.get(bucket) ?? [];
+      list.push(age);
+      byBucket.set(bucket, list);
+    }
+  }
+  return byBucket;
+}
+
+function percentile(sortedAges: readonly number[], p: number): number {
+  if (sortedAges.length === 0) return NaN;
+  const idx = Math.min(
+    sortedAges.length - 1,
+    Math.floor(p * sortedAges.length),
+  );
+  return sortedAges[idx];
+}
+
+Deno.test("per-bucket rostered age distributions match career-length priors", () => {
+  const seeds = Array.from({ length: 12 }, (_, i) => 1000 + i);
+  const byBucket = pooledRosteredByBucket(seeds);
+  for (const [bucket, band] of Object.entries(POSITION_AGE_BANDS)) {
+    const ages = (byBucket.get(bucket as NeutralBucket) ?? []).slice().sort(
+      (a, b) => a - b,
+    );
+    // Even the rarest bucket (LS) accumulates ~96 samples across 12 leagues
+    // × 8 teams, plenty for stable mean/p90 estimates.
+    assertEquals(
+      ages.length >= 50,
+      true,
+      `bucket ${bucket} sample too small: ${ages.length}`,
+    );
+    const mean = ages.reduce((s, a) => s + a, 0) / ages.length;
+    const expectedMean = (band.min + band.mode + band.max) / 3;
+    assertEquals(
+      Math.abs(mean - expectedMean) <= 1.5,
+      true,
+      `bucket ${bucket} mean ${mean.toFixed(2)} drifted from ${
+        expectedMean.toFixed(2)
+      }`,
+    );
+    const p90 = percentile(ages, 0.9);
+    // Triangular p90 (closed form, valid when p=0.9 is above the mode,
+    // which holds for every band here).
+    const expectedP90 = band.max -
+      Math.sqrt(0.1 * (band.max - band.min) * (band.max - band.mode));
+    assertEquals(
+      Math.abs(p90 - expectedP90) <= 2,
+      true,
+      `bucket ${bucket} p90 ${p90} drifted from ${expectedP90.toFixed(2)}`,
+    );
+    assertEquals(
+      ages[0] >= band.min,
+      true,
+      `bucket ${bucket} min age ${ages[0]} below band min ${band.min}`,
+    );
+    assertEquals(
+      ages[ages.length - 1] <= band.max,
+      true,
+      `bucket ${bucket} max age ${
+        ages[ages.length - 1]
+      } above band max ${band.max}`,
+    );
+  }
+});
+
+Deno.test("RB ages show the post-28 cliff the NFL retirement data encodes", () => {
+  const seeds = Array.from({ length: 12 }, (_, i) => 2000 + i);
+  const byBucket = pooledRosteredByBucket(seeds);
+  const rbAges = byBucket.get("RB") ?? [];
+  const peakShare = rbAges.filter((a) => a >= 24 && a <= 27).length /
+    rbAges.length;
+  const cliffShare = rbAges.filter((a) => a >= 29 && a <= 32).length /
+    rbAges.length;
+  assertEquals(
+    peakShare > cliffShare * 1.5,
+    true,
+    `expected a visible RB cliff past 28: peak ${
+      peakShare.toFixed(2)
+    } vs cliff ${cliffShare.toFixed(2)}`,
+  );
+});
+
+Deno.test("QB ages keep a long tail past the skill-position cliff", () => {
+  const seeds = Array.from({ length: 12 }, (_, i) => 3000 + i);
+  const byBucket = pooledRosteredByBucket(seeds);
+  const qbAges = byBucket.get("QB") ?? [];
+  const lateTailShare = qbAges.filter((a) => a >= 33).length / qbAges.length;
+  assertEquals(
+    lateTailShare >= 0.05,
+    true,
+    `expected a non-trivial QB tail at 33+: ${lateTailShare.toFixed(3)}`,
+  );
+  const rbAges = byBucket.get("RB") ?? [];
+  const rbLateTailShare = rbAges.filter((a) => a >= 33).length / rbAges.length;
+  assertEquals(
+    lateTailShare > rbLateTailShare,
+    true,
+    "QB late-age tail should be strictly heavier than RB",
+  );
+});
+
+Deno.test("OL ages plateau into the mid-30s", () => {
+  const seeds = Array.from({ length: 12 }, (_, i) => 4000 + i);
+  const byBucket = pooledRosteredByBucket(seeds);
+  const olAges = [
+    ...(byBucket.get("OT") ?? []),
+    ...(byBucket.get("IOL") ?? []),
+  ];
+  const plateauShare = olAges.filter((a) => a >= 30).length / olAges.length;
+  assertEquals(
+    plateauShare >= 0.1,
+    true,
+    `expected OL plateau at 30+: ${plateauShare.toFixed(3)}`,
+  );
 });
 
 Deno.test("prospects fall into a draft-eligible age band", () => {
