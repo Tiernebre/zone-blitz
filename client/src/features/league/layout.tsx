@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 import { TeamLogo } from "../../components/team-logo.tsx";
 import { UserMenu } from "../../components/user-menu.tsx";
+import { readableTextColor } from "../../lib/readable-text-color.ts";
 import { useLeague } from "../../hooks/use-league.ts";
 import { useLeagueClock } from "../../hooks/use-league-clock.ts";
 import { useTouchLeague } from "../../hooks/use-leagues.ts";
@@ -180,7 +181,7 @@ function LeagueSidebarHeader(
         ? {
           background:
             `linear-gradient(135deg, ${team.primaryColor}, ${team.secondaryColor})`,
-          color: team.accentColor,
+          color: readableTextColor(team.primaryColor, team.secondaryColor),
         }
         : undefined}
       data-testid="league-sidebar-header"
