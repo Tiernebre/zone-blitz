@@ -355,11 +355,15 @@ describe("Market survey view", () => {
     ).toBeTruthy();
   });
 
-  it("filters coach candidates by archetype", async () => {
+  it("filters coach candidates by archetype via the multi-select column filter", async () => {
     renderPage();
-    fireEvent.change(
+    fireEvent.click(
       screen.getByTestId("market-coach-table-filter-archetype"),
-      { target: { value: "defense" } },
+    );
+    fireEvent.click(
+      await screen.findByTestId(
+        "market-coach-table-filter-archetype-option-defense",
+      ),
     );
     await waitFor(() => {
       expect(screen.queryByTestId("candidate-row-c1")).toBeNull();
@@ -367,11 +371,15 @@ describe("Market survey view", () => {
     });
   });
 
-  it("filters coach candidates by scheme", async () => {
+  it("filters coach candidates by scheme via the multi-select column filter", async () => {
     renderPage();
-    fireEvent.change(
+    fireEvent.click(
       screen.getByTestId("market-coach-table-filter-scheme"),
-      { target: { value: "shanahan_wide_zone" } },
+    );
+    fireEvent.click(
+      await screen.findByTestId(
+        "market-coach-table-filter-scheme-option-shanahan_wide_zone",
+      ),
     );
     await waitFor(() => {
       expect(screen.queryByTestId("candidate-row-c1")).toBeNull();
@@ -379,11 +387,15 @@ describe("Market survey view", () => {
     });
   });
 
-  it("filters coach candidates by position specialty", async () => {
+  it("filters coach candidates by position specialty via the multi-select column filter", async () => {
     renderPage();
-    fireEvent.change(
+    fireEvent.click(
       screen.getByTestId("market-coach-table-filter-position"),
-      { target: { value: "DB" } },
+    );
+    fireEvent.click(
+      await screen.findByTestId(
+        "market-coach-table-filter-position-option-DB",
+      ),
     );
     await waitFor(() => {
       expect(screen.getByTestId("candidate-row-c3")).toBeTruthy();
@@ -391,11 +403,15 @@ describe("Market survey view", () => {
     });
   });
 
-  it("filters coach candidates by CEO scheme bucket", async () => {
+  it("filters coach candidates by CEO scheme bucket via the multi-select column filter", async () => {
     renderPage();
-    fireEvent.change(
+    fireEvent.click(
       screen.getByTestId("market-coach-table-filter-scheme"),
-      { target: { value: "ceo" } },
+    );
+    fireEvent.click(
+      await screen.findByTestId(
+        "market-coach-table-filter-scheme-option-ceo",
+      ),
     );
     await waitFor(() => {
       expect(screen.getByTestId("candidate-row-c4")).toBeTruthy();
@@ -403,18 +419,23 @@ describe("Market survey view", () => {
     });
   });
 
-  it("clears a filter back to all candidates when 'All' is selected", async () => {
+  it("clears a column filter back to all candidates via the Clear button", async () => {
     renderPage();
-    fireEvent.change(
+    fireEvent.click(
       screen.getByTestId("market-coach-table-filter-archetype"),
-      { target: { value: "defense" } },
+    );
+    fireEvent.click(
+      await screen.findByTestId(
+        "market-coach-table-filter-archetype-option-defense",
+      ),
     );
     await waitFor(() => {
       expect(screen.queryByTestId("candidate-row-c1")).toBeNull();
     });
-    fireEvent.change(
-      screen.getByTestId("market-coach-table-filter-archetype"),
-      { target: { value: "all" } },
+    fireEvent.click(
+      await screen.findByTestId(
+        "market-coach-table-filter-archetype-clear",
+      ),
     );
     await waitFor(() => {
       expect(screen.getByTestId("candidate-row-c1")).toBeTruthy();
@@ -493,9 +514,13 @@ describe("Market survey view", () => {
     });
     renderPage();
     fireEvent.click(screen.getByTestId("market-tab-scout"));
-    fireEvent.change(
+    fireEvent.click(
       screen.getByTestId("market-scout-table-filter-region"),
-      { target: { value: "MIDWEST" } },
+    );
+    fireEvent.click(
+      await screen.findByTestId(
+        "market-scout-table-filter-region-option-MIDWEST",
+      ),
     );
     await waitFor(() => {
       expect(screen.queryByTestId("candidate-row-s1")).toBeNull();
