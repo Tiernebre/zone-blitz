@@ -4,3 +4,4 @@ node_modules/
 scheduled_tasks.lock
 dist/
 coverage/
+.gradle/
