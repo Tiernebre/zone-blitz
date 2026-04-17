@@ -22,6 +22,8 @@ data/
       situational.R            # 4th-down, 2-point, and onside kick decision rates
       position-concentration.R # top-k share by position group
       injuries.R               # injury rates by position, severity, and category
+      draft-hit-rates.R        # P(multi-year starter | round, position)
+      draft-pick-value.R       # Jimmy Johnson / Rich Hill / Chase Stuart curves
   bands/              # generated JSON artifacts — checked in
   cache/              # nflreadr disk cache — gitignored
 ```
@@ -110,6 +112,23 @@ without depending on network or R at test time. Regenerate them when:
   1-2 / medium 3-5 / long 6-9 / very-long 10+). 4th-and-short go-for-it
   conversion is referenced, not duplicated, from `situational.json`. Direct
   single-number bands for fast drift detection.
+- **`draft-hit-rates.json`** — draft hit-rate bands by round (1-7) × position
+  group, derived from `load_draft_picks()` joined to `load_snap_counts()` and
+  `load_rosters_weekly()` across the 2013-2020 draft classes (2,037 picks). For
+  each bucket: `p_started_16_in_3y`, `p_started_48_in_5y`, `p_all_pro_ever`,
+  `p_out_of_league_by_y3`, sample size, and a `sample_warning` flag for buckets
+  with n < 30. "Start" is defined as a regular-season game at ≥ 50% offense or
+  defense snaps. Season window is 2013-2020 because snap_counts coverage begins
+  in 2013 and 2020 is the latest draft with a full 5-year runway. See
+  [`docs/draft-hit-rates-by-round.md`](./docs/draft-hit-rates-by-round.md).
+- **`draft-pick-value.json`** — three canonical draft-pick trade-value curves
+  for picks 1-256: Jimmy Johnson (pick 1 = 3000), Rich Hill (pick 1 = 1000), and
+  Chase Stuart AV-based (pick 1 = 34.6). Values reproduce published anchor
+  tables rather than being scraped or re-fit. Also includes a normalised copy
+  (pick 1 = 1.0 per curve) and the consensus future-pick discount (0.8x per
+  year). See
+  [`docs/draft-pick-trade-value.md`](./docs/draft-pick-trade-value.md) for
+  references and worked examples of real trades.
 - **`injuries.json`** — injury rate bands by position, severity, and category.
   Derived from `nflreadr::load_injuries()` joined to
   `nflreadr::load_rosters_weekly()` to determine actual weeks missed (severity

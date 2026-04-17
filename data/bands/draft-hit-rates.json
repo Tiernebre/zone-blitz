@@ -1,0 +1,801 @@
+{
+  "generated_at": "2026-04-17T12:54:40Z",
+  "seasons": [2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020],
+  "notes": "Draft hit-rate bands from load_draft_picks() joined to load_snap_counts() and load_rosters_weekly(). A 'start' is a regular-season game where the player played >= 50% of offense or defense snaps. p_started_16_in_3y is conditioned on the first three seasons starting with the draft year (year 0,1,2). p_started_48_in_5y is only computed for draft classes that have a full 5-year window of snap data available (see n_with_5y_window). p_out_of_league_by_y3 = 1 if the player has no weekly-roster rows in the season (draft_year + 3). p_all_pro_ever counts any All-Pro selection in the player's career. Position groups: QB, RB (incl FB/HB), WR, TE, OL, DL, LB (incl EDGE/OLB), CB, S, ST (K/P/LS). Buckets with n < 30 carry a sample_warning flag. Season window defaults to 2013:2020 because load_snap_counts() coverage begins in 2013; earlier drafts cannot be measured with a consistent starts-per-game definition.",
+  "bands": {
+    "overall": {
+      "n": 2037,
+      "n_with_5y_window": 2037,
+      "p_started_16_in_3y": 0.3623,
+      "p_started_48_in_5y": 0.2145,
+      "p_all_pro_ever": 0.0452,
+      "p_out_of_league_by_y3": 0.3618,
+      "sample_warning": false
+    },
+    "by_round": {
+      "1": {
+        "n": 255,
+        "n_with_5y_window": 255,
+        "p_started_16_in_3y": 0.8588,
+        "p_started_48_in_5y": 0.6314,
+        "p_all_pro_ever": 0.1608,
+        "p_out_of_league_by_y3": 0.2392,
+        "sample_warning": false
+      },
+      "2": {
+        "n": 254,
+        "n_with_5y_window": 254,
+        "p_started_16_in_3y": 0.6535,
+        "p_started_48_in_5y": 0.4173,
+        "p_all_pro_ever": 0.0669,
+        "p_out_of_league_by_y3": 0.2008,
+        "sample_warning": false
+      },
+      "3": {
+        "n": 300,
+        "n_with_5y_window": 300,
+        "p_started_16_in_3y": 0.47,
+        "p_started_48_in_5y": 0.2833,
+        "p_all_pro_ever": 0.0467,
+        "p_out_of_league_by_y3": 0.2833,
+        "sample_warning": false
+      },
+      "4": {
+        "n": 304,
+        "n_with_5y_window": 304,
+        "p_started_16_in_3y": 0.2928,
+        "p_started_48_in_5y": 0.1118,
+        "p_all_pro_ever": 0.023,
+        "p_out_of_league_by_y3": 0.3355,
+        "sample_warning": false
+      },
+      "5": {
+        "n": 292,
+        "n_with_5y_window": 292,
+        "p_started_16_in_3y": 0.2329,
+        "p_started_48_in_5y": 0.1096,
+        "p_all_pro_ever": 0.0342,
+        "p_out_of_league_by_y3": 0.3733,
+        "sample_warning": false
+      },
+      "6": {
+        "n": 318,
+        "n_with_5y_window": 318,
+        "p_started_16_in_3y": 0.1069,
+        "p_started_48_in_5y": 0.0377,
+        "p_all_pro_ever": 0.0031,
+        "p_out_of_league_by_y3": 0.4591,
+        "sample_warning": false
+      },
+      "7": {
+        "n": 314,
+        "n_with_5y_window": 314,
+        "p_started_16_in_3y": 0.0669,
+        "p_started_48_in_5y": 0.0223,
+        "p_all_pro_ever": 0.0064,
+        "p_out_of_league_by_y3": 0.5828,
+        "sample_warning": false
+      }
+    },
+    "by_position": {
+      "CB": {
+        "n": 288,
+        "n_with_5y_window": 288,
+        "p_started_16_in_3y": 0.4062,
+        "p_started_48_in_5y": 0.2049,
+        "p_all_pro_ever": 0.0417,
+        "p_out_of_league_by_y3": 0.2743,
+        "sample_warning": false
+      },
+      "DL": {
+        "n": 348,
+        "n_with_5y_window": 348,
+        "p_started_16_in_3y": 0.3247,
+        "p_started_48_in_5y": 0.1782,
+        "p_all_pro_ever": 0.023,
+        "p_out_of_league_by_y3": 0.2328,
+        "sample_warning": false
+      },
+      "LB": {
+        "n": 266,
+        "n_with_5y_window": 266,
+        "p_started_16_in_3y": 0.3195,
+        "p_started_48_in_5y": 0.1955,
+        "p_all_pro_ever": 0.0451,
+        "p_out_of_league_by_y3": 0.2632,
+        "sample_warning": false
+      },
+      "OL": {
+        "n": 331,
+        "n_with_5y_window": 331,
+        "p_started_16_in_3y": 0.4653,
+        "p_started_48_in_5y": 0.3323,
+        "p_all_pro_ever": 0.0423,
+        "p_out_of_league_by_y3": 1,
+        "sample_warning": false
+      },
+      "QB": {
+        "n": 94,
+        "n_with_5y_window": 94,
+        "p_started_16_in_3y": 0.3085,
+        "p_started_48_in_5y": 0.2128,
+        "p_all_pro_ever": 0.0213,
+        "p_out_of_league_by_y3": 0.266,
+        "sample_warning": false
+      },
+      "RB": {
+        "n": 186,
+        "n_with_5y_window": 186,
+        "p_started_16_in_3y": 0.2097,
+        "p_started_48_in_5y": 0.0806,
+        "p_all_pro_ever": 0.0591,
+        "p_out_of_league_by_y3": 0.2366,
+        "sample_warning": false
+      },
+      "S": {
+        "n": 118,
+        "n_with_5y_window": 118,
+        "p_started_16_in_3y": 0.5254,
+        "p_started_48_in_5y": 0.339,
+        "p_all_pro_ever": 0.1017,
+        "p_out_of_league_by_y3": 0.1525,
+        "sample_warning": false
+      },
+      "ST": {
+        "n": 36,
+        "n_with_5y_window": 36,
+        "p_started_16_in_3y": 0,
+        "p_started_48_in_5y": 0,
+        "p_all_pro_ever": 0.1111,
+        "p_out_of_league_by_y3": 0.3889,
+        "sample_warning": false
+      },
+      "TE": {
+        "n": 113,
+        "n_with_5y_window": 113,
+        "p_started_16_in_3y": 0.354,
+        "p_started_48_in_5y": 0.177,
+        "p_all_pro_ever": 0.0265,
+        "p_out_of_league_by_y3": 0.1504,
+        "sample_warning": false
+      },
+      "WR": {
+        "n": 257,
+        "n_with_5y_window": 257,
+        "p_started_16_in_3y": 0.3852,
+        "p_started_48_in_5y": 0.2296,
+        "p_all_pro_ever": 0.0545,
+        "p_out_of_league_by_y3": 0.2257,
+        "sample_warning": false
+      }
+    },
+    "by_round_and_position": {
+      "1": {
+        "CB": {
+          "n": 40,
+          "n_with_5y_window": 40,
+          "p_started_16_in_3y": 0.825,
+          "p_started_48_in_5y": 0.55,
+          "p_all_pro_ever": 0.15,
+          "p_out_of_league_by_y3": 0.15,
+          "sample_warning": false
+        },
+        "DL": {
+          "n": 49,
+          "n_with_5y_window": 49,
+          "p_started_16_in_3y": 0.7959,
+          "p_started_48_in_5y": 0.5306,
+          "p_all_pro_ever": 0.1224,
+          "p_out_of_league_by_y3": 0.0408,
+          "sample_warning": false
+        },
+        "LB": {
+          "n": 33,
+          "n_with_5y_window": 33,
+          "p_started_16_in_3y": 0.8788,
+          "p_started_48_in_5y": 0.6061,
+          "p_all_pro_ever": 0.1515,
+          "p_out_of_league_by_y3": 0.0303,
+          "sample_warning": false
+        },
+        "OL": {
+          "n": 49,
+          "n_with_5y_window": 49,
+          "p_started_16_in_3y": 0.8776,
+          "p_started_48_in_5y": 0.7755,
+          "p_all_pro_ever": 0.2041,
+          "p_out_of_league_by_y3": 1,
+          "sample_warning": false
+        },
+        "QB": {
+          "n": 24,
+          "n_with_5y_window": 24,
+          "p_started_16_in_3y": 0.8333,
+          "p_started_48_in_5y": 0.7083,
+          "p_all_pro_ever": 0.0833,
+          "p_out_of_league_by_y3": 0.0833,
+          "sample_warning": true
+        },
+        "RB": {
+          "n": 10,
+          "n_with_5y_window": 10,
+          "p_started_16_in_3y": 0.8,
+          "p_started_48_in_5y": 0.6,
+          "p_all_pro_ever": 0.5,
+          "p_out_of_league_by_y3": 0,
+          "sample_warning": true
+        },
+        "S": {
+          "n": 11,
+          "n_with_5y_window": 11,
+          "p_started_16_in_3y": 1,
+          "p_started_48_in_5y": 0.8182,
+          "p_all_pro_ever": 0.2727,
+          "p_out_of_league_by_y3": 0,
+          "sample_warning": true
+        },
+        "TE": {
+          "n": 8,
+          "n_with_5y_window": 8,
+          "p_started_16_in_3y": 1,
+          "p_started_48_in_5y": 0.5,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0,
+          "sample_warning": true
+        },
+        "WR": {
+          "n": 31,
+          "n_with_5y_window": 31,
+          "p_started_16_in_3y": 0.9032,
+          "p_started_48_in_5y": 0.6129,
+          "p_all_pro_ever": 0.129,
+          "p_out_of_league_by_y3": 0.0323,
+          "sample_warning": false
+        }
+      },
+      "2": {
+        "CB": {
+          "n": 40,
+          "n_with_5y_window": 40,
+          "p_started_16_in_3y": 0.7,
+          "p_started_48_in_5y": 0.4,
+          "p_all_pro_ever": 0.075,
+          "p_out_of_league_by_y3": 0.025,
+          "sample_warning": false
+        },
+        "DL": {
+          "n": 41,
+          "n_with_5y_window": 41,
+          "p_started_16_in_3y": 0.5122,
+          "p_started_48_in_5y": 0.2683,
+          "p_all_pro_ever": 0.0244,
+          "p_out_of_league_by_y3": 0.122,
+          "sample_warning": false
+        },
+        "LB": {
+          "n": 31,
+          "n_with_5y_window": 31,
+          "p_started_16_in_3y": 0.5806,
+          "p_started_48_in_5y": 0.3226,
+          "p_all_pro_ever": 0.0645,
+          "p_out_of_league_by_y3": 0.0645,
+          "sample_warning": false
+        },
+        "OL": {
+          "n": 36,
+          "n_with_5y_window": 36,
+          "p_started_16_in_3y": 0.7778,
+          "p_started_48_in_5y": 0.6944,
+          "p_all_pro_ever": 0.0278,
+          "p_out_of_league_by_y3": 1,
+          "sample_warning": false
+        },
+        "QB": {
+          "n": 7,
+          "n_with_5y_window": 7,
+          "p_started_16_in_3y": 0.5714,
+          "p_started_48_in_5y": 0.2857,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.1429,
+          "sample_warning": true
+        },
+        "RB": {
+          "n": 23,
+          "n_with_5y_window": 23,
+          "p_started_16_in_3y": 0.5217,
+          "p_started_48_in_5y": 0.2609,
+          "p_all_pro_ever": 0.1304,
+          "p_out_of_league_by_y3": 0.087,
+          "sample_warning": true
+        },
+        "S": {
+          "n": 21,
+          "n_with_5y_window": 21,
+          "p_started_16_in_3y": 0.8095,
+          "p_started_48_in_5y": 0.619,
+          "p_all_pro_ever": 0.1905,
+          "p_out_of_league_by_y3": 0.0476,
+          "sample_warning": true
+        },
+        "ST": {
+          "n": 1,
+          "n_with_5y_window": 1,
+          "p_started_16_in_3y": 0,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 1,
+          "sample_warning": true
+        },
+        "TE": {
+          "n": 15,
+          "n_with_5y_window": 15,
+          "p_started_16_in_3y": 0.4667,
+          "p_started_48_in_5y": 0.3333,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0,
+          "sample_warning": true
+        },
+        "WR": {
+          "n": 39,
+          "n_with_5y_window": 39,
+          "p_started_16_in_3y": 0.7949,
+          "p_started_48_in_5y": 0.4615,
+          "p_all_pro_ever": 0.0769,
+          "p_out_of_league_by_y3": 0.0513,
+          "sample_warning": false
+        }
+      },
+      "3": {
+        "CB": {
+          "n": 40,
+          "n_with_5y_window": 40,
+          "p_started_16_in_3y": 0.45,
+          "p_started_48_in_5y": 0.25,
+          "p_all_pro_ever": 0.025,
+          "p_out_of_league_by_y3": 0.125,
+          "sample_warning": false
+        },
+        "DL": {
+          "n": 63,
+          "n_with_5y_window": 63,
+          "p_started_16_in_3y": 0.3651,
+          "p_started_48_in_5y": 0.2222,
+          "p_all_pro_ever": 0.0159,
+          "p_out_of_league_by_y3": 0.1429,
+          "sample_warning": false
+        },
+        "LB": {
+          "n": 36,
+          "n_with_5y_window": 36,
+          "p_started_16_in_3y": 0.4167,
+          "p_started_48_in_5y": 0.2778,
+          "p_all_pro_ever": 0.0833,
+          "p_out_of_league_by_y3": 0.1667,
+          "sample_warning": false
+        },
+        "OL": {
+          "n": 56,
+          "n_with_5y_window": 56,
+          "p_started_16_in_3y": 0.5893,
+          "p_started_48_in_5y": 0.4107,
+          "p_all_pro_ever": 0.0179,
+          "p_out_of_league_by_y3": 1,
+          "sample_warning": false
+        },
+        "QB": {
+          "n": 9,
+          "n_with_5y_window": 9,
+          "p_started_16_in_3y": 0.2222,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0,
+          "sample_warning": true
+        },
+        "RB": {
+          "n": 25,
+          "n_with_5y_window": 25,
+          "p_started_16_in_3y": 0.36,
+          "p_started_48_in_5y": 0.12,
+          "p_all_pro_ever": 0.04,
+          "p_out_of_league_by_y3": 0.04,
+          "sample_warning": true
+        },
+        "S": {
+          "n": 17,
+          "n_with_5y_window": 17,
+          "p_started_16_in_3y": 0.7059,
+          "p_started_48_in_5y": 0.3529,
+          "p_all_pro_ever": 0.1176,
+          "p_out_of_league_by_y3": 0.0588,
+          "sample_warning": true
+        },
+        "TE": {
+          "n": 21,
+          "n_with_5y_window": 21,
+          "p_started_16_in_3y": 0.5714,
+          "p_started_48_in_5y": 0.2857,
+          "p_all_pro_ever": 0.0952,
+          "p_out_of_league_by_y3": 0,
+          "sample_warning": true
+        },
+        "WR": {
+          "n": 33,
+          "n_with_5y_window": 33,
+          "p_started_16_in_3y": 0.5152,
+          "p_started_48_in_5y": 0.3939,
+          "p_all_pro_ever": 0.0909,
+          "p_out_of_league_by_y3": 0.2121,
+          "sample_warning": false
+        }
+      },
+      "4": {
+        "CB": {
+          "n": 41,
+          "n_with_5y_window": 41,
+          "p_started_16_in_3y": 0.3659,
+          "p_started_48_in_5y": 0.122,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.2195,
+          "sample_warning": false
+        },
+        "DL": {
+          "n": 47,
+          "n_with_5y_window": 47,
+          "p_started_16_in_3y": 0.2553,
+          "p_started_48_in_5y": 0.1277,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.1064,
+          "sample_warning": false
+        },
+        "LB": {
+          "n": 36,
+          "n_with_5y_window": 36,
+          "p_started_16_in_3y": 0.3056,
+          "p_started_48_in_5y": 0.1389,
+          "p_all_pro_ever": 0.0278,
+          "p_out_of_league_by_y3": 0.25,
+          "sample_warning": false
+        },
+        "OL": {
+          "n": 53,
+          "n_with_5y_window": 53,
+          "p_started_16_in_3y": 0.3585,
+          "p_started_48_in_5y": 0.1321,
+          "p_all_pro_ever": 0.0189,
+          "p_out_of_league_by_y3": 1,
+          "sample_warning": false
+        },
+        "QB": {
+          "n": 16,
+          "n_with_5y_window": 16,
+          "p_started_16_in_3y": 0.0625,
+          "p_started_48_in_5y": 0.0625,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.3125,
+          "sample_warning": true
+        },
+        "RB": {
+          "n": 36,
+          "n_with_5y_window": 36,
+          "p_started_16_in_3y": 0.1111,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0.0556,
+          "p_out_of_league_by_y3": 0.1667,
+          "sample_warning": false
+        },
+        "S": {
+          "n": 22,
+          "n_with_5y_window": 22,
+          "p_started_16_in_3y": 0.5455,
+          "p_started_48_in_5y": 0.2273,
+          "p_all_pro_ever": 0.0909,
+          "p_out_of_league_by_y3": 0.0909,
+          "sample_warning": true
+        },
+        "ST": {
+          "n": 1,
+          "n_with_5y_window": 1,
+          "p_started_16_in_3y": 0,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0,
+          "sample_warning": true
+        },
+        "TE": {
+          "n": 17,
+          "n_with_5y_window": 17,
+          "p_started_16_in_3y": 0.4706,
+          "p_started_48_in_5y": 0.1765,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.0588,
+          "sample_warning": true
+        },
+        "WR": {
+          "n": 35,
+          "n_with_5y_window": 35,
+          "p_started_16_in_3y": 0.2,
+          "p_started_48_in_5y": 0.0571,
+          "p_all_pro_ever": 0.0286,
+          "p_out_of_league_by_y3": 0.3429,
+          "sample_warning": false
+        }
+      },
+      "5": {
+        "CB": {
+          "n": 39,
+          "n_with_5y_window": 39,
+          "p_started_16_in_3y": 0.2308,
+          "p_started_48_in_5y": 0.0769,
+          "p_all_pro_ever": 0.0256,
+          "p_out_of_league_by_y3": 0.3846,
+          "sample_warning": false
+        },
+        "DL": {
+          "n": 50,
+          "n_with_5y_window": 50,
+          "p_started_16_in_3y": 0.3,
+          "p_started_48_in_5y": 0.1,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.38,
+          "sample_warning": false
+        },
+        "LB": {
+          "n": 45,
+          "n_with_5y_window": 45,
+          "p_started_16_in_3y": 0.2222,
+          "p_started_48_in_5y": 0.1556,
+          "p_all_pro_ever": 0.0222,
+          "p_out_of_league_by_y3": 0.2667,
+          "sample_warning": false
+        },
+        "OL": {
+          "n": 43,
+          "n_with_5y_window": 43,
+          "p_started_16_in_3y": 0.3023,
+          "p_started_48_in_5y": 0.1395,
+          "p_all_pro_ever": 0.0233,
+          "p_out_of_league_by_y3": 1,
+          "sample_warning": false
+        },
+        "QB": {
+          "n": 9,
+          "n_with_5y_window": 9,
+          "p_started_16_in_3y": 0,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.2222,
+          "sample_warning": true
+        },
+        "RB": {
+          "n": 25,
+          "n_with_5y_window": 25,
+          "p_started_16_in_3y": 0.12,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.24,
+          "sample_warning": true
+        },
+        "S": {
+          "n": 15,
+          "n_with_5y_window": 15,
+          "p_started_16_in_3y": 0.2,
+          "p_started_48_in_5y": 0.1333,
+          "p_all_pro_ever": 0.0667,
+          "p_out_of_league_by_y3": 0.2667,
+          "sample_warning": true
+        },
+        "ST": {
+          "n": 14,
+          "n_with_5y_window": 14,
+          "p_started_16_in_3y": 0,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0.2143,
+          "p_out_of_league_by_y3": 0.1429,
+          "sample_warning": true
+        },
+        "TE": {
+          "n": 16,
+          "n_with_5y_window": 16,
+          "p_started_16_in_3y": 0.25,
+          "p_started_48_in_5y": 0.125,
+          "p_all_pro_ever": 0.0625,
+          "p_out_of_league_by_y3": 0.0625,
+          "sample_warning": true
+        },
+        "WR": {
+          "n": 36,
+          "n_with_5y_window": 36,
+          "p_started_16_in_3y": 0.3056,
+          "p_started_48_in_5y": 0.1944,
+          "p_all_pro_ever": 0.0556,
+          "p_out_of_league_by_y3": 0.1389,
+          "sample_warning": false
+        }
+      },
+      "6": {
+        "CB": {
+          "n": 43,
+          "n_with_5y_window": 43,
+          "p_started_16_in_3y": 0.1628,
+          "p_started_48_in_5y": 0.0465,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.4419,
+          "sample_warning": false
+        },
+        "DL": {
+          "n": 45,
+          "n_with_5y_window": 45,
+          "p_started_16_in_3y": 0.0444,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.3333,
+          "sample_warning": false
+        },
+        "LB": {
+          "n": 41,
+          "n_with_5y_window": 41,
+          "p_started_16_in_3y": 0.0244,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.5122,
+          "sample_warning": false
+        },
+        "OL": {
+          "n": 51,
+          "n_with_5y_window": 51,
+          "p_started_16_in_3y": 0.2353,
+          "p_started_48_in_5y": 0.1373,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 1,
+          "sample_warning": false
+        },
+        "QB": {
+          "n": 15,
+          "n_with_5y_window": 15,
+          "p_started_16_in_3y": 0.0667,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.4,
+          "sample_warning": true
+        },
+        "RB": {
+          "n": 35,
+          "n_with_5y_window": 35,
+          "p_started_16_in_3y": 0.0286,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.2571,
+          "sample_warning": false
+        },
+        "S": {
+          "n": 20,
+          "n_with_5y_window": 20,
+          "p_started_16_in_3y": 0.25,
+          "p_started_48_in_5y": 0.15,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.25,
+          "sample_warning": true
+        },
+        "ST": {
+          "n": 8,
+          "n_with_5y_window": 8,
+          "p_started_16_in_3y": 0,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.5,
+          "sample_warning": true
+        },
+        "TE": {
+          "n": 17,
+          "n_with_5y_window": 17,
+          "p_started_16_in_3y": 0.0588,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.2941,
+          "sample_warning": true
+        },
+        "WR": {
+          "n": 43,
+          "n_with_5y_window": 43,
+          "p_started_16_in_3y": 0.093,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0.0233,
+          "p_out_of_league_by_y3": 0.2558,
+          "sample_warning": false
+        }
+      },
+      "7": {
+        "CB": {
+          "n": 45,
+          "n_with_5y_window": 45,
+          "p_started_16_in_3y": 0.1556,
+          "p_started_48_in_5y": 0.0222,
+          "p_all_pro_ever": 0.0222,
+          "p_out_of_league_by_y3": 0.5333,
+          "sample_warning": false
+        },
+        "DL": {
+          "n": 53,
+          "n_with_5y_window": 53,
+          "p_started_16_in_3y": 0.0189,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.4906,
+          "sample_warning": false
+        },
+        "LB": {
+          "n": 44,
+          "n_with_5y_window": 44,
+          "p_started_16_in_3y": 0.0227,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.4318,
+          "sample_warning": false
+        },
+        "OL": {
+          "n": 43,
+          "n_with_5y_window": 43,
+          "p_started_16_in_3y": 0.1395,
+          "p_started_48_in_5y": 0.093,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 1,
+          "sample_warning": false
+        },
+        "QB": {
+          "n": 14,
+          "n_with_5y_window": 14,
+          "p_started_16_in_3y": 0.0714,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.6429,
+          "sample_warning": true
+        },
+        "RB": {
+          "n": 32,
+          "n_with_5y_window": 32,
+          "p_started_16_in_3y": 0.0625,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.625,
+          "sample_warning": false
+        },
+        "S": {
+          "n": 12,
+          "n_with_5y_window": 12,
+          "p_started_16_in_3y": 0.1667,
+          "p_started_48_in_5y": 0.1667,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.4167,
+          "sample_warning": true
+        },
+        "ST": {
+          "n": 12,
+          "n_with_5y_window": 12,
+          "p_started_16_in_3y": 0,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0.0833,
+          "p_out_of_league_by_y3": 0.5833,
+          "sample_warning": true
+        },
+        "TE": {
+          "n": 19,
+          "n_with_5y_window": 19,
+          "p_started_16_in_3y": 0,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.5263,
+          "sample_warning": true
+        },
+        "WR": {
+          "n": 40,
+          "n_with_5y_window": 40,
+          "p_started_16_in_3y": 0.025,
+          "p_started_48_in_5y": 0,
+          "p_all_pro_ever": 0,
+          "p_out_of_league_by_y3": 0.5,
+          "sample_warning": false
+        }
+      }
+    }
+  }
+}
