@@ -5,7 +5,7 @@ import type {
   CoachSpecialty,
   PositionGroup,
 } from "@zone-blitz/shared";
-import { COACH_RATING_KEYS } from "@zone-blitz/shared";
+import { COACH_RATING_KEYS, triangularInt } from "@zone-blitz/shared";
 import {
   createNameGenerator,
   type NameGenerator,
@@ -425,28 +425,6 @@ export interface CoachesGeneratorOptions {
 
 function intInRange(random: () => number, min: number, max: number): number {
   return Math.floor(random() * (max - min + 1)) + min;
-}
-
-/**
- * Inverse-CDF sample from a triangular distribution with explicit mode.
- * Produces a population whose histogram peaks at `mode` and tapers toward
- * both tails — the right shape for ages in a professional league, where
- * most coaches cluster near a typical career-arc peak but rising stars
- * (young) and career lifers (old) genuinely exist.
- */
-function triangularInt(
-  random: () => number,
-  min: number,
-  mode: number,
-  max: number,
-): number {
-  const u = random();
-  const range = max - min;
-  const leftShare = (mode - min) / range;
-  const raw = u < leftShare
-    ? min + Math.sqrt(u * range * (mode - min))
-    : max - Math.sqrt((1 - u) * range * (max - mode));
-  return Math.min(max, Math.max(min, Math.round(raw)));
 }
 
 // Pool sizing is driven by tier-level per-team counts rather than a flat

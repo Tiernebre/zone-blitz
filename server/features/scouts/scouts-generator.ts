@@ -1,4 +1,5 @@
 import type { PositionGroup, ScoutRegion, ScoutRole } from "@zone-blitz/shared";
+import { triangularInt } from "@zone-blitz/shared";
 import {
   createNameGenerator,
   type NameGenerator,
@@ -210,27 +211,6 @@ export interface ScoutsGeneratorOptions {
 
 function intInRange(random: () => number, min: number, max: number): number {
   return Math.floor(random() * (max - min + 1)) + min;
-}
-
-/**
- * Inverse-CDF sample from a triangular distribution with explicit mode.
- * Peaks at `mode` and tapers toward both tails — right shape for ages
- * in a professional scouting department, where most staff cluster near
- * a typical career-arc peak but rising stars and career lifers exist.
- */
-function triangularInt(
-  random: () => number,
-  min: number,
-  mode: number,
-  max: number,
-): number {
-  const u = random();
-  const range = max - min;
-  const leftShare = (mode - min) / range;
-  const raw = u < leftShare
-    ? min + Math.sqrt(u * range * (mode - min))
-    : max - Math.sqrt((1 - u) * range * (max - mode));
-  return Math.min(max, Math.max(min, Math.round(raw)));
 }
 
 interface ScoutPreferences {
