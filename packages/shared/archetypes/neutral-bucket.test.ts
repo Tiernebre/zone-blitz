@@ -112,6 +112,23 @@ Deno.test("OT gate: same blocker, too short, classifies as IOL", () => {
   assertEquals(bucket, "IOL");
 });
 
+Deno.test(
+  "IOL gate: OT-height blocker with IOL-ish attrs still classifies as OT",
+  () => {
+    // An OT-sized player (h≥77) must not qualify as IOL — otherwise the
+    // two buckets tie on shared classifier sig attrs and the generator's
+    // lockInBucket loop inflates OT attributes unbounded.
+    const bucket = neutralBucket(
+      input(
+        { runBlocking: 60, passBlocking: 60, strength: 60, agility: 40 },
+        78,
+        315,
+      ),
+    );
+    assertEquals(bucket, "OT");
+  },
+);
+
 Deno.test("classifies a power-scheme IOL", () => {
   const bucket = neutralBucket(
     input(
