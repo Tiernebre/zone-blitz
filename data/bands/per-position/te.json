@@ -1,0 +1,160 @@
+{
+  "generated_at": "2026-04-17T12:28:57Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "position": "TE",
+  "qualifier": "regular-season TE-seasons with >=30 targets",
+  "ranking_stat": "epa_per_target (receiving EPA / targets)",
+  "notes": "Starter TE-seasons 2020-2024, ranked by receiving EPA/target then carved into percentile bands (elite: top 10%, good: 10-30%, average: 30-70%, weak: 70-90%, replacement: bottom 10%). Each band reports mean+sd per metric across the TE-seasons in that band. catch_rate, yards_per_target, and td_rate use targets as denominator; yards_per_reception uses receptions; yards_per_game uses games played. Rushing/blocking production is intentionally excluded from the ranking stat — the sim's TE attribution covers receiving only.",
+  "bands": {
+    "elite": {
+      "n": 22,
+      "metrics": {
+        "catch_rate": {
+          "n": 22,
+          "mean": 0.7737,
+          "sd": 0.0597
+        },
+        "yards_per_reception": {
+          "n": 22,
+          "mean": 12.6136,
+          "sd": 1.7131
+        },
+        "yards_per_target": {
+          "n": 22,
+          "mean": 9.6966,
+          "sd": 1.0326
+        },
+        "td_rate": {
+          "n": 22,
+          "mean": 0.0799,
+          "sd": 0.0414
+        },
+        "yards_per_game": {
+          "n": 22,
+          "mean": 44.6672,
+          "sd": 19.6583
+        }
+      }
+    },
+    "good": {
+      "n": 45,
+      "metrics": {
+        "catch_rate": {
+          "n": 45,
+          "mean": 0.7318,
+          "sd": 0.0593
+        },
+        "yards_per_reception": {
+          "n": 45,
+          "mean": 11.1308,
+          "sd": 1.3195
+        },
+        "yards_per_target": {
+          "n": 45,
+          "mean": 8.1129,
+          "sd": 0.8792
+        },
+        "td_rate": {
+          "n": 45,
+          "mean": 0.0661,
+          "sd": 0.0331
+        },
+        "yards_per_game": {
+          "n": 45,
+          "mean": 40.0004,
+          "sd": 16.9485
+        }
+      }
+    },
+    "average": {
+      "n": 90,
+      "metrics": {
+        "catch_rate": {
+          "n": 90,
+          "mean": 0.6961,
+          "sd": 0.066
+        },
+        "yards_per_reception": {
+          "n": 90,
+          "mean": 10.5169,
+          "sd": 1.5726
+        },
+        "yards_per_target": {
+          "n": 90,
+          "mean": 7.2712,
+          "sd": 0.9505
+        },
+        "td_rate": {
+          "n": 90,
+          "mean": 0.0447,
+          "sd": 0.0275
+        },
+        "yards_per_game": {
+          "n": 90,
+          "mean": 34.0073,
+          "sd": 12.4518
+        }
+      }
+    },
+    "weak": {
+      "n": 45,
+      "metrics": {
+        "catch_rate": {
+          "n": 45,
+          "mean": 0.6626,
+          "sd": 0.0676
+        },
+        "yards_per_reception": {
+          "n": 45,
+          "mean": 9.5816,
+          "sd": 1.2393
+        },
+        "yards_per_target": {
+          "n": 45,
+          "mean": 6.3116,
+          "sd": 0.7598
+        },
+        "td_rate": {
+          "n": 45,
+          "mean": 0.0424,
+          "sd": 0.0262
+        },
+        "yards_per_game": {
+          "n": 45,
+          "mean": 29.5649,
+          "sd": 11.5604
+        }
+      }
+    },
+    "replacement": {
+      "n": 22,
+      "metrics": {
+        "catch_rate": {
+          "n": 22,
+          "mean": 0.6204,
+          "sd": 0.0701
+        },
+        "yards_per_reception": {
+          "n": 22,
+          "mean": 9.0394,
+          "sd": 1.4223
+        },
+        "yards_per_target": {
+          "n": 22,
+          "mean": 5.5513,
+          "sd": 0.7018
+        },
+        "td_rate": {
+          "n": 22,
+          "mean": 0.0241,
+          "sd": 0.0226
+        },
+        "yards_per_game": {
+          "n": 22,
+          "mean": 22.4744,
+          "sd": 7.4219
+        }
+      }
+    }
+  }
+}
