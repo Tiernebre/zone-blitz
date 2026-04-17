@@ -20,6 +20,36 @@ Tier boundaries are fuzzy; the shapes matter more than the exact cutoffs.
 
 **Rating midpoint (0–100) = 50.** Average = ~50. Elite rides the tail.
 
+## Shape at a glance — QB vs OL vs EDGE
+
+The three archetypal shapes the sim needs to support:
+
+```mermaid
+xychart-beta
+    title "QB — bimodal, thin middle, fat tails"
+    x-axis ["Elite", "Strong", "Average", "Weak", "Replacement"]
+    y-axis "% of position" 0 --> 40
+    bar [7, 18, 28, 28, 28]
+```
+
+```mermaid
+xychart-beta
+    title "OL — tight, compressed toward the middle"
+    x-axis ["Elite", "Strong", "Average", "Weak", "Replacement"]
+    y-axis "% of position" 0 --> 40
+    bar [4, 18, 38, 28, 13]
+```
+
+```mermaid
+xychart-beta
+    title "EDGE — top-heavy, long right tail"
+    x-axis ["Elite", "Strong", "Average", "Weak", "Replacement"]
+    y-axis "% of position" 0 --> 40
+    bar [4, 13, 32, 28, 22]
+```
+
+OL compresses toward the mean. QB and EDGE let the Elite tier ride the tail.
+
 ---
 
 ## Quarterback (QB)

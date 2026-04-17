@@ -163,6 +163,23 @@ Four canonical waves per offseason (NFL league-year opens mid-March):
    (post-June-1 designations free up real cap) and where UDFAs replace injured
    camp bodies.
 
+```mermaid
+pie showData
+    title Offseason spend by signing wave
+    "Wave 1 · Legal tampering" : 40
+    "Wave 2 · First two weeks" : 28
+    "Wave 3 · April pre-draft" : 12
+    "Wave 4 · June post-draft" : 20
+```
+
+```mermaid
+flowchart LR
+    W1[Wave 1<br/>Legal tampering<br/>top_10 deals] --> W2[Wave 2<br/>First two weeks<br/>top_25 · top_50]
+    W2 --> W3[Wave 3<br/>April pre-draft<br/>prove-it 1-year]
+    W3 --> DR([Draft])
+    DR --> W4[Wave 4<br/>June post-draft<br/>min-value · cuts]
+```
+
 Share numbers are from Spotrac / OTC year-over-year rollup reporting; they are
 not computed from the band and should be treated as priors.
 
@@ -184,6 +201,14 @@ Observed in the 2020–2024 window, vet contracts only (excludes rookie deals):
 | CB       | 15.6%        |
 | QB       | 15.2%        |
 | ST       | 9.4%         |
+
+```mermaid
+xychart-beta
+    title "Observed own-team re-sign rate by position (%)"
+    x-axis ["WR", "OT", "TE", "EDGE", "RB", "S", "LB", "IOL", "IDL", "CB", "QB", "ST"]
+    y-axis "Re-sign rate (%)" 0 --> 25
+    bar [23.0, 22.9, 22.7, 22.0, 20.9, 20.5, 20.2, 19.4, 15.9, 15.6, 15.2, 9.4]
+```
 
 **Read with caveat:** the denominator includes every vet contract signed with
 any team, including minimum-salary depth. The "own-team re-sign rate for a

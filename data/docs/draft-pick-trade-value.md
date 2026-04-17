@@ -98,6 +98,20 @@ needle. The sim's AI GM should use Rich Hill as its primary valuator and use
 Stuart (or a blend) as the "what do you actually get?" lens surfaced to the
 user.
 
+```mermaid
+xychart-beta
+    title "Pick value (normalised to pick 1 = 1.0)"
+    x-axis "Pick" [1, 5, 10, 32, 64, 100, 150]
+    y-axis "Value (pick 1 = 1.0)" 0 --> 1
+    line [1.00, 0.57, 0.43, 0.20, 0.09, 0.04, 0.01]
+    line [1.00, 0.62, 0.49, 0.27, 0.13, 0.06, 0.02]
+    line [1.00, 0.73, 0.52, 0.27, 0.16, 0.10, 0.05]
+```
+
+Top line to bottom at pick 150: **Stuart** (flattest) · **Rich Hill** (middle) ·
+**Jimmy Johnson** (steepest). The JJ curve's steep decay is exactly what
+overpays trade-ups against the Hill analytics consensus.
+
 ## Future-pick discount
 
 Rule of thumb, endorsed by both Hill and Stuart:
@@ -109,6 +123,14 @@ So a 2nd-round pick next year trades for roughly a 3rd-round pick this year. Two
 years out compounds to 0.64x; three years out is 0.51x. This discount dominates
 most mid-round trade negotiations; GMs willing to take future picks usually
 extract a round of value simply by accepting the time shift.
+
+```mermaid
+xychart-beta
+    title "Future-pick discount (0.8x compounding)"
+    x-axis "Years out" [0, 1, 2, 3, 4]
+    y-axis "Discount factor" 0 --> 1
+    bar [1.00, 0.80, 0.64, 0.51, 0.41]
+```
 
 ## Worked examples from real trades
 

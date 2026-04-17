@@ -10,7 +10,28 @@ Numbers come from [`data/bands/career-length.json`](../bands/career-length.json)
 (seasons 2005–2024, 20 years of rosters). See the R script at
 [`data/R/bands/career-length.R`](../R/bands/career-length.R).
 
+## Mean retirement age at a glance
+
+```mermaid
+xychart-beta
+    title "Mean retirement age by position (2005–2024)"
+    x-axis ["LS", "P", "K", "QB", "OL", "iDL", "EDGE", "LB", "S", "TE", "RB", "CB", "WR"]
+    y-axis "Age" 24 --> 32
+    bar [31.1, 30.2, 29.9, 28.5, 27.4, 26.9, 26.7, 26.7, 26.8, 26.8, 26.3, 26.3, 26.1]
+```
+
+Specialists ride the tail; RB / CB / WR are the early-exit positions.
+
 ## The five canonical aging shapes
+
+```mermaid
+flowchart LR
+    S1[1 · Specialist longevity<br/>K · P · LS<br/>flat attrition, tails into 40s]
+    S2[2 · QB late-tail<br/>flat 22–34<br/>hard cliff 38+]
+    S3[3 · OL late-peak / plateau<br/>flattest 24–28<br/>mid-30s starts]
+    S4[4 · Mid-career cohort<br/>WR · TE · LB · S · EDGE · iDL<br/>p90 ~31–32]
+    S5[5 · Cliff positions<br/>RB · CB<br/>age-28 inflection]
+```
 
 ### 1. Specialist longevity (K / P / LS)
 
@@ -41,6 +62,14 @@ Flat decay from 22 through 34, gentle cliff at 35–37, hard cliff at 38+.
 |  36 |            26% |            39 |
 |  38 |            43% |            23 |
 |  40 |            50% |             6 |
+
+```mermaid
+xychart-beta
+    title "QB attrition (%) and active cohort by age"
+    x-axis "Age" [24, 28, 32, 36, 38, 40]
+    y-axis "Attrition %" 0 --> 60
+    bar [20, 15, 18, 26, 43, 50]
+```
 
 Mean retirement age **28.5**, p90 **36**. The tail is the story: Brady, Rodgers,
 Brees, Roethlisberger. Most QBs wash out before 30, but the ones who don't stick
@@ -96,6 +125,14 @@ The two positions where the "cliff" is real, visible, and sharp.
 |  29 |            34% |
 |  30 |            37% |
 |  31 |        **50%** |
+
+```mermaid
+xychart-beta
+    title "RB year-over-year attrition rate (%)"
+    x-axis "Age" [25, 26, 27, 28, 29, 30, 31]
+    y-axis "Attrition %" 0 --> 60
+    bar [23, 23, 23, 31, 34, 37, 50]
+```
 
 Mean retirement **26.3**, p90 **31**. The age-28 jump is the analytics cliché
 made literal. By 31, half of still-active RBs are gone the next year. Christian

@@ -13,6 +13,23 @@ Companion script:
 [`data/R/bands/contract-structure.R`](../R/bands/contract-structure.R). Gap
 index row: [calibration-gaps.md #6 (#515)](./calibration-gaps.md).
 
+## Contract lifecycle — the events the sim has to model
+
+```mermaid
+flowchart LR
+    SIGN([Signing]) --> Y1[Y1 cap hit<br/>low base + bonus proration]
+    Y1 --> RESTR{Restructure?<br/>Y2 or Y3}
+    RESTR -- "~60–70% for top-10 QB" --> CONV[Convert base → bonus<br/>reprorate over remaining years]
+    RESTR -- no --> Y3[Y3 cap hit<br/>back-loaded peak]
+    CONV --> Y3
+    Y3 --> DECIDE{Keep · Cut · Extend?}
+    DECIDE -- keep --> Y4[Y4–Y5 cap hit<br/>full non-guaranteed base]
+    DECIDE -- cut pre-June-1 --> DC1[All remaining proration<br/>hits current year as dead cap]
+    DECIDE -- cut post-June-1 --> DC2[Split dead cap<br/>across two cap years]
+    DECIDE -- extend --> NEW([New contract<br/>cycle restarts])
+    Y4 --> END([Contract ends<br/>void years accelerate])
+```
+
 ## Sources
 
 - `nflreadr::load_contracts()` — OTC historical feed plus the nested `cols`
@@ -66,6 +83,14 @@ leaderboards.
 | RB       | 3.5        | 47.8%                | Shortest at the top; guarantee floor is real            |
 | CB       | 3.3        | 39.3%                | CBs sign shortest and least-guaranteed at the top       |
 
+```mermaid
+xychart-beta
+    title "Top-10 guarantee share by position (%)"
+    x-axis ["IOL", "QB", "IDL", "ST", "LB", "RB", "EDGE", "OT", "WR", "TE", "CB", "S"]
+    y-axis "Guarantee share (%)" 0 --> 60
+    bar [53.0, 51.5, 51.2, 50.4, 48.6, 47.8, 47.0, 45.8, 43.4, 41.6, 39.3, 38.1]
+```
+
 Full per-tier numbers live in the band JSON.
 
 ## Cap-hit shape — the "Y1 cheap, Y3 expensive" pattern
@@ -79,6 +104,25 @@ cap hits. Top-10 tier shape by position (share of total cap hit):
 | RB       | 26.5%                                                              | 31.2% | 36.1% | 18.3% | 21.6% |
 | WR       | 20% — driven by signing-bonus + low-base Y1, ramping to 30%+ by Y4 |       |       |       |       |
 | OT       | Similar to QB — back-loaded with the tackle sweet spot in Y3–Y4    |       |       |       |       |
+
+```mermaid
+xychart-beta
+    title "Top-10 QB cap hit share by year (%)"
+    x-axis "Contract year" [Y1, Y2, Y3, Y4, Y5]
+    y-axis "Share of total cap hit (%)" 0 --> 40
+    bar [15.6, 22.4, 20.1, 27.7, 34.1]
+```
+
+```mermaid
+xychart-beta
+    title "Top-10 RB cap hit share by year (%)"
+    x-axis "Contract year" [Y1, Y2, Y3, Y4, Y5]
+    y-axis "Share of total cap hit (%)" 0 --> 40
+    bar [26.5, 31.2, 36.1, 18.3, 21.6]
+```
+
+QB contracts back-load; RB contracts front-load. Same Y1 cap cost hides opposite
+design intent.
 
 (Full matrix in `cap_hit_shape_by_position_tier` in the band JSON.)
 
