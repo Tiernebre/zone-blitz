@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: zoneblitz
+  datasource:
+    url: jdbc:postgresql://localhost:5432/zoneblitz
+    username: zoneblitz
+    password: zoneblitz
+  jooq:
+    sql-dialect: POSTGRES
+  flyway:
+    locations: classpath:db/migration
+  thymeleaf:
+    cache: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
