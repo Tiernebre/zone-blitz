@@ -297,6 +297,10 @@ export {
 } from "./rng/mod.ts";
 export type { SeededRng } from "./rng/mod.ts";
 
+// Math
+export { clamp, distributeByWeight, intInRange } from "./math/mod.ts";
+export type { WeightedKey } from "./math/mod.ts";
+
 // League
 export { deriveDefaultSeasonLength } from "./league/derive-default-season-length.ts";
 

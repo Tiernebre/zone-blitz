@@ -1,4 +1,5 @@
 import type { CoachRatingValues } from "@zone-blitz/shared";
+import { clamp } from "@zone-blitz/shared";
 import type { CoachingMods } from "./resolve-play.ts";
 
 /**
@@ -30,10 +31,6 @@ const NEUTRAL: CoachRatingValues = {
   playerDevelopment: 50,
   adaptability: 50,
 };
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
 
 function avg(values: number[]): number {
   if (values.length === 0) return 50;

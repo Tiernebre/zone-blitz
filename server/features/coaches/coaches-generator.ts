@@ -5,7 +5,11 @@ import type {
   CoachSpecialty,
   PositionGroup,
 } from "@zone-blitz/shared";
-import { COACH_RATING_KEYS } from "@zone-blitz/shared";
+import {
+  COACH_RATING_KEYS,
+  distributeByWeight,
+  intInRange,
+} from "@zone-blitz/shared";
 import {
   createNameGenerator,
   type NameGenerator,
@@ -414,10 +418,6 @@ export interface CoachesGeneratorOptions {
   now?: () => Date;
 }
 
-function intInRange(random: () => number, min: number, max: number): number {
-  return Math.floor(random() * (max - min + 1)) + min;
-}
-
 // Pool sizing is driven by tier-level per-team counts rather than a flat
 // multiplier per blueprint role. The numbers reflect the initial staffing
 // phase the game presents at league creation — teams compete over roughly
@@ -429,48 +429,26 @@ const POSITION_POOL_PER_TEAM = 6;
 
 const COORDINATOR_ROLES = new Set<CoachRole>(["OC", "DC", "STC"]);
 
-const COORDINATOR_WEIGHTS: ReadonlyArray<{ role: CoachRole; weight: number }> =
-  [
-    { role: "OC", weight: 1 },
-    { role: "DC", weight: 1 },
-    { role: "STC", weight: 1 },
-  ];
+const COORDINATOR_WEIGHTS: ReadonlyArray<{ key: CoachRole; weight: number }> = [
+  { key: "OC", weight: 1 },
+  { key: "DC", weight: 1 },
+  { key: "STC", weight: 1 },
+];
 
 // Position-coach weights track real-NFL staff composition: OL, LB, and DB
 // rooms typically carry two coaches (head + assistant or inside/outside
 // split); other position groups run with a single coach.
-const POSITION_WEIGHTS: ReadonlyArray<{ role: CoachRole; weight: number }> = [
-  { role: "QB", weight: 1 },
-  { role: "RB", weight: 1 },
-  { role: "WR", weight: 1 },
-  { role: "TE", weight: 1 },
-  { role: "OL", weight: 2 },
-  { role: "DL", weight: 1 },
-  { role: "LB", weight: 2 },
-  { role: "DB", weight: 2 },
-  { role: "ST_ASSISTANT", weight: 1 },
+const POSITION_WEIGHTS: ReadonlyArray<{ key: CoachRole; weight: number }> = [
+  { key: "QB", weight: 1 },
+  { key: "RB", weight: 1 },
+  { key: "WR", weight: 1 },
+  { key: "TE", weight: 1 },
+  { key: "OL", weight: 2 },
+  { key: "DL", weight: 1 },
+  { key: "LB", weight: 2 },
+  { key: "DB", weight: 2 },
+  { key: "ST_ASSISTANT", weight: 1 },
 ];
-
-// Largest-remainder apportionment: distribute `total` units across
-// `weights` so each role's share approximates total*weight/sumW, and the
-// rounding remainder goes to roles with the largest fractional part.
-function distributeByWeight(
-  total: number,
-  weights: ReadonlyArray<{ role: CoachRole; weight: number }>,
-): Map<CoachRole, number> {
-  const sumW = weights.reduce((a, w) => a + w.weight, 0);
-  const rows = weights.map((w) => {
-    const exact = (total * w.weight) / sumW;
-    const floor = Math.floor(exact);
-    return { role: w.role, floor, remainder: exact - floor };
-  });
-  const leftover = total - rows.reduce((a, r) => a + r.floor, 0);
-  rows.sort((a, b) => b.remainder - a.remainder);
-  for (let i = 0; i < leftover; i++) rows[i].floor++;
-  const out = new Map<CoachRole, number>();
-  for (const r of rows) out.set(r.role, r.floor);
-  return out;
-}
 
 interface CoachPreferences {
   marketTierPref: number;

@@ -1,4 +1,5 @@
 import type { PositionGroup, ScoutRegion, ScoutRole } from "@zone-blitz/shared";
+import { distributeByWeight, intInRange } from "@zone-blitz/shared";
 import {
   createNameGenerator,
   type NameGenerator,
@@ -98,24 +99,6 @@ const NON_DIRECTOR_WEIGHTS: ReadonlyArray<
   { key: "AREA_W", weight: 0.75 },
 ];
 
-function distributeByWeight(
-  total: number,
-  weights: ReadonlyArray<{ key: BlueprintKey; weight: number }>,
-): Map<BlueprintKey, number> {
-  const sumW = weights.reduce((a, w) => a + w.weight, 0);
-  const rows = weights.map((w) => {
-    const exact = (total * w.weight) / sumW;
-    const floor = Math.floor(exact);
-    return { key: w.key, floor, remainder: exact - floor };
-  });
-  const leftover = total - rows.reduce((a, r) => a + r.floor, 0);
-  rows.sort((a, b) => b.remainder - a.remainder);
-  for (let i = 0; i < leftover; i++) rows[i].floor++;
-  const out = new Map<BlueprintKey, number>();
-  for (const r of rows) out.set(r.key, r.floor);
-  return out;
-}
-
 interface RoleBand {
   ageMin: number;
   ageMax: number;
@@ -198,10 +181,6 @@ export interface ScoutsGeneratorOptions {
   random?: () => number;
   /** Anchor date for hiredAt math; defaults to `new Date()`. */
   now?: () => Date;
-}
-
-function intInRange(random: () => number, min: number, max: number): number {
-  return Math.floor(random() * (max - min + 1)) + min;
 }
 
 interface ScoutPreferences {
