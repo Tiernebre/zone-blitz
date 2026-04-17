@@ -14,17 +14,9 @@ data/
   R/
     setup.R           # verifies package install, prints versions
     lib.R             # shared helpers (season windows, JSON writer)
-    bands/
-      team-game.R              # per-team-per-game distributions (first-cut)
-      passing-plays.R          # per-dropback outcome tree + yardage
-      rushing-plays.R          # per-rush yardage + gain thresholds
-      special-teams.R          # FG/punt/kickoff/return-TD distributions
-      situational.R            # 4th-down, 2-point, and onside kick decision rates
-      position-concentration.R # top-k share by position group
-      injuries.R               # injury rates by position, severity, and category
-      draft-hit-rates.R        # P(multi-year starter | round, position)
-      draft-pick-value.R       # Jimmy Johnson / Rich Hill / Chase Stuart curves
+    bands/            # one Rscript per band — see "Bands currently produced" below
   bands/              # generated JSON artifacts — checked in
+  docs/               # narrative docs paired with specific bands
   cache/              # nflreadr disk cache — gitignored
 ```
 
@@ -177,14 +169,7 @@ without depending on network or R at test time. Regenerate them when:
   [`docs/contract-structure.md`](./docs/contract-structure.md) with qualitative
   priors because the feed does not tag them reliably.
 
-## Planned bands (follow-up work)
-
-These map to
-[`docs/product/north-star/game-simulation.md`](../docs/product/north-star/game-simulation.md#calibration)
-and are tracked as GitHub issues labeled `ready-for-agent`:
-
-- **Position stat concentration** (#248) — RB1/RB2/RB3 carry share, WR1/WR2/slot
-  target share, CB1 coverage share
+Follow-up bands are tracked as GitHub issues labeled `ready-for-agent`.
 
 ## Why R
 
