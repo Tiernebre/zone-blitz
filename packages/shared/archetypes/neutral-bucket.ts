@@ -108,7 +108,15 @@ const BUCKET_RULES: readonly BucketRule[] = [
   {
     bucket: "IOL",
     signature: ["runBlocking", "passBlocking", "strength"],
-    qualifies: ({ weightPounds }) => weightPounds >= 290,
+    // Height gate separates interior OL from tackles so OT-sized players
+    // (height ≥ 77 in the generator) don't also qualify as IOL. Without
+    // this, OT and IOL tie on the classifier's shared pass/run-block sig
+    // attrs, and the generator's `lockInBucket` loop inflates every OT
+    // sig attr by +3 per iteration until the tie-break kicks in —
+    // producing OT attribute means ~15 pts above the rating scale's
+    // intent and a +10 asymmetry on `pass_protection` matchup scores.
+    qualifies: ({ heightInches, weightPounds }) =>
+      heightInches <= 76 && weightPounds >= 290,
   },
   {
     bucket: "RB",

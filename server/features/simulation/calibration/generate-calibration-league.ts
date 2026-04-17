@@ -24,11 +24,12 @@ export interface CalibrationLeague {
 }
 
 // Calibration fixtures use a larger-than-NFL team count to shrink
-// between-seed sampling noise on league-wide metrics. 64 teams halves
-// the standard error of the mean on metrics like YPC so the seeded
-// fixtures can all land inside the NFL bands (±0.07 tolerances)
-// without asking the engine to be luckier than statistics allows.
-const DEFAULT_TEAM_COUNT = 64;
+// between-seed sampling noise on league-wide metrics. 128 teams
+// quarters the standard error of the mean on metrics like YPC so
+// the seeded fixtures can all land inside the NFL bands (±0.01 on
+// completion_pct, ±0.07 on YPC, ±0.10 on YPA) without asking the
+// engine to be luckier than the narrow tolerances allow.
+const DEFAULT_TEAM_COUNT = 128;
 const ROSTER_SIZE = 53;
 
 export interface GenerateCalibrationLeagueOptions {
