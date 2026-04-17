@@ -13,7 +13,11 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHiringCandidateDetail } from "../../../hooks/use-hiring.ts";
 import { roleLabel } from "../role-labels.ts";
-import { bandFor, formatMoney } from "./salary-bands.ts";
+import {
+  bandFor,
+  expectedSalaryForCandidate,
+  formatMoney,
+} from "./salary-bands.ts";
 
 export function CandidateDetail() {
   const { leagueId, candidateId } = useParams({ strict: false }) as {
@@ -48,6 +52,7 @@ export function CandidateDetail() {
   }
 
   const band = bandFor(data.staffType, data.role);
+  const expectedSalary = expectedSalaryForCandidate(data);
 
   return (
     <div className="flex flex-col gap-6 p-6" data-testid="candidate-detail">
@@ -64,6 +69,16 @@ export function CandidateDetail() {
           Market band for this role: {formatMoney(band.min)} –{" "}
           {formatMoney(band.max)}
         </p>
+        <p
+          className="text-sm text-muted-foreground"
+          data-testid="candidate-expected-salary"
+        >
+          Expected ask:{" "}
+          <span className="font-medium text-foreground">
+            {formatMoney(expectedSalary)}
+          </span>
+        </p>
+        {data.staffType === "coach" && <ExperienceBreakdown detail={data} />}
         <Button asChild variant="link" className="self-start p-0">
           <Link
             to="/leagues/$leagueId/hiring"
@@ -77,6 +92,41 @@ export function CandidateDetail() {
 
       <RevealCard detail={data} />
     </div>
+  );
+}
+
+function yearsLabel(years: number, role: string): string {
+  return `${years} yr${years === 1 ? "" : "s"} as ${role}`;
+}
+
+function ExperienceBreakdown(
+  { detail }: { detail: HiringCandidateDetail },
+) {
+  const parts: string[] = [];
+  if (detail.role === "HC") {
+    parts.push(
+      detail.headCoachYears > 0
+        ? yearsLabel(detail.headCoachYears, "HC")
+        : "first-time HC",
+    );
+  }
+  if (detail.coordinatorYears > 0) {
+    parts.push(yearsLabel(detail.coordinatorYears, "coordinator"));
+  }
+  if (detail.positionCoachYears > 0) {
+    parts.push(yearsLabel(detail.positionCoachYears, "position coach"));
+  }
+  const overall = `${detail.yearsExperience} yr${
+    detail.yearsExperience === 1 ? "" : "s"
+  } coaching`;
+  return (
+    <p
+      className="text-sm text-muted-foreground"
+      data-testid="candidate-experience-breakdown"
+    >
+      {overall}
+      {parts.length > 0 ? ` — ${parts.join(", ")}` : ""}
+    </p>
   );
 }
 

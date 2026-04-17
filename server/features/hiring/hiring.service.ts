@@ -787,6 +787,9 @@ export function createHiringService(deps: {
             defensiveArchetype: archetypes.defensive,
             age: coach.age,
             yearsExperience: coach.yearsExperience,
+            headCoachYears: coach.headCoachYears,
+            coordinatorYears: coach.coordinatorYears,
+            positionCoachYears: coach.positionCoachYears,
             positionBackground: coach.positionBackground,
             positionFocus: null,
             regionFocus: null,
@@ -809,6 +812,9 @@ export function createHiringService(deps: {
             defensiveArchetype: null,
             age: scout.age,
             yearsExperience: scout.yearsExperience,
+            headCoachYears: 0,
+            coordinatorYears: 0,
+            positionCoachYears: 0,
             positionBackground: null,
             positionFocus: scout.positionFocus,
             regionFocus: scout.regionFocus,
@@ -867,6 +873,15 @@ export function createHiringService(deps: {
         defensiveArchetype: archetypes.defensive,
         age: hit.candidate.age,
         yearsExperience: hit.candidate.yearsExperience,
+        headCoachYears: hit.staffType === "coach"
+          ? hit.candidate.headCoachYears
+          : 0,
+        coordinatorYears: hit.staffType === "coach"
+          ? hit.candidate.coordinatorYears
+          : 0,
+        positionCoachYears: hit.staffType === "coach"
+          ? hit.candidate.positionCoachYears
+          : 0,
         positionBackground: hit.staffType === "coach"
           ? hit.candidate.positionBackground
           : null,
