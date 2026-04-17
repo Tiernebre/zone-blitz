@@ -502,10 +502,28 @@ Deno.test("generatePool creates coaches with null teamId", () => {
   }
 });
 
-Deno.test("generatePool creates surplus coaches beyond team need", () => {
+Deno.test("generatePool sizes each tier by per-team count", () => {
   const result = makePoolGenerator().generatePool(POOL_INPUT);
-  const minimumNeeded = POOL_INPUT.numberOfTeams * COACHES_PER_TEAM;
-  assertEquals(result.length > minimumNeeded, true);
+  const N = POOL_INPUT.numberOfTeams;
+  const hcs = result.filter((c) => c.role === "HC");
+  const coords = result.filter((c) =>
+    c.role === "OC" || c.role === "DC" || c.role === "STC"
+  );
+  const positionRoles = new Set([
+    "QB",
+    "RB",
+    "WR",
+    "TE",
+    "OL",
+    "DL",
+    "LB",
+    "DB",
+    "ST_ASSISTANT",
+  ]);
+  const positions = result.filter((c) => positionRoles.has(c.role));
+  assertEquals(hcs.length, 2 * N);
+  assertEquals(coords.length, 4 * N);
+  assertEquals(positions.length, 6 * N);
 });
 
 Deno.test("generatePool creates coaches for all role types", () => {
@@ -516,15 +534,20 @@ Deno.test("generatePool creates coaches for all role types", () => {
   }
 });
 
-Deno.test("generatePool creates multiple candidates per role", () => {
+Deno.test("generatePool position weights favor OL/LB/DB over single-coach rooms", () => {
   const result = makePoolGenerator().generatePool(POOL_INPUT);
-  for (const role of EXPECTED_ROLES) {
-    const count = result.filter((c) => c.role === role).length;
-    assertEquals(
-      count >= POOL_INPUT.numberOfTeams,
-      true,
-      `role ${role}: expected >= ${POOL_INPUT.numberOfTeams}, got ${count}`,
-    );
+  const countOf = (role: string) =>
+    result.filter((c) => c.role === role).length;
+  for (const heavy of ["OL", "LB", "DB"]) {
+    for (const light of ["QB", "RB", "WR", "TE", "DL", "ST_ASSISTANT"]) {
+      assertEquals(
+        countOf(heavy) > countOf(light),
+        true,
+        `${heavy} (${countOf(heavy)}) should exceed ${light} (${
+          countOf(light)
+        })`,
+      );
+    }
   }
 });
 
