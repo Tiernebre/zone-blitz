@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-04-17T12:30:32Z",
+  "seasons": [2021, 2022, 2023, 2024, 2025],
+  "position": "IDL",
+  "qualifier": "regular-season DT/NT-seasons with >=400 defensive snaps",
+  "ranking_stat": "composite z-score of sacks/gm + qb_hits/gm + tfl/gm + tackles/gm",
+  "notes": "PROXY-METRIC v1 — nflreadr does not carry PFF pass-rush / run-defense grades, so this band ranks interior DL (DT + NT) by a counting-stat composite instead of true disruption rate. Known gaps: space-eating 1-tech NTs who draw double teams will under-score versus 3-techs who finish tackles; pressures that don't finish as sacks/QB-hits are invisible. Starter threshold is >=400 regular-season defensive snaps (via load_snap_counts). Ranking composite is the z-score sum of sacks/game + qb_hits/game + tfl/game + tackles/game across the starter population. Bands are percentile carves of that composite (elite: top 10%, good: 10-30%, average: 30-70%, weak: 70-90%, replacement: bottom 10%). Each band reports mean+sd per metric over the IDL-seasons in that band. Upgrade path once PFF grades are available: swap the ranking stat for grade and re-carve.",
+  "bands": {
+    "elite": {
+      "n": 32,
+      "metrics": {
+        "sacks_per_game": {
+          "n": 32,
+          "mean": 0.5311,
+          "sd": 0.1468
+        },
+        "qb_hits_per_game": {
+          "n": 32,
+          "mean": 1.1738,
+          "sd": 0.3224
+        },
+        "tfl_per_game": {
+          "n": 32,
+          "mean": 0.681,
+          "sd": 0.1519
+        },
+        "tackles_per_game": {
+          "n": 32,
+          "mean": 3.5389,
+          "sd": 0.7303
+        }
+      }
+    },
+    "good": {
+      "n": 65,
+      "metrics": {
+        "sacks_per_game": {
+          "n": 65,
+          "mean": 0.3144,
+          "sd": 0.0961
+        },
+        "qb_hits_per_game": {
+          "n": 65,
+          "mean": 0.7811,
+          "sd": 0.2625
+        },
+        "tfl_per_game": {
+          "n": 65,
+          "mean": 0.4389,
+          "sd": 0.1306
+        },
+        "tackles_per_game": {
+          "n": 65,
+          "mean": 2.7734,
+          "sd": 0.6724
+        }
+      }
+    },
+    "average": {
+      "n": 130,
+      "metrics": {
+        "sacks_per_game": {
+          "n": 130,
+          "mean": 0.1537,
+          "sd": 0.0799
+        },
+        "qb_hits_per_game": {
+          "n": 130,
+          "mean": 0.4413,
+          "sd": 0.2009
+        },
+        "tfl_per_game": {
+          "n": 130,
+          "mean": 0.26,
+          "sd": 0.1155
+        },
+        "tackles_per_game": {
+          "n": 130,
+          "mean": 2.3988,
+          "sd": 0.5289
+        }
+      }
+    },
+    "weak": {
+      "n": 65,
+      "metrics": {
+        "sacks_per_game": {
+          "n": 65,
+          "mean": 0.0626,
+          "sd": 0.0462
+        },
+        "qb_hits_per_game": {
+          "n": 65,
+          "mean": 0.2256,
+          "sd": 0.1373
+        },
+        "tfl_per_game": {
+          "n": 65,
+          "mean": 0.1473,
+          "sd": 0.077
+        },
+        "tackles_per_game": {
+          "n": 65,
+          "mean": 2.0067,
+          "sd": 0.5138
+        }
+      }
+    },
+    "replacement": {
+      "n": 32,
+      "metrics": {
+        "sacks_per_game": {
+          "n": 32,
+          "mean": 0.029,
+          "sd": 0.0362
+        },
+        "qb_hits_per_game": {
+          "n": 32,
+          "mean": 0.1484,
+          "sd": 0.1021
+        },
+        "tfl_per_game": {
+          "n": 32,
+          "mean": 0.07,
+          "sd": 0.0595
+        },
+        "tackles_per_game": {
+          "n": 32,
+          "mean": 1.4141,
+          "sd": 0.389
+        }
+      }
+    }
+  }
+}
