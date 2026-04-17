@@ -1,7 +1,6 @@
 import { deriveGameSeed } from "../rng.ts";
 import { loadBands } from "./band-loader.ts";
 import { CALIBRATION_GAME_COUNT } from "./constants.ts";
-import { CALIBRATION_SEED } from "./calibration-seed.ts";
 import { computeDistribution } from "./compute-distribution.ts";
 import { deriveTeamGameStats, type TeamGameSample } from "./team-game-stats.ts";
 import { checkThreeGate, type GateResult } from "./three-gate.ts";
@@ -89,7 +88,11 @@ export function runCalibration(options: CalibrationOptions): CalibrationReport {
   for (let i = 0; i < matchups.length; i++) {
     const { home, away } = matchups[i];
     const gameId = `calibration-game-${i}`;
-    const seed = deriveGameSeed(CALIBRATION_SEED, gameId);
+    // Seed each game off the league's seed, not a hardcoded constant.
+    // Hardcoding it meant every fixture re-used the same play-level rng
+    // stream, so only the teams changed across seeds — the engine was
+    // being judged against a single rng path.
+    const seed = deriveGameSeed(league.calibrationSeed, gameId);
 
     const result = simulate({ home, away, seed, gameId });
     const [homeSample, awaySample] = deriveTeamGameStats(

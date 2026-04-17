@@ -1,5 +1,9 @@
 import type { PositionGroup, ScoutRegion, ScoutRole } from "@zone-blitz/shared";
-import { distributeByWeight, intInRange } from "@zone-blitz/shared";
+import {
+  distributeByWeight,
+  intInRange,
+  triangularInt,
+} from "@zone-blitz/shared";
 import {
   createNameGenerator,
   type NameGenerator,
@@ -102,6 +106,11 @@ const NON_DIRECTOR_WEIGHTS: ReadonlyArray<
 interface RoleBand {
   ageMin: number;
   ageMax: number;
+  /** Most-common age (mode) for the triangular age distribution. Keeps
+   * the pool NFL-shaped with real tails (young cross-checkers, career
+   * area scouts well into their 50s) instead of a flat uniform roll
+   * that clusters everyone near the band's midpoint. */
+  ageMode: number;
   salaryMin: number;
   salaryMax: number;
   yearsMin: number;
@@ -122,8 +131,9 @@ const CAREER_START_AGE = 22;
 
 const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
   DIRECTOR: {
-    ageMin: 50,
-    ageMax: 65,
+    ageMin: 40,
+    ageMax: 70,
+    ageMode: 54,
     salaryMin: 250_000,
     salaryMax: 800_000,
     yearsMin: 3,
@@ -134,12 +144,13 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
     workCapacityMax: 240,
     tenureMin: 0,
     tenureMax: 5,
-    experienceMin: 20,
-    experienceMax: 35,
+    experienceMin: 12,
+    experienceMax: 40,
   },
   NATIONAL_CROSS_CHECKER: {
-    ageMin: 42,
-    ageMax: 58,
+    ageMin: 32,
+    ageMax: 64,
+    ageMode: 46,
     salaryMin: 150_000,
     salaryMax: 400_000,
     yearsMin: 2,
@@ -150,12 +161,13 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
     workCapacityMax: 220,
     tenureMin: 0,
     tenureMax: 4,
-    experienceMin: 12,
-    experienceMax: 25,
+    experienceMin: 6,
+    experienceMax: 30,
   },
   AREA_SCOUT: {
-    ageMin: 30,
-    ageMax: 50,
+    ageMin: 25,
+    ageMax: 58,
+    ageMode: 36,
     salaryMin: 80_000,
     salaryMax: 200_000,
     yearsMin: 1,
@@ -166,8 +178,8 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
     workCapacityMax: 160,
     tenureMin: 0,
     tenureMax: 3,
-    experienceMin: 3,
-    experienceMax: 15,
+    experienceMin: 1,
+    experienceMax: 25,
   },
 };
 
@@ -210,14 +222,14 @@ const NULL_PREFERENCES = {
 };
 
 /**
- * Position-group options for an area scout or cross-checker. Real
- * front offices heavily skew toward generalists — an area scout
- * typically evaluates every position in their region — so we weight
- * `GENERALIST` more heavily than any single group.
+ * Position-group options for any scout — area scout, cross-checker, or
+ * director. Most scouts build up deeper reps on a specific position group
+ * over their career (an area scout who spent years on Big Ten OL, a
+ * director who rose through DB evaluation), so each of the eight groups
+ * gets an equal shot alongside a single `GENERALIST` bucket for the true
+ * all-position evaluators and pure board-builders.
  */
 const POSITION_FOCUS_POOL: ReadonlyArray<PositionGroup> = [
-  "GENERALIST",
-  "GENERALIST",
   "GENERALIST",
   "QB",
   "RB",
@@ -243,24 +255,17 @@ function pickFromArray<T>(random: () => number, values: ReadonlyArray<T>): T {
 }
 
 /**
- * Rolls the position-focus value a scout is hireable on. Directors
- * almost always read as `GENERALIST` — their value is board-building
- * and management — but we allow a small chance of a position-focused
- * director (e.g. a former DB coach who runs a DB-centric board).
+ * Rolls the position-focus value a scout is hireable on. All scouts —
+ * including directors, who are former area scouts who built their way up —
+ * draw from the same pool: one generalist slot and eight position-group
+ * slots with equal weight. This gives hiring managers a meaningful fit
+ * decision (a DB-focus director builds a different board than a QB-focus
+ * one) instead of every director reading as an interchangeable generalist.
  */
 function rollPositionFocus(
-  role: ScoutRole,
+  _role: ScoutRole,
   random: () => number,
 ): PositionGroup {
-  if (role === "DIRECTOR") {
-    return random() < 0.2
-      ? pickFromArray(random, [
-        "QB" as const,
-        "DL" as const,
-        "DB" as const,
-      ])
-      : "GENERALIST";
-  }
   return pickFromArray(random, POSITION_FOCUS_POOL);
 }
 
@@ -328,7 +333,12 @@ export function createScoutsGenerator(
             : idsByKey.get(spec.reportsTo)!;
 
           const band = ROLE_BANDS[spec.role];
-          const age = intInRange(random, band.ageMin, band.ageMax);
+          const age = triangularInt(
+            random,
+            band.ageMin,
+            band.ageMode,
+            band.ageMax,
+          );
           const contractYears = intInRange(
             random,
             band.yearsMin,
@@ -424,7 +434,12 @@ export function createScoutsGenerator(
           const id = crypto.randomUUID();
 
           const band = ROLE_BANDS[spec.role];
-          const age = intInRange(random, band.ageMin, band.ageMax);
+          const age = triangularInt(
+            random,
+            band.ageMin,
+            band.ageMode,
+            band.ageMax,
+          );
           const contractYears = intInRange(
             random,
             band.yearsMin,

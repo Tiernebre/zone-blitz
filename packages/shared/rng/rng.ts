@@ -39,6 +39,29 @@ export function createSeededRng(seed: number): SeededRng {
   return createRng(mulberry32(seed));
 }
 
+/**
+ * Inverse-CDF sample from a triangular distribution with an explicit
+ * mode, rounded to an integer. Peaks at `mode` and tapers toward both
+ * tails — the right shape for quantities like ages in a professional
+ * staff, where most people cluster near a typical career-arc peak but
+ * rising stars and career lifers genuinely exist. A uniform roll over
+ * a narrow band clusters everyone at the midpoint; this does not.
+ */
+export function triangularInt(
+  random: () => number,
+  min: number,
+  mode: number,
+  max: number,
+): number {
+  const u = random();
+  const range = max - min;
+  const leftShare = (mode - min) / range;
+  const raw = u < leftShare
+    ? min + Math.sqrt(u * range * (mode - min))
+    : max - Math.sqrt((1 - u) * range * (max - mode));
+  return Math.min(max, Math.max(min, Math.round(raw)));
+}
+
 export function deriveGameSeed(
   leagueSeed: number,
   gameIdentifier: string,

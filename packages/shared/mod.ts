@@ -294,6 +294,7 @@ export {
   createSeededRng,
   deriveGameSeed,
   mulberry32,
+  triangularInt,
 } from "./rng/mod.ts";
 export type { SeededRng } from "./rng/mod.ts";
 

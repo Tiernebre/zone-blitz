@@ -27,7 +27,12 @@ export interface CalibrationLeague {
   teams: SimTeam[];
 }
 
-const TEAM_COUNT = 32;
+const DEFAULT_TEAM_COUNT = 32;
+
+export interface GenerateCalibrationLeagueOptions {
+  seed?: number;
+  teamCount?: number;
+}
 
 const STARTER_SLOTS: Record<NeutralBucket, number> = {
   QB: 1,
@@ -173,12 +178,16 @@ function generateCoachingMods(rng: SeededRng): CoachingMods {
   };
 }
 
-export function generateCalibrationLeague(): CalibrationLeague {
-  const random = mulberry32(CALIBRATION_SEED);
+export function generateCalibrationLeague(
+  options: GenerateCalibrationLeagueOptions = {},
+): CalibrationLeague {
+  const seed = options.seed ?? CALIBRATION_SEED;
+  const teamCount = options.teamCount ?? DEFAULT_TEAM_COUNT;
+  const random = mulberry32(seed);
   const rng = createRng(random);
 
   const teams: SimTeam[] = [];
-  for (let i = 0; i < TEAM_COUNT; i++) {
+  for (let i = 0; i < teamCount; i++) {
     const { starters, bench } = generateTeamRoster(rng, i);
     const fingerprint = generateFingerprint(rng, i);
     const coachingMods = generateCoachingMods(rng);
@@ -193,7 +202,7 @@ export function generateCalibrationLeague(): CalibrationLeague {
   }
 
   return {
-    calibrationSeed: CALIBRATION_SEED,
+    calibrationSeed: seed,
     teams,
   };
 }

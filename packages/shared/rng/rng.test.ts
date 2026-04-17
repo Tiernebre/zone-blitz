@@ -4,6 +4,7 @@ import {
   createSeededRng,
   deriveGameSeed,
   mulberry32,
+  triangularInt,
 } from "./rng.ts";
 import type { SeededRng } from "./rng.ts";
 
@@ -114,6 +115,62 @@ Deno.test("createSeededRng", async (t) => {
     assertEquals(typeof rng.int, "function");
     assertEquals(typeof rng.pick, "function");
     assertEquals(typeof rng.gaussian, "function");
+  });
+});
+
+Deno.test("triangularInt", async (t) => {
+  await t.step("stays within [min, max]", () => {
+    const rng = mulberry32(42);
+    for (let i = 0; i < 1000; i++) {
+      const val = triangularInt(rng, 10, 30, 50);
+      assertEquals(val >= 10 && val <= 50, true);
+      assertEquals(Number.isInteger(val), true);
+    }
+  });
+
+  await t.step(
+    "mean of a large sample approximates (min + mode + max) / 3",
+    () => {
+      const rng = mulberry32(123);
+      const samples: number[] = [];
+      for (let i = 0; i < 10_000; i++) {
+        samples.push(triangularInt(rng, 0, 20, 100));
+      }
+      const mean = samples.reduce((a, b) => a + b, 0) / samples.length;
+      const expected = (0 + 20 + 100) / 3;
+      assertEquals(
+        Math.abs(mean - expected) < 1,
+        true,
+        `mean=${mean} expected≈${expected}`,
+      );
+    },
+  );
+
+  await t.step(
+    "is skewed: left-mode produces smaller mean than right-mode",
+    () => {
+      const leftRng = mulberry32(7);
+      const rightRng = mulberry32(7);
+      let leftSum = 0;
+      let rightSum = 0;
+      const n = 5000;
+      for (let i = 0; i < n; i++) {
+        leftSum += triangularInt(leftRng, 0, 10, 100);
+        rightSum += triangularInt(rightRng, 0, 90, 100);
+      }
+      assertEquals(leftSum / n < rightSum / n, true);
+    },
+  );
+
+  await t.step("is deterministic with a seeded rng", () => {
+    const rng1 = mulberry32(999);
+    const rng2 = mulberry32(999);
+    for (let i = 0; i < 50; i++) {
+      assertEquals(
+        triangularInt(rng1, 10, 25, 60),
+        triangularInt(rng2, 10, 25, 60),
+      );
+    }
   });
 });
 
