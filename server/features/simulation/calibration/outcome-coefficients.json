@@ -2,23 +2,23 @@
   "generated_by": "deno task sim:refit",
   "pass": {
     "completion": {
-      "base": 0.7489,
+      "base": 0.7257,
       "coverageModifier": 0.01,
       "floor": 0.18,
       "ceiling": 0.92
     },
     "interception": {
-      "base": 0.0032,
+      "base": 0.0079,
       "coverageModifier": 0.002,
       "floor": 0.004
     },
     "sack": {
-      "base": 0.0966,
+      "base": 0.1377,
       "protectionModifier": 0.005,
       "floor": 0.01
     },
     "bigPlay": {
-      "base": 0.2471,
+      "base": 0.2286,
       "coverageModifier": 0.008,
       "floor": 0.05,
       "ceiling": 0.45,
@@ -34,9 +34,9 @@
     "fumbleOnSack": 0.08
   },
   "run": {
-    "yardageIntercept": 5.2908,
+    "yardageIntercept": 4.6448,
     "yardageSlope": 0.25,
-    "yardageStddev": 5.8702,
+    "yardageStddev": 5.6169,
     "yardageMin": -8,
     "yardageMax": 60,
     "bigPlayCutoff": 10,
