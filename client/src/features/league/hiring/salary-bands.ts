@@ -1,3 +1,5 @@
+import type { HiringCandidateSummary } from "@zone-blitz/shared";
+
 export interface SalaryBand {
   min: number;
   max: number;
@@ -41,6 +43,55 @@ export function medianSalary(
 ): number {
   const band = bandFor(staffType, role);
   return Math.round((band.min + band.max) / 2);
+}
+
+const COORDINATOR_ROLES = new Set(["OC", "DC", "STC"]);
+
+/**
+ * How many years a coach has spent in the *same role* they're now being
+ * hired for. This is what separates a first-time HC from a proven one:
+ * both may have 20 years of coaching, but one has 0 years actually
+ * running a team. For scouts we fall back to overall years since the
+ * scout ladder is flatter.
+ */
+export function roleTenureYears(
+  candidate: HiringCandidateSummary,
+): number {
+  if (candidate.staffType === "scout") return candidate.yearsExperience ?? 0;
+  if (candidate.role === "HC") return candidate.headCoachYears ?? 0;
+  if (COORDINATOR_ROLES.has(candidate.role)) {
+    return candidate.coordinatorYears ?? 0;
+  }
+  return candidate.positionCoachYears ?? 0;
+}
+
+function clamp01(value: number): number {
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
+}
+
+/**
+ * Compute the salary a coach or scout is expected to ask for, given only
+ * publicly visible facts (tenure in their target role, age, overall
+ * career length). Position within the role's market band is driven
+ * dominantly by role-specific tenure — a first-time head coach sits near
+ * the floor of the HC band, a long-tenured HC sits near the top, even
+ * though both advertise the same role.
+ */
+export function expectedSalaryForCandidate(
+  candidate: HiringCandidateSummary,
+): number {
+  const band = bandFor(candidate.staffType, candidate.role);
+  const tenure = roleTenureYears(candidate);
+  const tenureScore = clamp01(tenure / 10);
+  const ageScore = clamp01(((candidate.age ?? 0) - 35) / 20);
+  const overallScore = clamp01((candidate.yearsExperience ?? 0) / 25);
+  const position = clamp01(
+    0.2 + tenureScore * 0.6 + ageScore * 0.1 + overallScore * 0.1,
+  );
+  const raw = band.min + position * (band.max - band.min);
+  return Math.round(raw / 100_000) * 100_000;
 }
 
 export function formatMoney(amount: number): string {

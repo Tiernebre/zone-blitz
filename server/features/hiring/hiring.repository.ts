@@ -108,6 +108,12 @@ export interface UnassignedCandidate {
   regionFocus: string | null;
   age: number;
   yearsExperience: number;
+  /** Coach: years spent as head coach. 0 for scouts. */
+  headCoachYears: number;
+  /** Coach: years spent as a coordinator. 0 for scouts. */
+  coordinatorYears: number;
+  /** Coach: years spent as a position coach/assistant. 0 for scouts. */
+  positionCoachYears: number;
   marketTierPref: number | null;
   philosophyFitPref: number | null;
   staffFitPref: number | null;
@@ -628,6 +634,9 @@ export function createHiringRepository(deps: {
           positionBackground: coaches.positionBackground,
           age: coaches.age,
           yearsExperience: coaches.yearsExperience,
+          headCoachYears: coaches.headCoachYears,
+          coordinatorYears: coaches.coordinatorYears,
+          positionCoachYears: coaches.positionCoachYears,
           marketTierPref: coaches.marketTierPref,
           philosophyFitPref: coaches.philosophyFitPref,
           staffFitPref: coaches.staffFitPref,
@@ -645,6 +654,9 @@ export function createHiringRepository(deps: {
         positionBackground: (r.positionBackground as string | null) ?? null,
         positionFocus: null as string | null,
         regionFocus: null as string | null,
+        headCoachYears: (r.headCoachYears as number | null) ?? 0,
+        coordinatorYears: (r.coordinatorYears as number | null) ?? 0,
+        positionCoachYears: (r.positionCoachYears as number | null) ?? 0,
       }));
     },
 
@@ -677,6 +689,9 @@ export function createHiringRepository(deps: {
         positionBackground: null as string | null,
         positionFocus: (r.positionFocus as string | null) ?? null,
         regionFocus: (r.regionFocus as string | null) ?? null,
+        headCoachYears: 0,
+        coordinatorYears: 0,
+        positionCoachYears: 0,
       }));
     },
 

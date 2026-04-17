@@ -96,6 +96,22 @@ without depending on network or R at test time. Regenerate them when:
   `load_snap_counts()` for CB snap share. Mid-season QB changes and injured
   starters are handled naturally — weekly stats are summed per player, so a
   starter who misses games accumulates less and the backup's share rises.
+- **`play-call-tendencies.json`** — pass vs run called-play rate by situation.
+  Pass rate broken out by down, down x distance bucket, score differential x
+  time bucket (including two-minute drills and last-5-min-Q4), and field zone,
+  plus pre-computed headline slices (trailing 7+ late Q4, leading 14+ Q4,
+  3rd-and-long 7+, 3rd-and-short 1-2, red-zone goal-to-go, two-minute drills).
+  `called_pass` counts any snap where `play_type == "pass"` OR
+  `qb_dropback == 1` so sacks and scrambles land in the pass bucket. Feeds the
+  sim's offensive play-selection AI and game-script realism (comeback-mode pass
+  rates, late-lead clock kill).
+- **`red-zone-and-third-down.json`** — headline efficiency bands for the two
+  most-cited offensive-efficiency stats. Red-zone drive TD rate (drives reaching
+  the 20, 10, and goal-to-go), red-zone pass/run split, red-zone sack rate, and
+  3rd-down conversion + pass + sack rates broken out by distance bucket (short
+  1-2 / medium 3-5 / long 6-9 / very-long 10+). 4th-and-short go-for-it
+  conversion is referenced, not duplicated, from `situational.json`. Direct
+  single-number bands for fast drift detection.
 - **`draft-hit-rates.json`** — draft hit-rate bands by round (1-7) × position
   group, derived from `load_draft_picks()` joined to `load_snap_counts()` and
   `load_rosters_weekly()` across the 2013-2020 draft classes (2,037 picks). For
@@ -121,6 +137,24 @@ without depending on network or R at test time. Regenerate them when:
   injury category distribution (soft-tissue, knee, ankle, concussion, etc.),
   severity split (0 games / 1 game / 2-3 weeks / 4-7 weeks / season-ending), and
   re-injury rate. Non-injury reports (illness, rest, personal) excluded.
+- **`free-agent-market.json`** — UFA market volume and AAV bands from
+  `nflreadr::load_contracts()` (OverTheCap feed). Covers external UFA signings
+  per offseason by position group, AAV distribution by position × tier (top_10 /
+  top_25 / top_50 / rest) with mean / median / floor / ceiling APY, own-team
+  re-sign rate, contract length (years) and guarantee share for external
+  signings, plus a pointer to
+  [`docs/free-agent-market.md`](./docs/free-agent-market.md) for the
+  signing-timing wave narrative (legal-tampering / first-two-weeks / April /
+  post-draft). Pairs with the doc for tier-level examples (Burrow / Jefferson /
+  Barkley market anchors).
+- **`contract-structure.json`** — contract shape bands from the OTC feed's
+  nested `cols` cap ledger. Covers length (years) by position × tier, guarantee
+  share, signing-bonus share (year-1 prorated × years), and the year-by-year
+  cap-hit shape (Y1..Y5 as % of total cap) so the sim's offer generator and cap
+  AI can reproduce real back-loaded / front-loaded shapes. Void-year usage and
+  restructure frequency are documented in
+  [`docs/contract-structure.md`](./docs/contract-structure.md) with qualitative
+  priors because the feed does not tag them reliably.
 
 ## Planned bands (follow-up work)
 

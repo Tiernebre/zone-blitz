@@ -38,6 +38,14 @@ export interface HiringCandidateSummary {
    * specific team — distinguishes the 25-year veteran from the rising
    * first-timer at a glance. */
   yearsExperience: number;
+  /** Coach-only. Years this coach has served as a head coach. Zero for
+   * first-time HC candidates regardless of overall career length — this
+   * is what separates an unproven HC ask from a proven one. */
+  headCoachYears: number;
+  /** Coach-only. Years served as a coordinator (OC/DC/STC). */
+  coordinatorYears: number;
+  /** Coach-only. Years served as a position coach or assistant. */
+  positionCoachYears: number;
   /** Coach-only. Position group the coach built their career on
    * (e.g. `QB`, `DL`, `GENERALIST`). Null for scouts. */
   positionBackground: string | null;

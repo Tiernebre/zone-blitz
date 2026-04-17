@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-04-17T12:31:53Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "position": "IOL",
+  "qualifier": "regular-season IOL starter-seasons (C/G/OG/OL, games >= 12)",
+  "ranking_stat": "composite z-score of team_stuff_rate_inside (rushes <=0 yds / interior rushes) + team_sack_allowed_rate (sacks / dropback); both proxied at the team level and broadcast to starters. Lower proxy value = better IOL, so the composite inverts sign.",
+  "notes": "PROXY-METRIC LIMITATION: nflreadr does not carry PFF pressure or block-grade data for interior offensive linemen. The bands are built from team-level proxies (interior stuff rate + team sack allowed rate) allocated to each team's IOL starters. All C/G starters on the same team share the same proxy rank, so this fixture cannot distinguish a great guard next to a weak center on the same line. penalties_per_game IS per-player (from nflreadr weekly penalties column) and is the one non-proxy metric here. Treat band separation on the team-proxy metrics as directional. Replace this with PFF grades (or a matchup-level pressure feed) when available.",
+  "bands": {
+    "elite": {
+      "n": 37,
+      "metrics": {
+        "team_sack_allowed_rate": {
+          "n": 37,
+          "mean": 0.0362,
+          "sd": 0.0086
+        },
+        "team_stuff_rate_inside": {
+          "n": 37,
+          "mean": 0.1045,
+          "sd": 0.0318
+        },
+        "penalties_per_game": {
+          "n": 37,
+          "mean": 0.2628,
+          "sd": 0.178
+        },
+        "starts_per_season": {
+          "n": 37,
+          "mean": 15.2432,
+          "sd": 1.6899
+        }
+      }
+    },
+    "good": {
+      "n": 74,
+      "metrics": {
+        "team_sack_allowed_rate": {
+          "n": 74,
+          "mean": 0.047,
+          "sd": 0.0103
+        },
+        "team_stuff_rate_inside": {
+          "n": 74,
+          "mean": 0.1256,
+          "sd": 0.0274
+        },
+        "penalties_per_game": {
+          "n": 74,
+          "mean": 0.2131,
+          "sd": 0.1588
+        },
+        "starts_per_season": {
+          "n": 74,
+          "mean": 15.527,
+          "sd": 1.4733
+        }
+      }
+    },
+    "average": {
+      "n": 149,
+      "metrics": {
+        "team_sack_allowed_rate": {
+          "n": 149,
+          "mean": 0.0578,
+          "sd": 0.0098
+        },
+        "team_stuff_rate_inside": {
+          "n": 149,
+          "mean": 0.1473,
+          "sd": 0.0261
+        },
+        "penalties_per_game": {
+          "n": 149,
+          "mean": 0.2049,
+          "sd": 0.1733
+        },
+        "starts_per_season": {
+          "n": 149,
+          "mean": 15.2282,
+          "sd": 1.6608
+        }
+      }
+    },
+    "weak": {
+      "n": 74,
+      "metrics": {
+        "team_sack_allowed_rate": {
+          "n": 74,
+          "mean": 0.0708,
+          "sd": 0.0096
+        },
+        "team_stuff_rate_inside": {
+          "n": 74,
+          "mean": 0.1708,
+          "sd": 0.0241
+        },
+        "penalties_per_game": {
+          "n": 74,
+          "mean": 0.2143,
+          "sd": 0.1561
+        },
+        "starts_per_season": {
+          "n": 74,
+          "mean": 15.5811,
+          "sd": 1.5616
+        }
+      }
+    },
+    "replacement": {
+      "n": 37,
+      "metrics": {
+        "team_sack_allowed_rate": {
+          "n": 37,
+          "mean": 0.0762,
+          "sd": 0.0217
+        },
+        "team_stuff_rate_inside": {
+          "n": 37,
+          "mean": 0.22,
+          "sd": 0.047
+        },
+        "penalties_per_game": {
+          "n": 37,
+          "mean": 0.2486,
+          "sd": 0.1202
+        },
+        "starts_per_season": {
+          "n": 37,
+          "mean": 15.1622,
+          "sd": 2.0482
+        }
+      }
+    }
+  }
+}

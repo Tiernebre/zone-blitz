@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-04-17T12:32:53Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "position": "OT",
+  "qualifier": "regular-season OT player-seasons with >=600 offensive snaps",
+  "ranking_stat": "composite of (-)team_sack_allowed_rate, team_rush_ypc, (-)penalties_per_game (z-score mean)",
+  "notes": "PROXY METRICS v1 — nflreadr does not expose PFF block/pressure grades, so OT quality here is inferred from team-level protection/run proxies (sacks allowed / rush YPC) shared by both starting tackles on a team, plus a clean per-player penalties_per_game metric. This fixture is a structural placeholder: z-score and band-classification logic is sound, but per-bucket means commingle IOL/QB/scheme effects and should be treated as a weak v1 calibration reference. Proper OT bands require per-player block grades from PFF or tracking data. Starter filter: player-seasons with >=600 offensive snaps at position==T in load_snap_counts. Bands: elite top 10%, good 10-30%, average 30-70%, weak 70-90%, replacement bottom 10% by composite score.",
+  "bands": {
+    "elite": {
+      "n": 28,
+      "metrics": {
+        "team_sack_allowed_rate": {
+          "n": 28,
+          "mean": 0.0507,
+          "sd": 0.0113
+        },
+        "team_rush_ypc": {
+          "n": 28,
+          "mean": 4.7164,
+          "sd": 0.4013
+        },
+        "penalties_per_game": {
+          "n": 28,
+          "mean": 0.2166,
+          "sd": 0.1494
+        },
+        "starts_per_season": {
+          "n": 28,
+          "mean": 13.9286,
+          "sd": 2.7343
+        }
+      }
+    },
+    "good": {
+      "n": 55,
+      "metrics": {
+        "team_sack_allowed_rate": {
+          "n": 55,
+          "mean": 0.0545,
+          "sd": 0.0131
+        },
+        "team_rush_ypc": {
+          "n": 55,
+          "mean": 4.3488,
+          "sd": 0.3227
+        },
+        "penalties_per_game": {
+          "n": 55,
+          "mean": 0.2902,
+          "sd": 0.1251
+        },
+        "starts_per_season": {
+          "n": 55,
+          "mean": 14.4545,
+          "sd": 2.3319
+        }
+      }
+    },
+    "average": {
+      "n": 110,
+      "metrics": {
+        "team_sack_allowed_rate": {
+          "n": 110,
+          "mean": 0.0647,
+          "sd": 0.0137
+        },
+        "team_rush_ypc": {
+          "n": 110,
+          "mean": 4.0583,
+          "sd": 0.3311
+        },
+        "penalties_per_game": {
+          "n": 110,
+          "mean": 0.3338,
+          "sd": 0.17
+        },
+        "starts_per_season": {
+          "n": 110,
+          "mean": 14.0182,
+          "sd": 2.2584
+        }
+      }
+    },
+    "weak": {
+      "n": 55,
+      "metrics": {
+        "team_sack_allowed_rate": {
+          "n": 55,
+          "mean": 0.0756,
+          "sd": 0.0164
+        },
+        "team_rush_ypc": {
+          "n": 55,
+          "mean": 3.8351,
+          "sd": 0.3341
+        },
+        "penalties_per_game": {
+          "n": 55,
+          "mean": 0.4252,
+          "sd": 0.1846
+        },
+        "starts_per_season": {
+          "n": 55,
+          "mean": 14.6,
+          "sd": 2.4766
+        }
+      }
+    },
+    "replacement": {
+      "n": 28,
+      "metrics": {
+        "team_sack_allowed_rate": {
+          "n": 28,
+          "mean": 0.0864,
+          "sd": 0.0193
+        },
+        "team_rush_ypc": {
+          "n": 28,
+          "mean": 3.7524,
+          "sd": 0.3381
+        },
+        "penalties_per_game": {
+          "n": 28,
+          "mean": 0.6352,
+          "sd": 0.2225
+        },
+        "starts_per_season": {
+          "n": 28,
+          "mean": 13.5714,
+          "sd": 2.9867
+        }
+      }
+    }
+  }
+}

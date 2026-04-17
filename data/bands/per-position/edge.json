@@ -1,0 +1,110 @@
+{
+  "generated_at": "2026-04-17T12:29:03Z",
+  "seasons": [2021, 2022, 2023, 2024, 2025],
+  "position": "EDGE",
+  "qualifier": "regular-season DE/OLB-seasons with season sacks+qb_hits >= 10 and games_played >= 10",
+  "ranking_stat": "rush_composite ((sacks + qb_hits + tfl) / games)",
+  "notes": "PROXY METRICS — v1 per issue #496. nflreadr does not carry PFF pass-rush or run-defense grades, so this fixture uses box-score proxies only: sacks_per_game, qb_hits_per_game, tfl_per_game. Starter population = DE/OLB with season sacks+qb_hits >= 10 and games_played >= 10 as a snap-count proxy (snap counts live in a separate nflverse release keyed on pfr_player_id, which this script intentionally does not join against — keeps the pipeline single-source and cheap to regenerate). Ranked by composite (sacks+qb_hits+tfl)/game then carved into percentile bands (elite: top 10%, good: 10-30%, average: 30-70%, weak: 70-90%, replacement: bottom 10%). Follow-up: swap composite for PFF pass-rush grade or ESPN pass-rush-win-rate when available.",
+  "bands": {
+    "elite": {
+      "n": 35,
+      "metrics": {
+        "sacks_per_game": {
+          "n": 35,
+          "mean": 0.8913,
+          "sd": 0.2186
+        },
+        "qb_hits_per_game": {
+          "n": 35,
+          "mean": 1.9015,
+          "sd": 0.3942
+        },
+        "tfl_per_game": {
+          "n": 35,
+          "mean": 1.0785,
+          "sd": 0.3072
+        }
+      }
+    },
+    "good": {
+      "n": 69,
+      "metrics": {
+        "sacks_per_game": {
+          "n": 69,
+          "mean": 0.6239,
+          "sd": 0.1301
+        },
+        "qb_hits_per_game": {
+          "n": 69,
+          "mean": 1.3558,
+          "sd": 0.2413
+        },
+        "tfl_per_game": {
+          "n": 69,
+          "mean": 0.7209,
+          "sd": 0.1654
+        }
+      }
+    },
+    "average": {
+      "n": 138,
+      "metrics": {
+        "sacks_per_game": {
+          "n": 138,
+          "mean": 0.4087,
+          "sd": 0.1148
+        },
+        "qb_hits_per_game": {
+          "n": 138,
+          "mean": 0.9486,
+          "sd": 0.2038
+        },
+        "tfl_per_game": {
+          "n": 138,
+          "mean": 0.4785,
+          "sd": 0.1406
+        }
+      }
+    },
+    "weak": {
+      "n": 69,
+      "metrics": {
+        "sacks_per_game": {
+          "n": 69,
+          "mean": 0.2738,
+          "sd": 0.0802
+        },
+        "qb_hits_per_game": {
+          "n": 69,
+          "mean": 0.6487,
+          "sd": 0.1315
+        },
+        "tfl_per_game": {
+          "n": 69,
+          "mean": 0.3525,
+          "sd": 0.1041
+        }
+      }
+    },
+    "replacement": {
+      "n": 35,
+      "metrics": {
+        "sacks_per_game": {
+          "n": 35,
+          "mean": 0.2144,
+          "sd": 0.0768
+        },
+        "qb_hits_per_game": {
+          "n": 35,
+          "mean": 0.5343,
+          "sd": 0.1061
+        },
+        "tfl_per_game": {
+          "n": 35,
+          "mean": 0.2447,
+          "sd": 0.0807
+        }
+      }
+    }
+  }
+}
