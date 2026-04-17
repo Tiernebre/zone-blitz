@@ -7,8 +7,8 @@ import {
   TEAM_GAME_TARGET,
 } from "./constants.ts";
 
-Deno.test("K_MEAN is 3.0", () => {
-  assertEquals(K_MEAN, 3.0);
+Deno.test("K_MEAN is 4.0", () => {
+  assertEquals(K_MEAN, 4.0);
 });
 
 Deno.test("SPREAD_TOLERANCE is 0.25 (±25%)", () => {
