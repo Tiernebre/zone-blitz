@@ -58,6 +58,15 @@ export type GeneratedCoach =
   & {
     tendencies?: GeneratedCoachTendencies;
     ratings: GeneratedCoachRatings;
+    /**
+     * Native-philosophy fit on a 0–1 scale — generator-only observable
+     * used by the coherence layer (#540) and stripped before insert. A
+     * coach with high `schemeFit` is "native" to his picked archetype
+     * philosophy: he gets a schemeMastery lift and a sharper (less-
+     * jittered) tendency vector than a coach who happens to run the
+     * same archetype without the underlying philosophy literacy.
+     */
+    schemeFit?: number;
   };
 
 export interface CoachesGenerator {

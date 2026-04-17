@@ -225,6 +225,113 @@ const BASE_RATING_MEAN = 50;
 const RATING_MIN = 1;
 const RATING_MAX = 99;
 
+// ---- Coherence layer (#540) ----
+//
+// The independent rolls for ratings, experience, tendencies, and position
+// background produced coaches whose labels disagreed with their numbers — a
+// "Shanahan OC" who didn't actually understand the scheme, a 20-year vet
+// who rolled rookie-level game management, a QB-background HC with no
+// pass-game edge. The helpers below couple those rolls so the generator
+// emits internally consistent coaches:
+//
+// 1. `rollSchemeFit` — per-coach "native to philosophy" strength in 0..1.
+//    Lifts schemeMastery for natives and sharpens the tendency vector.
+// 2. `experienceLift` — adds a current-rating boost on experience-sensitive
+//    attributes (gameManagement, leadership, playerDevelopment) driven by
+//    yearsExperience. The boost consumes ceiling headroom so vets sit near
+//    their ceiling on these attributes instead of inflating the ceiling.
+// 3. `positionBackgroundTilt` — QB/WR-background HCs gain +2 on the
+//    pass-game-adjacent rating (schemeMastery); OL/RB-background HCs gain
+//    +2 on the run-game-adjacent rating (playerDevelopment). Defensive
+//    HCs tilt symmetrically by DB vs DL/LB background.
+// 4. Tendency jitter amplitude scales inversely with schemeMastery — a
+//    high-mastery coach produces a sharper (lower-entropy) vector that
+//    sits close to the archetype's centers, a low-mastery coach's vector
+//    regresses toward 50 and looks generic.
+//
+// The schemeFit value is attached to `GeneratedCoach` as a generator-only
+// field and stripped by the service before insert. Tendency sharpness is
+// purely emergent from schemeMastery and never persisted as its own field.
+
+const EXPERIENCE_SENSITIVE_KEYS: readonly (keyof CoachRatingValues)[] = [
+  "gameManagement",
+  "leadership",
+  "playerDevelopment",
+] as const;
+
+/**
+ * Roll a 0..1 "native to archetype philosophy" strength. Mean is biased
+ * toward native (~0.6) so most coaches agree with the philosophy they
+ * picked, but a meaningful minority land in the off-philosophy tail —
+ * the "generic Shanahan-tree OC who doesn't actually understand outside
+ * zone" case the issue calls out.
+ */
+function rollSchemeFit(random: () => number): number {
+  // Irwin–Hall n=3 sample centered at 0.5, shifted toward 0.6.
+  const sample = (random() + random() + random()) / 3;
+  const shifted = sample * 0.9 + 0.1; // 0.1..1.0 range, mean ~0.55
+  return Math.min(1, Math.max(0, shifted));
+}
+
+/**
+ * schemeMastery boost from philosophy fit. Natives (fit ≥ 0.7) gain up to
+ * +12; off-philosophy coaches (fit ≤ 0.3) lose up to 6. The boost is
+ * centered so the league-wide schemeMastery mean still averages near 50.
+ */
+function schemeFitBoost(fit: number): number {
+  // Map 0..1 → -6..+12, centered at ~0.55 (which yields ~0).
+  return Math.round((fit - 0.55) * 20);
+}
+
+/**
+ * Experience multiplier on current ratings. A 0-year rookie gets no
+ * boost; a 20-year veteran gains +12. Applied only to experience-
+ * sensitive attributes (gameManagement, leadership, playerDevelopment).
+ * Capped at +15 so even 30-year lifers don't run away.
+ */
+function experienceLift(yearsExperience: number): number {
+  if (yearsExperience <= 0) return 0;
+  return Math.min(15, Math.round(yearsExperience * 0.6));
+}
+
+/**
+ * Position-background tilt for HCs. The issue asks for pass-game-adjacent
+ * and run-game-adjacent sub-rating tilts; given the 5-rating coach model,
+ * we map pass-adjacent → schemeMastery (pass defense / pass offense
+ * scheme literacy) and run-adjacent → playerDevelopment (OL/RB rooms are
+ * where run-game coaching develops players).
+ */
+function positionBackgroundTilt(
+  role: CoachRole,
+  positionBackground: PositionGroup,
+  key: keyof CoachRatingValues,
+): number {
+  if (role !== "HC") return 0;
+  const passAdjacent = new Set<PositionGroup>(["QB", "WR", "DB"]);
+  const runAdjacent = new Set<PositionGroup>(["OL", "RB", "DL", "LB"]);
+  if (key === "schemeMastery" && passAdjacent.has(positionBackground)) return 2;
+  if (key === "playerDevelopment" && runAdjacent.has(positionBackground)) {
+    return 2;
+  }
+  return 0;
+}
+
+/**
+ * Tendency jitter amplitude derived from schemeMastery. High-mastery
+ * coaches get tight (low-amplitude) jitter so their vector sits close
+ * to the archetype's centers; low-mastery coaches get wider jitter so
+ * their vector regresses toward 50 and reads generic. The curve:
+ *
+ *   mastery  0 → amplitude 10
+ *   mastery 50 → amplitude  6
+ *   mastery 99 → amplitude  2
+ */
+function tendencyAmplitude(schemeMastery: number): number {
+  const clamped = Math.max(0, Math.min(99, schemeMastery));
+  const amp = Math.round(10 - clamped / 12.5);
+  return Math.max(2, Math.min(10, amp));
+}
+
 /**
  * Irwin–Hall n=3 — sum of three uniforms, normalized. Produces a
  * bell-shaped distribution with mean 0.5 and stddev ≈ 0.167.
@@ -267,19 +374,47 @@ function ceilingHeadroom(
   return Math.floor(random() * (maxGap + 1));
 }
 
+interface RollRatingsContext {
+  tier: Tier;
+  age: number;
+  band: TierBand;
+  yearsExperience: number;
+  role: CoachRole;
+  positionBackground: PositionGroup;
+  /** 0..1 native-to-philosophy fit; undefined for coaches with no tendency side. */
+  schemeFit?: number;
+}
+
 function rollRatings(
   random: () => number,
-  tier: Tier,
-  age: number,
-  band: TierBand,
+  ctx: RollRatingsContext,
 ): GeneratedCoachRatings {
+  const { tier, age, band, yearsExperience, role, positionBackground } = ctx;
   const tilts = TIER_TILTS[tier];
   const current = {} as CoachRatingValues;
   const ceiling = {} as CoachRatingValues;
+  const expLift = experienceLift(yearsExperience);
+  const masteryBoost = ctx.schemeFit !== undefined
+    ? schemeFitBoost(ctx.schemeFit)
+    : 0;
   for (const key of COACH_RATING_KEYS) {
     const tilt = tilts[key] ?? 0;
-    const c = rollRatingAroundMean(random, tilt);
-    const gap = ceilingHeadroom(random, age, band);
+    const base = rollRatingAroundMean(random, tilt);
+    // Experience lifts current on experience-sensitive ratings; the
+    // ceiling headroom then shrinks by the same amount so the ceiling
+    // doesn't inflate — the vet is already near his top, not gaining new
+    // runway. Rookies keep their full headroom on these attributes.
+    const expBonus = EXPERIENCE_SENSITIVE_KEYS.includes(key) ? expLift : 0;
+    // Native-philosophy fit lifts schemeMastery specifically — the
+    // "Shanahan-tree OC who runs Shanahan" signal.
+    const fitBonus = key === "schemeMastery" ? masteryBoost : 0;
+    const tiltBonus = positionBackgroundTilt(role, positionBackground, key);
+    const c = Math.min(
+      RATING_MAX,
+      Math.max(RATING_MIN, base + expBonus + fitBonus + tiltBonus),
+    );
+    const rawGap = ceilingHeadroom(random, age, band);
+    const gap = Math.max(0, rawGap - expBonus);
     const ceil = Math.min(RATING_MAX, c + gap);
     current[key] = c;
     ceiling[key] = ceil;
@@ -300,16 +435,24 @@ function buildTendencies(
   role: CoachRole,
   specialty: CoachSpecialty,
   seed: string,
+  schemeMastery: number,
 ): GeneratedCoachTendencies | null {
   const offensiveSide = role === "OC" ||
     (role === "HC" && specialty === "offense");
   const defensiveSide = role === "DC" ||
     (role === "HC" && specialty === "defense");
+  // Jitter amplitude is coupled to schemeMastery so the vector's
+  // sharpness reads the coach's scheme clarity — high-mastery coaches
+  // emit a vector close to the archetype's extreme centers, low-mastery
+  // coaches regress toward 50 and look generic. This is the
+  // tendencies ↔ ratings coupling from #540.
+  const amplitude = tendencyAmplitude(schemeMastery);
   if (offensiveSide) {
     return {
       offense: offensiveVectorFromArchetype(
         pickOffensiveArchetype(seed),
         seed,
+        amplitude,
       ),
     };
   }
@@ -318,10 +461,23 @@ function buildTendencies(
       defense: defensiveVectorFromArchetype(
         pickDefensiveArchetype(seed),
         seed,
+        amplitude,
       ),
     };
   }
   return null;
+}
+
+/**
+ * Coaches with a tendency side (OC/DC and offense/defense HCs) carry a
+ * schemeFit value; other coaches have no philosophy to be native to.
+ */
+function hasSchemeSide(role: CoachRole, specialty: CoachSpecialty): boolean {
+  if (role === "OC" || role === "DC") return true;
+  if (role === "HC" && (specialty === "offense" || specialty === "defense")) {
+    return true;
+  }
+  return false;
 }
 
 const HC_SPECIALTY_DISTRIBUTION: ReadonlyArray<
@@ -672,12 +828,34 @@ function generateCoach(
   const specialty = spec.role === "HC"
     ? rollHcSpecialty(random)
     : spec.specialty;
-  const tendencies = buildTendencies(spec.role, specialty, id);
-  const ratings = rollRatings(random, spec.tier, age, band);
+  // Position background is now rolled *before* ratings so the HC tilt
+  // (QB-bg → +schemeMastery, OL-bg → +playerDevelopment) can feed the
+  // rating rolls. See #540.
   const positionBackground = positionBackgroundFor(
     spec.role,
     specialty,
     random,
+  );
+  // Scheme fit is rolled up front for coaches on a tendency side — it
+  // feeds both the schemeMastery boost inside rollRatings and the
+  // tendency jitter amplitude inside buildTendencies.
+  const schemeFit = hasSchemeSide(spec.role, specialty)
+    ? rollSchemeFit(random)
+    : undefined;
+  const ratings = rollRatings(random, {
+    tier: spec.tier,
+    age,
+    band,
+    yearsExperience,
+    role: spec.role,
+    positionBackground,
+    schemeFit,
+  });
+  const tendencies = buildTendencies(
+    spec.role,
+    specialty,
+    id,
+    ratings.current.schemeMastery,
   );
 
   return {
@@ -710,6 +888,7 @@ function generateCoach(
     minimumThreshold: preferences?.minimumThreshold ?? null,
     ratings,
     ...(tendencies ? { tendencies } : {}),
+    ...(schemeFit !== undefined ? { schemeFit } : {}),
   };
 }
 

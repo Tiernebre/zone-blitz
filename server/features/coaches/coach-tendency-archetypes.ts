@@ -238,6 +238,7 @@ export function archetypeNamesFor(
 export function offensiveVectorFromArchetype(
   archetype: OffensiveArchetype,
   seed: string,
+  amplitude = 4,
 ): OffensiveTendencies {
   const out = {} as OffensiveTendencies;
   for (const [axis, center] of Object.entries(archetype.vector)) {
@@ -245,6 +246,7 @@ export function offensiveVectorFromArchetype(
       center,
       seed,
       axis,
+      amplitude,
     );
   }
   return out;
@@ -253,6 +255,7 @@ export function offensiveVectorFromArchetype(
 export function defensiveVectorFromArchetype(
   archetype: DefensiveArchetype,
   seed: string,
+  amplitude = 4,
 ): DefensiveTendencies {
   const out = {} as DefensiveTendencies;
   for (const [axis, center] of Object.entries(archetype.vector)) {
@@ -260,6 +263,7 @@ export function defensiveVectorFromArchetype(
       center,
       seed,
       axis,
+      amplitude,
     );
   }
   return out;

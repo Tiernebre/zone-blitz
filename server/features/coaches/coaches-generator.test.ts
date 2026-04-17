@@ -8,6 +8,7 @@ import {
   createCoachesGenerator,
   type NameGenerator,
 } from "./coaches-generator.ts";
+import { pickOffensiveArchetype } from "./coach-tendency-archetypes.ts";
 
 const TEAM_IDS = ["team-1", "team-2", "team-3"];
 const INPUT = {
@@ -890,22 +891,31 @@ Deno.test("HC tier ratings bias toward leadership/gameManagement on average", ()
   assertEquals(hcLeadership > positionLeadership, true);
 });
 
-Deno.test("ratings across the pool are bell-centered on 50 (within 2 pts)", () => {
-  // Rating-scale contract: 50 is league average. A big-enough pool should
-  // have a per-key mean within ~2 points of 50, with only small role
-  // tilts nudging role-relevant ratings a bit higher.
+Deno.test("ratings across the pool are bell-centered on 50", () => {
+  // Rating-scale contract: 50 is league average. The base roll is
+  // bell-centered; the coherence layer (#540) adds experience lift on
+  // gameManagement/leadership/playerDevelopment, so those means sit a
+  // few points above 50 in a population that carries real experience.
+  // Non-experience-sensitive ratings (schemeMastery, adaptability) must
+  // stay within ~5 pts of 50; experience-sensitive ratings within ~15.
   const result = makePoolGenerator().generatePool({
     leagueId: "lg",
     numberOfTeams: 32,
   });
   const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const experienceSensitive = new Set([
+    "gameManagement",
+    "leadership",
+    "playerDevelopment",
+  ]);
   for (const key of COACH_RATING_KEYS) {
     const mean = avg(result.map((c) => c.ratings.current[key]));
+    const allowance = experienceSensitive.has(key) ? 15 : 5;
     const delta = Math.abs(mean - 50);
     assertEquals(
-      delta < 5,
+      delta < allowance,
       true,
-      `${key} mean=${mean.toFixed(1)} drifted >5 from 50`,
+      `${key} mean=${mean.toFixed(1)} drifted >${allowance} from 50`,
     );
   }
 });
@@ -1042,6 +1052,181 @@ Deno.test("Position coach contract length is modal at 2 years (#543)", () => {
 });
 
 // ---- First-time HC age gating (#543) ----
+
+// ---- Ratings ↔ experience ↔ tendencies ↔ scheme philosophy coherence (#540) ----
+
+// Large sample pool so correlation assertions are statistically meaningful
+// without flaking. 200 teams * 2 HC + 4 coord + 6 position per team = big pool.
+const COHERENCE_POOL = {
+  leagueId: "lg-coherence",
+  numberOfTeams: 200,
+};
+
+function makeCoherenceGenerator(seed: number) {
+  return createCoachesGenerator({
+    random: seededRandom(seed),
+    nameGenerator: fixedNameGenerator(),
+  });
+}
+
+function avgOf(xs: number[]): number {
+  return xs.reduce((a, b) => a + b, 0) / xs.length;
+}
+
+Deno.test(
+  "experience lifts current ratings on experience-sensitive attributes (#540)",
+  () => {
+    // Rookie HCs (headCoachYears === 0 with low yearsExperience) vs veteran
+    // HCs (20+ yearsExperience) at the HC tier should show meaningfully
+    // different current ratings on gameManagement, leadership, and
+    // playerDevelopment — the 20-year vet sits noticeably above 50.
+    const pool = makeCoherenceGenerator(2540).generatePool(COHERENCE_POOL);
+    const hcs = pool.filter((c) => c.role === "HC");
+    const rookies = hcs.filter((c) => c.yearsExperience <= 12);
+    const vets = hcs.filter((c) => c.yearsExperience >= 28);
+    assertEquals(rookies.length > 10, true, `rookie sample ${rookies.length}`);
+    assertEquals(vets.length > 10, true, `vet sample ${vets.length}`);
+    for (
+      const key of [
+        "gameManagement",
+        "leadership",
+        "playerDevelopment",
+      ] as const
+    ) {
+      const rookieMean = avgOf(rookies.map((c) => c.ratings.current[key]));
+      const vetMean = avgOf(vets.map((c) => c.ratings.current[key]));
+      assertEquals(
+        vetMean - rookieMean >= 5,
+        true,
+        `${key}: vet ${vetMean.toFixed(1)} should exceed rookie ${
+          rookieMean.toFixed(1)
+        } by >=5`,
+      );
+      assertEquals(
+        vetMean >= 55,
+        true,
+        `${key}: vet mean ${vetMean.toFixed(1)} should sit above 55`,
+      );
+    }
+  },
+);
+
+Deno.test(
+  "experience multiplier narrows ceilingHeadroom on experience-sensitive ratings (#540)",
+  () => {
+    // The experience lift should raise *current* toward *ceiling*, not
+    // inflate ceiling further. Veteran HCs' current ratings on
+    // experience-sensitive attributes should sit close to their ceiling.
+    const pool = makeCoherenceGenerator(2541).generatePool(COHERENCE_POOL);
+    const vets = pool.filter((c) => c.role === "HC" && c.yearsExperience >= 20);
+    assertEquals(vets.length > 10, true);
+    for (const key of ["gameManagement", "leadership"] as const) {
+      const gaps = vets.map((c) =>
+        c.ratings.ceiling[key] - c.ratings.current[key]
+      );
+      const meanGap = avgOf(gaps);
+      assertEquals(
+        meanGap < 12,
+        true,
+        `vet ${key} mean headroom ${
+          meanGap.toFixed(1)
+        } should be <12 (near ceiling)`,
+      );
+    }
+  },
+);
+
+Deno.test(
+  "tendency vector sharpness correlates with schemeMastery (#540)",
+  () => {
+    // High-schemeMastery OCs produce a sharper (less-jittered) tendency
+    // vector than low-mastery OCs with the same archetype. We measure
+    // sharpness as the mean absolute distance between each coach's
+    // vector and his archetype's center vector — low jitter (high
+    // mastery) sits close to the archetype, high jitter (low mastery)
+    // drifts further from it.
+    const pool = makeCoherenceGenerator(2542).generatePool(COHERENCE_POOL);
+    const ocs = pool.filter((c) =>
+      c.role === "OC" && c.tendencies?.offense !== undefined
+    );
+    assertEquals(ocs.length > 30, true);
+    const high = ocs.filter((c) => c.ratings.current.schemeMastery >= 65);
+    const low = ocs.filter((c) => c.ratings.current.schemeMastery <= 40);
+    assertEquals(high.length > 5, true, `high-mastery sample ${high.length}`);
+    assertEquals(low.length > 5, true, `low-mastery sample ${low.length}`);
+    const distanceFromArchetype = (c: (typeof ocs)[number]) => {
+      const arch = pickOffensiveArchetype(c.id).vector;
+      const vec = c.tendencies!.offense!;
+      const keys = Object.keys(arch) as (keyof typeof arch)[];
+      return avgOf(keys.map((k) => Math.abs(vec[k] - arch[k])));
+    };
+    const highDist = avgOf(high.map(distanceFromArchetype));
+    const lowDist = avgOf(low.map(distanceFromArchetype));
+    // High-mastery vectors should sit closer to the archetype center
+    // than low-mastery vectors (smaller distance).
+    assertEquals(
+      highDist < lowDist,
+      true,
+      `high-mastery distance ${
+        highDist.toFixed(2)
+      } should be below low-mastery ${lowDist.toFixed(2)}`,
+    );
+  },
+);
+
+Deno.test(
+  "native-philosophy OCs carry higher schemeMastery than off-philosophy OCs (#540)",
+  () => {
+    // Scheme-fit roll: coaches flagged as native to their archetype
+    // philosophy should show a visibly higher schemeMastery distribution
+    // than coaches whose fit is generic/off-philosophy.
+    const pool = makeCoherenceGenerator(2543).generatePool(COHERENCE_POOL);
+    const ocs = pool.filter((c) =>
+      c.role === "OC" && c.tendencies?.offense !== undefined
+    );
+    const native = ocs.filter((c) => (c.schemeFit ?? 0) >= 0.7);
+    const generic = ocs.filter((c) => (c.schemeFit ?? 1) <= 0.3);
+    assertEquals(native.length > 10, true, `native sample ${native.length}`);
+    assertEquals(generic.length > 10, true, `generic sample ${generic.length}`);
+    const nativeMastery = avgOf(
+      native.map((c) => c.ratings.current.schemeMastery),
+    );
+    const genericMastery = avgOf(
+      generic.map((c) => c.ratings.current.schemeMastery),
+    );
+    assertEquals(
+      nativeMastery - genericMastery >= 6,
+      true,
+      `native ${nativeMastery.toFixed(1)} should exceed generic ${
+        genericMastery.toFixed(1)
+      } by >=6`,
+    );
+  },
+);
+
+Deno.test(
+  "position background tilts HC ratings: QB-bg > pass-side, OL-bg > run-side (#540)",
+  () => {
+    const pool = makeCoherenceGenerator(2544).generatePool(COHERENCE_POOL);
+    const hcs = pool.filter((c) => c.role === "HC");
+    const qbBg = hcs.filter((c) => c.positionBackground === "QB");
+    const olBg = hcs.filter((c) => c.positionBackground === "OL");
+    assertEquals(qbBg.length > 5, true, `QB-bg HC sample ${qbBg.length}`);
+    assertEquals(olBg.length > 5, true, `OL-bg HC sample ${olBg.length}`);
+    // QB-bg HCs should average higher schemeMastery (pass-game-adjacent)
+    // than OL-bg HCs; OL-bg HCs should average higher playerDevelopment
+    // (run-game-adjacent proxy).
+    const qbScheme = avgOf(qbBg.map((c) => c.ratings.current.schemeMastery));
+    const olScheme = avgOf(olBg.map((c) => c.ratings.current.schemeMastery));
+    assertEquals(
+      qbScheme > olScheme,
+      true,
+      `QB-bg schemeMastery ${qbScheme.toFixed(1)} should exceed OL-bg ${
+        olScheme.toFixed(1)
+      }`,
+    );
+  },
+);
 
 Deno.test(
   "first-time HC rate is age-gated: young >> middle >> senior (#543)",
