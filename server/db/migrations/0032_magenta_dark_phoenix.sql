@@ -1,2 +1,0 @@
-CREATE TYPE "public"."advance_policy" AS ENUM('commissioner', 'ready_check');--> statement-breakpoint
-ALTER TABLE "leagues" ADD COLUMN "advance_policy" "advance_policy" DEFAULT 'commissioner' NOT NULL;

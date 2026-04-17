@@ -1,2 +1,0 @@
-CREATE TYPE "public"."offseason_stage" AS ENUM('awards_and_review', 'coaching_carousel', 'combine', 'free_agency', 'draft', 'udfa_signing', 'minicamp');--> statement-breakpoint
-ALTER TABLE "seasons" ADD COLUMN "offseason_stage" "offseason_stage";

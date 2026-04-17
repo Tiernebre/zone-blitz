@@ -1,1 +1,0 @@
-ALTER TABLE "scouts" ALTER COLUMN "team_id" DROP NOT NULL;
