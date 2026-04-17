@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 import { TeamLogo } from "../../components/team-logo.tsx";
 import { UserMenu } from "../../components/user-menu.tsx";
-import { readableTextColor } from "../../lib/readable-text-color.ts";
+import { blendHex, readableTextColor } from "../../lib/readable-text-color.ts";
 import { useLeague } from "../../hooks/use-league.ts";
 import { useLeagueClock } from "../../hooks/use-league-clock.ts";
 import { useTouchLeague } from "../../hooks/use-leagues.ts";
@@ -206,7 +206,16 @@ function LeagueSidebarHeader(
         </div>
       </div>
       {team && name && (
-        <div className="truncate border-t border-white/15 bg-black/20 px-3 py-1 text-[10px] uppercase tracking-wide opacity-90">
+        <div
+          className="truncate border-t border-white/15 bg-black/20 px-3 py-1 text-[10px] uppercase tracking-wide opacity-90"
+          style={{
+            color: readableTextColor(
+              blendHex(team.primaryColor, "#000000", 0.2),
+              blendHex(team.secondaryColor, "#000000", 0.2),
+            ),
+          }}
+          data-testid="league-sidebar-name-strip"
+        >
           {name}
         </div>
       )}
