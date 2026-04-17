@@ -135,40 +135,8 @@ const PLAY_CALL = {
   blitzCeiling: 0.8,
 } as const;
 
-// ── Pass-resolution calibration knobs ─────────────────────────────────
-// Base rates are anchored to the matchup-score distribution produced by
-// the Geno Smith Line generator (see calibration/diagnose-scores.ts for
-// the measurements). At the measured score centers — protectionScore ≈
-// +1.3, coverageScore ≈ -3.9 — these constants land on the NFL bands
-// (completion_pct ≈ 0.61, YPA ≈ 6.74, sacks ≈ 2.38, INTs ≈ 0.77).
-export const PASS_RESOLUTION = {
-  completion: {
-    // `base` anchors per-pass-call completion at the measured
-    // coverageScore mean (~-3.9). It's set above 0.61 because only
-    // ~94% of pass calls are actual pass attempts (6% become sacks);
-    // NFL completion_pct is `completions / pass_attempts` where the
-    // denominator already excludes sacks, so we need a higher
-    // conditional completion rate to still hit the 0.61 league mean.
-    base: 0.690,
-    coverageModifier: 0.010,
-    floor: 0.18,
-    ceiling: 0.92,
-  },
-  interception: { base: 0.015, coverageModifier: 0.002, floor: 0.004 },
-  sack: { base: 0.071, protectionModifier: 0.005, floor: 0.01 },
-  bigPlay: {
-    base: 0.20,
-    coverageModifier: 0.008,
-    floor: 0.05,
-    ceiling: 0.45,
-    yards: { min: 14, max: 35 },
-  },
-  completionYards: { min: 3, max: 15 },
-  fumbleOnSack: 0.08,
-} as const;
-
-// Run outcome coefficients now live in the fitted artifact produced by
-// `deno task sim:refit` (see ./outcome-coefficients.ts).
+// Pass and run outcome coefficients now live in the fitted artifact
+// produced by `deno task sim:refit` (see ./outcome-coefficients.ts).
 
 // ── Miscellaneous play-outcome knobs ──────────────────────────────────
 const INJURY_ON_PLAY = 0.005;
@@ -179,7 +147,6 @@ const RETURN_TD = {
   floor: 0.01,
   ceiling: 0.10,
 } as const;
-export const SACK_YARDAGE = { min: -10, max: -3 } as const;
 
 const FIT_MODIFIER: Record<SchemeFitLabel, number> = {
   ideal: 10,
