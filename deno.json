@@ -34,6 +34,7 @@
     "test:coverage": "./bin/check-coverage",
     "test:e2e": "./bin/test-e2e",
     "sim:calibrate": "deno run --allow-read server/features/simulation/calibration/run-calibration.ts",
+    "sim:refit": "deno run --allow-read --allow-write server/features/simulation/calibration/refit-outcomes.ts",
     "sim:calibrate:qb": "deno run --allow-read server/features/simulation/calibration/per-position/run-qb-calibration.ts",
     "sim:calibrate:rb": "deno run --allow-read server/features/simulation/calibration/per-position/run-rb-calibration.ts",
     "sim:calibrate:te": "deno run --allow-read server/features/simulation/calibration/per-position/run-te-calibration.ts",

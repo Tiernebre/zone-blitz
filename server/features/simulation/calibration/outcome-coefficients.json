@@ -1,0 +1,58 @@
+{
+  "generated_by": "deno task sim:refit",
+  "pass": {
+    "completion": {
+      "base": 0.69,
+      "coverageModifier": 0.01,
+      "floor": 0.18,
+      "ceiling": 0.92
+    },
+    "interception": {
+      "base": 0.015,
+      "coverageModifier": 0.002,
+      "floor": 0.004
+    },
+    "sack": {
+      "base": 0.071,
+      "protectionModifier": 0.005,
+      "floor": 0.01
+    },
+    "bigPlay": {
+      "base": 0.2,
+      "coverageModifier": 0.008,
+      "floor": 0.05,
+      "ceiling": 0.45,
+      "yards": {
+        "min": 14,
+        "max": 35
+      }
+    },
+    "completionYards": {
+      "min": 3,
+      "max": 15
+    },
+    "fumbleOnSack": 0.08
+  },
+  "run": {
+    "stuffThreshold": -20,
+    "stuffYards": {
+      "min": -3,
+      "max": 0
+    },
+    "shortGainThreshold": -7,
+    "shortGainYards": {
+      "min": 1,
+      "max": 5
+    },
+    "bigPlayThreshold": 12,
+    "bigPlayYards": {
+      "min": 9,
+      "max": 20
+    },
+    "normalYards": {
+      "min": 2,
+      "max": 9
+    },
+    "fumbleRate": 0.01
+  }
+}
