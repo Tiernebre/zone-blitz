@@ -1,142 +1,163 @@
 plugins {
-	java
-	id("org.springframework.boot") version "4.0.5"
-	id("io.spring.dependency-management") version "1.1.7"
-	id("nu.studer.jooq") version "10.1"
-	id("org.flywaydb.flyway") version "11.14.0"
-	jacoco
+    java
+    id("org.springframework.boot") version "4.0.5"
+    id("io.spring.dependency-management") version "1.1.7"
+    id("nu.studer.jooq") version "10.1"
+    id("org.flywaydb.flyway") version "11.14.0"
+    id("com.diffplug.spotless") version "7.0.2"
+    jacoco
 }
 
 group = "app.zoneblitz"
 version = "0.0.1-SNAPSHOT"
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(25)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 sourceSets {
-	create("sim") {
-		java.srcDir("src/sim/java")
-		resources.srcDir("src/sim/resources")
-	}
+    create("sim") {
+        java.srcDir("src/sim/java")
+        resources.srcDir("src/sim/resources")
+    }
 }
 
 dependencies {
-	"implementation"(files(sourceSets["sim"].output))
+    "implementation"(files(sourceSets["sim"].output))
 }
 
 tasks.named<Jar>("bootJar") {
-	from(sourceSets["sim"].output)
+    from(sourceSets["sim"].output)
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.springframework.boot:spring-boot-starter-security")
-	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
-	implementation("org.springframework.boot:spring-boot-starter-jooq")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-jooq")
 
-	implementation("org.flywaydb:flyway-core")
-	implementation("org.flywaydb:flyway-database-postgresql")
-	runtimeOnly("org.postgresql:postgresql")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-postgresql")
+    runtimeOnly("org.postgresql:postgresql")
 
-	implementation("org.webjars.npm:htmx.org:2.0.4")
-	implementation("org.webjars.npm:alpinejs:3.14.8")
-	implementation("org.webjars:webjars-locator-core")
+    implementation("org.webjars.npm:htmx.org:2.0.4")
+    implementation("org.webjars.npm:alpinejs:3.14.8")
+    implementation("org.webjars:webjars-locator-core")
 
-	implementation("net.logstash.logback:logstash-logback-encoder:8.0")
+    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
 
-	jooqGenerator("org.postgresql:postgresql")
-	jooqGenerator("org.flywaydb:flyway-core")
-	jooqGenerator("org.flywaydb:flyway-database-postgresql")
-	jooqGenerator("org.testcontainers:postgresql:1.20.4")
+    jooqGenerator("org.postgresql:postgresql")
+    jooqGenerator("org.flywaydb:flyway-core")
+    jooqGenerator("org.flywaydb:flyway-database-postgresql")
+    jooqGenerator("org.testcontainers:postgresql:1.20.4")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.springframework.security:spring-security-test")
-	testImplementation("org.springframework.boot:spring-boot-testcontainers")
-	testImplementation("org.testcontainers:junit-jupiter")
-	testImplementation("org.testcontainers:postgresql")
-	testImplementation("com.microsoft.playwright:playwright:1.49.0")
-	testImplementation("org.assertj:assertj-core")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("com.microsoft.playwright:playwright:1.49.0")
+    testImplementation("org.assertj:assertj-core")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 jooq {
-	version.set("3.19.15")
-	configurations {
-		create("main") {
-			generateSchemaSourceOnCompilation.set(false)
-			jooqConfiguration.apply {
-				logging = org.jooq.meta.jaxb.Logging.WARN
-				jdbc.apply {
-					driver = "org.postgresql.Driver"
-					url = "jdbc:postgresql://localhost:5432/zoneblitz"
-					user = "zoneblitz"
-					password = "zoneblitz"
-				}
-				generator.apply {
-					name = "org.jooq.codegen.JavaGenerator"
-					database.apply {
-						name = "org.jooq.meta.postgres.PostgresDatabase"
-						inputSchema = "public"
-						excludes = "flyway_schema_history"
-					}
-					target.apply {
-						packageName = "app.zoneblitz.jooq"
-						directory = "build/generated-src/jooq/main"
-					}
-					strategy.name = "org.jooq.codegen.DefaultGeneratorStrategy"
-				}
-			}
-		}
-	}
+    version.set("3.19.15")
+    configurations {
+        create("main") {
+            generateSchemaSourceOnCompilation.set(false)
+            jooqConfiguration.apply {
+                logging = org.jooq.meta.jaxb.Logging.WARN
+                jdbc.apply {
+                    driver = "org.postgresql.Driver"
+                    url = "jdbc:postgresql://localhost:5432/zoneblitz"
+                    user = "zoneblitz"
+                    password = "zoneblitz"
+                }
+                generator.apply {
+                    name = "org.jooq.codegen.JavaGenerator"
+                    database.apply {
+                        name = "org.jooq.meta.postgres.PostgresDatabase"
+                        inputSchema = "public"
+                        excludes = "flyway_schema_history"
+                    }
+                    target.apply {
+                        packageName = "app.zoneblitz.jooq"
+                        directory = "build/generated-src/jooq/main"
+                    }
+                    strategy.name = "org.jooq.codegen.DefaultGeneratorStrategy"
+                }
+            }
+        }
+    }
 }
 
 flyway {
-	url = "jdbc:postgresql://localhost:5432/zoneblitz"
-	user = "zoneblitz"
-	password = "zoneblitz"
-	locations = arrayOf("filesystem:src/main/resources/db/migration")
+    url = "jdbc:postgresql://localhost:5432/zoneblitz"
+    user = "zoneblitz"
+    password = "zoneblitz"
+    locations = arrayOf("filesystem:src/main/resources/db/migration")
 }
 
-val tailwindBuild = tasks.register<Exec>("tailwindBuild") {
-	group = "build"
-	description = "Compile Tailwind CSS into the static resources classpath."
-	inputs.dir("src/main/resources/templates")
-	inputs.file("tailwind.config.js")
-	inputs.file("src/main/tailwind/input.css")
-	outputs.file("src/main/resources/static/css/app.css")
-	commandLine(
-		"npx", "--yes", "tailwindcss@3.4.17",
-		"-c", "tailwind.config.js",
-		"-i", "src/main/tailwind/input.css",
-		"-o", "src/main/resources/static/css/app.css",
-		"--minify"
-	)
-}
+val tailwindBuild =
+    tasks.register<Exec>("tailwindBuild") {
+        group = "build"
+        description = "Compile Tailwind CSS into the static resources classpath."
+        inputs.dir("src/main/resources/templates")
+        inputs.file("tailwind.config.js")
+        inputs.file("src/main/tailwind/input.css")
+        outputs.file("src/main/resources/static/css/app.css")
+        commandLine(
+            "npx",
+            "--yes",
+            "tailwindcss@3.4.17",
+            "-c",
+            "tailwind.config.js",
+            "-i",
+            "src/main/tailwind/input.css",
+            "-o",
+            "src/main/resources/static/css/app.css",
+            "--minify",
+        )
+    }
 
 tasks.named("processResources") {
-	dependsOn(tailwindBuild)
+    dependsOn(tailwindBuild)
+}
+
+spotless {
+    java {
+        target("src/*/java/**/*.java")
+        googleJavaFormat("1.28.0")
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint()
+    }
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
-	finalizedBy(tasks.jacocoTestReport)
+    useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.jacocoTestReport {
-	dependsOn(tasks.test)
-	reports {
-		xml.required.set(true)
-		html.required.set(true)
-	}
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
 }
