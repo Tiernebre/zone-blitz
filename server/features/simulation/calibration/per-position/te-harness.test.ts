@@ -233,7 +233,10 @@ Deno.test("runTeCalibration runs the sim, buckets TEs, and returns a populated r
       gameId,
       home.teamId,
       away.teamId,
-      { [home.teamId]: `${home.teamId}-te`, [away.teamId]: `${away.teamId}-te` },
+      {
+        [home.teamId]: `${home.teamId}-te`,
+        [away.teamId]: `${away.teamId}-te`,
+      },
       {
         [home.teamId]: yptByOverall[overallByTeam[home.teamId]],
         [away.teamId]: yptByOverall[overallByTeam[away.teamId]],

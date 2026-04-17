@@ -211,7 +211,11 @@ Deno.test("collectTeSamples accumulates target/reception events tagged on the TE
       offenseTeamId: "home",
       yardage: 10,
       participants: [
-        { role: "route_coverage", playerId: "home-te", tags: ["target", "reception"] },
+        {
+          role: "route_coverage",
+          playerId: "home-te",
+          tags: ["target", "reception"],
+        },
       ],
     }),
     // Reception #2 — 15 yd completion
@@ -220,7 +224,11 @@ Deno.test("collectTeSamples accumulates target/reception events tagged on the TE
       offenseTeamId: "home",
       yardage: 15,
       participants: [
-        { role: "route_coverage", playerId: "home-te", tags: ["target", "reception"] },
+        {
+          role: "route_coverage",
+          playerId: "home-te",
+          tags: ["target", "reception"],
+        },
       ],
     }),
     // Pass to another receiver — TE not involved
@@ -229,7 +237,11 @@ Deno.test("collectTeSamples accumulates target/reception events tagged on the TE
       offenseTeamId: "home",
       yardage: 20,
       participants: [
-        { role: "route_coverage", playerId: "home-wr", tags: ["target", "reception"] },
+        {
+          role: "route_coverage",
+          playerId: "home-wr",
+          tags: ["target", "reception"],
+        },
       ],
     }),
     // TD thrown to the TE — counts as target + reception + rec TD
@@ -244,7 +256,11 @@ Deno.test("collectTeSamples accumulates target/reception events tagged on the TE
         motion: "none",
       },
       participants: [
-        { role: "route_coverage", playerId: "home-te", tags: ["target", "reception"] },
+        {
+          role: "route_coverage",
+          playerId: "home-te",
+          tags: ["target", "reception"],
+        },
       ],
     }),
   ];
@@ -304,7 +320,11 @@ Deno.test("collectTeSamples counts incomplete + INT pass attempts as targets whe
       offenseTeamId: "home",
       yardage: 12,
       participants: [
-        { role: "route_coverage", playerId: "home-te", tags: ["target", "reception"] },
+        {
+          role: "route_coverage",
+          playerId: "home-te",
+          tags: ["target", "reception"],
+        },
       ],
     }),
     event({
@@ -345,7 +365,11 @@ Deno.test("collectTeSamples isolates offense by team", () => {
       offenseTeamId: "home",
       yardage: 8,
       participants: [
-        { role: "route_coverage", playerId: "home-te", tags: ["target", "reception"] },
+        {
+          role: "route_coverage",
+          playerId: "home-te",
+          tags: ["target", "reception"],
+        },
       ],
     }),
     event({
@@ -353,7 +377,11 @@ Deno.test("collectTeSamples isolates offense by team", () => {
       offenseTeamId: "away",
       yardage: 14,
       participants: [
-        { role: "route_coverage", playerId: "away-te", tags: ["target", "reception"] },
+        {
+          role: "route_coverage",
+          playerId: "away-te",
+          tags: ["target", "reception"],
+        },
       ],
     }),
   ];
@@ -378,7 +406,11 @@ Deno.test("collectTeSamples ignores events where the TE is not the tagged target
       offenseTeamId: "home",
       yardage: 12,
       participants: [
-        { role: "route_coverage", playerId: "home-wr", tags: ["target", "reception"] },
+        {
+          role: "route_coverage",
+          playerId: "home-wr",
+          tags: ["target", "reception"],
+        },
         { role: "pass_block", playerId: "home-te", tags: [] },
       ],
     }),
