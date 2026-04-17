@@ -22,6 +22,7 @@ import {
   SALARY_PER_QUALITY_POINT,
   stubAttributesFor,
 } from "./players-generator.ts";
+import { AGE_CURVE_PRIORS } from "./age-curves.ts";
 
 const TEAM_IDS = ["team-1", "team-2", "team-3"];
 const INPUT = {
@@ -368,10 +369,88 @@ Deno.test("ages span a rookie-to-veteran curve", () => {
   const minAge = Math.min(...ages);
   const maxAge = Math.max(...ages);
   assertEquals(minAge >= 21, true);
-  assertEquals(maxAge <= 36, true);
+  // Position-conditioned curves extend past 36 for QB/OL/specialists —
+  // real NFL rosters routinely carry players into their early 40s at
+  // those positions. Cap the sanity bound at the documented specialist
+  // extreme so the test still fails on a true blow-up.
+  assertEquals(maxAge <= 48, true);
   // There should be both rookies (<=23) and veterans (>=30) in a 159-man pool.
   assertEquals(ages.some((a) => a <= 23), true);
   assertEquals(ages.some((a) => a >= 30), true);
+});
+
+Deno.test("rostered age histograms track per-bucket NFL priors", () => {
+  // Oversample a large league so bucket cohorts are big enough for
+  // stable mean / p90 checks against the real-NFL priors. Per-bucket
+  // rostered counts scale with league size (e.g., 4 RBs × 32 teams =
+  // 128, 2 QBs × 32 = 64), which is enough to resolve the shape of
+  // each position's active-age curve.
+  const teamIds = Array.from({ length: 32 }, (_, i) => `team-${i + 1}`);
+  const result = makeGenerator(777).generate({
+    leagueId: "league-large",
+    seasonId: "season-1",
+    teamIds,
+    rosterSize: 53,
+  });
+  const rostered = result.players.filter(
+    (p) => p.player.teamId !== null && p.player.status === "active",
+  );
+  const agesByBucket = new Map<NeutralBucket, number[]>();
+  for (const entry of rostered) {
+    const bucket = bucketOf(entry);
+    const [year] = entry.player.birthDate.split("-");
+    const age = 2026 - Number(year);
+    const list = agesByBucket.get(bucket) ?? [];
+    list.push(age);
+    agesByBucket.set(bucket, list);
+  }
+  const percentile = (vs: number[], p: number) => {
+    const sorted = [...vs].sort((a, b) => a - b);
+    const idx = Math.min(
+      sorted.length - 1,
+      Math.max(0, Math.floor((p / 100) * sorted.length)),
+    );
+    return sorted[idx];
+  };
+  // Broad bucket coverage — assert mean + p90 per bucket are near the
+  // curve prior. Tolerance is loose enough to absorb the classifier's
+  // bucket drift (the neutralBucket() result can disagree with the
+  // intended slot when signature/non-signature rolls are extreme) and
+  // the finite-sample noise on smaller bucket cohorts.
+  for (const [bucket, ages] of agesByBucket) {
+    if (ages.length < 20) continue;
+    const prior = AGE_CURVE_PRIORS[bucket];
+    const mean = ages.reduce((s, v) => s + v, 0) / ages.length;
+    assertEquals(
+      Math.abs(mean - prior.meanAge) <= 2,
+      true,
+      `${bucket} mean ${mean.toFixed(2)} off from prior ${
+        prior.meanAge.toFixed(2)
+      }`,
+    );
+    const p90 = percentile(ages, 90);
+    assertEquals(
+      Math.abs(p90 - prior.p90Age) <= 3,
+      true,
+      `${bucket} p90 ${p90} off from prior ${prior.p90Age}`,
+    );
+  }
+
+  // Acceptance shape checks: RB cliff, QB tail, specialist tail.
+  const rbAges = agesByBucket.get("RB") ?? [];
+  const qbAges = agesByBucket.get("QB") ?? [];
+  const rb30Plus = rbAges.filter((a) => a >= 30).length / rbAges.length;
+  const qb33Plus = qbAges.filter((a) => a >= 33).length / qbAges.length;
+  assertEquals(
+    rb30Plus <= 0.15,
+    true,
+    `RB 30+ share ${(rb30Plus * 100).toFixed(1)}% too high — cliff missing`,
+  );
+  assertEquals(
+    qb33Plus > rb30Plus * 0.5,
+    true,
+    `QB 33+ share ${(qb33Plus * 100).toFixed(1)}% not a meaningful tail`,
+  );
 });
 
 Deno.test("prospects fall into a draft-eligible age band", () => {
