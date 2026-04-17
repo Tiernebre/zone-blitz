@@ -95,7 +95,13 @@ interface RoleBand {
   workCapacityMax: number;
   tenureMin: number;
   tenureMax: number;
+  /** Total career experience in years, inclusive. Clamped at roll time
+   * to `age - CAREER_START_AGE`. */
+  experienceMin: number;
+  experienceMax: number;
 }
+
+const CAREER_START_AGE = 22;
 
 const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
   DIRECTOR: {
@@ -111,6 +117,8 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
     workCapacityMax: 240,
     tenureMin: 0,
     tenureMax: 5,
+    experienceMin: 20,
+    experienceMax: 35,
   },
   NATIONAL_CROSS_CHECKER: {
     ageMin: 42,
@@ -125,6 +133,8 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
     workCapacityMax: 220,
     tenureMin: 0,
     tenureMax: 4,
+    experienceMin: 12,
+    experienceMax: 25,
   },
   AREA_SCOUT: {
     ageMin: 30,
@@ -139,6 +149,8 @@ const ROLE_BANDS: Record<ScoutRole, RoleBand> = {
     workCapacityMax: 160,
     tenureMin: 0,
     tenureMax: 3,
+    experienceMin: 3,
+    experienceMax: 15,
   },
 };
 
@@ -243,6 +255,11 @@ export function createScoutsGenerator(
           const hiredAt = new Date(anchor);
           hiredAt.setUTCFullYear(hiredAt.getUTCFullYear() - tenureYears);
 
+          const yearsExperience = Math.min(
+            Math.max(0, age - CAREER_START_AGE),
+            intInRange(random, band.experienceMin, band.experienceMax),
+          );
+
           scouts.push({
             id,
             leagueId: input.leagueId,
@@ -253,6 +270,7 @@ export function createScoutsGenerator(
             reportsToId,
             coverage: spec.coverage,
             age,
+            yearsExperience,
             hiredAt,
             contractYears,
             contractSalary,
@@ -311,6 +329,11 @@ export function createScoutsGenerator(
           const hiredAt = new Date(anchor);
           hiredAt.setUTCFullYear(hiredAt.getUTCFullYear() - tenureYears);
 
+          const yearsExperience = Math.min(
+            Math.max(0, age - CAREER_START_AGE),
+            intInRange(random, band.experienceMin, band.experienceMax),
+          );
+
           scouts.push({
             id,
             leagueId: input.leagueId,
@@ -321,6 +344,7 @@ export function createScoutsGenerator(
             reportsToId: null,
             coverage: spec.coverage,
             age,
+            yearsExperience,
             hiredAt,
             contractYears,
             contractSalary,

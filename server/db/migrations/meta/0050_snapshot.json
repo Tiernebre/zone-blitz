@@ -1,6 +1,6 @@
 {
-  "id": "d9755f50-ed58-4355-9a51-f33a1651815b",
-  "prevId": "57003ab6-24a7-4f95-a633-f2d6d759e842",
+  "id": "494d75d3-0faa-46b1-ba73-15e69422a411",
+  "prevId": "d9755f50-ed58-4355-9a51-f33a1651815b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -489,6 +489,119 @@
         "coach_depth_chart_notes_coach_id_coaches_id_fk": {
           "name": "coach_depth_chart_notes_coach_id_coaches_id_fk",
           "tableFrom": "coach_depth_chart_notes",
+          "tableTo": "coaches",
+          "columnsFrom": [
+            "coach_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.coach_ratings": {
+      "name": "coach_ratings",
+      "schema": "",
+      "columns": {
+        "coach_id": {
+          "name": "coach_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "leadership": {
+          "name": "leadership",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "leadership_ceiling": {
+          "name": "leadership_ceiling",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "game_management": {
+          "name": "game_management",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "game_management_ceiling": {
+          "name": "game_management_ceiling",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheme_mastery": {
+          "name": "scheme_mastery",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheme_mastery_ceiling": {
+          "name": "scheme_mastery_ceiling",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "player_development": {
+          "name": "player_development",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "player_development_ceiling": {
+          "name": "player_development_ceiling",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "adaptability": {
+          "name": "adaptability",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "adaptability_ceiling": {
+          "name": "adaptability_ceiling",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "growth_rate": {
+          "name": "growth_rate",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "coach_ratings_coach_id_coaches_id_fk": {
+          "name": "coach_ratings_coach_id_coaches_id_fk",
+          "tableFrom": "coach_ratings",
           "tableTo": "coaches",
           "columnsFrom": [
             "coach_id"

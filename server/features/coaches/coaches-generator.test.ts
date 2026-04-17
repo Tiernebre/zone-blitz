@@ -386,6 +386,36 @@ Deno.test("hiredAt dates spread across multiple years, not all 'last year'", () 
   assertEquals(years.size > 1, true);
 });
 
+Deno.test("yearsExperience sits within tier band and never exceeds age - 22", () => {
+  const result = makeGenerator().generate(INPUT);
+  for (const coach of result) {
+    assertEquals(coach.yearsExperience >= 0, true);
+    assertEquals(coach.yearsExperience <= coach.age - 22, true);
+  }
+  const hcExperience = new Set(
+    result.filter((c) => c.role === "HC").map((c) => c.yearsExperience),
+  );
+  const positionExperience = new Set(
+    result.filter((c) => c.role === "QB" || c.role === "RB").map((c) =>
+      c.yearsExperience
+    ),
+  );
+  // Across 3 teams, at least one tier should show variance — the flat
+  // constant is gone.
+  assertEquals(hcExperience.size + positionExperience.size > 2, true);
+});
+
+Deno.test("generatePool also populates yearsExperience", () => {
+  const pool = makeGenerator().generatePool({
+    leagueId: "lg",
+    numberOfTeams: 2,
+  });
+  for (const coach of pool) {
+    assertEquals(coach.yearsExperience >= 0, true);
+    assertEquals(coach.yearsExperience <= coach.age - 22, true);
+  }
+});
+
 Deno.test("contract salaries fall within sane bounds per tier", () => {
   const result = makeGenerator().generate(INPUT);
   for (const coach of result) {

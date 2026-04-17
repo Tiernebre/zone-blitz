@@ -90,6 +90,8 @@ function makeUnassigned(
     lastName: "Last",
     role: "HC",
     specialty: null,
+    age: 45,
+    yearsExperience: 15,
     marketTierPref: 50,
     philosophyFitPref: 50,
     staffFitPref: 50,

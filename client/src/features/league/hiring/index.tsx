@@ -913,6 +913,35 @@ function buildCandidateColumns(
       ),
       cell: ({ row }) => row.original.displayRole,
     },
+    {
+      accessorKey: "age",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Age</SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <span
+          className="tabular-nums"
+          data-testid={`candidate-age-${row.original.id}`}
+        >
+          {row.original.age}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "yearsExperience",
+      header: ({ column }) => (
+        <SortableHeader column={column}>Experience</SortableHeader>
+      ),
+      cell: ({ row }) => (
+        <span
+          className="tabular-nums"
+          data-testid={`candidate-experience-${row.original.id}`}
+        >
+          {row.original.yearsExperience} yr
+          {row.original.yearsExperience === 1 ? "" : "s"}
+        </span>
+      ),
+    },
   ];
 
   if (staffType === "coach") {

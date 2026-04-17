@@ -120,7 +120,14 @@ interface TierBand {
   /** Tenure (years since hiredAt) band, inclusive. */
   tenureMin: number;
   tenureMax: number;
+  /** Total career experience band in years, inclusive. Clamped at roll
+   * time to `age - CAREER_START_AGE` so experience never exceeds what's
+   * biographically possible. */
+  experienceMin: number;
+  experienceMax: number;
 }
+
+const CAREER_START_AGE = 22;
 
 // Per-role override for salary (e.g., an OC earns more than an STC) on top
 // of the tier band. When a role is absent from this map, the tier band is
@@ -148,6 +155,8 @@ const TIER_BANDS: Record<Tier, TierBand> = {
     buyoutYearsMax: 2,
     tenureMin: 0,
     tenureMax: 4,
+    experienceMin: 20,
+    experienceMax: 35,
   },
   COORDINATOR: {
     ageMin: 40,
@@ -160,6 +169,8 @@ const TIER_BANDS: Record<Tier, TierBand> = {
     buyoutYearsMax: 2,
     tenureMin: 0,
     tenureMax: 3,
+    experienceMin: 12,
+    experienceMax: 28,
   },
   POSITION: {
     ageMin: 32,
@@ -172,6 +183,8 @@ const TIER_BANDS: Record<Tier, TierBand> = {
     buyoutYearsMax: 1,
     tenureMin: 0,
     tenureMax: 3,
+    experienceMin: 5,
+    experienceMax: 20,
   },
 };
 
@@ -391,6 +404,12 @@ function generateCoach(
   const hiredAt = new Date(anchor);
   hiredAt.setUTCFullYear(hiredAt.getUTCFullYear() - tenureYears);
 
+  const experienceCeiling = Math.max(0, age - CAREER_START_AGE);
+  const yearsExperience = Math.min(
+    experienceCeiling,
+    intInRange(random, band.experienceMin, band.experienceMax),
+  );
+
   const collegeId = collegeIds.length > 0
     ? collegeIds[collegeIndex.value++ % collegeIds.length]
     : null;
@@ -411,6 +430,7 @@ function generateCoach(
     reportsToId,
     playCaller: spec.role === "HC" ? playCallerForHc(specialty) : null,
     age,
+    yearsExperience,
     hiredAt,
     contractYears,
     contractSalary,

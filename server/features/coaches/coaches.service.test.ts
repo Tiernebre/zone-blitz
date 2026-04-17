@@ -190,6 +190,7 @@ Deno.test("coaches.service", async (t) => {
         staffFitPref: null,
         compensationPref: null,
         minimumThreshold: null,
+        yearsExperience: 15,
         ratings: DEFAULT_RATINGS,
       };
       const generator = createMockGenerator({
@@ -311,6 +312,7 @@ Deno.test("coaches.service", async (t) => {
         staffFitPref: null,
         compensationPref: null,
         minimumThreshold: null,
+        yearsExperience: 15,
         ratings: DEFAULT_RATINGS,
       };
       const generator = createMockGenerator({
@@ -358,6 +360,7 @@ Deno.test("coaches.service", async (t) => {
         staffFitPref: null,
         compensationPref: null,
         minimumThreshold: null,
+        yearsExperience: 15,
         ratings: DEFAULT_RATINGS,
       };
       const generator = createMockGenerator({
@@ -433,6 +436,7 @@ Deno.test("coaches.service", async (t) => {
         staffFitPref: null,
         compensationPref: null,
         minimumThreshold: null,
+        yearsExperience: 15,
         ratings: DEFAULT_RATINGS,
       };
       const generator = createMockGenerator({
@@ -518,6 +522,7 @@ Deno.test("coaches.service", async (t) => {
         staffFitPref: null,
         compensationPref: null,
         minimumThreshold: null,
+        yearsExperience: 15,
         ratings: DEFAULT_RATINGS,
       };
       const generator = createMockGenerator({
@@ -596,6 +601,7 @@ Deno.test("coaches.service", async (t) => {
         staffFitPref: null,
         compensationPref: null,
         minimumThreshold: null,
+        yearsExperience: 15,
         ratings: DEFAULT_RATINGS,
       };
       const generator = createMockGenerator({
@@ -677,6 +683,7 @@ Deno.test("coaches.service", async (t) => {
         staffFitPref: null,
         compensationPref: null,
         minimumThreshold: null,
+        yearsExperience: 15,
         ratings: DEFAULT_RATINGS,
       };
       const generator = createMockGenerator({
@@ -755,6 +762,7 @@ Deno.test("coaches.service", async (t) => {
         staffFitPref: null,
         compensationPref: null,
         minimumThreshold: null,
+        yearsExperience: 15,
         ratings: DEFAULT_RATINGS,
       };
       const generator = createMockGenerator({
@@ -878,6 +886,7 @@ Deno.test("coaches.service", async (t) => {
         staffFitPref: null,
         compensationPref: null,
         minimumThreshold: null,
+        yearsExperience: 15,
         ratings: DEFAULT_RATINGS,
       };
       const generator = createMockGenerator({
