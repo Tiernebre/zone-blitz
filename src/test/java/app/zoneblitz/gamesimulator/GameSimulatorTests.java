@@ -6,6 +6,7 @@ import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
 import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
 import app.zoneblitz.gamesimulator.clock.BandClockModel;
 import app.zoneblitz.gamesimulator.event.GameId;
+import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
 import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
@@ -16,6 +17,8 @@ import app.zoneblitz.gamesimulator.roster.CoachId;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
+import app.zoneblitz.gamesimulator.scoring.DistanceCurveFieldGoalResolver;
+import app.zoneblitz.gamesimulator.scoring.FlatRateExtraPointResolver;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,7 +50,9 @@ class GameSimulatorTests {
         personnel,
         new ConstantPlayResolver(QB_ID, WR_ID),
         BandClockModel.load(new ClasspathBandRepository(), new DefaultBandSampler()),
-        new TouchbackKickoffResolver());
+        new TouchbackKickoffResolver(),
+        new FlatRateExtraPointResolver(),
+        new DistanceCurveFieldGoalResolver());
   }
 
   private static GameInputs inputs(Optional<Long> seed) {
@@ -79,5 +84,31 @@ class GameSimulatorTests {
     var b = newSimulator().simulate(inputs(Optional.of(2L))).toList();
 
     assertThat(a).isNotEqualTo(b);
+  }
+
+  @Test
+  void simulate_ballCrossesGoalLine_emitsTouchdownFollowedByExtraPointAndKickoff() {
+    var events = newSimulator().simulate(inputs(Optional.of(1L))).toList();
+
+    var firstTdIndex = -1;
+    for (var i = 0; i < events.size(); i++) {
+      if (events.get(i) instanceof PlayEvent.PassComplete pc && pc.touchdown()) {
+        firstTdIndex = i;
+        break;
+      }
+    }
+    assertThat(firstTdIndex)
+        .as("expected at least one offensive touchdown")
+        .isGreaterThanOrEqualTo(0);
+    assertThat(events.get(firstTdIndex + 1)).isInstanceOf(PlayEvent.ExtraPoint.class);
+    assertThat(events.get(firstTdIndex + 2)).isInstanceOf(PlayEvent.Kickoff.class);
+  }
+
+  @Test
+  void simulate_finalScore_isNonZeroForAtLeastOneSide() {
+    var events = newSimulator().simulate(inputs(Optional.of(1L))).toList();
+
+    var last = events.get(events.size() - 1);
+    assertThat(last.scoreAfter().home() + last.scoreAfter().away()).isPositive();
   }
 }

@@ -36,7 +36,7 @@ final class ConstantPlayResolver implements PlayResolver {
     var draw = rng.nextLong();
     var yards = (int) Math.floorMod(draw, 20);
     return new PassOutcome.PassComplete(
-        qb, target, yards, 0, yards, Optional.empty(), List.of(), false, false);
+        qb, target, yards, 0, yards, Optional.empty(), List.of(), false);
   }
 
   static List<PlayerId> noDefenders() {

@@ -155,7 +155,7 @@ public final class MatchupRunResolver implements RunResolver {
             ? Optional.of(fumble(carrier.id()))
             : Optional.<FumbleOutcome>empty();
 
-    return new RunOutcome.Run(carrier.id(), concept, yards, Optional.empty(), fumble, false, false);
+    return new RunOutcome.Run(carrier.id(), concept, yards, Optional.empty(), fumble, false);
   }
 
   private static FumbleOutcome fumble(PlayerId carrier) {

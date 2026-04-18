@@ -2,6 +2,7 @@ package app.zoneblitz.gamesimulator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.zoneblitz.gamesimulator.event.DownAndDistance;
 import app.zoneblitz.gamesimulator.event.FieldPosition;
 import app.zoneblitz.gamesimulator.event.FumbleOutcome;
 import app.zoneblitz.gamesimulator.event.GameClock;
@@ -19,8 +20,9 @@ import org.junit.jupiter.api.Test;
 class GameStateTests {
 
   @Test
-  void apply_returnsNewInstance_originalUnchanged() {
+  void afterScrimmage_returnsNewInstance_originalUnchanged() {
     var original = GameState.initial();
+    var newClock = new GameClock(1, 14 * 60);
     var event =
         new PlayEvent.Run(
             new PlayId(new UUID(0L, 0L)),
@@ -29,7 +31,7 @@ class GameStateTests {
             original.downAndDistance(),
             original.spot(),
             original.clock(),
-            original.clock(),
+            newClock,
             new Score(7, 0),
             new PlayerId(new UUID(0L, 2L)),
             RunConcept.INSIDE_ZONE,
@@ -38,15 +40,17 @@ class GameStateTests {
             Optional.<PlayerId>empty(),
             Optional.<FumbleOutcome>empty(),
             false,
-            false,
+            true,
             0L);
-    var newClock = new GameClock(1, 14 * 60);
 
-    var next = original.apply(event, newClock);
+    var next =
+        original.afterScrimmage(event, newClock, new FieldPosition(30), new DownAndDistance(1, 10));
 
     assertThat(next).isNotSameAs(original);
     assertThat(next.score()).isEqualTo(new Score(7, 0));
     assertThat(next.clock()).isEqualTo(newClock);
+    assertThat(next.spot()).isEqualTo(new FieldPosition(30));
+    assertThat(next.downAndDistance()).isEqualTo(new DownAndDistance(1, 10));
     assertThat(original.score()).isEqualTo(new Score(0, 0));
     assertThat(original.clock()).isEqualTo(new GameClock(1, 15 * 60));
   }

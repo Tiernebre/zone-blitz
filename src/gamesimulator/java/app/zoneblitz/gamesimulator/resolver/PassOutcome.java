@@ -15,7 +15,11 @@ public sealed interface PassOutcome extends PlayOutcome
         PassOutcome.Scramble,
         PassOutcome.Interception {
 
-  /** A completed pass. {@code totalYards = airYards + yardsAfterCatch}. */
+  /**
+   * A completed pass. {@code totalYards = airYards + yardsAfterCatch}, raw from the resolver — the
+   * engine clamps against the goal line and derives touchdowns. {@code firstDown} is provisional
+   * and re-evaluated post-clamp.
+   */
   record PassComplete(
       PlayerId qb,
       PlayerId target,
@@ -24,7 +28,6 @@ public sealed interface PassOutcome extends PlayOutcome
       int totalYards,
       Optional<PlayerId> tackler,
       List<PlayerId> defendersInCoverage,
-      boolean touchdown,
       boolean firstDown)
       implements PassOutcome {
     public PassComplete {
@@ -65,9 +68,8 @@ public sealed interface PassOutcome extends PlayOutcome
     }
   }
 
-  /** A QB scramble. */
-  record Scramble(
-      PlayerId qb, int yards, Optional<PlayerId> tackler, boolean slideOrOob, boolean touchdown)
+  /** A QB scramble. Raw {@code yards} — engine clamps and derives TD/safety. */
+  record Scramble(PlayerId qb, int yards, Optional<PlayerId> tackler, boolean slideOrOob)
       implements PassOutcome {
     public Scramble {
       Objects.requireNonNull(qb, "qb");
@@ -75,13 +77,11 @@ public sealed interface PassOutcome extends PlayOutcome
     }
   }
 
-  /** A pass interception. */
-  record Interception(
-      PlayerId qb,
-      PlayerId intendedTarget,
-      PlayerId interceptor,
-      int returnYards,
-      boolean touchdown)
+  /**
+   * A pass interception. {@code returnYards} are raw along the defender's direction (toward the
+   * thrower's own goal); the engine clamps and detects pick-sixes.
+   */
+  record Interception(PlayerId qb, PlayerId intendedTarget, PlayerId interceptor, int returnYards)
       implements PassOutcome {
     public Interception {
       Objects.requireNonNull(qb, "qb");

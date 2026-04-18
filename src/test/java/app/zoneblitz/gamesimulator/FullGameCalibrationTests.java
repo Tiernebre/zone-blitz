@@ -19,6 +19,8 @@ import app.zoneblitz.gamesimulator.roster.CoachId;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
+import app.zoneblitz.gamesimulator.scoring.DistanceCurveFieldGoalResolver;
+import app.zoneblitz.gamesimulator.scoring.FlatRateExtraPointResolver;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -70,7 +72,15 @@ class FullGameCalibrationTests {
     for (var g = 0; g < GAMES; g++) {
       var seed = 0xC0FFEEL + g;
       var caller = new BandPassRateCaller(PASS_RATE, new Random(seed ^ 0xC411L));
-      var simulator = new GameSimulator(caller, personnel, resolver, clockModel, kickoff);
+      var simulator =
+          new GameSimulator(
+              caller,
+              personnel,
+              resolver,
+              clockModel,
+              kickoff,
+              new FlatRateExtraPointResolver(),
+              new DistanceCurveFieldGoalResolver());
       var inputs =
           new GameInputs(
               new GameId(new UUID(0xDEADBEEFL, seed)),

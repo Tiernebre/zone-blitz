@@ -19,6 +19,8 @@ import app.zoneblitz.gamesimulator.roster.CoachId;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
+import app.zoneblitz.gamesimulator.scoring.DistanceCurveFieldGoalResolver;
+import app.zoneblitz.gamesimulator.scoring.FlatRateExtraPointResolver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,7 +54,9 @@ public final class GameSimEmulator {
             new BaselinePersonnelSelector(),
             resolver,
             BandClockModel.load(repo, sampler),
-            new TouchbackKickoffResolver());
+            new TouchbackKickoffResolver(),
+            new FlatRateExtraPointResolver(),
+            new DistanceCurveFieldGoalResolver());
 
     var inputs =
         new GameInputs(

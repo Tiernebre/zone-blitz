@@ -15,7 +15,7 @@ import java.util.Objects;
  * Mutable-shaped but immutable per-instance snapshot of the full state the engine needs between
  * snaps. Every field the eventual full engine requires is present here so later tasks can fill
  * values without forcing a schema-wide refactor. Pure data — no references to services, repos, or
- * any behavior beyond {@link #apply}.
+ * any behavior beyond {@link #afterScrimmage} and the {@code with*} transitions.
  *
  * <p>Package-private per doc 804; promoted types required by {@link PlayEvent} live in their own
  * files.
@@ -66,15 +66,37 @@ public record GameState(
   }
 
   /**
-   * Produce a new state advanced past {@code event}, using {@code clock} as the post-play clock
-   * snapshot. The signature is intentionally minimal today — it will grow to accept richer outcome
-   * and penalty payloads as those types exist. Never mutates the receiver.
+   * Advance the state following a non-scoring, same-possession scrimmage snap: updates clock,
+   * score, spot, and down/distance while keeping possession with the current offense. For
+   * possession changes use {@link #withPossessionAndSpot(Side, FieldPosition)} (which also resets
+   * down/distance, with goal-to-go awareness).
    */
-  GameState apply(PlayEvent event, GameClock clock) {
+  GameState afterScrimmage(
+      PlayEvent event, GameClock clock, FieldPosition newSpot, DownAndDistance newDownAndDistance) {
     Objects.requireNonNull(event, "event");
     Objects.requireNonNull(clock, "clock");
+    Objects.requireNonNull(newSpot, "newSpot");
+    Objects.requireNonNull(newDownAndDistance, "newDownAndDistance");
     return new GameState(
         event.scoreAfter(),
+        clock,
+        newDownAndDistance,
+        newSpot,
+        possession,
+        drive,
+        fatigueSnapCounts,
+        injuredPlayers,
+        homeTimeouts,
+        awayTimeouts,
+        phase,
+        overtimeRound);
+  }
+
+  /** Replace the current score. Used after PAT and FG events update it on their own. */
+  public GameState withScore(Score newScore) {
+    Objects.requireNonNull(newScore, "newScore");
+    return new GameState(
+        newScore,
         clock,
         downAndDistance,
         spot,
@@ -86,6 +108,15 @@ public record GameState(
         awayTimeouts,
         phase,
         overtimeRound);
+  }
+
+  /**
+   * Fresh 1st-down D&D at {@code yardLine}. Goal-to-go inside the opponent's 10: yardsToGo is the
+   * remaining distance to the goal line rather than 10.
+   */
+  static DownAndDistance freshFirstDown(int yardLine) {
+    var yardsToGo = yardLine >= 90 ? 100 - yardLine : 10;
+    return new DownAndDistance(1, yardsToGo);
   }
 
   public GameState withClock(GameClock newClock) {
@@ -128,7 +159,7 @@ public record GameState(
     return new GameState(
         score,
         clock,
-        new DownAndDistance(1, 10),
+        freshFirstDown(newSpot.yardLine()),
         newSpot,
         newPossession,
         drive,

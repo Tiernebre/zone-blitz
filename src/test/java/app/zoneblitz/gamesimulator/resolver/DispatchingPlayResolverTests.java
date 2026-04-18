@@ -120,7 +120,6 @@ class DispatchingPlayResolverTests {
             3,
             Optional.empty(),
             Optional.empty(),
-            false,
             false);
     int calls;
 

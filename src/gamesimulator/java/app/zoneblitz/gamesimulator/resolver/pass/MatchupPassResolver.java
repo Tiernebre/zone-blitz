@@ -149,7 +149,7 @@ public final class MatchupPassResolver implements PassResolver {
       case COMPLETE -> {
         var yards = sampler.sampleDistribution(completionYards, shift, rng);
         yield new PassOutcome.PassComplete(
-            qb, target, yards, 0, yards, Optional.empty(), List.of(), false, false);
+            qb, target, yards, 0, yards, Optional.empty(), List.of(), false);
       }
       case INCOMPLETE ->
           new PassOutcome.PassIncomplete(
@@ -160,11 +160,11 @@ public final class MatchupPassResolver implements PassResolver {
       }
       case SCRAMBLE -> {
         var yards = sampler.sampleDistribution(scrambleYards, shift, rng);
-        yield new PassOutcome.Scramble(qb, yards, Optional.empty(), false, false);
+        yield new PassOutcome.Scramble(qb, yards, Optional.empty(), false);
       }
       case INTERCEPTION -> {
         var interceptor = pickInterceptor(roles, defense);
-        yield new PassOutcome.Interception(qb, target, interceptor, 0, false);
+        yield new PassOutcome.Interception(qb, target, interceptor, 0);
       }
     };
   }
