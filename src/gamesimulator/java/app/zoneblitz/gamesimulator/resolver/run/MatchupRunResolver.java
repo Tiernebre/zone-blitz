@@ -7,10 +7,11 @@ import app.zoneblitz.gamesimulator.band.BandSampler;
 import app.zoneblitz.gamesimulator.band.DistributionalBand;
 import app.zoneblitz.gamesimulator.band.RateBand;
 import app.zoneblitz.gamesimulator.event.FumbleOutcome;
-import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.formation.BandBoxCountSampler;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.resolver.BaselineFumbleRecoveryModel;
+import app.zoneblitz.gamesimulator.resolver.FumbleRecoveryModel;
 import app.zoneblitz.gamesimulator.resolver.PositionBasedRunRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.resolver.RunRoleAssigner;
@@ -64,6 +65,7 @@ public final class MatchupRunResolver implements RunResolver {
   private final RateBand<RunOutcomeKind> outcomeMix;
   private final Map<RunOutcomeKind, DistributionalBand> yardsByKind;
   private final DistributionalBand fumbleYards;
+  private final FumbleRecoveryModel fumbleRecoveryModel;
 
   public MatchupRunResolver(
       BandSampler sampler,
@@ -72,10 +74,29 @@ public final class MatchupRunResolver implements RunResolver {
       RateBand<RunOutcomeKind> outcomeMix,
       Map<RunOutcomeKind, DistributionalBand> yardsByKind,
       DistributionalBand fumbleYards) {
+    this(
+        sampler,
+        roleAssigner,
+        matchupShift,
+        outcomeMix,
+        yardsByKind,
+        fumbleYards,
+        new BaselineFumbleRecoveryModel());
+  }
+
+  public MatchupRunResolver(
+      BandSampler sampler,
+      RunRoleAssigner roleAssigner,
+      RunMatchupShift matchupShift,
+      RateBand<RunOutcomeKind> outcomeMix,
+      Map<RunOutcomeKind, DistributionalBand> yardsByKind,
+      DistributionalBand fumbleYards,
+      FumbleRecoveryModel fumbleRecoveryModel) {
     this.sampler = Objects.requireNonNull(sampler, "sampler");
     this.roleAssigner = Objects.requireNonNull(roleAssigner, "roleAssigner");
     this.matchupShift = Objects.requireNonNull(matchupShift, "matchupShift");
     this.outcomeMix = Objects.requireNonNull(outcomeMix, "outcomeMix");
+    this.fumbleRecoveryModel = Objects.requireNonNull(fumbleRecoveryModel, "fumbleRecoveryModel");
     Objects.requireNonNull(yardsByKind, "yardsByKind");
     for (var kind :
         new RunOutcomeKind[] {
@@ -152,14 +173,12 @@ public final class MatchupRunResolver implements RunResolver {
 
     var fumble =
         kind == RunOutcomeKind.FUMBLE
-            ? Optional.of(fumble(carrier.id()))
+            ? Optional.of(
+                fumbleRecoveryModel.resolve(
+                    carrier.id(), offense.players(), defense.players(), rng))
             : Optional.<FumbleOutcome>empty();
 
     return new RunOutcome.Run(carrier.id(), concept, yards, Optional.empty(), fumble, false);
-  }
-
-  private static FumbleOutcome fumble(PlayerId carrier) {
-    return new FumbleOutcome(carrier, false, Optional.empty(), 0);
   }
 
   /**
