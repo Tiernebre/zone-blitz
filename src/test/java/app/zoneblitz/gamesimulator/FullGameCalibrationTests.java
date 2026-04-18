@@ -7,6 +7,7 @@ import app.zoneblitz.gamesimulator.clock.BandClockModel;
 import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.event.Score;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.event.TeamId;
 import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
@@ -17,9 +18,12 @@ import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver;
 import app.zoneblitz.gamesimulator.resolver.run.MatchupRunResolver;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.CoachId;
+import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
+import app.zoneblitz.gamesimulator.roster.Skill;
 import app.zoneblitz.gamesimulator.roster.Team;
+import app.zoneblitz.gamesimulator.roster.Tendencies;
 import app.zoneblitz.gamesimulator.scoring.DistanceCurveFieldGoalResolver;
 import app.zoneblitz.gamesimulator.scoring.FlatRateExtraPointResolver;
 import java.util.ArrayList;
@@ -126,6 +130,162 @@ class FullGameCalibrationTests {
     System.out.println(report);
   }
 
+  @Test
+  void tenThousandGames_eliteVsBenchwarmer_eliteWinsMoreOnAverage() {
+    var repo = new ClasspathBandRepository();
+    var sampler = new DefaultBandSampler();
+    var resolver =
+        new DispatchingPlayResolver(
+            MatchupPassResolver.load(repo, sampler), MatchupRunResolver.load(repo, sampler));
+    var clockModel = BandClockModel.load(repo, sampler);
+    var personnel = new BaselinePersonnelSelector();
+    var kickoff = new TouchbackKickoffResolver();
+
+    var elite = buildTeam("ELITE", 300, AttributeProfile.ELITE);
+    var bench = buildTeam("BENCH", 400, AttributeProfile.BENCHWARMER);
+    var eliteCoach = new Coach(new CoachId(new UUID(1L, 3L)), "Elite HC");
+    var benchCoach = new Coach(new CoachId(new UUID(1L, 4L)), "Bench HC");
+
+    var eliteWins = 0;
+    var benchWins = 0;
+    var ties = 0;
+    var elitePointsTotal = 0L;
+    var benchPointsTotal = 0L;
+
+    for (var g = 0; g < GAMES; g++) {
+      var seed = 0xE117E50L + g;
+      var caller = new BandPassRateCaller(PASS_RATE, new Random(seed ^ 0xC411L));
+      var simulator =
+          new GameSimulator(
+              caller,
+              personnel,
+              resolver,
+              clockModel,
+              kickoff,
+              new FlatRateExtraPointResolver(),
+              new DistanceCurveFieldGoalResolver(),
+              BandPuntResolver.load(repo, sampler));
+      var inputs =
+          new GameInputs(
+              new GameId(new UUID(0xE117E11L, seed)),
+              elite,
+              bench,
+              eliteCoach,
+              benchCoach,
+              new GameInputs.PreGameContext(),
+              Optional.of(seed));
+      var lastScore = new Score[] {new Score(0, 0)};
+      simulator.simulate(inputs).forEach(event -> lastScore[0] = event.scoreAfter());
+      var finalScore = lastScore[0];
+      elitePointsTotal += finalScore.home();
+      benchPointsTotal += finalScore.away();
+      if (finalScore.home() > finalScore.away()) {
+        eliteWins++;
+      } else if (finalScore.away() > finalScore.home()) {
+        benchWins++;
+      } else {
+        ties++;
+      }
+    }
+
+    System.out.printf(
+        "elite-vs-benchwarmer (%d games): elite=%d wins, bench=%d wins, ties=%d, avgScore elite=%.1f bench=%.1f%n",
+        GAMES,
+        eliteWins,
+        benchWins,
+        ties,
+        elitePointsTotal / (double) GAMES,
+        benchPointsTotal / (double) GAMES);
+    if (eliteWins <= benchWins) {
+      throw new AssertionError(
+          "Expected elite team to win more than benchwarmer over %d games, got elite=%d bench=%d"
+              .formatted(GAMES, eliteWins, benchWins));
+    }
+  }
+
+  @Test
+  void tenThousandGames_benchwarmerVsBenchwarmer_teamGameAggregatesMatchBands() {
+    var repo = new ClasspathBandRepository();
+    var sampler = new DefaultBandSampler();
+    var resolver =
+        new DispatchingPlayResolver(
+            MatchupPassResolver.load(repo, sampler), MatchupRunResolver.load(repo, sampler));
+    var clockModel = BandClockModel.load(repo, sampler);
+    var personnel = new BaselinePersonnelSelector();
+    var kickoff = new TouchbackKickoffResolver();
+
+    var home = buildTeam("BENCH_H", 500, AttributeProfile.BENCHWARMER);
+    var away = buildTeam("BENCH_A", 600, AttributeProfile.BENCHWARMER);
+    var playerSide = new HashMap<PlayerId, Side>();
+    home.roster().forEach(p -> playerSide.put(p.id(), Side.HOME));
+    away.roster().forEach(p -> playerSide.put(p.id(), Side.AWAY));
+    var homeCoach = new Coach(new CoachId(new UUID(1L, 5L)), "Bench H HC");
+    var awayCoach = new Coach(new CoachId(new UUID(1L, 6L)), "Bench A HC");
+
+    var passYards = new int[GAMES * 2];
+    var rushYards = new int[GAMES * 2];
+    var plays = new int[GAMES * 2];
+    var sacks = new int[GAMES * 2];
+    var interceptions = new int[GAMES * 2];
+    var fumbles = new int[GAMES * 2];
+
+    for (var g = 0; g < GAMES; g++) {
+      var seed = 0xBE1C4L + g;
+      var caller = new BandPassRateCaller(PASS_RATE, new Random(seed ^ 0xC411L));
+      var simulator =
+          new GameSimulator(
+              caller,
+              personnel,
+              resolver,
+              clockModel,
+              kickoff,
+              new FlatRateExtraPointResolver(),
+              new DistanceCurveFieldGoalResolver(),
+              BandPuntResolver.load(repo, sampler));
+      var inputs =
+          new GameInputs(
+              new GameId(new UUID(0xBE1C4BEEFL, seed)),
+              home,
+              away,
+              homeCoach,
+              awayCoach,
+              new GameInputs.PreGameContext(),
+              Optional.of(seed));
+      var stats = new TeamStats();
+      simulator.simulate(inputs).forEach(event -> accumulate(event, stats, playerSide));
+
+      var hi = 2 * g;
+      var ai = 2 * g + 1;
+      passYards[hi] = stats.passYards(Side.HOME);
+      passYards[ai] = stats.passYards(Side.AWAY);
+      rushYards[hi] = stats.rushYards(Side.HOME);
+      rushYards[ai] = stats.rushYards(Side.AWAY);
+      plays[hi] = stats.plays(Side.HOME);
+      plays[ai] = stats.plays(Side.AWAY);
+      sacks[hi] = stats.sacks(Side.HOME);
+      sacks[ai] = stats.sacks(Side.AWAY);
+      interceptions[hi] = stats.interceptions(Side.HOME);
+      interceptions[ai] = stats.interceptions(Side.AWAY);
+      fumbles[hi] = stats.fumbles(Side.HOME);
+      fumbles[ai] = stats.fumbles(Side.AWAY);
+    }
+
+    var report = new StringBuilder();
+    report.append(
+        "=== Calibration drift report — benchwarmer vs benchwarmer (10,000 games, 20,000 team-games) ===\n");
+    report.append(
+        String.format(
+            "%-16s %-22s %-22s %-22s%n",
+            "stat", "p10 obs/target/tol", "p50 obs/target/tol", "p90 obs/target/tol"));
+    reportBand(report, "pass_yards", passYards, loadBand(repo, "pass_yards"), 40, 30, 40);
+    reportBand(report, "rush_yards", rushYards, loadBand(repo, "rush_yards"), 30, 20, 30);
+    reportBand(report, "plays", plays, loadBand(repo, "plays"), 6, 4, 6);
+    reportBand(report, "sacks_taken", sacks, loadBand(repo, "sacks_taken"), 2, 2, 2);
+    reportBand(report, "interceptions", interceptions, loadBand(repo, "interceptions"), 1, 1, 1);
+    reportBand(report, "fumbles_lost", fumbles, loadBand(repo, "fumbles_lost"), 1, 1, 1);
+    System.out.println(report);
+  }
+
   private static DistributionalBand loadBand(ClasspathBandRepository repo, String key) {
     return repo.loadDistribution("team-game.json", "bands." + key);
   }
@@ -172,7 +332,11 @@ class FullGameCalibrationTests {
           stats.addFumble(side);
         }
       }
-      case PlayEvent.Scramble s -> stats.addPlay(playerSide.get(s.qb()));
+      case PlayEvent.Scramble s -> {
+        var side = playerSide.get(s.qb());
+        stats.addPlay(side);
+        stats.addRushYards(side, s.yards());
+      }
       case PlayEvent.Interception x -> {
         var side = playerSide.get(x.qb());
         stats.addPlay(side);
@@ -263,27 +427,66 @@ class FullGameCalibrationTests {
   }
 
   private static Team buildTeam(String label, int idSeed) {
+    return buildTeam(label, idSeed, AttributeProfile.AVERAGE);
+  }
+
+  private static Team buildTeam(String label, int idSeed, AttributeProfile profile) {
     var roster = new ArrayList<Player>();
-    addPlayers(roster, Position.QB, 2, label, idSeed);
-    addPlayers(roster, Position.RB, 3, label, idSeed + 10);
-    addPlayers(roster, Position.TE, 3, label, idSeed + 20);
-    addPlayers(roster, Position.WR, 5, label, idSeed + 30);
-    addPlayers(roster, Position.OL, 8, label, idSeed + 40);
-    addPlayers(roster, Position.DL, 6, label, idSeed + 50);
-    addPlayers(roster, Position.LB, 5, label, idSeed + 60);
-    addPlayers(roster, Position.CB, 4, label, idSeed + 70);
-    addPlayers(roster, Position.S, 3, label, idSeed + 80);
-    addPlayers(roster, Position.K, 1, label, idSeed + 90);
-    addPlayers(roster, Position.P, 1, label, idSeed + 95);
+    addPlayers(roster, Position.QB, 2, label, idSeed, profile);
+    addPlayers(roster, Position.RB, 3, label, idSeed + 10, profile);
+    addPlayers(roster, Position.TE, 3, label, idSeed + 20, profile);
+    addPlayers(roster, Position.WR, 5, label, idSeed + 30, profile);
+    addPlayers(roster, Position.OL, 8, label, idSeed + 40, profile);
+    addPlayers(roster, Position.DL, 6, label, idSeed + 50, profile);
+    addPlayers(roster, Position.LB, 5, label, idSeed + 60, profile);
+    addPlayers(roster, Position.CB, 4, label, idSeed + 70, profile);
+    addPlayers(roster, Position.S, 3, label, idSeed + 80, profile);
+    addPlayers(roster, Position.K, 1, label, idSeed + 90, profile);
+    addPlayers(roster, Position.P, 1, label, idSeed + 95, profile);
     return new Team(new TeamId(new UUID(9L, idSeed)), label, List.copyOf(roster));
   }
 
   private static void addPlayers(
-      List<Player> out, Position position, int count, String label, int idSeed) {
+      List<Player> out,
+      Position position,
+      int count,
+      String label,
+      int idSeed,
+      AttributeProfile profile) {
     for (var i = 0; i < count; i++) {
       var id = new PlayerId(new UUID(idSeed, i));
       var name = "%s %s%d".formatted(label, position.name(), i + 1);
-      out.add(new Player(id, position, name));
+      out.add(
+          new Player(
+              id, position, name, profile.physical(), profile.skill(), profile.tendencies()));
+    }
+  }
+
+  private enum AttributeProfile {
+    AVERAGE(50),
+    ELITE(90),
+    BENCHWARMER(30);
+
+    private final int axisValue;
+
+    AttributeProfile(int axisValue) {
+      this.axisValue = axisValue;
+    }
+
+    Physical physical() {
+      return new Physical(
+          axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue);
+    }
+
+    Skill skill() {
+      return new Skill(
+          axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue,
+          axisValue, axisValue);
+    }
+
+    Tendencies tendencies() {
+      return new Tendencies(
+          axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue);
     }
   }
 }

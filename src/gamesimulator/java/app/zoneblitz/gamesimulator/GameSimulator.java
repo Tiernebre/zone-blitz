@@ -1,6 +1,7 @@
 package app.zoneblitz.gamesimulator;
 
 import app.zoneblitz.gamesimulator.clock.ClockModel;
+import app.zoneblitz.gamesimulator.clock.Kick;
 import app.zoneblitz.gamesimulator.event.DownAndDistance;
 import app.zoneblitz.gamesimulator.event.FieldPosition;
 import app.zoneblitz.gamesimulator.event.GameClock;
@@ -205,7 +206,10 @@ final class GameSimulator implements SimulateGame {
             state.score(),
             rng);
     out.add(resolved.event());
-    state = state.withScore(resolved.scoreAfter());
+    state =
+        state
+            .withScore(resolved.scoreAfter())
+            .withClock(tickKickClock(state, Kick.FIELD_GOAL, rng));
 
     if (resolved.made()) {
       return emitKickoff(
@@ -241,6 +245,7 @@ final class GameSimulator implements SimulateGame {
             state.score(),
             rng);
     out.add(resolved.event());
+    state = state.withClock(tickKickClock(state, Kick.PUNT, rng));
     return state.withPossessionAndSpot(
         defenseSide, new FieldPosition(resolved.receivingTakeoverYardLine()));
   }
@@ -260,7 +265,14 @@ final class GameSimulator implements SimulateGame {
         extraPointResolver.resolve(
             kicking, scoringSide, inputs.gameId(), sequence, state.clock(), state.score(), rng);
     out.add(resolved.event());
-    return state.withScore(resolved.scoreAfter());
+    return state
+        .withScore(resolved.scoreAfter())
+        .withClock(tickKickClock(state, Kick.EXTRA_POINT, rng));
+  }
+
+  private GameClock tickKickClock(GameState state, Kick kick, RandomSource rng) {
+    var consumed = clockModel.secondsConsumedForKick(kick, state, rng);
+    return new GameClock(state.clock().quarter(), state.clock().secondsRemaining() - consumed);
   }
 
   private boolean shouldAttemptFieldGoal(GameState state) {
@@ -375,6 +387,7 @@ final class GameSimulator implements SimulateGame {
             state.score(),
             rng);
     out.add(resolved.event());
+    state = state.withClock(tickKickClock(state, Kick.KICKOFF, rng));
     return state.withPossessionAndSpot(
         receivingSide, new FieldPosition(resolved.receivingSpotYardLine()));
   }

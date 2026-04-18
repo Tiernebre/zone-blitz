@@ -16,4 +16,10 @@ public interface ClockModel {
 
   /** Seconds consumed by {@code outcome} given {@code preSnap} state. Always {@code >= 0}. */
   int secondsConsumed(PlayOutcome outcome, GameState preSnap, RandomSource rng);
+
+  /**
+   * Seconds consumed by a special-teams kick (punt, field goal, kickoff, extra point) given {@code
+   * preSnap} state. Always {@code >= 0} and capped at the remaining seconds in the current quarter.
+   */
+  int secondsConsumedForKick(Kick kick, GameState preSnap, RandomSource rng);
 }

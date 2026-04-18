@@ -27,6 +27,10 @@ public final class BandClockModel implements ClockModel {
   private final DistributionalBand scrambleInbounds;
   private final DistributionalBand scrambleOob;
   private final DistributionalBand interception;
+  private final DistributionalBand punt;
+  private final DistributionalBand fieldGoal;
+  private final DistributionalBand kickoff;
+  private final DistributionalBand extraPoint;
 
   public BandClockModel(
       BandSampler sampler,
@@ -36,7 +40,11 @@ public final class BandClockModel implements ClockModel {
       DistributionalBand sack,
       DistributionalBand scrambleInbounds,
       DistributionalBand scrambleOob,
-      DistributionalBand interception) {
+      DistributionalBand interception,
+      DistributionalBand punt,
+      DistributionalBand fieldGoal,
+      DistributionalBand kickoff,
+      DistributionalBand extraPoint) {
     this.sampler = Objects.requireNonNull(sampler, "sampler");
     this.runInbounds = Objects.requireNonNull(runInbounds, "runInbounds");
     this.passCompleteInbounds =
@@ -46,6 +54,10 @@ public final class BandClockModel implements ClockModel {
     this.scrambleInbounds = Objects.requireNonNull(scrambleInbounds, "scrambleInbounds");
     this.scrambleOob = Objects.requireNonNull(scrambleOob, "scrambleOob");
     this.interception = Objects.requireNonNull(interception, "interception");
+    this.punt = Objects.requireNonNull(punt, "punt");
+    this.fieldGoal = Objects.requireNonNull(fieldGoal, "fieldGoal");
+    this.kickoff = Objects.requireNonNull(kickoff, "kickoff");
+    this.extraPoint = Objects.requireNonNull(extraPoint, "extraPoint");
   }
 
   /** Load a model from the default {@code play-duration.json} band resource. */
@@ -58,7 +70,11 @@ public final class BandClockModel implements ClockModel {
         repo.loadDistribution(RESOURCE, "bands.sack"),
         repo.loadDistribution(RESOURCE, "bands.scramble_inbounds"),
         repo.loadDistribution(RESOURCE, "bands.scramble_oob"),
-        repo.loadDistribution(RESOURCE, "bands.pass_interception"));
+        repo.loadDistribution(RESOURCE, "bands.pass_interception"),
+        repo.loadDistribution(RESOURCE, "bands.punt"),
+        repo.loadDistribution(RESOURCE, "bands.field_goal"),
+        repo.loadDistribution(RESOURCE, "bands.kickoff"),
+        repo.loadDistribution(RESOURCE, "bands.extra_point"));
   }
 
   @Override
@@ -74,6 +90,22 @@ public final class BandClockModel implements ClockModel {
           case PassOutcome.Scramble s -> s.slideOrOob() ? scrambleOob : scrambleInbounds;
           case PassOutcome.Interception x -> interception;
           case RunOutcome.Run r -> runInbounds;
+        };
+    var raw = sampler.sampleDistribution(band, 0.0, rng);
+    return Math.max(0, Math.min(raw, preSnap.clock().secondsRemaining()));
+  }
+
+  @Override
+  public int secondsConsumedForKick(Kick kick, GameState preSnap, RandomSource rng) {
+    Objects.requireNonNull(kick, "kick");
+    Objects.requireNonNull(preSnap, "preSnap");
+    Objects.requireNonNull(rng, "rng");
+    var band =
+        switch (kick) {
+          case PUNT -> punt;
+          case FIELD_GOAL -> fieldGoal;
+          case KICKOFF -> kickoff;
+          case EXTRA_POINT -> extraPoint;
         };
     var raw = sampler.sampleDistribution(band, 0.0, rng);
     return Math.max(0, Math.min(raw, preSnap.clock().secondsRemaining()));

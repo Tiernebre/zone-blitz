@@ -1,7 +1,7 @@
 package app.zoneblitz.gamesimulator.band;
 
 import app.zoneblitz.gamesimulator.rng.RandomSource;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public final class DefaultBandSampler implements BandSampler {
 
@@ -9,7 +9,7 @@ public final class DefaultBandSampler implements BandSampler {
 
   @Override
   public <T> T sampleRate(RateBand<T> band, double matchupShift, RandomSource rng) {
-    var shifted = new HashMap<T, Double>(band.baseProbabilities().size());
+    var shifted = new LinkedHashMap<T, Double>(band.baseProbabilities().size());
     var total = 0.0;
     for (var entry : band.baseProbabilities().entrySet()) {
       var outcome = entry.getKey();
