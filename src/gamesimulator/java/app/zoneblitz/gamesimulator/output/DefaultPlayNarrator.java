@@ -43,14 +43,14 @@ final class DefaultPlayNarrator implements PlayNarrator {
 
   private String passComplete(PlayEvent.PassComplete pc, NarrationContext ctx) {
     var base =
-        "%s %s to %s for %d."
+        "%s %s throws to %s for %d."
             .formatted(
                 situation(pc), ctx.nameOf(pc.qb()), ctx.nameOf(pc.target()), pc.totalYards());
     return base + scoreOrFirstDown(pc.touchdown(), pc.firstDown()) + spotSuffix(pc.endSpot());
   }
 
   private String passIncomplete(PlayEvent.PassIncomplete pi, NarrationContext ctx) {
-    return "%s %s incomplete intended for %s (%s)."
+    return "%s %s threw an incomplete pass intended for %s (%s)."
         .formatted(
             situation(pi), ctx.nameOf(pi.qb()), ctx.nameOf(pi.target()), describe(pi.reason()));
   }

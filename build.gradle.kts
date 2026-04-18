@@ -179,6 +179,20 @@ tasks.jacocoTestReport {
     }
 }
 
+tasks.register<JavaExec>("emulate") {
+    group = "application"
+    description = "Run the game-simulator emulator. Args: [snaps] [seed]"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("app.zoneblitz.gamesimulator.GameSimEmulator")
+    standardInput = System.`in`
+    if (project.hasProperty("args")) {
+        val raw = (project.property("args") as String).trim()
+        if (raw.isNotEmpty()) {
+            args(raw.split(" "))
+        }
+    }
+}
+
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     val envFile = file(".env")
     if (envFile.exists()) {

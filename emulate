@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Quick-and-dirty CLI for the game-simulator emulator.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  cat <<'EOF'
+Usage: ./emulate [snaps] [seed]
+
+  snaps   number of snaps to simulate (default: 30)
+  seed    RNG seed for reproducible runs (default: random)
+
+Examples:
+  ./emulate              # 30 snaps, random seed
+  ./emulate 50           # 50 snaps, random seed
+  ./emulate 50 42        # 50 snaps, seed 42
+EOF
+  exit 0
+fi
+
+if [[ $# -eq 0 ]]; then
+  exec ./gradlew -q --console=plain emulate
+fi
+exec ./gradlew -q --console=plain emulate -Pargs="$*"
