@@ -99,7 +99,7 @@ Each owns its interface + impl + tests + fills in its `PlayEvent` variant body (
 
 - **O1 PlayNarrator** — `PlayNarrator.java`, `DefaultPlayNarrator.java`, `NarrationContext.java`. Pure over `PlayEvent`. Doc 474-584.
 - **O2 StatsAssembler** — `StatsAssembler.java`, `StatsProjection.java`, `PlayerGameStats.java`, `TeamGameStats.java`, `DriveStats.java`, `GameStats.java`, `BoxScoreAssembler.java`. Doc 588-721.
-- **O3 PlayEventStore** — interface + `JooqPlayEventStore.java` + Flyway `V***__create_play_events.sql` (JSONB payload). Doc 548-552.
+- **[O3](O3-play-event-store.md) PlayEventStore** — interface + `JooqPlayEventStore.java` + Flyway `V***__create_play_events.sql` (JSONB payload). Doc 548-552.
 
 ## Band extraction (parallel — data only)
 

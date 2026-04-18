@@ -67,6 +67,9 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
 
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8")
+
     implementation("org.webjars.npm:htmx.org:2.0.4")
     implementation("org.webjars.npm:alpinejs:3.14.8")
     implementation("org.webjars:webjars-locator-core")
