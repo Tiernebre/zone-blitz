@@ -61,11 +61,15 @@ class HomeFieldAdvantageIntegrationTests {
     var loud = simulateBatch(new HomeFieldAdvantage(100));
     var neutral = simulateBatch(HomeFieldAdvantage.neutral());
 
-    var loudSpread = (loud.homePoints - loud.roadPoints) / (double) GAMES;
-    var neutralSpread = (neutral.homePoints - neutral.roadPoints) / (double) GAMES;
-    assertThat(loudSpread)
+    var pairedDelta = 0L;
+    for (var g = 0; g < GAMES; g++) {
+      var loudSpread = loud.homeByGame[g] - loud.roadByGame[g];
+      var neutralSpread = neutral.homeByGame[g] - neutral.roadByGame[g];
+      pairedDelta += loudSpread - neutralSpread;
+    }
+    assertThat(pairedDelta)
         .as("loud stadium should tilt the home-minus-road spread upward vs a neutral field")
-        .isGreaterThan(neutralSpread);
+        .isPositive();
   }
 
   private BatchResult simulateBatch(HomeFieldAdvantage hfa) {
@@ -83,8 +87,8 @@ class HomeFieldAdvantageIntegrationTests {
     var homeCoach = Coach.average(new CoachId(new UUID(1L, 1L)), "Home HC");
     var awayCoach = Coach.average(new CoachId(new UUID(1L, 2L)), "Away HC");
 
-    long homePoints = 0;
-    long roadPoints = 0;
+    var homeByGame = new int[GAMES];
+    var roadByGame = new int[GAMES];
     long roadFalseStartAndDelay = 0;
     for (var g = 0; g < GAMES; g++) {
       var seed = 0xF1E1DL + g;
@@ -124,13 +128,13 @@ class HomeFieldAdvantageIntegrationTests {
           roadFalseStartAndDelay++;
         }
       }
-      homePoints += lastScore[0].home();
-      roadPoints += lastScore[0].away();
+      homeByGame[g] = lastScore[0].home();
+      roadByGame[g] = lastScore[0].away();
     }
-    return new BatchResult(homePoints, roadPoints, roadFalseStartAndDelay);
+    return new BatchResult(homeByGame, roadByGame, roadFalseStartAndDelay);
   }
 
-  private record BatchResult(long homePoints, long roadPoints, long roadFalseStartAndDelay) {}
+  private record BatchResult(int[] homeByGame, int[] roadByGame, long roadFalseStartAndDelay) {}
 
   private static Team buildTeam(String label, int idSeed) {
     var roster = new ArrayList<Player>();
