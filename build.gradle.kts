@@ -29,18 +29,21 @@ repositories {
 }
 
 sourceSets {
-    create("sim") {
-        java.srcDir("src/sim/java")
-        resources.srcDir("src/sim/resources")
+    create("gamesimulator") {
+        java.srcDir("src/gamesimulator/java")
+        resources.srcDir("src/gamesimulator/resources")
+        resources.srcDir("data")
+        resources.include("bands/**")
     }
 }
 
 dependencies {
-    "implementation"(files(sourceSets["sim"].output))
+    "gamesimulatorImplementation"("com.fasterxml.jackson.core:jackson-databind")
+    "implementation"(files(sourceSets["gamesimulator"].output))
 }
 
 tasks.named<Jar>("bootJar") {
-    from(sourceSets["sim"].output)
+    from(sourceSets["gamesimulator"].output)
 }
 
 dependencies {
