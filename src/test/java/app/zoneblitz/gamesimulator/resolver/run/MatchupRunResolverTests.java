@@ -1,5 +1,6 @@
 package app.zoneblitz.gamesimulator.resolver.run;
 
+import static app.zoneblitz.gamesimulator.CalibrationAssertions.assertPercentile;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.GameState;
@@ -16,6 +17,7 @@ import app.zoneblitz.gamesimulator.resolver.PositionBasedRunRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.resolver.run.MatchupRunResolver.RunMatchupShift;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -42,6 +44,33 @@ class MatchupRunResolverTests {
         .as("base breakaway rate ~0.0225 over 10k trials")
         .isBetween(160, 310);
     assertThat(counts.fumbles).as("base fumble rate ~0.0156 over 10k trials").isBetween(100, 220);
+  }
+
+  @Test
+  void resolve_zeroShift_yardagePercentilesMatchOverallBand() {
+    var resolver = loadedResolver(RunMatchupShift.ZERO);
+    var rng = new SplittableRandomSource(42L);
+    var yards = new ArrayList<Integer>(TRIALS);
+    for (var i = 0; i < TRIALS; i++) {
+      var run = (RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng);
+      yards.add(run.yards());
+    }
+    var sorted = yards.stream().mapToInt(Integer::intValue).sorted().toArray();
+    assertPercentile(sorted, 0.10, 0, 2);
+    assertPercentile(sorted, 0.25, 1, 2);
+    assertPercentile(sorted, 0.50, 3, 2);
+    assertPercentile(sorted, 0.75, 6, 2);
+    assertPercentile(sorted, 0.90, 10, 2);
+  }
+
+  @Test
+  void resolve_zeroShift_yardageRespectsOverallMinMax() {
+    var resolver = loadedResolver(RunMatchupShift.ZERO);
+    var rng = new SplittableRandomSource(1337L);
+    for (var i = 0; i < TRIALS; i++) {
+      var run = (RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng);
+      assertThat(run.yards()).isBetween(-28, 98);
+    }
   }
 
   @Test
