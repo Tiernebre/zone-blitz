@@ -9,8 +9,8 @@ import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Team;
 
 /**
- * Resolves a kickoff: produces a {@link PlayEvent.Kickoff} and reports the resulting field position
- * for the receiving team.
+ * Resolves a kickoff: produces a {@link PlayEvent.Kickoff} and reports which side takes possession
+ * next, plus the yard line their next snap will spot at (measured from that side's own goal line).
  */
 public interface KickoffResolver {
 
@@ -34,6 +34,11 @@ public interface KickoffResolver {
       Score scoreAfter,
       RandomSource rng);
 
-  /** The kickoff event plus the yard line the next snap will spot at (from receiving goal line). */
-  record Resolved(PlayEvent.Kickoff event, int receivingSpotYardLine) {}
+  /**
+   * The kickoff event plus the side that next possesses the ball and the yard line their next snap
+   * will spot at (measured from {@code nextPossession}'s own goal line). For ordinary kickoffs
+   * {@code nextPossession} is the receiving side; it flips to the kicking side on a recovered
+   * onside kick.
+   */
+  record Resolved(PlayEvent.Kickoff event, Side nextPossession, int nextSpotYardLine) {}
 }

@@ -7,6 +7,7 @@ import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.event.TeamId;
+import app.zoneblitz.gamesimulator.kickoff.OnsideAwareKickoffResolver;
 import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
 import app.zoneblitz.gamesimulator.output.NarrationContext;
 import app.zoneblitz.gamesimulator.output.PlayNarrator;
@@ -64,7 +65,7 @@ public final class GameSimEmulator {
             new BaselinePersonnelSelector(),
             resolver,
             BandClockModel.load(repo, sampler),
-            new TouchbackKickoffResolver(),
+            OnsideAwareKickoffResolver.withDefaultPolicy(new TouchbackKickoffResolver()),
             new FlatRateExtraPointResolver(),
             new DistanceCurveFieldGoalResolver(),
             BandPuntResolver.load(repo, sampler),

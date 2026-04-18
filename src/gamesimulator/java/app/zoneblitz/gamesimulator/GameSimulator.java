@@ -601,7 +601,7 @@ final class GameSimulator implements SimulateGame {
     out.add(resolved.event());
     state = state.withClock(tickKickClock(state, Kick.KICKOFF, rng));
     return state.withPossessionAndSpot(
-        receivingSide, new FieldPosition(resolved.receivingSpotYardLine()));
+        resolved.nextPossession(), new FieldPosition(resolved.nextSpotYardLine()));
   }
 
   private static PlayEvent.EndOfQuarter endOfQuarterEvent(
