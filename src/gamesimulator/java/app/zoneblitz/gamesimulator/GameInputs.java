@@ -1,5 +1,8 @@
 package app.zoneblitz.gamesimulator;
 
+import app.zoneblitz.gamesimulator.event.GameId;
+import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.event.TeamId;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;

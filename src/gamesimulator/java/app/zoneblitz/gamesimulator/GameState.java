@@ -1,5 +1,12 @@
 package app.zoneblitz.gamesimulator;
 
+import app.zoneblitz.gamesimulator.event.DownAndDistance;
+import app.zoneblitz.gamesimulator.event.FieldPosition;
+import app.zoneblitz.gamesimulator.event.GameClock;
+import app.zoneblitz.gamesimulator.event.PlayEvent;
+import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.event.Score;
+import app.zoneblitz.gamesimulator.event.Team;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;

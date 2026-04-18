@@ -1,5 +1,8 @@
 package app.zoneblitz.gamesimulator;
 
+import app.zoneblitz.gamesimulator.event.PlayEvent;
+import app.zoneblitz.gamesimulator.rng.RandomSource;
+
 /**
  * Resolves an offensive play call into a concrete {@link PlayEvent}. Must be pure given its inputs;
  * all randomness flows through the supplied {@link RandomSource}.
