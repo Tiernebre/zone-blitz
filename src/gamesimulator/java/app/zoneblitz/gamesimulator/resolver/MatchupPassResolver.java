@@ -28,9 +28,9 @@ import java.util.Optional;
  * with the attribute families in R4. Target and interceptor picks prefer role buckets so a blitzing
  * CB no longer intercepts from the coverage pool.
  *
- * <p>With the shipped band (all β = 0) and {@link PassMatchupShift#ZERO}, this resolver reproduces
- * {@link BaselinePassResolver} byte-for-byte — the two consume RNG in the exact same order and
- * resolve to the same outcomes.
+ * <p>With the shipped band (all β = 0) and every player at {@code average()} attributes, the
+ * clamped shift evaluates to zero and this resolver reproduces {@link BaselinePassResolver}
+ * byte-for-byte — the two consume RNG in the exact same order and resolve to the same outcomes.
  */
 public final class MatchupPassResolver implements PlayResolver {
 
@@ -62,9 +62,9 @@ public final class MatchupPassResolver implements PlayResolver {
   }
 
   /**
-   * Load a resolver from {@code passing-plays.json} with position-based roles and a zero matchup
-   * shift. With the shipped band this is baseline-equivalent; R4 will swap in an attribute-aware
-   * shift function.
+   * Load a resolver from {@code passing-plays.json} with position-based roles and the clamped
+   * attribute-aware pass-matchup shift. Average-attribute rosters produce a zero shift and stay
+   * baseline-equivalent; attribute-differentiated rosters exercise the physical-fit clamp.
    */
   public static MatchupPassResolver load(BandRepository repo, BandSampler sampler) {
     var outcomeMix = repo.loadRate(PASSING_PLAYS, "bands.outcome_mix", PassOutcomeKind.class);
@@ -74,7 +74,7 @@ public final class MatchupPassResolver implements PlayResolver {
     return new MatchupPassResolver(
         sampler,
         new PositionBasedRoleAssigner(),
-        PassMatchupShift.ZERO,
+        new ClampedPassMatchupShift(),
         outcomeMix,
         completionYards,
         sackYards,
