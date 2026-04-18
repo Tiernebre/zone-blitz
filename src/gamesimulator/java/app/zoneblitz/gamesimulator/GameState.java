@@ -88,6 +88,58 @@ public record GameState(
         overtimeRound);
   }
 
+  public GameState withClock(GameClock newClock) {
+    Objects.requireNonNull(newClock, "newClock");
+    return new GameState(
+        score,
+        newClock,
+        downAndDistance,
+        spot,
+        possession,
+        drive,
+        fatigueSnapCounts,
+        injuredPlayers,
+        homeTimeouts,
+        awayTimeouts,
+        phase,
+        overtimeRound);
+  }
+
+  public GameState withPhase(Phase newPhase) {
+    Objects.requireNonNull(newPhase, "newPhase");
+    return new GameState(
+        score,
+        clock,
+        downAndDistance,
+        spot,
+        possession,
+        drive,
+        fatigueSnapCounts,
+        injuredPlayers,
+        homeTimeouts,
+        awayTimeouts,
+        newPhase,
+        overtimeRound);
+  }
+
+  public GameState withPossessionAndSpot(Side newPossession, FieldPosition newSpot) {
+    Objects.requireNonNull(newPossession, "newPossession");
+    Objects.requireNonNull(newSpot, "newSpot");
+    return new GameState(
+        score,
+        clock,
+        new DownAndDistance(1, 10),
+        newSpot,
+        newPossession,
+        drive,
+        fatigueSnapCounts,
+        injuredPlayers,
+        homeTimeouts,
+        awayTimeouts,
+        phase,
+        overtimeRound);
+  }
+
   /** Per-drive bookkeeping. */
   record DriveState(int driveNumber, int playsInDrive, int yardsInDrive, Side startingPossession) {
     static DriveState initial() {

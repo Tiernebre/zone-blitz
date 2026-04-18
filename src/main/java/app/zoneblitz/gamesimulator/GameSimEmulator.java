@@ -2,10 +2,12 @@ package app.zoneblitz.gamesimulator;
 
 import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
 import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
+import app.zoneblitz.gamesimulator.clock.BaselineClockModel;
 import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.event.TeamId;
+import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
 import app.zoneblitz.gamesimulator.output.NarrationContext;
 import app.zoneblitz.gamesimulator.output.PlayNarrator;
 import app.zoneblitz.gamesimulator.personnel.BaselinePersonnelSelector;
@@ -32,9 +34,8 @@ public final class GameSimEmulator {
   private GameSimEmulator() {}
 
   public static void main(String[] args) {
-    var snaps = args.length > 0 ? Integer.parseInt(args[0]) : 30;
     var seed =
-        args.length > 1 ? Long.parseLong(args[1]) : new java.security.SecureRandom().nextLong();
+        args.length > 0 ? Long.parseLong(args[0]) : new java.security.SecureRandom().nextLong();
 
     var home = buildTeam("HOME", 100);
     var away = buildTeam("AWAY", 200);
@@ -47,7 +48,11 @@ public final class GameSimEmulator {
 
     var simulator =
         new GameSimulator(
-            new AlternatingPlayCaller(), new BaselinePersonnelSelector(), resolver, snaps);
+            new AlternatingPlayCaller(),
+            new BaselinePersonnelSelector(),
+            resolver,
+            new BaselineClockModel(),
+            new TouchbackKickoffResolver());
 
     var inputs =
         new GameInputs(
@@ -68,7 +73,7 @@ public final class GameSimEmulator {
             side -> side == Side.HOME ? home.displayName() : away.displayName());
     var narrator = PlayNarrator.defaultNarrator();
 
-    System.out.println("Zone Blitz emulator — seed=" + seed + ", snaps=" + snaps);
+    System.out.println("Zone Blitz emulator — seed=" + seed);
     simulator
         .simulate(inputs)
         .forEach(event -> System.out.println(narrator.narrate(event, context)));
@@ -85,6 +90,8 @@ public final class GameSimEmulator {
     addPlayers(roster, Position.LB, 5, label, idSeed + 60);
     addPlayers(roster, Position.CB, 4, label, idSeed + 70);
     addPlayers(roster, Position.S, 3, label, idSeed + 80);
+    addPlayers(roster, Position.K, 1, label, idSeed + 90);
+    addPlayers(roster, Position.P, 1, label, idSeed + 95);
     return new Team(new TeamId(new UUID(9L, idSeed)), label, List.copyOf(roster));
   }
 

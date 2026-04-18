@@ -181,7 +181,7 @@ tasks.jacocoTestReport {
 
 tasks.register<JavaExec>("emulate") {
     group = "application"
-    description = "Run the game-simulator emulator. Args: [snaps] [seed]"
+    description = "Run the game-simulator emulator. Args: [seed]"
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("app.zoneblitz.gamesimulator.GameSimEmulator")
     standardInput = System.`in`

@@ -2,9 +2,11 @@ package app.zoneblitz.gamesimulator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.zoneblitz.gamesimulator.clock.BaselineClockModel;
 import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
+import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
 import app.zoneblitz.gamesimulator.personnel.FakePersonnelSelector;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.roster.Coach;
@@ -26,15 +28,24 @@ class GameSimulatorTests {
   private static final Player WR = new Player(WR_ID, Position.WR, "Test WR");
   private static final Coach HOME_COACH = new Coach(new CoachId(new UUID(2L, 2L)), "Home Coach");
   private static final Coach AWAY_COACH = new Coach(new CoachId(new UUID(2L, 3L)), "Away Coach");
+  private static final Player HOME_K =
+      new Player(new PlayerId(new UUID(1L, 9L)), Position.K, "Home K");
+  private static final Player AWAY_K =
+      new Player(new PlayerId(new UUID(1L, 10L)), Position.K, "Away K");
   private static final Team HOME =
-      new Team(new TeamId(new UUID(3L, 3L)), "Home Team", List.of(QB, WR));
-  private static final Team AWAY = new Team(new TeamId(new UUID(4L, 4L)), "Away Team", List.of());
+      new Team(new TeamId(new UUID(3L, 3L)), "Home Team", List.of(QB, WR, HOME_K));
+  private static final Team AWAY =
+      new Team(new TeamId(new UUID(4L, 4L)), "Away Team", List.of(AWAY_K));
 
-  private SimulateGame newSimulator(int snaps) {
+  private SimulateGame newSimulator() {
     var personnel =
         new FakePersonnelSelector(TestPersonnel.baselineOffense(), TestPersonnel.baselineDefense());
     return new GameSimulator(
-        ScriptedPlayCaller.runs(snaps), personnel, new ConstantPlayResolver(QB_ID, WR_ID), snaps);
+        ScriptedPlayCaller.runs(1),
+        personnel,
+        new ConstantPlayResolver(QB_ID, WR_ID),
+        new BaselineClockModel(),
+        new TouchbackKickoffResolver());
   }
 
   private static GameInputs inputs(Optional<Long> seed) {
@@ -43,12 +54,10 @@ class GameSimulatorTests {
   }
 
   @Test
-  void simulate_withScriptedCaller_emitsOneEventPerSnap() {
-    var simulator = newSimulator(10);
+  void simulate_emitsContiguousSequencesAndTerminates() {
+    var events = newSimulator().simulate(inputs(Optional.of(1L))).toList();
 
-    var events = simulator.simulate(inputs(Optional.of(1L))).toList();
-
-    assertThat(events).hasSize(10);
+    assertThat(events).isNotEmpty();
     for (var i = 0; i < events.size(); i++) {
       assertThat(events.get(i).sequence()).isEqualTo(i);
     }
@@ -56,16 +65,16 @@ class GameSimulatorTests {
 
   @Test
   void simulate_sameSeed_producesByteIdenticalStream() {
-    var a = newSimulator(25).simulate(inputs(Optional.of(12345L))).toList();
-    var b = newSimulator(25).simulate(inputs(Optional.of(12345L))).toList();
+    var a = newSimulator().simulate(inputs(Optional.of(12345L))).toList();
+    var b = newSimulator().simulate(inputs(Optional.of(12345L))).toList();
 
     assertThat(a).isEqualTo(b);
   }
 
   @Test
   void simulate_differentSeed_producesDifferentStream() {
-    var a = newSimulator(25).simulate(inputs(Optional.of(1L))).toList();
-    var b = newSimulator(25).simulate(inputs(Optional.of(2L))).toList();
+    var a = newSimulator().simulate(inputs(Optional.of(1L))).toList();
+    var b = newSimulator().simulate(inputs(Optional.of(2L))).toList();
 
     assertThat(a).isNotEqualTo(b);
   }
