@@ -1,0 +1,140 @@
+package app.zoneblitz.gamesimulator.penalty;
+
+import app.zoneblitz.gamesimulator.GameState;
+import app.zoneblitz.gamesimulator.PlayCaller;
+import app.zoneblitz.gamesimulator.event.PenaltyType;
+import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.event.Side;
+import app.zoneblitz.gamesimulator.penalty.PenaltyCatalog.Bucket;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
+import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.roster.Player;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Default {@link PenaltyModel} calibrated to nflfastR 2020–2024 per-play rates (see {@link
+ * PenaltyCatalog}). Each bucket's aggregate rate is drawn once per snap; the specific type is
+ * chosen from that bucket's cumulative distribution, then the against-side is chosen by the type's
+ * offense/defense split, then a committing player is drawn uniformly from the offending unit.
+ *
+ * <p>Per-player {@code discipline} shifts the rate linearly around the league-average baseline:
+ * unit mean of 50 leaves rates unchanged, mean of 100 cuts them by {@link #MAX_SHIFT}, mean of 0
+ * raises them by the same fraction.
+ */
+public final class BandPenaltyModel implements PenaltyModel {
+
+  /** Maximum linear rate shift at the discipline extremes (mean discipline 0 or 100). */
+  private static final double MAX_SHIFT = 0.4;
+
+  @Override
+  public Optional<PenaltyDraw.PreSnap> preSnap(
+      GameState state, OffensivePersonnel offense, DefensivePersonnel defense, RandomSource rng) {
+    var drawn = drawInBucket(Bucket.PRE_SNAP, state.possession(), offense, defense, rng);
+    if (drawn.isEmpty()) {
+      return Optional.empty();
+    }
+    var d = drawn.get();
+    return Optional.of(
+        new PenaltyDraw.PreSnap(
+            d.type(), d.against(), d.committedBy(), d.yards(), d.enforcement()));
+  }
+
+  @Override
+  public Optional<PenaltyDraw.LiveBall> duringPlay(
+      PlayCaller.PlayCall call,
+      PlayOutcome outcome,
+      GameState state,
+      OffensivePersonnel offense,
+      DefensivePersonnel defense,
+      RandomSource rng) {
+    var drawn = drawInBucket(Bucket.DURING, state.possession(), offense, defense, rng);
+    if (drawn.isEmpty()) {
+      return Optional.empty();
+    }
+    var d = drawn.get();
+    return Optional.of(
+        new PenaltyDraw.LiveBall(
+            d.type(), d.against(), d.committedBy(), d.yards(), d.enforcement()));
+  }
+
+  @Override
+  public Optional<PenaltyDraw.PostPlay> postPlay(
+      Side offenseSide, OffensivePersonnel offense, DefensivePersonnel defense, RandomSource rng) {
+    var drawn = drawInBucket(Bucket.POST_PLAY, offenseSide, offense, defense, rng);
+    if (drawn.isEmpty()) {
+      return Optional.empty();
+    }
+    var d = drawn.get();
+    return Optional.of(
+        new PenaltyDraw.PostPlay(
+            d.type(), d.against(), d.committedBy(), d.yards(), d.enforcement()));
+  }
+
+  private Optional<Drawn> drawInBucket(
+      Bucket bucket,
+      Side offenseSide,
+      OffensivePersonnel offense,
+      DefensivePersonnel defense,
+      RandomSource rng) {
+    var offenseFactor = disciplineFactor(offense.players());
+    var defenseFactor = disciplineFactor(defense.players());
+    var specs = PenaltyCatalog.inBucket(bucket);
+
+    var adjusted = new double[specs.size()];
+    var total = 0.0;
+    for (var i = 0; i < specs.size(); i++) {
+      var s = specs.get(i);
+      if (s.type() == PenaltyType.ROUGHING_THE_KICKER) {
+        adjusted[i] = 0.0;
+        continue;
+      }
+      var r = s.rate() * (s.offenseProb() * offenseFactor + (1 - s.offenseProb()) * defenseFactor);
+      adjusted[i] = r;
+      total += r;
+    }
+    if (total <= 0.0) {
+      return Optional.empty();
+    }
+    var fireRoll = rng.nextDouble();
+    if (fireRoll >= total) {
+      return Optional.empty();
+    }
+
+    var typeRoll = rng.nextDouble() * total;
+    var acc = 0.0;
+    PenaltyCatalog.Spec picked = specs.get(specs.size() - 1);
+    for (var i = 0; i < specs.size(); i++) {
+      acc += adjusted[i];
+      if (typeRoll < acc) {
+        picked = specs.get(i);
+        break;
+      }
+    }
+
+    var against = rng.nextDouble() < picked.offenseProb() ? offenseSide : other(offenseSide);
+    var offendingUnit = (against == offenseSide) ? offense.players() : defense.players();
+    var committedBy = offendingUnit.get((int) (rng.nextDouble() * offendingUnit.size())).id();
+    var enforcement = PenaltyCatalog.enforcementFor(picked.type(), against, offenseSide);
+    return Optional.of(new Drawn(picked.type(), against, committedBy, picked.yards(), enforcement));
+  }
+
+  private static double disciplineFactor(List<Player> unit) {
+    var mean = unit.stream().mapToInt(p -> p.tendencies().discipline()).average().orElse(50.0);
+    var shift = (50.0 - mean) / 50.0 * MAX_SHIFT;
+    return Math.max(1 - MAX_SHIFT, Math.min(1 + MAX_SHIFT, 1 + shift));
+  }
+
+  private static Side other(Side side) {
+    return side == Side.HOME ? Side.AWAY : Side.HOME;
+  }
+
+  private record Drawn(
+      PenaltyType type,
+      Side against,
+      PlayerId committedBy,
+      int yards,
+      PenaltyEnforcement enforcement) {}
+}
