@@ -181,3 +181,18 @@ tasks.jacocoTestReport {
         html.required.set(true)
     }
 }
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    val envFile = file(".env")
+    if (envFile.exists()) {
+        envFile
+            .readLines()
+            .filter { it.isNotBlank() && !it.trimStart().startsWith("#") }
+            .forEach {
+                val idx = it.indexOf("=")
+                if (idx > 0) {
+                    environment(it.substring(0, idx).trim(), it.substring(idx + 1).trim())
+                }
+            }
+    }
+}

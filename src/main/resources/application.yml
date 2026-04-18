@@ -4,6 +4,17 @@ server:
 spring:
   application:
     name: zoneblitz
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH_CLIENT_ID:}
+            client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
+            scope:
+              - openid
+              - profile
+              - email
   datasource:
     url: jdbc:postgresql://localhost:5432/zoneblitz
     username: zoneblitz

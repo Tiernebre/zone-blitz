@@ -10,7 +10,21 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+    http.authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers(
+                        "/",
+                        "/css/**",
+                        "/js/**",
+                        "/webjars/**",
+                        "/actuator/health",
+                        "/actuator/info",
+                        "/api/health")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
+        .oauth2Login(oauth -> oauth.loginPage("/").defaultSuccessUrl("/", true))
+        .logout(logout -> logout.logoutSuccessUrl("/").permitAll())
         .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
     return http.build();
   }
