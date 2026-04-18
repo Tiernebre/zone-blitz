@@ -85,6 +85,16 @@ public final class ClasspathBandRepository implements BandRepository {
     return (Map<T, Double>) out;
   }
 
+  @Override
+  public double loadScalar(String path, String fieldPath) {
+    var node = resolve(path, fieldPath);
+    if (!node.isNumber()) {
+      throw new IllegalArgumentException(
+          "Expected number at " + fieldPath + " in " + path + " but was " + node.getNodeType());
+    }
+    return node.asDouble();
+  }
+
   private JsonNode resolve(String path, String fieldPath) {
     var resource = "/bands/" + path;
     try (InputStream in = ClasspathBandRepository.class.getResourceAsStream(resource)) {

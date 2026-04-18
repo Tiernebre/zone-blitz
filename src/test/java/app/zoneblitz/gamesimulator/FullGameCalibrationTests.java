@@ -11,7 +11,7 @@ import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.event.TeamId;
 import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
 import app.zoneblitz.gamesimulator.personnel.BaselinePersonnelSelector;
-import app.zoneblitz.gamesimulator.punt.DistanceCurvePuntResolver;
+import app.zoneblitz.gamesimulator.punt.BandPuntResolver;
 import app.zoneblitz.gamesimulator.resolver.DispatchingPlayResolver;
 import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver;
 import app.zoneblitz.gamesimulator.resolver.run.MatchupRunResolver;
@@ -82,7 +82,7 @@ class FullGameCalibrationTests {
               kickoff,
               new FlatRateExtraPointResolver(),
               new DistanceCurveFieldGoalResolver(),
-              new DistanceCurvePuntResolver());
+              BandPuntResolver.load(repo, sampler));
       var inputs =
           new GameInputs(
               new GameId(new UUID(0xDEADBEEFL, seed)),

@@ -42,4 +42,13 @@ public interface BandRepository {
    * @throws IllegalArgumentException if the resource or field is missing or malformed
    */
   <T> java.util.Map<T, Double> loadWeights(String path, String fieldPath, Class<T> keyType);
+
+  /**
+   * Load a single numeric scalar from a JSON resource. The addressed node must be a number (int or
+   * double). Useful for flat rate/weight fields that coexist with object-shaped siblings under the
+   * same parent (e.g. {@code bands.punts.touchback_rate} alongside the {@code gross_yards} object).
+   *
+   * @throws IllegalArgumentException if the resource or field is missing or non-numeric
+   */
+  double loadScalar(String path, String fieldPath);
 }
