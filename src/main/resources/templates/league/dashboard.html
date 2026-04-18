@@ -11,9 +11,15 @@
 		<aside class="w-60 bg-slate-900 text-slate-100 flex flex-col">
 			<nav class="flex flex-col p-4 gap-1 text-sm">
 				<a th:href="@{/}"
-				   class="px-3 py-2 rounded hover:bg-slate-800 text-slate-300">&larr; All Leagues</a>
+				   class="flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-800 text-slate-300">
+					<svg th:replace="~{icons :: arrow-left(cls='size-4')}"></svg>
+					<span>All Leagues</span>
+				</a>
 				<a th:href="@{'/leagues/' + ${league.leagueId()}}"
-				   class="px-3 py-2 rounded bg-slate-800 text-white font-medium">Home</a>
+				   class="flex items-center gap-2 px-3 py-2 rounded bg-slate-800 text-white font-medium">
+					<svg th:replace="~{icons :: home(cls='size-4')}"></svg>
+					<span>Home</span>
+				</a>
 			</nav>
 		</aside>
 

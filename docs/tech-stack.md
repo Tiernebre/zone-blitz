@@ -21,6 +21,7 @@
 - **Packaging:** templates and static assets bundled into the Spring Boot JAR — single deploy artifact, same-origin, no CORS.
 - **Styling:** Tailwind CSS. Built via the Tailwind CLI as part of the Gradle build; generated stylesheet ends up on the classpath and is served as a static asset from the JAR.
 - **JS posture:** minimize bespoke JS; reach for Alpine.js or small vanilla sprinkles only where HTMX isn't sufficient.
+- **Icons:** Heroicons (MIT, from the Tailwind team). Inlined as SVGs in a Thymeleaf fragment file (`templates/icons.html`), one `th:fragment` per icon, referenced via `th:replace="~{icons :: name(cls='size-5 text-slate-600')}"`. No runtime JS, Tailwind drives sizing/color via `currentColor`. Icons are added on demand rather than shipping the full set.
 
 ## Deployment
 
