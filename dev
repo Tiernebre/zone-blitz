@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# Run Tailwind in watch mode alongside `./gradlew bootRun`.
+# Ctrl-C stops both.
+set -euo pipefail
+set -m  # job control: each background pipeline gets its own process group
+
+cd "$(dirname "$0")"
+
+PORT=3000
+
+BOLD=$'\033[1m'
+DIM=$'\033[2m'
+GREEN=$'\033[32m'
+CYAN=$'\033[36m'
+YELLOW=$'\033[33m'
+RESET=$'\033[0m'
+
+start_epoch=$(date +%s)
+elapsed() {
+	local now; now=$(date +%s)
+	printf "%ds" "$((now - start_epoch))"
+}
+
+log() { printf "%s[dev %s]%s %s\n" "$DIM" "$(elapsed)" "$RESET" "$1"; }
+
+printf "\n%s%s▶ Zone Blitz dev%s\n" "$BOLD" "$CYAN" "$RESET"
+printf "%sGradle daemons take ~10-20s to warm up on first run, then bootRun adds another 15-30s before the app binds to :3000.%s\n" "$DIM" "$RESET"
+printf "%sTailwind watch rebuilds CSS on template saves; Thymeleaf hot-reload (dev profile) picks up template edits without restart.%s\n\n" "$DIM" "$RESET"
+
+prefix() {
+	local tag=$1 color=$2
+	while IFS= read -r line; do
+		printf "%s%s[%s %s]%s %s\n" "$color" "$BOLD" "$tag" "$(elapsed)" "$RESET" "$line"
+		case "$line" in
+			*"Started "*"in "*"seconds"*)
+				log "${GREEN}✔ bootRun ready — http://localhost:3000${RESET}"
+				;;
+			*"Done in "*)
+				log "${GREEN}✔ tailwind initial build complete${RESET}"
+				;;
+		esac
+	done
+}
+
+pids=()
+cleanup() {
+	trap - INT TERM EXIT
+	log "${YELLOW}shutting down…${RESET}"
+
+	# Kill the gradle client + pipeline readers we directly spawned.
+	for pid in "${pids[@]}"; do
+		# Resolve the process group id; fall back to pid if ps can't see it.
+		local pgid
+		pgid=$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d ' ' || true)
+		if [[ -n "$pgid" ]]; then
+			kill -TERM "-$pgid" 2>/dev/null || true
+		fi
+		kill -TERM "$pid" 2>/dev/null || true
+	done
+
+	# The JVM is a child of the Gradle daemon, not us, so kill it by port.
+	local holder
+	holder=$(lsof -t -iTCP:"$PORT" -sTCP:LISTEN 2>/dev/null || true)
+	if [[ -n "$holder" ]]; then
+		log "${YELLOW}killing JVM on :$PORT (pid $holder)${RESET}"
+		kill -TERM $holder 2>/dev/null || true
+		# Give it half a second to exit gracefully, then hard-kill anything left.
+		for _ in 1 2 3 4 5; do
+			sleep 0.1
+			holder=$(lsof -t -iTCP:"$PORT" -sTCP:LISTEN 2>/dev/null || true)
+			[[ -z "$holder" ]] && break
+		done
+		[[ -n "$holder" ]] && kill -KILL $holder 2>/dev/null || true
+	fi
+
+	log "done."
+	exit 0
+}
+trap cleanup INT TERM EXIT
+
+log "starting tailwind watch…"
+./gradlew --console=plain -t tailwindBuild 2>&1 | prefix "tailwind" "$CYAN" &
+pids+=($!)
+
+log "starting bootRun…"
+./gradlew --console=plain bootRun 2>&1 | prefix "boot    " "$GREEN" &
+pids+=($!)
+
+wait
