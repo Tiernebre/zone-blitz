@@ -33,7 +33,7 @@ public final class ClasspathBandRepository implements BandRepository {
             "Expected 'rate' field on " + entry.getKey() + " in " + fieldPath);
       }
       base.put(key, child.get("rate").asDouble());
-      coefficients.put(key, 0.0);
+      coefficients.put(key, child.has("beta") ? child.get("beta").asDouble() : 0.0);
     }
     return new RateBand<>((Map<T, Double>) base, (Map<T, Double>) coefficients);
   }
@@ -54,6 +54,12 @@ public final class ClasspathBandRepository implements BandRepository {
     ladder.put(0.50, node.get("p50").asDouble());
     ladder.put(0.75, node.get("p75").asDouble());
     ladder.put(0.90, node.get("p90").asDouble());
+    if (node.has("p95")) {
+      ladder.put(0.95, node.get("p95").asDouble());
+    }
+    if (node.has("p99")) {
+      ladder.put(0.99, node.get("p99").asDouble());
+    }
     return new DistributionalBand(node.get("min").asInt(), node.get("max").asInt(), ladder, 0.0);
   }
 

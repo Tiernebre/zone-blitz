@@ -1,15 +1,23 @@
 {
-  "generated_at": "2026-04-15T17:17:23Z",
+  "generated_at": "2026-04-18T11:51:07Z",
   "seasons": [2020, 2021, 2022, 2023, 2024],
-  "notes": "Regular-season rushes only (rush == 1), excluding QB scrambles (those are classified as dropbacks in passing-plays.json), kneels, and two-point conversions. down_distance_bucket splits non-1st downs into short (<=3 or <=2 on 4th), medium (4-6), long (>=7). field_zone uses yardline_100 (yards from opponent endzone): own_deep >=90, own_side 50-89, opp_side 20-49, red_zone_outer 10-19, red_zone_inner <10. rates are per-rush fractions over the full window.",
+  "notes": "Regular-season rushes only (rush == 1), excluding QB scrambles (those are classified as dropbacks in passing-plays.json), kneels, and two-point conversions. down_distance_bucket splits non-1st downs into short (<=3 or <=2 on 4th), medium (4-6), long (>=7). field_zone uses yardline_100 (yards from opponent endzone): own_deep >=90, own_side 50-89, opp_side 20-49, red_zone_outer 10-19, red_zone_inner <10. rates are per-rush fractions over the full window. by_outcome splits rushes into four mutually-exclusive buckets: fumble (fumble==1), then stuff (yards<=0), normal (1..19), breakaway (yards>=20) on non-fumble rushes. outcome_mix carries the same four rates for RateBand<RunOutcomeKind>. breakaway's ladder adds p95/p99 to anchor the upper tail.",
   "bands": {
     "outcome_mix": {
+      "stuff": {
+        "n": 12784,
+        "rate": 0.1906
+      },
       "normal": {
-        "n": 66000,
-        "rate": 0.9844
+        "n": 51705,
+        "rate": 0.7708
+      },
+      "breakaway": {
+        "n": 1512,
+        "rate": 0.0225
       },
       "fumble": {
-        "n": 1046,
+        "n": 1045,
         "rate": 0.0156
       }
     },
@@ -207,6 +215,53 @@
         "p75": 6,
         "p90": 10,
         "max": 19
+      }
+    },
+    "by_outcome": {
+      "stuff": {
+        "n": 12784,
+        "mean": -1.0199,
+        "sd": 1.5672,
+        "min": -28,
+        "p10": -3,
+        "p25": -2,
+        "p50": 0,
+        "p75": 0,
+        "p90": 0,
+        "max": 0,
+        "rate": 0.1906
+      },
+      "normal": {
+        "n": 51705,
+        "mean": 4.7618,
+        "sd": 3.6253,
+        "min": 1,
+        "p10": 1,
+        "p25": 2,
+        "p50": 4,
+        "p75": 6,
+        "p90": 10,
+        "max": 19,
+        "rate": 0.7708
+      },
+      "breakaway": {
+        "n": 1512,
+        "mean": 31.4306,
+        "sd": 13.3071,
+        "min": 20,
+        "p10": 20,
+        "p25": 22,
+        "p50": 27,
+        "p75": 36,
+        "p90": 50,
+        "p95": 61,
+        "p99": 76.89,
+        "max": 98,
+        "rate": 0.0225
+      },
+      "fumble": {
+        "n": 1045,
+        "rate": 0.0156
       }
     },
     "rates": {

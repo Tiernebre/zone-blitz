@@ -18,6 +18,7 @@ import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,64 +35,70 @@ class MatchupRunResolverTests {
   private final Team defense = defenseRoster();
 
   @Test
-  void resolve_zeroShiftOnAverageRoster_fumbleRateTracksBase() {
-    var resolver = MatchupRunResolver.load(repo, sampler);
-    var rng = new SplittableRandomSource(42L);
-    var fumbles = 0;
-    for (var i = 0; i < TRIALS; i++) {
-      var outcome = (RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng);
-      if (outcome.fumble().isPresent()) {
-        fumbles++;
-      }
+  void resolve_zeroShift_outcomeRatesTrackBase() {
+    var resolver = loadedResolver(RunMatchupShift.ZERO);
+    var counts = sampleCounts(resolver, 99L);
+
+    assertThat(counts.stuffs)
+        .as("base stuff rate ~0.1906 over 10k trials; ±3σ ≈ 1790..2030")
+        .isBetween(1700, 2100);
+    assertThat(counts.breakaways)
+        .as("base breakaway rate ~0.0225 over 10k trials")
+        .isBetween(160, 310);
+    assertThat(counts.fumbles).as("base fumble rate ~0.0156 over 10k trials").isBetween(100, 220);
+  }
+
+  @Test
+  void resolve_positiveShift_reducesStuffsAndIncreasesBreakaways() {
+    var zero = sampleCounts(loadedResolver(RunMatchupShift.ZERO), 11L);
+    var boosted = sampleCounts(loadedResolver((r, o, d) -> 2.0), 11L);
+
+    assertThat(boosted.stuffs)
+        .as("positive shift with negative STUFF β must reduce stuff count")
+        .isLessThan(zero.stuffs);
+    assertThat(boosted.breakaways)
+        .as("positive shift with positive BREAKAWAY β must increase breakaway count")
+        .isGreaterThan(zero.breakaways);
+  }
+
+  @Test
+  void resolve_negativeShift_increasesStuffsAndReducesBreakaways() {
+    var zero = sampleCounts(loadedResolver(RunMatchupShift.ZERO), 22L);
+    var suppressed = sampleCounts(loadedResolver((r, o, d) -> -2.0), 22L);
+
+    assertThat(suppressed.stuffs).isGreaterThan(zero.stuffs);
+    assertThat(suppressed.breakaways).isLessThan(zero.breakaways);
+  }
+
+  @Test
+  void resolve_stuffYards_neverPositive() {
+    var resolver = buildResolver(forcedKind(RunOutcomeKind.STUFF), RunMatchupShift.ZERO);
+    var rng = new SplittableRandomSource(7L);
+    for (var i = 0; i < 1_000; i++) {
+      var run = (RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng);
+      assertThat(run.yards()).as("stuff bucket yards must be ≤ 0").isLessThanOrEqualTo(0);
+      assertThat(run.fumble()).isEmpty();
     }
-    assertThat(fumbles)
-        .as("base fumble rate ~0.0156 over 10k trials; wide tolerance around ~156")
-        .isBetween(100, 220);
   }
 
   @Test
-  void resolve_positiveShiftOnNormal_reducesFumbleCount() {
-    var boostedBand =
-        new RateBand<>(
-            Map.of(RunOutcomeKind.NORMAL, 0.9844, RunOutcomeKind.FUMBLE, 0.0156),
-            Map.of(RunOutcomeKind.NORMAL, 2.0));
-    var overallYards = repo.loadDistribution("rushing-plays.json", "bands.overall");
-
-    var baselineFumbles = countFumbles(boostedBand, RunMatchupShift.ZERO, overallYards, 11L);
-    var shiftedFumbles = countFumbles(boostedBand, (r, o, d) -> 1.0, overallYards, 11L);
-
-    assertThat(shiftedFumbles)
-        .as("β=+2 on NORMAL with shift=+1 must lower fumble count vs zero shift")
-        .isLessThan(baselineFumbles);
+  void resolve_breakawayYards_alwaysTwentyPlus() {
+    var resolver = buildResolver(forcedKind(RunOutcomeKind.BREAKAWAY), RunMatchupShift.ZERO);
+    var rng = new SplittableRandomSource(8L);
+    for (var i = 0; i < 1_000; i++) {
+      var run = (RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng);
+      assertThat(run.yards()).as("breakaway bucket yards must be ≥ 20").isGreaterThanOrEqualTo(20);
+    }
   }
 
   @Test
-  void resolve_yardageShift_pushesMeanUpward() {
-    var outcomeMix = repo.loadRate("rushing-plays.json", "bands.outcome_mix", RunOutcomeKind.class);
-    var yardsBand = repo.loadDistribution("rushing-plays.json", "bands.overall");
-    var shiftedYardsBand =
-        new DistributionalBand(yardsBand.min(), yardsBand.max(), yardsBand.percentileLadder(), 0.3);
-
-    var meanZero =
-        meanYards(
-            new MatchupRunResolver(
-                sampler,
-                new PositionBasedRunRoleAssigner(),
-                RunMatchupShift.ZERO,
-                outcomeMix,
-                yardsBand),
-            21L);
-    var meanShifted =
-        meanYards(
-            new MatchupRunResolver(
-                sampler,
-                new PositionBasedRunRoleAssigner(),
-                (r, o, d) -> 1.0,
-                outcomeMix,
-                shiftedYardsBand),
-            21L);
-
-    assertThat(meanShifted).isGreaterThan(meanZero);
+  void resolve_fumbleKind_emitsFumbleOutcome() {
+    var resolver = buildResolver(forcedKind(RunOutcomeKind.FUMBLE), RunMatchupShift.ZERO);
+    var rng = new SplittableRandomSource(9L);
+    for (var i = 0; i < 100; i++) {
+      var run = (RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng);
+      assertThat(run.fumble()).isPresent();
+    }
   }
 
   @Test
@@ -110,29 +117,66 @@ class MatchupRunResolverTests {
         .isInstanceOf(IllegalStateException.class);
   }
 
-  private int countFumbles(
-      RateBand<RunOutcomeKind> band, RunMatchupShift shift, DistributionalBand yards, long seed) {
-    var resolver =
-        new MatchupRunResolver(sampler, new PositionBasedRunRoleAssigner(), shift, band, yards);
-    var rng = new SplittableRandomSource(seed);
-    var fumbles = 0;
-    for (var i = 0; i < TRIALS; i++) {
-      var outcome = (RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng);
-      if (outcome.fumble().isPresent()) {
-        fumbles++;
-      }
-    }
-    return fumbles;
+  private MatchupRunResolver loadedResolver(RunMatchupShift shift) {
+    var baseRates =
+        repo.loadRate("rushing-plays.json", "bands.outcome_mix", RunOutcomeKind.class)
+            .baseProbabilities();
+    var betas =
+        Map.of(
+            RunOutcomeKind.STUFF, -0.4,
+            RunOutcomeKind.NORMAL, 0.0,
+            RunOutcomeKind.BREAKAWAY, 0.5,
+            RunOutcomeKind.FUMBLE, -0.2);
+    return buildResolver(new RateBand<>(baseRates, betas), shift);
   }
 
-  private double meanYards(MatchupRunResolver resolver, long seed) {
-    var rng = new SplittableRandomSource(seed);
-    var sum = 0L;
-    for (var i = 0; i < TRIALS; i++) {
-      sum += ((RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng)).yards();
-    }
-    return (double) sum / TRIALS;
+  private MatchupRunResolver buildResolver(RateBand<RunOutcomeKind> mix, RunMatchupShift shift) {
+    var yardsByKind = new EnumMap<RunOutcomeKind, DistributionalBand>(RunOutcomeKind.class);
+    yardsByKind.put(
+        RunOutcomeKind.STUFF,
+        repo.loadDistribution("rushing-plays.json", "bands.by_outcome.stuff"));
+    yardsByKind.put(
+        RunOutcomeKind.NORMAL,
+        repo.loadDistribution("rushing-plays.json", "bands.by_outcome.normal"));
+    yardsByKind.put(
+        RunOutcomeKind.BREAKAWAY,
+        repo.loadDistribution("rushing-plays.json", "bands.by_outcome.breakaway"));
+    var fumbleYards = repo.loadDistribution("rushing-plays.json", "bands.overall");
+    return new MatchupRunResolver(
+        sampler, new PositionBasedRunRoleAssigner(), shift, mix, yardsByKind, fumbleYards);
   }
+
+  private static RateBand<RunOutcomeKind> forcedKind(RunOutcomeKind only) {
+    var base = new EnumMap<RunOutcomeKind, Double>(RunOutcomeKind.class);
+    for (var k : RunOutcomeKind.values()) {
+      base.put(k, k == only ? 1.0 : 1e-9);
+    }
+    var betas = new EnumMap<RunOutcomeKind, Double>(RunOutcomeKind.class);
+    for (var k : RunOutcomeKind.values()) {
+      betas.put(k, 0.0);
+    }
+    return new RateBand<>(base, betas);
+  }
+
+  private SampleCounts sampleCounts(MatchupRunResolver resolver, long seed) {
+    var rng = new SplittableRandomSource(seed);
+    var stuffs = 0;
+    var breakaways = 0;
+    var fumbles = 0;
+    for (var i = 0; i < TRIALS; i++) {
+      var run = (RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng);
+      if (run.fumble().isPresent()) {
+        fumbles++;
+      } else if (run.yards() <= 0) {
+        stuffs++;
+      } else if (run.yards() >= 20) {
+        breakaways++;
+      }
+    }
+    return new SampleCounts(stuffs, breakaways, fumbles);
+  }
+
+  private record SampleCounts(int stuffs, int breakaways, int fumbles) {}
 
   private static GameState state() {
     return GameState.initial();

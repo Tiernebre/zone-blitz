@@ -15,64 +15,106 @@ import app.zoneblitz.gamesimulator.resolver.RunRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.RunRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Team;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Role-based, matchup-aware run resolver. Uses the same {@code rushing-plays.json} yardage
- * distribution as {@link BaselineRunResolver}; adds role bucketing via {@link RunRoleAssigner}, a
- * single {@link RunMatchupShift} scalar that feeds the outcome-mix rate band's per-outcome β
- * coefficients and the yardage distribution's γ coefficient inside {@link BandSampler}.
+ * Role-based, matchup-aware run resolver. Loads a four-way {@code RateBand<RunOutcomeKind>} from
+ * {@code rushing-plays.json} ({@code STUFF | NORMAL | BREAKAWAY | FUMBLE}) together with a yardage
+ * sub-distribution per non-fumble kind; fumbled runs fall back to the overall yardage distribution.
+ * The {@link RunMatchupShift} scalar feeds per-outcome β coefficients inside {@link BandSampler} so
+ * a talent advantage redirects probability mass toward {@code BREAKAWAY} and away from {@code
+ * STUFF} instead of merely sliding one aggregate ladder.
  *
- * <p>The outcome-mix band is deliberately two-sided: {@code NORMAL} vs. {@code FUMBLE}. Stuffs and
- * breakaways are not separate outcome kinds — they fall out of the yardage distribution's tails.
- * When the matchup shift is zero (identity {@link RunMatchupShift#ZERO} or average-attribute
- * rosters with {@link ClampedRunMatchupShift}), outcome probabilities reproduce the base
- * fumble-rate and yardage sampling reproduces the ladder percentiles — so baseline parity is a
- * structural invariant of the resolver, not a wiring accident.
+ * <p>With {@link RunMatchupShift#ZERO} (or average-attribute rosters under {@link
+ * ClampedRunMatchupShift}) the resolver reproduces the shipped outcome-mix rates and per-bucket
+ * ladder percentiles — baseline parity is a structural invariant of the resolver, not a wiring
+ * accident. Carrier identity is decided pre-snap by the {@link RunRoleAssigner}; tackler identity
+ * is deferred until run-defender assignment separates first-level from second-level defenders.
  *
- * <p>Carrier identity is decided pre-snap by the {@link RunRoleAssigner} from the play call, not
- * mid-snap here — the run analog of {@code TargetSelector} on the pass side is a no-op today.
- * Tackler identity is deferred until run-defender assignment gains more structure than a single
- * aggregate bucket.
+ * <p>{@link RunOutcomeKind} is an engine-internal sampling classifier. Consumers see only {@link
+ * RunOutcome.Run} with its {@code yards} field — a stuff reads as a {@code -2}-yard run, a
+ * breakaway reads as a {@code 32}-yard run. The classifier never escapes this package.
  */
 public final class MatchupRunResolver implements RunResolver {
 
   private static final String RUSHING_PLAYS = "rushing-plays.json";
   private static final RunConcept BASELINE_CONCEPT = RunConcept.INSIDE_ZONE;
 
+  /**
+   * First-cut β coefficients for outcome sampling. Sign convention matches the shift: positive
+   * shift ⇒ offense talent advantage.
+   *
+   * <p>Stuffs and fumbles get negative β so a strong offense produces fewer of each; breakaways get
+   * positive β so the same shift produces more. {@code NORMAL} sits at 0 as the residual bucket.
+   * These are hand-tuned starting values; the calibration harness will refine them once the run
+   * resolver is wired into the simulate-season loop.
+   */
+  private static final Map<RunOutcomeKind, Double> DEFAULT_BETAS =
+      Map.of(
+          RunOutcomeKind.STUFF, -0.4,
+          RunOutcomeKind.NORMAL, 0.0,
+          RunOutcomeKind.BREAKAWAY, 0.5,
+          RunOutcomeKind.FUMBLE, -0.2);
+
   private final BandSampler sampler;
   private final RunRoleAssigner roleAssigner;
   private final RunMatchupShift matchupShift;
   private final RateBand<RunOutcomeKind> outcomeMix;
-  private final DistributionalBand overallYards;
+  private final Map<RunOutcomeKind, DistributionalBand> yardsByKind;
+  private final DistributionalBand fumbleYards;
 
   public MatchupRunResolver(
       BandSampler sampler,
       RunRoleAssigner roleAssigner,
       RunMatchupShift matchupShift,
       RateBand<RunOutcomeKind> outcomeMix,
-      DistributionalBand overallYards) {
+      Map<RunOutcomeKind, DistributionalBand> yardsByKind,
+      DistributionalBand fumbleYards) {
     this.sampler = Objects.requireNonNull(sampler, "sampler");
     this.roleAssigner = Objects.requireNonNull(roleAssigner, "roleAssigner");
     this.matchupShift = Objects.requireNonNull(matchupShift, "matchupShift");
     this.outcomeMix = Objects.requireNonNull(outcomeMix, "outcomeMix");
-    this.overallYards = Objects.requireNonNull(overallYards, "overallYards");
+    Objects.requireNonNull(yardsByKind, "yardsByKind");
+    for (var kind :
+        new RunOutcomeKind[] {
+          RunOutcomeKind.STUFF, RunOutcomeKind.NORMAL, RunOutcomeKind.BREAKAWAY
+        }) {
+      if (!yardsByKind.containsKey(kind)) {
+        throw new IllegalArgumentException("yardsByKind missing entry for " + kind);
+      }
+    }
+    this.yardsByKind = Map.copyOf(yardsByKind);
+    this.fumbleYards = Objects.requireNonNull(fumbleYards, "fumbleYards");
   }
 
   /**
-   * Load a resolver from {@code rushing-plays.json} with position-based roles and the clamped
-   * attribute-aware run-matchup shift.
+   * Load a resolver from {@code rushing-plays.json} with position-based roles, the clamped
+   * attribute-aware run-matchup shift, and the default per-outcome β coefficients.
    */
   public static MatchupRunResolver load(BandRepository repo, BandSampler sampler) {
-    var outcomeMix = repo.loadRate(RUSHING_PLAYS, "bands.outcome_mix", RunOutcomeKind.class);
-    var overallYards = repo.loadDistribution(RUSHING_PLAYS, "bands.overall");
+    var loadedMix = repo.loadRate(RUSHING_PLAYS, "bands.outcome_mix", RunOutcomeKind.class);
+    var outcomeMix = new RateBand<>(loadedMix.baseProbabilities(), DEFAULT_BETAS);
+
+    var yardsByKind = new EnumMap<RunOutcomeKind, DistributionalBand>(RunOutcomeKind.class);
+    yardsByKind.put(
+        RunOutcomeKind.STUFF, repo.loadDistribution(RUSHING_PLAYS, "bands.by_outcome.stuff"));
+    yardsByKind.put(
+        RunOutcomeKind.NORMAL, repo.loadDistribution(RUSHING_PLAYS, "bands.by_outcome.normal"));
+    yardsByKind.put(
+        RunOutcomeKind.BREAKAWAY,
+        repo.loadDistribution(RUSHING_PLAYS, "bands.by_outcome.breakaway"));
+    var fumbleYards = repo.loadDistribution(RUSHING_PLAYS, "bands.overall");
+
     return new MatchupRunResolver(
         sampler,
         new PositionBasedRunRoleAssigner(),
         new ClampedRunMatchupShift(),
         outcomeMix,
-        overallYards);
+        yardsByKind,
+        fumbleYards);
   }
 
   @Override
@@ -94,32 +136,17 @@ public final class MatchupRunResolver implements RunResolver {
                         "Offense has no rushing-eligible player on roster: "
                             + offense.displayName()));
     var shift = matchupShift.compute(roles, offense, defense);
-    var outcome = sampler.sampleRate(outcomeMix, shift, rng);
+    var kind = sampler.sampleRate(outcomeMix, shift, rng);
+    var yardsBand = kind == RunOutcomeKind.FUMBLE ? fumbleYards : yardsByKind.get(kind);
+    var yards = sampler.sampleDistribution(yardsBand, shift, rng);
 
-    return switch (outcome) {
-      case NORMAL -> {
-        var yards = sampler.sampleDistribution(overallYards, shift, rng);
-        yield new RunOutcome.Run(
-            carrier.id(),
-            BASELINE_CONCEPT,
-            yards,
-            Optional.empty(),
-            Optional.empty(),
-            false,
-            false);
-      }
-      case FUMBLE -> {
-        var yards = sampler.sampleDistribution(overallYards, shift, rng);
-        yield new RunOutcome.Run(
-            carrier.id(),
-            BASELINE_CONCEPT,
-            yards,
-            Optional.empty(),
-            Optional.of(fumble(carrier.id())),
-            false,
-            false);
-      }
-    };
+    var fumble =
+        kind == RunOutcomeKind.FUMBLE
+            ? Optional.of(fumble(carrier.id()))
+            : Optional.<FumbleOutcome>empty();
+
+    return new RunOutcome.Run(
+        carrier.id(), BASELINE_CONCEPT, yards, Optional.empty(), fumble, false, false);
   }
 
   private static FumbleOutcome fumble(PlayerId carrier) {
@@ -129,8 +156,8 @@ public final class MatchupRunResolver implements RunResolver {
   /**
    * Single-scalar role-aggregate reducer for run plays. Encodes the full matchup signal — blocking
    * win plus carrier-vs-defense — into one number that combines with the outcome-mix band's
-   * per-outcome β coefficients and the yardage distribution's γ coefficient inside {@link
-   * BandSampler}.
+   * per-outcome β coefficients inside {@link BandSampler}. A positive shift represents an offensive
+   * talent advantage.
    */
   @FunctionalInterface
   public interface RunMatchupShift {
