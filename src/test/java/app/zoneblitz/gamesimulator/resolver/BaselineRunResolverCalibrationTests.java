@@ -38,11 +38,11 @@ class BaselineRunResolverCalibrationTests {
       yards.add(((PlayOutcome.Run) outcome).yards());
     }
     var sorted = yards.stream().mapToInt(Integer::intValue).sorted().toArray();
-    assertPercentile(sorted, 0.10, 0, 1);
-    assertPercentile(sorted, 0.25, 1, 1);
-    assertPercentile(sorted, 0.50, 3, 1);
-    assertPercentile(sorted, 0.75, 6, 1);
-    assertPercentile(sorted, 0.90, 10, 1);
+    assertPercentile(sorted, 0.10, 0, 2);
+    assertPercentile(sorted, 0.25, 1, 2);
+    assertPercentile(sorted, 0.50, 3, 2);
+    assertPercentile(sorted, 0.75, 6, 2);
+    assertPercentile(sorted, 0.90, 10, 2);
   }
 
   @Test

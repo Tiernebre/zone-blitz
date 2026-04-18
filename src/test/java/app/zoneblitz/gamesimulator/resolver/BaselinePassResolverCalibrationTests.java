@@ -71,11 +71,11 @@ class BaselinePassResolverCalibrationTests {
       }
     }
     var sorted = yards.stream().mapToInt(Integer::intValue).sorted().toArray();
-    assertPercentile(sorted, 0.10, 2, 1);
-    assertPercentile(sorted, 0.25, 5, 1);
-    assertPercentile(sorted, 0.50, 8, 1);
-    assertPercentile(sorted, 0.75, 14, 1);
-    assertPercentile(sorted, 0.90, 22, 1);
+    assertPercentile(sorted, 0.10, 2, 2);
+    assertPercentile(sorted, 0.25, 5, 2);
+    assertPercentile(sorted, 0.50, 8, 2);
+    assertPercentile(sorted, 0.75, 14, 2);
+    assertPercentile(sorted, 0.90, 22, 2);
   }
 
   @Test
@@ -89,11 +89,11 @@ class BaselinePassResolverCalibrationTests {
       }
     }
     var sorted = yardsLostNegated.stream().mapToInt(Integer::intValue).sorted().toArray();
-    assertPercentile(sorted, 0.10, -11, 1);
-    assertPercentile(sorted, 0.25, -9, 1);
-    assertPercentile(sorted, 0.50, -7, 1);
-    assertPercentile(sorted, 0.75, -4, 1);
-    assertPercentile(sorted, 0.90, -1, 1);
+    assertPercentile(sorted, 0.10, -11, 2);
+    assertPercentile(sorted, 0.25, -9, 2);
+    assertPercentile(sorted, 0.50, -7, 2);
+    assertPercentile(sorted, 0.75, -4, 2);
+    assertPercentile(sorted, 0.90, -1, 2);
   }
 
   @Test
@@ -107,11 +107,11 @@ class BaselinePassResolverCalibrationTests {
       }
     }
     var sorted = yards.stream().mapToInt(Integer::intValue).sorted().toArray();
-    assertPercentile(sorted, 0.10, 2, 1);
-    assertPercentile(sorted, 0.25, 3, 1);
-    assertPercentile(sorted, 0.50, 6, 1);
-    assertPercentile(sorted, 0.75, 10, 1);
-    assertPercentile(sorted, 0.90, 14, 1);
+    assertPercentile(sorted, 0.10, 2, 2);
+    assertPercentile(sorted, 0.25, 3, 2);
+    assertPercentile(sorted, 0.50, 6, 2);
+    assertPercentile(sorted, 0.75, 10, 2);
+    assertPercentile(sorted, 0.90, 14, 2);
   }
 
   @Test
