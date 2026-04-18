@@ -169,10 +169,24 @@ spotless {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+tasks.test {
+    useJUnitPlatform {
+        excludeTags("e2e")
+    }
     finalizedBy(tasks.jacocoTestReport)
 }
+
+val e2eTest =
+    tasks.register<Test>("e2eTest") {
+        group = "verification"
+        description = "Runs Playwright end-to-end tests (JUnit tag: e2e)."
+        useJUnitPlatform {
+            includeTags("e2e")
+        }
+        testClassesDirs = sourceSets["test"].output.classesDirs
+        classpath = sourceSets["test"].runtimeClasspath
+        shouldRunAfter(tasks.test)
+    }
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
