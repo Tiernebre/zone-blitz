@@ -122,6 +122,10 @@ jooq {
     }
 }
 
+tasks.named("compileJava") {
+    dependsOn("generateJooq")
+}
+
 flyway {
     url = "jdbc:postgresql://localhost:5432/zoneblitz"
     user = "zoneblitz"

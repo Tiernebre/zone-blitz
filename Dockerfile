@@ -16,7 +16,7 @@ RUN chmod +x gradlew && ./gradlew --version
 COPY tailwind.config.js ./
 COPY src src
 COPY build/generated-src/jooq build/generated-src/jooq
-RUN ./gradlew --no-daemon bootJar -x test
+RUN ./gradlew --no-daemon bootJar -x test -x generateJooq
 
 RUN mkdir -p /workspace/extracted \
  && cp build/libs/*.jar /workspace/app.jar \
