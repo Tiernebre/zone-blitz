@@ -1,0 +1,75 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        run: |
+          docker build \
+            -t ghcr.io/tiernebre/zone-blitz:latest \
+            -t ghcr.io/tiernebre/zone-blitz:${{ github.sha }} \
+            .
+          docker push ghcr.io/tiernebre/zone-blitz:latest
+          docker push ghcr.io/tiernebre/zone-blitz:${{ github.sha }}
+
+      - name: Copy docker-compose.prod.yml to Droplet
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: docker-compose.prod.yml
+          target: /opt/zone-blitz/
+
+      - name: Deploy to Droplet
+        uses: appleboy/ssh-action@v1
+        env:
+          IMAGE: ghcr.io/tiernebre/zone-blitz:latest
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: IMAGE
+          script: |
+            set -euo pipefail
+            cd /opt/zone-blitz
+
+            used=$(df --output=pcent / | tail -1 | tr -dc '0-9')
+            if [ "$used" -ge 85 ]; then
+              echo "Aborting deploy: root FS is ${used}% full (threshold 85%)."
+              df -h /
+              exit 1
+            fi
+
+            docker pull "$IMAGE"
+            docker compose -f docker-compose.prod.yml up -d
+
+            expected=$(docker image inspect "$IMAGE" --format '{{.Id}}')
+            actual=$(docker inspect zone-blitz-app-1 --format '{{.Image}}')
+            if [ "$expected" != "$actual" ]; then
+              echo "Deploy verification failed: app container is on $actual, expected $expected"
+              exit 1
+            fi
+
+            docker image prune -a -f --filter "until=24h"

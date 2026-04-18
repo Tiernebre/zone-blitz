@@ -29,5 +29,5 @@ USER spring:spring
 
 COPY --from=build /workspace/extracted/ ./
 
-EXPOSE 8080
+EXPOSE 3000
 ENTRYPOINT ["java", "-jar", "app.jar"]
