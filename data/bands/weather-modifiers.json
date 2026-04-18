@@ -1,0 +1,144 @@
+{
+  "generated_at": "2026-04-18T09:54:23Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season plays, split by weather category derived from pbp.roof + pbp.wind + pbp.temp (with nflreadr load_schedules() as fallback for wind/temp). Categories: dome (roof in {dome, closed}), windy (wind >= 15mph), cold (temp <= 32F and not dome/windy), outdoor_fair (remaining outdoors/open), unknown (missing roof/weather). Each category reports pass (completion%, yards/dropback, sack%, int%, air yards), rush (YPC, fumble%, stuff%), field goal (make rate, mean distance), punt (mean distance). Overall baseline included for delta comparison.",
+  "bands": {
+    "overall": {
+      "n_plays": 234887,
+      "n_games": 1343,
+      "pass": {
+        "n": 101750,
+        "completion_pct": 0.5791,
+        "yards_per_dropback": 6.2752,
+        "sack_rate": 0.0629,
+        "int_rate": 0.0203,
+        "mean_air_yards": 7.7893
+      },
+      "rush": {
+        "n": 67082,
+        "yards_per_carry": 4.2165,
+        "fumble_rate": 0.0156,
+        "stuff_rate": 0.2004
+      },
+      "field_goal": {
+        "n": 5224,
+        "make_rate": 0.8493,
+        "mean_distance": 39.2052
+      },
+      "punt": {
+        "n": 10488,
+        "mean_distance": 46.5289
+      }
+    },
+    "by_category": {
+      "outdoor_fair": {
+        "n_plays": 136452,
+        "n_games": 782,
+        "pass": {
+          "n": 59209,
+          "completion_pct": 0.575,
+          "yards_per_dropback": 6.2003,
+          "sack_rate": 0.0641,
+          "int_rate": 0.0209,
+          "mean_air_yards": 7.7884
+        },
+        "rush": {
+          "n": 38813,
+          "yards_per_carry": 4.1962,
+          "fumble_rate": 0.0166,
+          "stuff_rate": 0.2028
+        },
+        "field_goal": {
+          "n": 3002,
+          "make_rate": 0.8411,
+          "mean_distance": 38.9407
+        },
+        "punt": {
+          "n": 6299,
+          "mean_distance": 46.5942
+        }
+      },
+      "dome": {
+        "n_plays": 75782,
+        "n_games": 429,
+        "pass": {
+          "n": 32848,
+          "completion_pct": 0.5907,
+          "yards_per_dropback": 6.5184,
+          "sack_rate": 0.0596,
+          "int_rate": 0.0193,
+          "mean_air_yards": 7.8443
+        },
+        "rush": {
+          "n": 21657,
+          "yards_per_carry": 4.245,
+          "fumble_rate": 0.0135,
+          "stuff_rate": 0.198
+        },
+        "field_goal": {
+          "n": 1746,
+          "make_rate": 0.862,
+          "mean_distance": 39.8992
+        },
+        "punt": {
+          "n": 3186,
+          "mean_distance": 46.553
+        }
+      },
+      "windy": {
+        "n_plays": 16323,
+        "n_games": 95,
+        "pass": {
+          "n": 7005,
+          "completion_pct": 0.5592,
+          "yards_per_dropback": 5.837,
+          "sack_rate": 0.0675,
+          "int_rate": 0.0204,
+          "mean_air_yards": 7.6827
+        },
+        "rush": {
+          "n": 4760,
+          "yards_per_carry": 4.1927,
+          "fumble_rate": 0.0174,
+          "stuff_rate": 0.2001
+        },
+        "field_goal": {
+          "n": 338,
+          "make_rate": 0.855,
+          "mean_distance": 38.4793
+        },
+        "punt": {
+          "n": 749,
+          "mean_distance": 46.8598
+        }
+      },
+      "cold": {
+        "n_plays": 6330,
+        "n_games": 37,
+        "pass": {
+          "n": 2688,
+          "completion_pct": 0.5766,
+          "yards_per_dropback": 6.0945,
+          "sack_rate": 0.0651,
+          "int_rate": 0.0205,
+          "mean_air_yards": 7.4059
+        },
+        "rush": {
+          "n": 1852,
+          "yards_per_carry": 4.3715,
+          "fumble_rate": 0.0146,
+          "stuff_rate": 0.1814
+        },
+        "field_goal": {
+          "n": 138,
+          "make_rate": 0.8551,
+          "mean_distance": 37.9565
+        },
+        "punt": {
+          "n": 254,
+          "mean_distance": 43.6299
+        }
+      }
+    }
+  }
+}

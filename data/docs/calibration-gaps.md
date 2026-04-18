@@ -126,7 +126,7 @@ B1–B11). Status tracking for the MVP blockers and downstream model feeds.
 | #   | Band                                                      | Source      | Status                                                     |
 | --- | --------------------------------------------------------- | ----------- | ---------------------------------------------------------- |
 | B1  | [`penalties.json`](../bands/penalties.json)               | nflfastR    | Done                                                       |
-| B2  | `weather-modifiers.json`                                  | nflfastR    | Pending                                                    |
+| B2  | [`weather-modifiers.json`](../bands/weather-modifiers.json) | nflfastR  | Done                                                       |
 | B3  | `surface-modifiers.json`                                  | nflfastR    | Pending                                                    |
 | B4  | `home-away.json`                                          | nflfastR    | Pending                                                    |
 | B5  | `hail-mary.json`                                          | nflfastR    | Pending                                                    |
