@@ -11,6 +11,7 @@ import app.zoneblitz.gamesimulator.event.Score;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.event.TeamId;
 import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
+import app.zoneblitz.gamesimulator.penalty.BandPenaltyModel;
 import app.zoneblitz.gamesimulator.personnel.BaselinePersonnelSelector;
 import app.zoneblitz.gamesimulator.punt.BandPuntResolver;
 import app.zoneblitz.gamesimulator.resolver.DispatchingPlayResolver;
@@ -64,8 +65,8 @@ class FullGameCalibrationTests {
     var playerSide = new HashMap<PlayerId, Side>();
     home.roster().forEach(p -> playerSide.put(p.id(), Side.HOME));
     away.roster().forEach(p -> playerSide.put(p.id(), Side.AWAY));
-    var homeCoach = new Coach(new CoachId(new UUID(1L, 1L)), "Home HC");
-    var awayCoach = new Coach(new CoachId(new UUID(1L, 2L)), "Away HC");
+    var homeCoach = Coach.average(new CoachId(new UUID(1L, 1L)), "Home HC");
+    var awayCoach = Coach.average(new CoachId(new UUID(1L, 2L)), "Away HC");
 
     var passYards = new int[GAMES * 2];
     var rushYards = new int[GAMES * 2];
@@ -86,7 +87,9 @@ class FullGameCalibrationTests {
               kickoff,
               new FlatRateExtraPointResolver(),
               new DistanceCurveFieldGoalResolver(),
-              BandPuntResolver.load(repo, sampler));
+              BandPuntResolver.load(repo, sampler),
+              new BandPenaltyModel(),
+              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
       var inputs =
           new GameInputs(
               new GameId(new UUID(0xDEADBEEFL, seed)),
@@ -131,6 +134,73 @@ class FullGameCalibrationTests {
   }
 
   @Test
+  void tenThousandGames_penaltiesPerTeamGame_matchNflMean() {
+    var repo = new ClasspathBandRepository();
+    var sampler = new DefaultBandSampler();
+    var resolver =
+        new DispatchingPlayResolver(
+            MatchupPassResolver.load(repo, sampler), MatchupRunResolver.load(repo, sampler));
+    var clockModel = BandClockModel.load(repo, sampler);
+    var personnel = new BaselinePersonnelSelector();
+    var kickoff = new TouchbackKickoffResolver();
+    var home = buildTeam("HOME", 100);
+    var away = buildTeam("AWAY", 200);
+    var homeCoach = Coach.average(new CoachId(new UUID(1L, 1L)), "Home HC");
+    var awayCoach = Coach.average(new CoachId(new UUID(1L, 2L)), "Away HC");
+    var playerSide = new HashMap<PlayerId, Side>();
+    home.roster().forEach(p -> playerSide.put(p.id(), Side.HOME));
+    away.roster().forEach(p -> playerSide.put(p.id(), Side.AWAY));
+
+    long homePenalties = 0;
+    long awayPenalties = 0;
+    for (var g = 0; g < GAMES; g++) {
+      var seed = 0xF1A9L + g;
+      var caller = new BandPassRateCaller(PASS_RATE, new Random(seed ^ 0xC411L));
+      var simulator =
+          new GameSimulator(
+              caller,
+              personnel,
+              resolver,
+              clockModel,
+              kickoff,
+              new FlatRateExtraPointResolver(),
+              new DistanceCurveFieldGoalResolver(),
+              BandPuntResolver.load(repo, sampler),
+              new BandPenaltyModel(),
+              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+      var inputs =
+          new GameInputs(
+              new GameId(new UUID(0xF1A9BEEFL, seed)),
+              home,
+              away,
+              homeCoach,
+              awayCoach,
+              new GameInputs.PreGameContext(),
+              Optional.of(seed));
+      for (var event : simulator.simulate(inputs).toList()) {
+        if (event instanceof PlayEvent.Penalty p) {
+          var offendingSide = playerSide.get(p.committedBy());
+          if (offendingSide == Side.HOME) {
+            homePenalties++;
+          } else if (offendingSide == Side.AWAY) {
+            awayPenalties++;
+          }
+        }
+      }
+    }
+    var homeMean = homePenalties / (double) GAMES;
+    var awayMean = awayPenalties / (double) GAMES;
+    System.out.printf(
+        "penalties/team-game — home=%.2f away=%.2f (NFL ref ~6 accepted/team/game)%n",
+        homeMean, awayMean);
+    // NFL mean is ~6 accepted flags/team/game; nflfastR's per-play rate is a floor (it counts one
+    // flag per play), so we expect our mean to come in a touch lower. Bound loosely to guard
+    // against regressions without brittle CI flakiness.
+    org.assertj.core.api.Assertions.assertThat(homeMean).isBetween(4.0, 9.0);
+    org.assertj.core.api.Assertions.assertThat(awayMean).isBetween(4.0, 9.0);
+  }
+
+  @Test
   void tenThousandGames_eliteVsBenchwarmer_eliteWinsMoreOnAverage() {
     var repo = new ClasspathBandRepository();
     var sampler = new DefaultBandSampler();
@@ -143,8 +213,8 @@ class FullGameCalibrationTests {
 
     var elite = buildTeam("ELITE", 300, AttributeProfile.ELITE);
     var bench = buildTeam("BENCH", 400, AttributeProfile.BENCHWARMER);
-    var eliteCoach = new Coach(new CoachId(new UUID(1L, 3L)), "Elite HC");
-    var benchCoach = new Coach(new CoachId(new UUID(1L, 4L)), "Bench HC");
+    var eliteCoach = Coach.average(new CoachId(new UUID(1L, 3L)), "Elite HC");
+    var benchCoach = Coach.average(new CoachId(new UUID(1L, 4L)), "Bench HC");
 
     var eliteWins = 0;
     var benchWins = 0;
@@ -164,7 +234,9 @@ class FullGameCalibrationTests {
               kickoff,
               new FlatRateExtraPointResolver(),
               new DistanceCurveFieldGoalResolver(),
-              BandPuntResolver.load(repo, sampler));
+              BandPuntResolver.load(repo, sampler),
+              new BandPenaltyModel(),
+              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
       var inputs =
           new GameInputs(
               new GameId(new UUID(0xE117E11L, seed)),
@@ -219,8 +291,8 @@ class FullGameCalibrationTests {
     var playerSide = new HashMap<PlayerId, Side>();
     home.roster().forEach(p -> playerSide.put(p.id(), Side.HOME));
     away.roster().forEach(p -> playerSide.put(p.id(), Side.AWAY));
-    var homeCoach = new Coach(new CoachId(new UUID(1L, 5L)), "Bench H HC");
-    var awayCoach = new Coach(new CoachId(new UUID(1L, 6L)), "Bench A HC");
+    var homeCoach = Coach.average(new CoachId(new UUID(1L, 5L)), "Bench H HC");
+    var awayCoach = Coach.average(new CoachId(new UUID(1L, 6L)), "Bench A HC");
 
     var passYards = new int[GAMES * 2];
     var rushYards = new int[GAMES * 2];
@@ -241,7 +313,9 @@ class FullGameCalibrationTests {
               kickoff,
               new FlatRateExtraPointResolver(),
               new DistanceCurveFieldGoalResolver(),
-              BandPuntResolver.load(repo, sampler));
+              BandPuntResolver.load(repo, sampler),
+              new BandPenaltyModel(),
+              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
       var inputs =
           new GameInputs(
               new GameId(new UUID(0xBE1C4BEEFL, seed)),
@@ -421,7 +495,10 @@ class FullGameCalibrationTests {
     }
 
     @Override
-    public PlayCall call(GameState state) {
+    public PlayCall call(
+        GameState state,
+        app.zoneblitz.gamesimulator.roster.Coach coach,
+        app.zoneblitz.gamesimulator.rng.RandomSource rs) {
       return new PlayCall(rng.nextDouble() < passRate ? "pass" : "run");
     }
   }

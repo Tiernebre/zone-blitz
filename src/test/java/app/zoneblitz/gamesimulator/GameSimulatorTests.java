@@ -10,6 +10,8 @@ import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
 import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
+import app.zoneblitz.gamesimulator.penalty.BandPenaltyModel;
+import app.zoneblitz.gamesimulator.penalty.NoPenaltyModel;
 import app.zoneblitz.gamesimulator.personnel.FakePersonnelSelector;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.punt.DistanceCurvePuntResolver;
@@ -32,8 +34,10 @@ class GameSimulatorTests {
   private static final PlayerId WR_ID = new PlayerId(new UUID(1L, 2L));
   private static final Player QB = new Player(QB_ID, Position.QB, "Test QB");
   private static final Player WR = new Player(WR_ID, Position.WR, "Test WR");
-  private static final Coach HOME_COACH = new Coach(new CoachId(new UUID(2L, 2L)), "Home Coach");
-  private static final Coach AWAY_COACH = new Coach(new CoachId(new UUID(2L, 3L)), "Away Coach");
+  private static final Coach HOME_COACH =
+      Coach.average(new CoachId(new UUID(2L, 2L)), "Home Coach");
+  private static final Coach AWAY_COACH =
+      Coach.average(new CoachId(new UUID(2L, 3L)), "Away Coach");
   private static final Player HOME_K =
       new Player(new PlayerId(new UUID(1L, 9L)), Position.K, "Home K");
   private static final Player AWAY_K =
@@ -54,7 +58,9 @@ class GameSimulatorTests {
         new TouchbackKickoffResolver(),
         new FlatRateExtraPointResolver(),
         new DistanceCurveFieldGoalResolver(),
-        new DistanceCurvePuntResolver());
+        new DistanceCurvePuntResolver(),
+        new NoPenaltyModel(),
+        app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
   }
 
   private static GameInputs inputs(Optional<Long> seed) {
@@ -104,6 +110,36 @@ class GameSimulatorTests {
         .isGreaterThanOrEqualTo(0);
     assertThat(events.get(firstTdIndex + 1)).isInstanceOf(PlayEvent.ExtraPoint.class);
     assertThat(events.get(firstTdIndex + 2)).isInstanceOf(PlayEvent.Kickoff.class);
+  }
+
+  @Test
+  void simulate_withBandPenaltyModel_emitsPenaltyEventsAcrossGames() {
+    var personnel =
+        new FakePersonnelSelector(TestPersonnel.baselineOffense(), TestPersonnel.baselineDefense());
+    var simulator =
+        new GameSimulator(
+            ScriptedPlayCaller.runs(1),
+            personnel,
+            new ConstantPlayResolver(QB_ID, WR_ID),
+            BandClockModel.load(new ClasspathBandRepository(), new DefaultBandSampler()),
+            new TouchbackKickoffResolver(),
+            new FlatRateExtraPointResolver(),
+            new DistanceCurveFieldGoalResolver(),
+            new DistanceCurvePuntResolver(),
+            new BandPenaltyModel(),
+            app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+
+    var penalties = 0;
+    for (var seed = 1L; seed <= 10L; seed++) {
+      var events = simulator.simulate(inputs(Optional.of(seed))).toList();
+      for (var event : events) {
+        if (event instanceof PlayEvent.Penalty) {
+          penalties++;
+        }
+      }
+    }
+    // 10 games at ~13 flags/game average ≈ 130; a floor of 50 is a safe regression guard.
+    assertThat(penalties).isGreaterThan(50);
   }
 
   @Test

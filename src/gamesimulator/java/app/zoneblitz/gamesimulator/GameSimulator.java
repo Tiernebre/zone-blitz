@@ -11,7 +11,12 @@ import app.zoneblitz.gamesimulator.event.PlayId;
 import app.zoneblitz.gamesimulator.event.Score;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.kickoff.KickoffResolver;
+import app.zoneblitz.gamesimulator.penalty.PenaltyDraw;
+import app.zoneblitz.gamesimulator.penalty.PenaltyEnforcement;
+import app.zoneblitz.gamesimulator.penalty.PenaltyEnforcer;
+import app.zoneblitz.gamesimulator.penalty.PenaltyModel;
 import app.zoneblitz.gamesimulator.personnel.PersonnelSelector;
+import app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector;
 import app.zoneblitz.gamesimulator.punt.PuntResolver;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
@@ -24,6 +29,7 @@ import app.zoneblitz.gamesimulator.scoring.FieldGoalResolver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -48,6 +54,9 @@ final class GameSimulator implements SimulateGame {
   private static final long PAT_SPLIT_KEY = 0xFA77_7777L;
   private static final long FG_SPLIT_KEY = 0xFB66_6666L;
   private static final long PUNT_SPLIT_KEY = 0xFC55_5555L;
+  private static final long PENALTY_PRE_KEY = 0xFD44_4444L;
+  private static final long PENALTY_LIVE_KEY = 0xFE33_3333L;
+  private static final long PENALTY_POST_KEY = 0xFF22_2222L;
 
   /**
    * Inside this many yards of the opposing goal line a 4th down triggers a field-goal attempt.
@@ -70,6 +79,8 @@ final class GameSimulator implements SimulateGame {
   private final ExtraPointResolver extraPointResolver;
   private final FieldGoalResolver fieldGoalResolver;
   private final PuntResolver puntResolver;
+  private final PenaltyModel penaltyModel;
+  private final DefensiveCallSelector defensiveCallSelector;
 
   GameSimulator(
       PlayCaller caller,
@@ -79,7 +90,9 @@ final class GameSimulator implements SimulateGame {
       KickoffResolver kickoffResolver,
       ExtraPointResolver extraPointResolver,
       FieldGoalResolver fieldGoalResolver,
-      PuntResolver puntResolver) {
+      PuntResolver puntResolver,
+      PenaltyModel penaltyModel,
+      DefensiveCallSelector defensiveCallSelector) {
     this.caller = Objects.requireNonNull(caller, "caller");
     this.personnel = Objects.requireNonNull(personnel, "personnel");
     this.resolver = Objects.requireNonNull(resolver, "resolver");
@@ -88,6 +101,9 @@ final class GameSimulator implements SimulateGame {
     this.extraPointResolver = Objects.requireNonNull(extraPointResolver, "extraPointResolver");
     this.fieldGoalResolver = Objects.requireNonNull(fieldGoalResolver, "fieldGoalResolver");
     this.puntResolver = Objects.requireNonNull(puntResolver, "puntResolver");
+    this.penaltyModel = Objects.requireNonNull(penaltyModel, "penaltyModel");
+    this.defensiveCallSelector =
+        Objects.requireNonNull(defensiveCallSelector, "defensiveCallSelector");
   }
 
   @Override
@@ -129,15 +145,33 @@ final class GameSimulator implements SimulateGame {
       return runPunt(out, state, inputs, seq, root, gameKey);
     }
 
-    var sequence = seq[0]++;
-    var snapRng = root.split(gameKey ^ ((long) sequence << 32));
+    var snapRng = root.split(gameKey ^ ((long) seq[0] << 32));
     var offenseSide = state.possession();
     var defenseSide = otherSide(offenseSide);
     var offense = offenseSide == Side.HOME ? inputs.home() : inputs.away();
     var defense = defenseSide == Side.HOME ? inputs.home() : inputs.away();
-    var call = caller.call(state);
+    var offenseCoach = offenseSide == Side.HOME ? inputs.homeCoach() : inputs.awayCoach();
+    var defenseCoach = defenseSide == Side.HOME ? inputs.homeCoach() : inputs.awayCoach();
+    var call = caller.call(state, offenseCoach, snapRng);
+    // Defensive call is selected pre-snap for every scrimmage play. It is not yet fed into the
+    // pass/run resolvers' matchup shifts — that wiring is the phase-5 follow-up. Selecting it
+    // here keeps the seam exercised so calibration tests can assert league-average blitz / shell
+    // distributions and the DC's tendencies have an observable effect.
+    var defensiveCall =
+        defensiveCallSelector.select(
+            state, call.formation(), defenseCoach.defense(), snapRng.split(0xDEFE_7155L));
+    Objects.requireNonNull(defensiveCall, "defensiveCall");
     var offPersonnel = personnel.selectOffense(call, state, offense);
     var defPersonnel = personnel.selectDefense(call, offPersonnel, state, defense);
+
+    var preSnapPenalty =
+        penaltyModel.preSnap(state, offPersonnel, defPersonnel, snapRng.split(PENALTY_PRE_KEY));
+    if (preSnapPenalty.isPresent()) {
+      return emitPreSnapPenalty(
+          out, state, preSnapPenalty.get(), seq, inputs.gameId(), offenseSide);
+    }
+
+    var sequence = seq[0]++;
     var outcome = resolver.resolve(call, state, offPersonnel, defPersonnel, snapRng);
 
     var secondsOff = clockModel.secondsConsumed(outcome, state, snapRng.split(CLOCK_SPLIT_KEY));
@@ -149,6 +183,23 @@ final class GameSimulator implements SimulateGame {
     var scoreAfter = scoreAfterPlay(state.score(), offenseSide, defenseSide, advance);
 
     var event = toEvent(outcome, state, clockAfter, scoreAfter, advance, sequence, inputs.gameId());
+
+    var isScoringOrTurnover =
+        advance.touchdown()
+            || advance.defensiveTouchdown()
+            || advance.safety()
+            || advance.turnover() != SnapAdvance.Turnover.NONE;
+
+    if (!isScoringOrTurnover) {
+      var liveBall =
+          penaltyModel.duringPlay(
+              call, outcome, state, offPersonnel, defPersonnel, snapRng.split(PENALTY_LIVE_KEY));
+      if (liveBall.isPresent() && shouldAccept(liveBall.get(), advance, offenseSide)) {
+        return emitLiveBallPenalty(
+            out, state, event, liveBall.get(), clockAfter, sequence, inputs.gameId(), offenseSide);
+      }
+    }
+
     out.add(event);
 
     if (advance.touchdown()) {
@@ -179,7 +230,168 @@ final class GameSimulator implements SimulateGame {
       return state.withPossessionAndSpot(
           defenseSide, new FieldPosition(100 - advance.endYardLine()));
     }
-    return state.afterScrimmage(event, clockAfter, new FieldPosition(advance.endYardLine()), newDd);
+    state =
+        state.afterScrimmage(event, clockAfter, new FieldPosition(advance.endYardLine()), newDd);
+
+    var postPlay =
+        penaltyModel.postPlay(
+            offenseSide, offPersonnel, defPersonnel, snapRng.split(PENALTY_POST_KEY));
+    if (postPlay.isPresent()) {
+      state = emitPostPlayPenalty(out, state, postPlay.get(), seq, inputs.gameId(), offenseSide);
+    }
+    return state;
+  }
+
+  private GameState emitPreSnapPenalty(
+      List<PlayEvent> out,
+      GameState state,
+      PenaltyDraw.PreSnap draw,
+      int[] seq,
+      GameId gameId,
+      Side offenseSide) {
+    var sequence = seq[0]++;
+    var preYL = state.spot().yardLine();
+    var applied = PenaltyEnforcer.apply(state.downAndDistance(), preYL, preYL, offenseSide, draw);
+    var event =
+        new PlayEvent.Penalty(
+            penaltyId(gameId, sequence),
+            gameId,
+            sequence,
+            state.downAndDistance(),
+            state.spot(),
+            state.clock(),
+            state.clock(),
+            state.score(),
+            draw.type(),
+            draw.against(),
+            draw.committedBy(),
+            applied.yardsApplied(),
+            true,
+            Optional.empty());
+    out.add(event);
+    return afterPenalty(state, applied, state.clock(), offenseSide);
+  }
+
+  private GameState emitLiveBallPenalty(
+      List<PlayEvent> out,
+      GameState state,
+      PlayEvent underlying,
+      PenaltyDraw.LiveBall draw,
+      GameClock clockAfter,
+      int sequence,
+      GameId gameId,
+      Side offenseSide) {
+    var preYL = state.spot().yardLine();
+    // Live-ball enforcement measures from END_OF_PLAY for personal fouls / post-possession flags;
+    // previous-spot for offensive fouls. The enforcer reads `spot` off the draw's enforcement
+    // and picks the right basis.
+    var basis =
+        draw.enforcement().spot() == PenaltyEnforcement.Spot.END_OF_PLAY
+            ? endYardLine(underlying, offenseSide)
+            : preYL;
+    var applied = PenaltyEnforcer.apply(state.downAndDistance(), preYL, basis, offenseSide, draw);
+    var event =
+        new PlayEvent.Penalty(
+            penaltyId(gameId, sequence),
+            gameId,
+            sequence,
+            state.downAndDistance(),
+            state.spot(),
+            state.clock(),
+            clockAfter,
+            state.score(),
+            draw.type(),
+            draw.against(),
+            draw.committedBy(),
+            applied.yardsApplied(),
+            draw.enforcement().replayDown(),
+            Optional.of(underlying));
+    out.add(event);
+    return afterPenalty(state, applied, clockAfter, offenseSide);
+  }
+
+  private GameState emitPostPlayPenalty(
+      List<PlayEvent> out,
+      GameState state,
+      PenaltyDraw.PostPlay draw,
+      int[] seq,
+      GameId gameId,
+      Side offenseSide) {
+    var sequence = seq[0]++;
+    var spot = state.spot().yardLine();
+    var applied = PenaltyEnforcer.apply(state.downAndDistance(), spot, spot, offenseSide, draw);
+    var event =
+        new PlayEvent.Penalty(
+            penaltyId(gameId, sequence),
+            gameId,
+            sequence,
+            state.downAndDistance(),
+            state.spot(),
+            state.clock(),
+            state.clock(),
+            state.score(),
+            draw.type(),
+            draw.against(),
+            draw.committedBy(),
+            applied.yardsApplied(),
+            false,
+            Optional.empty());
+    out.add(event);
+    return afterPenalty(state, applied, state.clock(), offenseSide);
+  }
+
+  private GameState afterPenalty(
+      GameState state, PenaltyEnforcer.Applied applied, GameClock clockAfter, Side offenseSide) {
+    return switch (applied) {
+      case PenaltyEnforcer.Applied.Next n ->
+          new GameState(
+              state.score(),
+              clockAfter,
+              n.nextDownAndDistance(),
+              n.newSpot(),
+              offenseSide,
+              state.drive(),
+              state.fatigueSnapCounts(),
+              state.injuredPlayers(),
+              state.homeTimeouts(),
+              state.awayTimeouts(),
+              state.phase(),
+              state.overtimeRound());
+      case PenaltyEnforcer.Applied.TurnoverOnDowns t ->
+          state
+              .withClock(clockAfter)
+              .withPossessionAndSpot(
+                  otherSide(offenseSide), new FieldPosition(100 - t.newSpot().yardLine()));
+    };
+  }
+
+  /**
+   * Simple accept/decline: the non-offending side accepts when doing so hurts the offense more (or
+   * helps them less) than letting the play stand.
+   */
+  private static boolean shouldAccept(
+      PenaltyDraw.LiveBall draw, SnapAdvance advance, Side offenseSide) {
+    var againstOffense = draw.against() == offenseSide;
+    var playYards = advance.offensiveYards();
+    var penaltyDelta = againstOffense ? -draw.yards() : draw.yards();
+    var autoFirstDownBonus = draw.enforcement().autoFirstDown() ? 15 : 0;
+    var penaltyEffective = penaltyDelta + (againstOffense ? 0 : autoFirstDownBonus);
+    return againstOffense ? penaltyEffective < playYards : penaltyEffective > playYards;
+  }
+
+  private static int endYardLine(PlayEvent event, Side offenseSide) {
+    // Best-effort: read from known event types that carry an end-of-play spot in offense frame.
+    return switch (event) {
+      case PlayEvent.Run r -> r.endSpot().yardLine();
+      case PlayEvent.PassComplete c -> c.endSpot().yardLine();
+      case PlayEvent.Scramble s -> s.endSpot().yardLine();
+      // Incompletions/sacks don't advance; fall back to pre-snap spot.
+      default -> event.preSnapSpot().yardLine();
+    };
+  }
+
+  private static PlayId penaltyId(GameId gameId, int sequence) {
+    return new PlayId(new UUID(gameId.value().getMostSignificantBits(), 0xF100L | (long) sequence));
   }
 
   private GameState runFieldGoal(

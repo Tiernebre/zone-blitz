@@ -3,6 +3,8 @@ package app.zoneblitz.gamesimulator;
 import app.zoneblitz.gamesimulator.event.PassConcept;
 import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
+import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.roster.Coach;
 import java.util.Objects;
 
 /**
@@ -12,11 +14,15 @@ import java.util.Objects;
 public interface PlayCaller {
 
   /**
-   * Return the offensive play call for the supplied state. The returned {@link PlayCall} is an
-   * opaque placeholder today; it will grow into a real sealed hierarchy as the decision layer
-   * lands.
+   * Return the offensive play call for the supplied state.
+   *
+   * @param state current game state
+   * @param offensiveCoach the coach whose tendencies drive this call — implementations are free to
+   *     ignore it (scripted/alternating callers) or consult {@link Coach#offense()} (the
+   *     tendency-driven production caller)
+   * @param rng randomness source for probabilistic callers; scripted implementations may ignore it
    */
-  PlayCall call(GameState state);
+  PlayCall call(GameState state, Coach offensiveCoach, RandomSource rng);
 
   /**
    * Opaque play-call placeholder — will be replaced with a sealed hierarchy.

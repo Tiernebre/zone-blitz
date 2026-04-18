@@ -10,7 +10,10 @@ import app.zoneblitz.gamesimulator.event.TeamId;
 import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
 import app.zoneblitz.gamesimulator.output.NarrationContext;
 import app.zoneblitz.gamesimulator.output.PlayNarrator;
+import app.zoneblitz.gamesimulator.penalty.BandPenaltyModel;
 import app.zoneblitz.gamesimulator.personnel.BaselinePersonnelSelector;
+import app.zoneblitz.gamesimulator.playcalling.BaselineDefensiveCallSelector;
+import app.zoneblitz.gamesimulator.playcalling.TendencyPlayCaller;
 import app.zoneblitz.gamesimulator.punt.BandPuntResolver;
 import app.zoneblitz.gamesimulator.resolver.DispatchingPlayResolver;
 import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver;
@@ -57,22 +60,24 @@ public final class GameSimEmulator {
 
     var simulator =
         new GameSimulator(
-            new AlternatingPlayCaller(),
+            TendencyPlayCaller.load(repo),
             new BaselinePersonnelSelector(),
             resolver,
             BandClockModel.load(repo, sampler),
             new TouchbackKickoffResolver(),
             new FlatRateExtraPointResolver(),
             new DistanceCurveFieldGoalResolver(),
-            BandPuntResolver.load(repo, sampler));
+            BandPuntResolver.load(repo, sampler),
+            new BandPenaltyModel(),
+            BaselineDefensiveCallSelector.load(repo));
 
     var inputs =
         new GameInputs(
             new GameId(new UUID(0xDEADBEEFL, seed)),
             home,
             away,
-            new Coach(new CoachId(new UUID(1L, 1L)), "Home HC"),
-            new Coach(new CoachId(new UUID(1L, 2L)), "Away HC"),
+            Coach.average(new CoachId(new UUID(1L, 1L)), "Home HC"),
+            Coach.average(new CoachId(new UUID(1L, 2L)), "Away HC"),
             new GameInputs.PreGameContext(),
             Optional.of(seed));
 
@@ -117,15 +122,6 @@ public final class GameSimEmulator {
     for (var i = 0; i < count; i++) {
       var id = new PlayerId(new UUID(idSeed, i));
       out.add(new Player(id, position, names.generate(rng).display()));
-    }
-  }
-
-  private static final class AlternatingPlayCaller implements PlayCaller {
-    private int n;
-
-    @Override
-    public PlayCall call(GameState state) {
-      return new PlayCall((n++ % 2 == 0) ? "run" : "pass");
     }
   }
 }

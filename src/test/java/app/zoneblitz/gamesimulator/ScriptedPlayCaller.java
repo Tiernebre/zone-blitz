@@ -1,5 +1,7 @@
 package app.zoneblitz.gamesimulator;
 
+import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.roster.Coach;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -19,7 +21,7 @@ final class ScriptedPlayCaller implements PlayCaller {
   }
 
   @Override
-  public PlayCall call(GameState state) {
+  public PlayCall call(GameState state, Coach offensiveCoach, RandomSource rng) {
     var i = cursor.getAndIncrement();
     return script.get(i % script.size());
   }
