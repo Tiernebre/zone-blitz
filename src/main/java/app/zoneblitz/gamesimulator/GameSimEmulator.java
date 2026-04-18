@@ -75,7 +75,8 @@ public final class GameSimEmulator {
             BaselineDefensiveCallSelector.load(repo),
             new StandardTwoPointDecisionPolicy(),
             new FlatRateTwoPointResolver(),
-            new DefaultHomeFieldModel());
+            new DefaultHomeFieldModel(),
+            new TendencyTimeoutDecider());
 
     var inputs =
         new GameInputs(

@@ -12,6 +12,7 @@ import app.zoneblitz.gamesimulator.event.PlayId;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.event.Score;
+import app.zoneblitz.gamesimulator.event.Side;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,6 +54,45 @@ class GameStateTests {
     assertThat(next.downAndDistance()).isEqualTo(new DownAndDistance(1, 10));
     assertThat(original.score()).isEqualTo(new Score(0, 0));
     assertThat(original.clock()).isEqualTo(new GameClock(1, 15 * 60));
+  }
+
+  @Test
+  void withTimeoutUsed_home_decrementsHomeTimeoutsOnly() {
+    var state = GameState.initial();
+    var after = state.withTimeoutUsed(Side.HOME);
+
+    assertThat(after.homeTimeouts()).isEqualTo(2);
+    assertThat(after.awayTimeouts()).isEqualTo(3);
+  }
+
+  @Test
+  void withTimeoutUsed_whenNoneRemaining_throws() {
+    var state =
+        GameState.initial()
+            .withTimeoutUsed(Side.AWAY)
+            .withTimeoutUsed(Side.AWAY)
+            .withTimeoutUsed(Side.AWAY);
+
+    org.assertj.core.api.Assertions.assertThatThrownBy(() -> state.withTimeoutUsed(Side.AWAY))
+        .isInstanceOf(IllegalStateException.class);
+  }
+
+  @Test
+  void withTimeoutsReset_restoresBothSidesToThree() {
+    var state = GameState.initial().withTimeoutUsed(Side.HOME).withTimeoutUsed(Side.AWAY);
+
+    var reset = state.withTimeoutsReset();
+
+    assertThat(reset.homeTimeouts()).isEqualTo(3);
+    assertThat(reset.awayTimeouts()).isEqualTo(3);
+  }
+
+  @Test
+  void timeoutsFor_returnsSideSpecificCount() {
+    var state = GameState.initial().withTimeoutUsed(Side.HOME);
+
+    assertThat(state.timeoutsFor(Side.HOME)).isEqualTo(2);
+    assertThat(state.timeoutsFor(Side.AWAY)).isEqualTo(3);
   }
 
   @Test

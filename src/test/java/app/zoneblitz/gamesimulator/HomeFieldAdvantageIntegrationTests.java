@@ -103,7 +103,8 @@ class HomeFieldAdvantageIntegrationTests {
               DefensiveCallSelector.neutral(),
               new StandardTwoPointDecisionPolicy(),
               new FlatRateTwoPointResolver(),
-              new DefaultHomeFieldModel());
+              new DefaultHomeFieldModel(),
+              new TendencyTimeoutDecider());
       var inputs =
           new GameInputs(
               new GameId(new UUID(0xF1E1DBEEFL, seed)),
