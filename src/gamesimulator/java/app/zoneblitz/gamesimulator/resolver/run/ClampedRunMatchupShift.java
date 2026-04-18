@@ -1,7 +1,7 @@
 package app.zoneblitz.gamesimulator.resolver.run;
 
+import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.resolver.RunRoles;
-import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.List;
@@ -9,46 +9,48 @@ import java.util.Optional;
 import java.util.function.ToDoubleFunction;
 
 /**
- * Role-based run-matchup shift with physical-fit clamping, mirroring {@code
- * ClampedPassMatchupShift}.
+ * Concept-aware, role-based run-matchup shift with physical-fit clamping.
  *
- * <p>Formula per axis:
+ * <p>Formula per leg (blocking-leg and carrier-leg):
  *
  * <pre>
- *   physical_gap = off_physical_score(role) − def_physical_score(role)
+ *   physical_gap = off_physical_score(weights) − def_physical_score(weights)
  *   floor        = −1 + 0.5 × max(0, physical_gap)
  *   ceiling      = +1 + 0.5 × min(0, physical_gap)
- *   m            = clamp(off_skill_aggregate − def_skill_aggregate, floor, ceiling)
+ *   delta        = clamp(off_skill(weights) − def_skill(weights), floor, ceiling)
  * </pre>
  *
- * <p>Two clamped deltas feed the result: the blocking delta (run blockers vs. run defenders) and
- * the carrier delta (ball carrier vs. run defenders). The offense-is-positive sign convention
- * matches the pass side — a positive shift biases outcome sampling toward {@code NORMAL} (vs.
- * {@code FUMBLE}) and pushes yardage percentile draws upward.
+ * <p>The result is {@code blockingLegWeight × blockingDelta + carrierLegWeight × carrierDelta},
+ * where all four weight families — per-leg scalars, offensive blocker/carrier attribute mixes, and
+ * defensive attribute mix — come from the {@link RunConceptProfile} chosen for the snap's {@link
+ * RunConcept}. {@code INSIDE_ZONE} reproduces the legacy shift exactly, so baseline parity with
+ * {@link MatchupRunResolver.RunMatchupShift#ZERO} is a structural invariant.
  *
- * <p>Defenders sit on both the blocking and carrier legs — that's intentional: front seven
- * performance determines both block defeat at the LOS and the downhill tackle. Duplication is the
- * cost of collapsing the fit/tackle split; a future assigner that separates first-level from
- * second-level defenders can un-collapse without changing this class's shape.
+ * <p>Defenders still sit on both legs — that's intentional: one run-defender pool handles both
+ * block-defeat and downhill tackling. Concepts reshape which defensive attributes are weighted
+ * (edge speed for stretch plays, interior anchor for power/sneak).
  */
 public final class ClampedRunMatchupShift implements MatchupRunResolver.RunMatchupShift {
 
   @Override
-  public double compute(RunRoles roles, Team offense, Team defense) {
+  public double compute(RunConcept concept, RunRoles roles, Team offense, Team defense) {
+    var profile = RunConceptProfiles.forConcept(concept);
+
     var blocking =
         clampedDelta(
-            aggregate(roles.runBlockers(), SkillAxis.RUN_BLOCK::score),
-            aggregate(roles.runDefenders(), SkillAxis.RUN_DEFENSE::score),
-            aggregatePhysical(roles.runBlockers(), PhysicalRole.RUN_BLOCK),
-            aggregatePhysical(roles.runDefenders(), PhysicalRole.RUN_DEFENSE));
+            aggregate(roles.runBlockers(), profile.offBlockers()::skillScore),
+            aggregate(roles.runDefenders(), profile.defFront()::skillScore),
+            aggregate(roles.runBlockers(), p -> profile.offBlockers().physicalScore(p.physical())),
+            aggregate(roles.runDefenders(), p -> profile.defFront().physicalScore(p.physical())));
     var carrier =
         clampedDelta(
-            aggregate(asList(roles.ballCarrier()), SkillAxis.CARRY::score),
-            aggregate(roles.runDefenders(), SkillAxis.RUN_DEFENSE::score),
-            aggregatePhysical(asList(roles.ballCarrier()), PhysicalRole.CARRY),
-            aggregatePhysical(roles.runDefenders(), PhysicalRole.RUN_DEFENSE));
+            aggregate(asList(roles.ballCarrier()), profile.offCarrier()::skillScore),
+            aggregate(roles.runDefenders(), profile.defFront()::skillScore),
+            aggregate(
+                asList(roles.ballCarrier()), p -> profile.offCarrier().physicalScore(p.physical())),
+            aggregate(roles.runDefenders(), p -> profile.defFront().physicalScore(p.physical())));
 
-    return blocking + carrier;
+    return profile.blockingLegWeight() * blocking + profile.carrierLegWeight() * carrier;
   }
 
   private static List<Player> asList(Optional<Player> player) {
@@ -73,82 +75,5 @@ public final class ClampedRunMatchupShift implements MatchupRunResolver.RunMatch
       sum += scorer.applyAsDouble(p);
     }
     return sum / players.size();
-  }
-
-  private static double aggregatePhysical(List<Player> players, PhysicalRole role) {
-    return aggregate(players, p -> role.score(p.physical()));
-  }
-
-  private static double center(double value) {
-    return (value / 100.0 - 0.5) * 2.0;
-  }
-
-  /**
-   * Per-role physical weighting. Weights are percentage points that sum to 100; the resulting
-   * weighted score is re-centered so an all-50 player scores 0 and an all-100 player scores +1.
-   */
-  private enum PhysicalRole {
-    CARRY {
-      @Override
-      double score(Physical p) {
-        return center(
-            (p.speed() * 25
-                    + p.agility() * 25
-                    + p.explosiveness() * 20
-                    + p.power() * 15
-                    + p.strength() * 15)
-                / 100.0);
-      }
-    },
-    RUN_BLOCK {
-      @Override
-      double score(Physical p) {
-        return center(
-            (p.strength() * 30 + p.power() * 30 + p.agility() * 20 + p.stamina() * 20) / 100.0);
-      }
-    },
-    RUN_DEFENSE {
-      @Override
-      double score(Physical p) {
-        return center(
-            (p.strength() * 25
-                    + p.power() * 20
-                    + p.speed() * 20
-                    + p.agility() * 20
-                    + p.explosiveness() * 15)
-                / 100.0);
-      }
-    };
-
-    abstract double score(Physical physical);
-  }
-
-  /**
-   * Per-role skill axis. Multi-attribute axes average the raw 0–100 values before centering to
-   * {@code [-1, +1]} so every axis sits in the same scalar space as the physical window.
-   */
-  private enum SkillAxis {
-    CARRY {
-      @Override
-      double score(Player player) {
-        var s = player.skill();
-        return center((s.ballCarrierVision() + s.breakTackle()) / 2.0);
-      }
-    },
-    RUN_BLOCK {
-      @Override
-      double score(Player player) {
-        return center(player.skill().runBlock());
-      }
-    },
-    RUN_DEFENSE {
-      @Override
-      double score(Player player) {
-        var s = player.skill();
-        return center((s.tackling() + s.blockShedding()) / 2.0);
-      }
-    };
-
-    abstract double score(Player player);
   }
 }

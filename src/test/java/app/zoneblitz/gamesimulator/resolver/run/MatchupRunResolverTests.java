@@ -10,6 +10,7 @@ import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
 import app.zoneblitz.gamesimulator.band.DistributionalBand;
 import app.zoneblitz.gamesimulator.band.RateBand;
 import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.event.TeamId;
 import app.zoneblitz.gamesimulator.resolver.PositionBasedRunRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
@@ -51,7 +52,7 @@ class MatchupRunResolverTests {
   @Test
   void resolve_positiveShift_reducesStuffsAndIncreasesBreakaways() {
     var zero = sampleCounts(loadedResolver(RunMatchupShift.ZERO), 11L);
-    var boosted = sampleCounts(loadedResolver((r, o, d) -> 2.0), 11L);
+    var boosted = sampleCounts(loadedResolver((c, r, o, d) -> 2.0), 11L);
 
     assertThat(boosted.stuffs)
         .as("positive shift with negative STUFF β must reduce stuff count")
@@ -64,7 +65,7 @@ class MatchupRunResolverTests {
   @Test
   void resolve_negativeShift_increasesStuffsAndReducesBreakaways() {
     var zero = sampleCounts(loadedResolver(RunMatchupShift.ZERO), 22L);
-    var suppressed = sampleCounts(loadedResolver((r, o, d) -> -2.0), 22L);
+    var suppressed = sampleCounts(loadedResolver((c, r, o, d) -> -2.0), 22L);
 
     assertThat(suppressed.stuffs).isGreaterThan(zero.stuffs);
     assertThat(suppressed.breakaways).isLessThan(zero.breakaways);
@@ -99,6 +100,39 @@ class MatchupRunResolverTests {
       var run = (RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng);
       assertThat(run.fumble()).isPresent();
     }
+  }
+
+  @Test
+  void resolve_stampsCallRunConceptOnOutcome() {
+    var resolver = loadedResolver(RunMatchupShift.ZERO);
+    var sweepCall = new PlayCaller.PlayCall("run", RunConcept.SWEEP);
+    var qbSneakCall = new PlayCaller.PlayCall("run", RunConcept.QB_SNEAK);
+    var rng = new SplittableRandomSource(3L);
+
+    var sweep = (RunOutcome.Run) resolver.resolve(sweepCall, state(), offense, defense, rng);
+    var sneak = (RunOutcome.Run) resolver.resolve(qbSneakCall, state(), offense, defense, rng);
+
+    assertThat(sweep.concept()).isEqualTo(RunConcept.SWEEP);
+    assertThat(sneak.concept()).isEqualTo(RunConcept.QB_SNEAK);
+  }
+
+  @Test
+  void resolve_conceptReachesShiftImplementation() {
+    var seen = new java.util.concurrent.atomic.AtomicReference<RunConcept>();
+    RunMatchupShift capturing =
+        (concept, roles, offense, defense) -> {
+          seen.set(concept);
+          return 0.0;
+        };
+    var resolver = loadedResolver(capturing);
+    resolver.resolve(
+        new PlayCaller.PlayCall("run", RunConcept.COUNTER),
+        state(),
+        offense,
+        defense,
+        new SplittableRandomSource(4L));
+
+    assertThat(seen.get()).isEqualTo(RunConcept.COUNTER);
   }
 
   @Test

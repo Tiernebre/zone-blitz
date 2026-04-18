@@ -41,7 +41,6 @@ import java.util.Optional;
 public final class MatchupRunResolver implements RunResolver {
 
   private static final String RUSHING_PLAYS = "rushing-plays.json";
-  private static final RunConcept BASELINE_CONCEPT = RunConcept.INSIDE_ZONE;
 
   /**
    * First-cut β coefficients for outcome sampling. Sign convention matches the shift: positive
@@ -135,7 +134,8 @@ public final class MatchupRunResolver implements RunResolver {
                     new IllegalStateException(
                         "Offense has no rushing-eligible player on roster: "
                             + offense.displayName()));
-    var shift = matchupShift.compute(roles, offense, defense);
+    var concept = call.runConcept();
+    var shift = matchupShift.compute(concept, roles, offense, defense);
     var kind = sampler.sampleRate(outcomeMix, shift, rng);
     var yardsBand = kind == RunOutcomeKind.FUMBLE ? fumbleYards : yardsByKind.get(kind);
     var yards = sampler.sampleDistribution(yardsBand, shift, rng);
@@ -145,8 +145,7 @@ public final class MatchupRunResolver implements RunResolver {
             ? Optional.of(fumble(carrier.id()))
             : Optional.<FumbleOutcome>empty();
 
-    return new RunOutcome.Run(
-        carrier.id(), BASELINE_CONCEPT, yards, Optional.empty(), fumble, false, false);
+    return new RunOutcome.Run(carrier.id(), concept, yards, Optional.empty(), fumble, false, false);
   }
 
   private static FumbleOutcome fumble(PlayerId carrier) {
@@ -163,8 +162,17 @@ public final class MatchupRunResolver implements RunResolver {
   public interface RunMatchupShift {
 
     /** Identity shift — keeps the resolver baseline-equivalent. */
-    RunMatchupShift ZERO = (roles, offense, defense) -> 0.0;
+    RunMatchupShift ZERO = (concept, roles, offense, defense) -> 0.0;
 
-    double compute(RunRoles roles, Team offense, Team defense);
+    /**
+     * Compute the scalar shift for the supplied run concept and role buckets.
+     *
+     * @param concept offensive run concept (coach intent); selects the attribute-weighting profile
+     * @param roles per-snap role buckets
+     * @param offense offensive team
+     * @param defense defensive team
+     * @return signed scalar; positive values represent an offensive talent advantage
+     */
+    double compute(RunConcept concept, RunRoles roles, Team offense, Team defense);
   }
 }

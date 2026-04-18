@@ -29,7 +29,6 @@ import java.util.Optional;
 public final class BaselineRunResolver implements RunResolver {
 
   private static final String RUSHING_PLAYS = "rushing-plays.json";
-  private static final RunConcept BASELINE_CONCEPT = RunConcept.INSIDE_ZONE;
 
   private final BandSampler sampler;
   private final DistributionalBand overallYards;
@@ -57,7 +56,7 @@ public final class BaselineRunResolver implements RunResolver {
     var carrier = pickCarrier(offense.roster());
     var yards = sampler.sampleDistribution(overallYards, 0.0, rng);
     return new RunOutcome.Run(
-        carrier, BASELINE_CONCEPT, yards, Optional.empty(), Optional.empty(), false, false);
+        carrier, call.runConcept(), yards, Optional.empty(), Optional.empty(), false, false);
   }
 
   private static PlayerId pickCarrier(List<Player> roster) {
