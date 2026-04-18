@@ -133,4 +133,13 @@ class JooqLeagueRepository implements LeagueRepository {
                     r.get(LEAGUES.CREATED_AT).toInstant(),
                     JooqFranchiseRepository.mapFranchise(r)));
   }
+
+  @Override
+  public boolean deleteByIdAndOwner(long id, String ownerSubject) {
+    return dsl.deleteFrom(LEAGUES)
+            .where(LEAGUES.ID.eq(id))
+            .and(LEAGUES.OWNER_SUBJECT.eq(ownerSubject))
+            .execute()
+        > 0;
+  }
 }

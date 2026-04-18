@@ -43,6 +43,7 @@ class LeagueControllerTests {
   @MockitoBean ListFranchises listFranchises;
   @MockitoBean CreateLeague createLeague;
   @MockitoBean GetLeague getLeague;
+  @MockitoBean DeleteLeague deleteLeague;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
@@ -147,6 +148,68 @@ class LeagueControllerTests {
         .andExpect(status().isOk())
         .andExpect(view().name("league/new"))
         .andExpect(model().attributeHasFieldErrors("form", "name"));
+  }
+
+  @Test
+  void settings_whenLeagueFound_rendersSettingsPage() throws Exception {
+    var summary =
+        new LeagueSummary(
+            42L,
+            "Dynasty",
+            LeaguePhase.INITIAL_SETUP,
+            Instant.now(),
+            new Franchise(
+                1L,
+                "Minutemen",
+                new City(1L, "Boston", new State(1L, "MA", "Massachusetts")),
+                "#000000",
+                "#ffffff"));
+    given(getLeague.get(42L, "sub-1")).willReturn(Optional.of(summary));
+
+    mvc.perform(
+            get("/leagues/42/settings").with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isOk())
+        .andExpect(view().name("league/settings"))
+        .andExpect(model().attribute("league", summary));
+  }
+
+  @Test
+  void settings_whenLeagueMissing_returns404() throws Exception {
+    given(getLeague.get(42L, "sub-1")).willReturn(Optional.empty());
+
+    mvc.perform(
+            get("/leagues/42/settings").with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void delete_whenOwned_redirectsHome() throws Exception {
+    given(deleteLeague.delete(42L, "sub-1")).willReturn(new DeleteLeagueResult.Deleted(42L));
+
+    mvc.perform(
+            post("/leagues/42/delete")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/"));
+
+    verify(deleteLeague).delete(42L, "sub-1");
+  }
+
+  @Test
+  void delete_whenNotFound_returns404() throws Exception {
+    given(deleteLeague.delete(42L, "sub-1")).willReturn(new DeleteLeagueResult.NotFound(42L));
+
+    mvc.perform(
+            post("/leagues/42/delete")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void delete_requiresCsrf() throws Exception {
+    mvc.perform(post("/leagues/42/delete").with(oauth2Login())).andExpect(status().isForbidden());
   }
 
   @Test

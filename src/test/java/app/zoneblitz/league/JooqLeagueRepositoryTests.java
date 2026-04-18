@@ -110,6 +110,38 @@ class JooqLeagueRepositoryTests {
     assertThat(leagues.findSummaryByIdAndOwner(999_999L, "sub-1")).isEmpty();
   }
 
+  @Test
+  void deleteByIdAndOwner_whenOwned_deletesLeagueAndCascadesTeams() {
+    var franchise = franchises.listAll().getFirst();
+    var league =
+        leagues.insert("sub-1", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
+    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("sub-1"))));
+
+    assertThat(leagues.deleteByIdAndOwner(league.id(), "sub-1")).isTrue();
+    assertThat(leagues.findSummaryByIdAndOwner(league.id(), "sub-1")).isEmpty();
+    assertThat(
+            dsl.fetchCount(
+                app.zoneblitz.jooq.Tables.TEAMS,
+                app.zoneblitz.jooq.Tables.TEAMS.LEAGUE_ID.eq(league.id())))
+        .isZero();
+  }
+
+  @Test
+  void deleteByIdAndOwner_whenNotOwned_returnsFalseAndLeavesLeagueIntact() {
+    var franchise = franchises.listAll().getFirst();
+    var league =
+        leagues.insert("owner", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
+    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("owner"))));
+
+    assertThat(leagues.deleteByIdAndOwner(league.id(), "someone-else")).isFalse();
+    assertThat(leagues.findSummaryByIdAndOwner(league.id(), "owner")).isPresent();
+  }
+
+  @Test
+  void deleteByIdAndOwner_whenMissing_returnsFalse() {
+    assertThat(leagues.deleteByIdAndOwner(999_999L, "sub-1")).isFalse();
+  }
+
   private long pickOther(long excludeId) {
     return franchises.listAll().stream()
         .filter(f -> f.id() != excludeId)

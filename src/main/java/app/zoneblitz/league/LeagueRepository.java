@@ -12,4 +12,6 @@ interface LeagueRepository {
   List<LeagueSummary> findSummariesFor(String ownerSubject);
 
   Optional<LeagueSummary> findSummaryByIdAndOwner(long id, String ownerSubject);
+
+  boolean deleteByIdAndOwner(long id, String ownerSubject);
 }

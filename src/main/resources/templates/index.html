@@ -61,6 +61,7 @@
 						<th class="px-4 py-2">Your franchise</th>
 						<th class="px-4 py-2">Phase</th>
 						<th class="px-4 py-2">Created</th>
+						<th class="px-4 py-2 text-right"><span class="sr-only">Actions</span></th>
 					</tr>
 				</thead>
 				<tbody class="text-sm">
@@ -79,6 +80,17 @@
 						</td>
 						<td class="px-4 py-2 text-slate-600" th:text="${league.phase()}">PHASE</td>
 						<td class="px-4 py-2 text-slate-500" th:text="${#temporals.format(league.createdAt(), 'yyyy-MM-dd')}">date</td>
+						<td class="px-4 py-2 text-right">
+							<form th:action="@{'/leagues/' + ${league.leagueId()} + '/delete'}" method="post" class="inline"
+							      th:data-league-name="${league.leagueName()}"
+							      onsubmit="return confirm('Delete league &quot;' + this.dataset.leagueName + '&quot;? This cannot be undone.');">
+								<button type="submit"
+								        th:aria-label="'Delete league ' + ${league.leagueName()}"
+								        class="inline-flex items-center justify-center size-8 rounded text-slate-500 hover:bg-red-50 hover:text-red-600 cursor-pointer">
+									<svg th:replace="~{icons :: trash(cls='size-4')}"></svg>
+								</button>
+							</form>
+						</td>
 					</tr>
 				</tbody>
 			</table>

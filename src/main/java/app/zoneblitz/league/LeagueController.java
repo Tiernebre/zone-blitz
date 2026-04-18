@@ -25,16 +25,19 @@ class LeagueController {
   private final ListFranchises listFranchises;
   private final CreateLeague createLeague;
   private final GetLeague getLeague;
+  private final DeleteLeague deleteLeague;
 
   LeagueController(
       ListLeaguesForUser listLeagues,
       ListFranchises listFranchises,
       CreateLeague createLeague,
-      GetLeague getLeague) {
+      GetLeague getLeague,
+      DeleteLeague deleteLeague) {
     this.listLeagues = listLeagues;
     this.listFranchises = listFranchises;
     this.createLeague = createLeague;
     this.getLeague = getLeague;
+    this.deleteLeague = deleteLeague;
   }
 
   @GetMapping("/")
@@ -54,6 +57,31 @@ class LeagueController {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     model.addAttribute("league", league);
     return "league/dashboard";
+  }
+
+  @GetMapping("/leagues/{id}/settings")
+  String settings(
+      @AuthenticationPrincipal OAuth2User principal, @PathVariable long id, Model model) {
+    var league =
+        getLeague
+            .get(id, principal.getAttribute("sub"))
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    model.addAttribute("league", league);
+    return "league/settings";
+  }
+
+  @PostMapping("/leagues/{id}/delete")
+  String delete(@AuthenticationPrincipal OAuth2User principal, @PathVariable long id) {
+    var ownerSubject = principal.<String>getAttribute("sub");
+    var result = deleteLeague.delete(id, ownerSubject);
+    return switch (result) {
+      case DeleteLeagueResult.Deleted deleted -> {
+        log.info("league deleted id={} owner={}", deleted.leagueId(), ownerSubject);
+        yield "redirect:/";
+      }
+      case DeleteLeagueResult.NotFound ignored ->
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    };
   }
 
   @GetMapping("/leagues/new")
