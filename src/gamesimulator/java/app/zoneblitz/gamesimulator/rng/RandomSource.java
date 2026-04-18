@@ -13,6 +13,13 @@ public interface RandomSource {
   double nextDouble();
 
   /**
+   * Next pseudo-random Gaussian-distributed double with mean 0 and standard deviation 1. Consumes
+   * randomness from the underlying stream; callers that need to leave the parent stream untouched
+   * should draw from a {@link #split(long)} child.
+   */
+  double nextGaussian();
+
+  /**
    * Return a child source whose stream is independent of the parent's but deterministic given the
    * parent's seed and {@code key}. Used to split RNG per snap so a mid-game hiccup does not bleed
    * state.

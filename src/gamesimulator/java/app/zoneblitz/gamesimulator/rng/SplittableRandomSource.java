@@ -31,6 +31,11 @@ public final class SplittableRandomSource implements RandomSource {
   }
 
   @Override
+  public double nextGaussian() {
+    return random.nextGaussian();
+  }
+
+  @Override
   public RandomSource split(long key) {
     var childSeed = mix(seed.get() ^ key);
     return new SplittableRandomSource(childSeed);

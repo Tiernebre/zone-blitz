@@ -27,6 +27,11 @@ final class FakeRandomSource implements RandomSource {
   }
 
   @Override
+  public double nextGaussian() {
+    return doubles.get(doubleCursor.getAndIncrement() % doubles.size());
+  }
+
+  @Override
   public RandomSource split(long key) {
     return this;
   }
