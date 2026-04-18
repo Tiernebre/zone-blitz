@@ -11,6 +11,7 @@ import app.zoneblitz.gamesimulator.event.Score;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.kickoff.KickoffResolver;
 import app.zoneblitz.gamesimulator.personnel.PersonnelSelector;
+import app.zoneblitz.gamesimulator.punt.PuntResolver;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayResolver;
@@ -45,6 +46,7 @@ final class GameSimulator implements SimulateGame {
   private static final long CLOCK_SPLIT_KEY = 0x3333_eeffL;
   private static final long PAT_SPLIT_KEY = 0xFA77_7777L;
   private static final long FG_SPLIT_KEY = 0xFB66_6666L;
+  private static final long PUNT_SPLIT_KEY = 0xFC55_5555L;
 
   /**
    * Inside this many yards of the opposing goal line a 4th down triggers a field-goal attempt.
@@ -66,6 +68,7 @@ final class GameSimulator implements SimulateGame {
   private final KickoffResolver kickoffResolver;
   private final ExtraPointResolver extraPointResolver;
   private final FieldGoalResolver fieldGoalResolver;
+  private final PuntResolver puntResolver;
 
   GameSimulator(
       PlayCaller caller,
@@ -74,7 +77,8 @@ final class GameSimulator implements SimulateGame {
       ClockModel clockModel,
       KickoffResolver kickoffResolver,
       ExtraPointResolver extraPointResolver,
-      FieldGoalResolver fieldGoalResolver) {
+      FieldGoalResolver fieldGoalResolver,
+      PuntResolver puntResolver) {
     this.caller = Objects.requireNonNull(caller, "caller");
     this.personnel = Objects.requireNonNull(personnel, "personnel");
     this.resolver = Objects.requireNonNull(resolver, "resolver");
@@ -82,6 +86,7 @@ final class GameSimulator implements SimulateGame {
     this.kickoffResolver = Objects.requireNonNull(kickoffResolver, "kickoffResolver");
     this.extraPointResolver = Objects.requireNonNull(extraPointResolver, "extraPointResolver");
     this.fieldGoalResolver = Objects.requireNonNull(fieldGoalResolver, "fieldGoalResolver");
+    this.puntResolver = Objects.requireNonNull(puntResolver, "puntResolver");
   }
 
   @Override
@@ -118,6 +123,9 @@ final class GameSimulator implements SimulateGame {
       long gameKey) {
     if (shouldAttemptFieldGoal(state)) {
       return runFieldGoal(out, state, inputs, seq, root, gameKey);
+    }
+    if (shouldPunt(state)) {
+      return runPunt(out, state, inputs, seq, root, gameKey);
     }
 
     var sequence = seq[0]++;
@@ -207,6 +215,36 @@ final class GameSimulator implements SimulateGame {
     return state.withPossessionAndSpot(defenseSide, new FieldPosition(takeover));
   }
 
+  private GameState runPunt(
+      List<PlayEvent> out,
+      GameState state,
+      GameInputs inputs,
+      int[] seq,
+      SplittableRandomSource root,
+      long gameKey) {
+    var sequence = seq[0]++;
+    var offenseSide = state.possession();
+    var defenseSide = otherSide(offenseSide);
+    var kicking = offenseSide == Side.HOME ? inputs.home() : inputs.away();
+    var receiving = defenseSide == Side.HOME ? inputs.home() : inputs.away();
+    var rng = root.split(gameKey ^ ((long) sequence << 32) ^ PUNT_SPLIT_KEY);
+    var resolved =
+        puntResolver.resolve(
+            kicking,
+            receiving,
+            offenseSide,
+            inputs.gameId(),
+            sequence,
+            state.spot(),
+            state.downAndDistance(),
+            state.clock(),
+            state.score(),
+            rng);
+    out.add(resolved.event());
+    return state.withPossessionAndSpot(
+        defenseSide, new FieldPosition(resolved.receivingTakeoverYardLine()));
+  }
+
   private GameState emitPat(
       List<PlayEvent> out,
       GameState state,
@@ -231,6 +269,14 @@ final class GameSimulator implements SimulateGame {
       return false;
     }
     return state.spot().yardLine() >= FIELD_GOAL_MIN_YARD_LINE;
+  }
+
+  private boolean shouldPunt(GameState state) {
+    var dd = state.downAndDistance();
+    if (dd.down() != 4) {
+      return false;
+    }
+    return state.spot().yardLine() < FIELD_GOAL_MIN_YARD_LINE;
   }
 
   private static Side otherSide(Side side) {

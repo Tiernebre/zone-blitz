@@ -12,6 +12,7 @@ import app.zoneblitz.gamesimulator.event.TeamId;
 import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
 import app.zoneblitz.gamesimulator.personnel.FakePersonnelSelector;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
+import app.zoneblitz.gamesimulator.punt.DistanceCurvePuntResolver;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.CoachId;
 import app.zoneblitz.gamesimulator.roster.Player;
@@ -52,7 +53,8 @@ class GameSimulatorTests {
         BandClockModel.load(new ClasspathBandRepository(), new DefaultBandSampler()),
         new TouchbackKickoffResolver(),
         new FlatRateExtraPointResolver(),
-        new DistanceCurveFieldGoalResolver());
+        new DistanceCurveFieldGoalResolver(),
+        new DistanceCurvePuntResolver());
   }
 
   private static GameInputs inputs(Optional<Long> seed) {
