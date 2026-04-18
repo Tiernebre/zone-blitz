@@ -1,6 +1,7 @@
 package app.zoneblitz.gamesimulator;
 
 import app.zoneblitz.gamesimulator.event.RunConcept;
+import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
 import java.util.Objects;
 
 /**
@@ -20,19 +21,31 @@ public interface PlayCaller {
    * Opaque play-call placeholder — will be replaced with a sealed hierarchy.
    *
    * <p>{@code runConcept} carries coach intent into the run resolver's matchup shift and is stamped
-   * onto the resulting {@code RunOutcome.Run}. It's required (never null) so concept-aware scoring
-   * has a value for every snap; pass calls simply ignore it. The single-arg convenience constructor
-   * defaults to {@link RunConcept#INSIDE_ZONE}, which is the baseline-parity concept for the
-   * clamped run-matchup shift.
+   * onto the resulting {@code RunOutcome.Run}. {@code formation} feeds the pre-snap box-count and
+   * coverage-shell samplers. All three fields are required. Convenience constructors default the
+   * missing fields — formation defaults to {@link OffensiveFormation#SINGLEBACK} for runs and
+   * {@link OffensiveFormation#SHOTGUN} for everything else, matching the modal real-NFL formation
+   * for each play type.
    */
-  record PlayCall(String kind, RunConcept runConcept) {
+  record PlayCall(String kind, RunConcept runConcept, OffensiveFormation formation) {
     public PlayCall {
       Objects.requireNonNull(kind, "kind");
       Objects.requireNonNull(runConcept, "runConcept");
+      Objects.requireNonNull(formation, "formation");
+    }
+
+    public PlayCall(String kind, RunConcept runConcept) {
+      this(kind, runConcept, defaultFormation(kind));
     }
 
     public PlayCall(String kind) {
       this(kind, RunConcept.INSIDE_ZONE);
+    }
+
+    private static OffensiveFormation defaultFormation(String kind) {
+      return "run".equalsIgnoreCase(kind)
+          ? OffensiveFormation.SINGLEBACK
+          : OffensiveFormation.SHOTGUN;
     }
   }
 }
