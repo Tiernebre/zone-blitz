@@ -57,7 +57,7 @@ public final class TouchbackKickoffResolver implements KickoffResolver {
             Optional.empty(),
             0,
             false);
-    return new Resolved(event, TOUCHBACK_SPOT);
+    return new Resolved(event, receivingSide, TOUCHBACK_SPOT);
   }
 
   private static PlayerId pickKicker(Team team) {
