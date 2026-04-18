@@ -1,0 +1,137 @@
+{
+  "generated_at": "2026-04-18T14:22:53Z",
+  "sources": [
+    "BDB 2020 train.csv (2017 rushing plays)",
+    "BDB 2021 plays.csv (2018 passing plays)"
+  ],
+  "notes": "Box-count (defenders in the box) distribution by offensive formation, split by play type. Run side from BDB 2020 (2017 season rushing plays, 31k unique plays after dedup from 22-row-per-play tracking); pass side from BDB 2021 (2018 season passing plays, 19k plays). Formations with n<100 in a given play-type window are omitted. `mean_box` is the per-formation expected defender count \u2014 the sim should tilt the run matchup shift by (sampled_box - mean_box_for_formation) \u00d7 `ypc_slope_per_defender`. Slope is a weighted within-formation regression of mean YPC against box count, pooling (formation, box) cells with n>=30.",
+  "bands": {
+    "run": {
+      "by_formation": {
+        "SHOTGUN": {
+          "n": 9389,
+          "mean_box": 6.316,
+          "distribution": {
+            "6": 0.5206,
+            "7": 0.3238,
+            "5": 0.0823,
+            "8": 0.0509,
+            "4": 0.0158
+          }
+        },
+        "SINGLEBACK": {
+          "n": 13624,
+          "mean_box": 6.968,
+          "distribution": {
+            "7": 0.4677,
+            "6": 0.2703,
+            "8": 0.2255,
+            "9": 0.0189,
+            "5": 0.0145
+          }
+        },
+        "I_FORM": {
+          "n": 6225,
+          "mean_box": 7.44,
+          "distribution": {
+            "7": 0.4471,
+            "8": 0.3941,
+            "6": 0.0895,
+            "9": 0.0602,
+            "10": 0.0055
+          }
+        },
+        "PISTOL": {
+          "n": 979,
+          "mean_box": 6.775,
+          "distribution": {
+            "7": 0.4208,
+            "6": 0.3606,
+            "8": 0.1726,
+            "5": 0.0296,
+            "9": 0.0143
+          }
+        },
+        "JUMBO": {
+          "n": 677,
+          "mean_box": 9.359,
+          "distribution": {
+            "11": 0.2895,
+            "10": 0.2452,
+            "8": 0.2186,
+            "9": 0.1344,
+            "7": 0.0945,
+            "6": 0.0162
+          }
+        }
+      },
+      "ypc_slope_per_defender": {
+        "slope_ypc_per_defender": -0.6668,
+        "intercept_ypc": 4.2235,
+        "r": -0.7725,
+        "n_cells": 24
+      }
+    },
+    "pass": {
+      "by_formation": {
+        "SHOTGUN": {
+          "n": 12627,
+          "mean_box": 5.894,
+          "distribution": {
+            "6": 0.5392,
+            "7": 0.1872,
+            "5": 0.1833,
+            "4": 0.0607,
+            "8": 0.0192,
+            "3": 0.0086
+          }
+        },
+        "EMPTY": {
+          "n": 2428,
+          "mean_box": 5.297,
+          "distribution": {
+            "5": 0.4176,
+            "6": 0.3571,
+            "4": 0.154,
+            "7": 0.0577,
+            "3": 0.0099
+          }
+        },
+        "SINGLEBACK": {
+          "n": 2790,
+          "mean_box": 6.852,
+          "distribution": {
+            "7": 0.4728,
+            "6": 0.31,
+            "8": 0.1796,
+            "5": 0.0219,
+            "9": 0.0129
+          }
+        },
+        "I_FORM": {
+          "n": 915,
+          "mean_box": 7.186,
+          "distribution": {
+            "7": 0.5104,
+            "8": 0.3005,
+            "6": 0.1475,
+            "9": 0.0262,
+            "5": 0.0131
+          }
+        },
+        "PISTOL": {
+          "n": 251,
+          "mean_box": 6.486,
+          "distribution": {
+            "6": 0.4064,
+            "7": 0.3705,
+            "8": 0.1076,
+            "5": 0.0916,
+            "4": 0.0159,
+            "9": 0.008
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "generated_at": "2026-04-18T14:22:53Z",
+  "sources": [
+    "BDB 2023 plays.csv (2021 passing plays, PFF-labeled)"
+  ],
+  "notes": "Defensive coverage priors by offensive formation on passing plays. PFF labels via BDB 2023 plays.csv (2021 season, weeks 1-8, 8.5k passing plays). `type` is the Man/Zone/Other split; `shell` is the specific call (COVER_0/1/2/3, QUARTERS, COVER_6, TWO_MAN, OTHER). Formations with n<100 are omitted. JUMBO and PISTOL may fall under threshold \u2014 fall back to `overall` in that case. The sim samples shell pre-snap given the offensive formation; concept \u00d7 shell fit then drives the pass matchup shift.",
+  "bands": {
+    "overall": {
+      "n": 8548,
+      "type": {
+        "zone": 0.6534,
+        "man": 0.2897,
+        "other": 0.057
+      },
+      "shell": {
+        "COVER_3": 0.3117,
+        "COVER_1": 0.2348,
+        "COVER_2": 0.1269,
+        "QUARTERS": 0.1206,
+        "COVER_6": 0.0942,
+        "OTHER": 0.057,
+        "COVER_0": 0.0316,
+        "TWO_MAN": 0.0233
+      }
+    },
+    "by_formation": {
+      "SHOTGUN": {
+        "n": 5481,
+        "type": {
+          "zone": 0.6369,
+          "man": 0.3089,
+          "other": 0.0542
+        },
+        "shell": {
+          "COVER_3": 0.2824,
+          "COVER_1": 0.2472,
+          "COVER_2": 0.1305,
+          "QUARTERS": 0.1211,
+          "COVER_6": 0.1029,
+          "OTHER": 0.0542,
+          "TWO_MAN": 0.0308,
+          "COVER_0": 0.0308
+        }
+      },
+      "EMPTY": {
+        "n": 1396,
+        "type": {
+          "zone": 0.6404,
+          "man": 0.2915,
+          "other": 0.0681
+        },
+        "shell": {
+          "COVER_3": 0.2765,
+          "COVER_1": 0.2364,
+          "QUARTERS": 0.1612,
+          "COVER_2": 0.1175,
+          "COVER_6": 0.0852,
+          "OTHER": 0.0681,
+          "COVER_0": 0.0387,
+          "TWO_MAN": 0.0165
+        }
+      },
+      "SINGLEBACK": {
+        "n": 1189,
+        "type": {
+          "zone": 0.7275,
+          "man": 0.2296,
+          "other": 0.0429
+        },
+        "shell": {
+          "COVER_3": 0.4516,
+          "COVER_1": 0.2002,
+          "COVER_2": 0.1228,
+          "QUARTERS": 0.0833,
+          "COVER_6": 0.0698,
+          "OTHER": 0.0429,
+          "COVER_0": 0.0252
+        }
+      },
+      "I_FORM": {
+        "n": 298,
+        "type": {
+          "zone": 0.7248,
+          "man": 0.2282,
+          "other": 0.047
+        },
+        "shell": {
+          "COVER_3": 0.4228,
+          "COVER_1": 0.198,
+          "COVER_2": 0.1342,
+          "COVER_6": 0.0906,
+          "QUARTERS": 0.0772,
+          "OTHER": 0.047,
+          "COVER_0": 0.0235,
+          "TWO_MAN": 0.0067
+        }
+      },
+      "PISTOL": {
+        "n": 154,
+        "type": {
+          "zone": 0.7403,
+          "man": 0.1883,
+          "other": 0.0714
+        },
+        "shell": {
+          "COVER_3": 0.4156,
+          "COVER_1": 0.1364,
+          "QUARTERS": 0.1234,
+          "COVER_2": 0.1234,
+          "COVER_6": 0.0779,
+          "OTHER": 0.0714,
+          "COVER_0": 0.0519
+        }
+      }
+    }
+  }
+}
