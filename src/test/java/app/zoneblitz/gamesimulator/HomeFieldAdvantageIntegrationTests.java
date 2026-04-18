@@ -112,7 +112,7 @@ class HomeFieldAdvantageIntegrationTests {
               away,
               homeCoach,
               awayCoach,
-              new GameInputs.PreGameContext(hfa),
+              new GameInputs.PreGameContext(hfa, Weather.indoor(), Surface.GRASS, Roof.DOME),
               Optional.of(seed));
       var lastScore = new Score[] {new Score(0, 0)};
       for (var ev : simulator.simulate(inputs).toList()) {

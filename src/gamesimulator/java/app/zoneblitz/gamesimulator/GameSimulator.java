@@ -17,6 +17,7 @@ import app.zoneblitz.gamesimulator.penalty.PenaltyEnforcer;
 import app.zoneblitz.gamesimulator.penalty.PenaltyModel;
 import app.zoneblitz.gamesimulator.personnel.PersonnelSelector;
 import app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector;
+import app.zoneblitz.gamesimulator.punt.EnvironmentalPuntResolver;
 import app.zoneblitz.gamesimulator.punt.PuntResolver;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
@@ -24,6 +25,7 @@ import app.zoneblitz.gamesimulator.resolver.PlayResolver;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
+import app.zoneblitz.gamesimulator.scoring.EnvironmentalFieldGoalResolver;
 import app.zoneblitz.gamesimulator.scoring.ExtraPointResolver;
 import app.zoneblitz.gamesimulator.scoring.FieldGoalResolver;
 import app.zoneblitz.gamesimulator.scoring.TwoPointDecisionPolicy;
@@ -162,6 +164,10 @@ final class GameSimulator implements SimulateGame {
     var root = new SplittableRandomSource(seed);
     var gameKey = (long) inputs.gameId().value().hashCode();
 
+    var modifiers = EnvironmentalModifiers.from(inputs.preGameContext());
+    var gameFieldGoal = new EnvironmentalFieldGoalResolver(fieldGoalResolver, modifiers);
+    var gamePunt = new EnvironmentalPuntResolver(puntResolver, modifiers);
+
     var openingReceiver = Side.HOME;
     var events = new ArrayList<PlayEvent>();
     var seq = new int[] {0};
@@ -176,7 +182,7 @@ final class GameSimulator implements SimulateGame {
         continue;
       }
       state = maybeCallTimeout(events, state, inputs, seq, root, gameKey);
-      state = runSnap(events, state, inputs, seq, root, gameKey);
+      state = runSnap(events, state, inputs, seq, root, gameKey, gameFieldGoal, gamePunt);
     }
     return events.stream();
   }
@@ -187,12 +193,14 @@ final class GameSimulator implements SimulateGame {
       GameInputs inputs,
       int[] seq,
       SplittableRandomSource root,
-      long gameKey) {
+      long gameKey,
+      FieldGoalResolver fieldGoal,
+      PuntResolver punt) {
     if (shouldAttemptFieldGoal(state)) {
-      return runFieldGoal(out, state, inputs, seq, root, gameKey);
+      return runFieldGoal(out, state, inputs, seq, root, gameKey, fieldGoal);
     }
     if (shouldPunt(state)) {
-      return runPunt(out, state, inputs, seq, root, gameKey);
+      return runPunt(out, state, inputs, seq, root, gameKey, punt);
     }
 
     var snapRng = root.split(gameKey ^ ((long) seq[0] << 32));
@@ -483,14 +491,15 @@ final class GameSimulator implements SimulateGame {
       GameInputs inputs,
       int[] seq,
       SplittableRandomSource root,
-      long gameKey) {
+      long gameKey,
+      FieldGoalResolver fieldGoal) {
     var sequence = seq[0]++;
     var offenseSide = state.possession();
     var defenseSide = otherSide(offenseSide);
     var kicking = offenseSide == Side.HOME ? inputs.home() : inputs.away();
     var rng = root.split(gameKey ^ ((long) sequence << 32) ^ FG_SPLIT_KEY);
     var resolved =
-        fieldGoalResolver.resolve(
+        fieldGoal.resolve(
             kicking,
             offenseSide,
             inputs.gameId(),
@@ -524,7 +533,8 @@ final class GameSimulator implements SimulateGame {
       GameInputs inputs,
       int[] seq,
       SplittableRandomSource root,
-      long gameKey) {
+      long gameKey,
+      PuntResolver punt) {
     var sequence = seq[0]++;
     var offenseSide = state.possession();
     var defenseSide = otherSide(offenseSide);
@@ -532,7 +542,7 @@ final class GameSimulator implements SimulateGame {
     var receiving = defenseSide == Side.HOME ? inputs.home() : inputs.away();
     var rng = root.split(gameKey ^ ((long) sequence << 32) ^ PUNT_SPLIT_KEY);
     var resolved =
-        puntResolver.resolve(
+        punt.resolve(
             kicking,
             receiving,
             offenseSide,

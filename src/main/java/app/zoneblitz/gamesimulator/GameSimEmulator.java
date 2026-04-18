@@ -85,7 +85,8 @@ public final class GameSimEmulator {
             away,
             Coach.average(new CoachId(new UUID(1L, 1L)), "Home HC"),
             Coach.average(new CoachId(new UUID(1L, 2L)), "Away HC"),
-            new GameInputs.PreGameContext(HomeFieldAdvantage.leagueAverage()),
+            new GameInputs.PreGameContext(
+                HomeFieldAdvantage.leagueAverage(), Weather.indoor(), Surface.GRASS, Roof.DOME),
             GameType.REGULAR_SEASON,
             Optional.of(seed));
 
