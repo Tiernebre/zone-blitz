@@ -1,5 +1,6 @@
 package app.zoneblitz.gamesimulator.resolver.pass;
 
+import static app.zoneblitz.gamesimulator.CalibrationAssertions.assertPercentile;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.GameState;
@@ -134,6 +135,136 @@ class MatchupPassResolverCalibrationTests {
     assertThat(wr1Share)
         .as("WR1 target share among WRs; band p10-p90 = [0.283, 0.467], symmetric-roster ~= 0.333")
         .isBetween(0.283, 0.467);
+  }
+
+  @Test
+  void resolve_forcedComplete_yardagePercentilesMatchBand() {
+    var resolver = buildResolver(forcedKind(PassOutcomeKind.COMPLETE), PassMatchupShift.ZERO);
+    var yards = sampleYards(resolver, 101L, MatchupPassResolverCalibrationTests::completionYards);
+    assertPercentile(yards, 0.10, 2, 1);
+    assertPercentile(yards, 0.25, 5, 1);
+    assertPercentile(yards, 0.50, 8, 1);
+    assertPercentile(yards, 0.75, 14, 1);
+    assertPercentile(yards, 0.90, 22, 1);
+  }
+
+  /**
+   * Guardrail against tail-inflation bugs in {@link
+   * app.zoneblitz.gamesimulator.band.DefaultBandSampler}: percentile assertions alone pass even
+   * when the sampler linearly ramps into {@code max}, which drags the sampled mean far above the
+   * reported band mean. Pinning the mean catches that class of bug.
+   */
+  @Test
+  void resolve_forcedComplete_yardageMeanTracksReportedMean() {
+    var resolver = buildResolver(forcedKind(PassOutcomeKind.COMPLETE), PassMatchupShift.ZERO);
+    var yards = sampleYards(resolver, 103L, MatchupPassResolverCalibrationTests::completionYards);
+    assertThat(meanOf(yards))
+        .as("completion_yards band mean = 10.96; tail shape must not inflate it")
+        .isBetween(10.0, 11.5);
+  }
+
+  @Test
+  void resolve_forcedComplete_yardageRespectsBandMinMax() {
+    var resolver = buildResolver(forcedKind(PassOutcomeKind.COMPLETE), PassMatchupShift.ZERO);
+    var rng = new SplittableRandomSource(1337L);
+    for (var i = 0; i < TRIALS; i++) {
+      var y = completionYards(resolver.resolve(PASS_CALL, state(), offense, defense, rng));
+      assertThat(y).isBetween(-24, 98);
+    }
+  }
+
+  @Test
+  void resolve_forcedSack_yardsLostPercentilesMatchBand() {
+    var resolver = buildResolver(forcedKind(PassOutcomeKind.SACK), PassMatchupShift.ZERO);
+    var lost = sampleYards(resolver, 104L, MatchupPassResolverCalibrationTests::sackYardsLost);
+    assertPercentile(lost, 0.10, 1, 1);
+    assertPercentile(lost, 0.25, 4, 1);
+    assertPercentile(lost, 0.50, 7, 1);
+    assertPercentile(lost, 0.75, 9, 1);
+    assertPercentile(lost, 0.90, 11, 1);
+  }
+
+  @Test
+  void resolve_forcedSack_yardsLostMeanTracksReportedMean() {
+    var resolver = buildResolver(forcedKind(PassOutcomeKind.SACK), PassMatchupShift.ZERO);
+    var lost = sampleYards(resolver, 105L, MatchupPassResolverCalibrationTests::sackYardsLost);
+    assertThat(meanOf(lost))
+        .as("sack_yards band mean = -6.70 ⇒ yardsLost mean ≈ 6.70")
+        .isBetween(6.2, 7.2);
+  }
+
+  @Test
+  void resolve_forcedScramble_yardagePercentilesMatchBand() {
+    var resolver = buildResolver(forcedKind(PassOutcomeKind.SCRAMBLE), PassMatchupShift.ZERO);
+    var yards = sampleYards(resolver, 106L, MatchupPassResolverCalibrationTests::scrambleYards);
+    assertPercentile(yards, 0.10, 2, 1);
+    assertPercentile(yards, 0.25, 3, 1);
+    assertPercentile(yards, 0.50, 6, 1);
+    assertPercentile(yards, 0.75, 10, 1);
+    assertPercentile(yards, 0.90, 14, 1);
+  }
+
+  @Test
+  void resolve_forcedScramble_yardageMeanTracksReportedMean() {
+    var resolver = buildResolver(forcedKind(PassOutcomeKind.SCRAMBLE), PassMatchupShift.ZERO);
+    var yards = sampleYards(resolver, 107L, MatchupPassResolverCalibrationTests::scrambleYards);
+    assertThat(meanOf(yards))
+        .as("scramble_yards band mean = 7.42; tail shape must not inflate it")
+        .isBetween(6.5, 8.0);
+  }
+
+  @Test
+  void resolve_forcedIncomplete_yardsAlwaysZero() {
+    var resolver = buildResolver(forcedKind(PassOutcomeKind.INCOMPLETE), PassMatchupShift.ZERO);
+    var rng = new SplittableRandomSource(108L);
+    for (var i = 0; i < 1_000; i++) {
+      var outcome = resolver.resolve(PASS_CALL, state(), offense, defense, rng);
+      assertThat(outcome).isInstanceOf(PassOutcome.PassIncomplete.class);
+      assertThat(((PassOutcome.PassIncomplete) outcome).airYards()).isZero();
+    }
+  }
+
+  private static int completionYards(PassOutcome outcome) {
+    return ((PassOutcome.PassComplete) outcome).totalYards();
+  }
+
+  private static int sackYardsLost(PassOutcome outcome) {
+    return ((PassOutcome.Sack) outcome).yardsLost();
+  }
+
+  private static int scrambleYards(PassOutcome outcome) {
+    return ((PassOutcome.Scramble) outcome).yards();
+  }
+
+  private int[] sampleYards(
+      MatchupPassResolver resolver,
+      long seed,
+      java.util.function.ToIntFunction<PassOutcome> extract) {
+    var rng = new SplittableRandomSource(seed);
+    var out = new int[TRIALS];
+    for (var i = 0; i < TRIALS; i++) {
+      out[i] = extract.applyAsInt(resolver.resolve(PASS_CALL, state(), offense, defense, rng));
+    }
+    java.util.Arrays.sort(out);
+    return out;
+  }
+
+  private static double meanOf(int[] samples) {
+    var sum = 0L;
+    for (var s : samples) sum += s;
+    return sum / (double) samples.length;
+  }
+
+  private static RateBand<PassOutcomeKind> forcedKind(PassOutcomeKind only) {
+    var base = new EnumMap<PassOutcomeKind, Double>(PassOutcomeKind.class);
+    for (var k : PassOutcomeKind.values()) {
+      base.put(k, k == only ? 1.0 : 1e-9);
+    }
+    var betas = new EnumMap<PassOutcomeKind, Double>(PassOutcomeKind.class);
+    for (var k : PassOutcomeKind.values()) {
+      betas.put(k, 0.0);
+    }
+    return new RateBand<>(base, betas);
   }
 
   private RateBand<PassOutcomeKind> loadedMix() {

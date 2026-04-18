@@ -2,7 +2,6 @@ package app.zoneblitz.gamesimulator.band;
 
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import java.util.HashMap;
-import java.util.Map;
 
 public final class DefaultBandSampler implements BandSampler {
 
@@ -43,24 +42,84 @@ public final class DefaultBandSampler implements BandSampler {
     return clamped;
   }
 
-  private static double interpolate(DistributionalBand band, double u) {
-    var ladder = new java.util.TreeMap<Double, Double>(band.percentileLadder());
-    ladder.putIfAbsent(0.0, (double) band.min());
-    ladder.putIfAbsent(1.0, (double) band.max());
+  /**
+   * Percentile-inversion interpolation with adaptive tail handling.
+   *
+   * <p>Between the first and last supplied percentile keys (typically p10..p90) we linearly
+   * interpolate on the ladder. Outside that range we pick the tail shape based on how far the
+   * boundary value ({@code min} or {@code max}) sits from the edge percentile relative to the width
+   * of the adjacent inner bucket:
+   *
+   * <ul>
+   *   <li>If the boundary is within {@code TAIL_LINEAR_RATIO ×} inner-bucket width of the edge
+   *       (tight real tail — e.g. clock seconds bounded at 0), linearly interpolate to the
+   *       boundary. Mean is preserved because the tail is genuinely short.
+   *   <li>Otherwise (rare-outlier boundary — e.g. 98-yard completion), decay exponentially from the
+   *       edge with scale equal to the inner-bucket width. Mean stays near the edge instead of
+   *       being dragged toward the outlier, which matches real right-skewed yardage shapes.
+   * </ul>
+   *
+   * {@code min}/{@code max} remain hard clamps applied in {@link #sampleDistribution} regardless of
+   * which tail shape fires.
+   */
+  private static final double TAIL_LINEAR_RATIO = 2.0;
 
-    Map.Entry<Double, Double> lower = ladder.floorEntry(u);
-    Map.Entry<Double, Double> upper = ladder.ceilingEntry(u);
-    if (lower == null) {
-      return upper.getValue();
+  private static double interpolate(DistributionalBand band, double u) {
+    var ladder = new java.util.TreeMap<>(band.percentileLadder());
+    if (ladder.isEmpty()) {
+      return band.min() + u * (band.max() - band.min());
     }
-    if (upper == null) {
-      return lower.getValue();
+    var firstKey = ladder.firstKey();
+    var lastKey = ladder.lastKey();
+    if (u <= firstKey) {
+      return lowerTail(ladder, u, firstKey, band.min());
     }
+    if (u >= lastKey) {
+      return upperTail(ladder, u, lastKey, band.max());
+    }
+    var lower = ladder.floorEntry(u);
+    var upper = ladder.ceilingEntry(u);
     if (lower.getKey().equals(upper.getKey())) {
       return lower.getValue();
     }
     var fraction = (u - lower.getKey()) / (upper.getKey() - lower.getKey());
     return lower.getValue() + fraction * (upper.getValue() - lower.getValue());
+  }
+
+  private static double lowerTail(
+      java.util.NavigableMap<Double, Double> ladder, double u, double firstKey, double min) {
+    var firstValue = ladder.get(firstKey);
+    var innerWidth = innerBucketWidth(ladder, firstKey, /* fromTop= */ false);
+    var boundaryGap = firstValue - min;
+    if (boundaryGap <= TAIL_LINEAR_RATIO * innerWidth) {
+      var fraction = u / firstKey;
+      return min + fraction * (firstValue - min);
+    }
+    var scale = innerWidth > 0 ? innerWidth : 1.0;
+    return firstValue + scale * Math.log(Math.max(u, 1e-12) / firstKey);
+  }
+
+  private static double upperTail(
+      java.util.NavigableMap<Double, Double> ladder, double u, double lastKey, double max) {
+    var lastValue = ladder.get(lastKey);
+    var innerWidth = innerBucketWidth(ladder, lastKey, /* fromTop= */ true);
+    var boundaryGap = max - lastValue;
+    if (boundaryGap <= TAIL_LINEAR_RATIO * innerWidth) {
+      var fraction = (u - lastKey) / (1.0 - lastKey);
+      return lastValue + fraction * (max - lastValue);
+    }
+    var scale = innerWidth > 0 ? innerWidth : 1.0;
+    return lastValue - scale * Math.log(Math.max(1.0 - u, 1e-12) / (1.0 - lastKey));
+  }
+
+  private static double innerBucketWidth(
+      java.util.NavigableMap<Double, Double> ladder, double edgeKey, boolean fromTop) {
+    var edgeValue = ladder.get(edgeKey);
+    var neighborKey = fromTop ? ladder.lowerKey(edgeKey) : ladder.higherKey(edgeKey);
+    if (neighborKey == null) {
+      return 0.0;
+    }
+    return Math.abs(edgeValue - ladder.get(neighborKey));
   }
 
   private static double logit(double p) {
