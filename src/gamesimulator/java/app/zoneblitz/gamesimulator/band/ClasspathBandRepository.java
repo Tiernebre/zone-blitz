@@ -63,6 +63,28 @@ public final class ClasspathBandRepository implements BandRepository {
     return new DistributionalBand(node.get("min").asInt(), node.get("max").asInt(), ladder, 0.0);
   }
 
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> Map<T, Double> loadWeights(String path, String fieldPath, Class<T> keyType) {
+    var node = resolve(path, fieldPath);
+    if (!node.isObject()) {
+      throw new IllegalArgumentException(
+          "Expected object at " + fieldPath + " in " + path + " but was " + node.getNodeType());
+    }
+    var out = new LinkedHashMap<T, Double>();
+    var fields = node.fields();
+    while (fields.hasNext()) {
+      var entry = fields.next();
+      var value = entry.getValue();
+      if (!value.isNumber()) {
+        throw new IllegalArgumentException(
+            "Expected numeric value for '" + entry.getKey() + "' in " + fieldPath);
+      }
+      out.put(parseKey(entry.getKey(), keyType), value.asDouble());
+    }
+    return (Map<T, Double>) out;
+  }
+
   private JsonNode resolve(String path, String fieldPath) {
     var resource = "/bands/" + path;
     try (InputStream in = ClasspathBandRepository.class.getResourceAsStream(resource)) {
@@ -89,10 +111,13 @@ public final class ClasspathBandRepository implements BandRepository {
     if (outcomeType == String.class) {
       return (T) key;
     }
+    if (outcomeType == Integer.class) {
+      return (T) Integer.valueOf(Integer.parseInt(key));
+    }
     if (outcomeType.isEnum()) {
       return (T) Enum.valueOf((Class<Enum>) outcomeType, key.toUpperCase(java.util.Locale.ROOT));
     }
     throw new IllegalArgumentException(
-        "Unsupported outcome type: " + outcomeType + "; must be String or Enum");
+        "Unsupported outcome type: " + outcomeType + "; must be String, Integer, or Enum");
   }
 }

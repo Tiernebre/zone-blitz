@@ -29,4 +29,17 @@ public interface BandRepository {
    * @throws IllegalArgumentException if the resource or field is missing or malformed
    */
   DistributionalBand loadDistribution(String path, String fieldPath);
+
+  /**
+   * Load a bare weight map from a JSON resource: each key maps to a number (a probability, a rate,
+   * or any weight). Unlike {@link #loadRate} the values are scalar rather than nested {@code
+   * {"rate": ...}} objects — this fits categorical priors like formation→box-count and
+   * formation→coverage-shell.
+   *
+   * <p>The addressed node must be an object whose values are numbers. {@code keyType} must be
+   * {@code String.class}, {@code Integer.class}, or an {@code Enum} subtype.
+   *
+   * @throws IllegalArgumentException if the resource or field is missing or malformed
+   */
+  <T> java.util.Map<T, Double> loadWeights(String path, String fieldPath, Class<T> keyType);
 }
