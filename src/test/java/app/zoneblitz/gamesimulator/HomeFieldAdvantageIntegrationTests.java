@@ -26,6 +26,8 @@ import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
 import app.zoneblitz.gamesimulator.scoring.DistanceCurveFieldGoalResolver;
 import app.zoneblitz.gamesimulator.scoring.FlatRateExtraPointResolver;
+import app.zoneblitz.gamesimulator.scoring.FlatRateTwoPointResolver;
+import app.zoneblitz.gamesimulator.scoring.StandardTwoPointDecisionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -99,6 +101,8 @@ class HomeFieldAdvantageIntegrationTests {
               BandPuntResolver.load(repo, sampler),
               new BandPenaltyModel(),
               DefensiveCallSelector.neutral(),
+              new StandardTwoPointDecisionPolicy(),
+              new FlatRateTwoPointResolver(),
               new DefaultHomeFieldModel());
       var inputs =
           new GameInputs(
