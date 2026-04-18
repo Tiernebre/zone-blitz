@@ -1,10 +1,12 @@
-package app.zoneblitz.gamesimulator.resolver;
+package app.zoneblitz.gamesimulator.resolver.pass;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.PlayCaller;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
+import app.zoneblitz.gamesimulator.resolver.PositionBasedRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.RoleAssigner;
 import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;

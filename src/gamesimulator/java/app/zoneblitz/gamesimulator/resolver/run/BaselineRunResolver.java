@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator.resolver;
+package app.zoneblitz.gamesimulator.resolver.run;
 
 import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.PlayCaller;
@@ -7,6 +7,7 @@ import app.zoneblitz.gamesimulator.band.BandSampler;
 import app.zoneblitz.gamesimulator.band.DistributionalBand;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.RunConcept;
+import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
@@ -25,7 +26,7 @@ import java.util.Optional;
  * are stamped with a single baseline {@link RunConcept}; concept-specific distributions will follow
  * when offensive scheme attributes land.
  */
-public final class BaselineRunResolver implements PlayResolver {
+public final class BaselineRunResolver implements RunResolver {
 
   private static final String RUSHING_PLAYS = "rushing-plays.json";
   private static final RunConcept BASELINE_CONCEPT = RunConcept.INSIDE_ZONE;
@@ -45,7 +46,7 @@ public final class BaselineRunResolver implements PlayResolver {
   }
 
   @Override
-  public PlayOutcome resolve(
+  public RunOutcome resolve(
       PlayCaller.PlayCall call, GameState state, Team offense, Team defense, RandomSource rng) {
     Objects.requireNonNull(call, "call");
     Objects.requireNonNull(state, "state");
@@ -55,7 +56,7 @@ public final class BaselineRunResolver implements PlayResolver {
 
     var carrier = pickCarrier(offense.roster());
     var yards = sampler.sampleDistribution(overallYards, 0.0, rng);
-    return new PlayOutcome.Run(
+    return new RunOutcome.Run(
         carrier, BASELINE_CONCEPT, yards, Optional.empty(), Optional.empty(), false, false);
   }
 

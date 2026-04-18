@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator.resolver;
+package app.zoneblitz.gamesimulator.resolver.pass;
 
 import static app.zoneblitz.gamesimulator.CalibrationAssertions.WILSON_Z_99;
 import static app.zoneblitz.gamesimulator.CalibrationAssertions.assertPercentile;
@@ -12,7 +12,8 @@ import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
 import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
-import app.zoneblitz.gamesimulator.resolver.BaselinePassResolver.PassOutcomeKind;
+import app.zoneblitz.gamesimulator.resolver.PassOutcome;
+import app.zoneblitz.gamesimulator.resolver.pass.BaselinePassResolver.PassOutcomeKind;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
@@ -68,7 +69,7 @@ class BaselinePassResolverCalibrationTests {
     var rng = new SplittableRandomSource(101L);
     while (yards.size() < TRIALS) {
       var outcome = resolver.resolve(PASS_CALL, state(), offense, defense, rng);
-      if (outcome instanceof PlayOutcome.PassComplete c) {
+      if (outcome instanceof PassOutcome.PassComplete c) {
         yards.add(c.totalYards());
       }
     }
@@ -86,7 +87,7 @@ class BaselinePassResolverCalibrationTests {
     var rng = new SplittableRandomSource(202L);
     while (yardsLostNegated.size() < TRIALS) {
       var outcome = resolver.resolve(PASS_CALL, state(), offense, defense, rng);
-      if (outcome instanceof PlayOutcome.Sack s) {
+      if (outcome instanceof PassOutcome.Sack s) {
         yardsLostNegated.add(-s.yardsLost());
       }
     }
@@ -104,7 +105,7 @@ class BaselinePassResolverCalibrationTests {
     var rng = new SplittableRandomSource(303L);
     while (yards.size() < TRIALS) {
       var outcome = resolver.resolve(PASS_CALL, state(), offense, defense, rng);
-      if (outcome instanceof PlayOutcome.Scramble s) {
+      if (outcome instanceof PassOutcome.Scramble s) {
         yards.add(s.yards());
       }
     }
@@ -129,15 +130,13 @@ class BaselinePassResolverCalibrationTests {
         .isInstanceOf(IllegalStateException.class);
   }
 
-  private static PassOutcomeKind classify(PlayOutcome outcome) {
+  private static PassOutcomeKind classify(PassOutcome outcome) {
     return switch (outcome) {
-      case PlayOutcome.PassComplete ignored -> PassOutcomeKind.COMPLETE;
-      case PlayOutcome.PassIncomplete ignored -> PassOutcomeKind.INCOMPLETE;
-      case PlayOutcome.Interception ignored -> PassOutcomeKind.INTERCEPTION;
-      case PlayOutcome.Sack ignored -> PassOutcomeKind.SACK;
-      case PlayOutcome.Scramble ignored -> PassOutcomeKind.SCRAMBLE;
-      case PlayOutcome.Run ignored ->
-          throw new AssertionError("pass resolver unexpectedly produced a Run outcome");
+      case PassOutcome.PassComplete ignored -> PassOutcomeKind.COMPLETE;
+      case PassOutcome.PassIncomplete ignored -> PassOutcomeKind.INCOMPLETE;
+      case PassOutcome.Interception ignored -> PassOutcomeKind.INTERCEPTION;
+      case PassOutcome.Sack ignored -> PassOutcomeKind.SACK;
+      case PassOutcome.Scramble ignored -> PassOutcomeKind.SCRAMBLE;
     };
   }
 

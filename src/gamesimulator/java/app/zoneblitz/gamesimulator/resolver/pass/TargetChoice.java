@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator.resolver;
+package app.zoneblitz.gamesimulator.resolver.pass;
 
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import java.util.Objects;

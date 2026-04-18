@@ -1,6 +1,7 @@
 package app.zoneblitz.gamesimulator;
 
 import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayResolver;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Test double: resolves every call to a constant {@link PlayOutcome.PassComplete}, consuming one
+ * Test double: resolves every call to a constant {@link PassOutcome.PassComplete}, consuming one
  * RNG draw so seed differences are observable in the emitted stream. The draw is folded into {@code
  * totalYards} (modulo 20) so the resulting {@link
  * app.zoneblitz.gamesimulator.event.PlayEvent.PassComplete} values diverge across seeds.
@@ -29,7 +30,7 @@ final class ConstantPlayResolver implements PlayResolver {
       PlayCaller.PlayCall call, GameState state, Team offense, Team defense, RandomSource rng) {
     var draw = rng.nextLong();
     var yards = (int) Math.floorMod(draw, 20);
-    return new PlayOutcome.PassComplete(
+    return new PassOutcome.PassComplete(
         qb, target, yards, 0, yards, Optional.empty(), List.of(), false, false);
   }
 

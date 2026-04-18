@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator.resolver;
+package app.zoneblitz.gamesimulator.resolver.run;
 
 import static app.zoneblitz.gamesimulator.CalibrationAssertions.assertPercentile;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -10,6 +10,7 @@ import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
 import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
+import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
@@ -35,8 +36,8 @@ class BaselineRunResolverCalibrationTests {
     var rng = new SplittableRandomSource(42L);
     for (var i = 0; i < TRIALS; i++) {
       var outcome = resolver.resolve(RUN_CALL, state(), offense, defense, rng);
-      assertThat(outcome).isInstanceOf(PlayOutcome.Run.class);
-      yards.add(((PlayOutcome.Run) outcome).yards());
+      assertThat(outcome).isInstanceOf(RunOutcome.Run.class);
+      yards.add(((RunOutcome.Run) outcome).yards());
     }
     var sorted = yards.stream().mapToInt(Integer::intValue).sorted().toArray();
     assertPercentile(sorted, 0.10, 0, 2);
@@ -51,7 +52,7 @@ class BaselineRunResolverCalibrationTests {
     var rng = new SplittableRandomSource(1337L);
     for (var i = 0; i < TRIALS; i++) {
       var outcome = resolver.resolve(RUN_CALL, state(), offense, defense, rng);
-      var yards = ((PlayOutcome.Run) outcome).yards();
+      var yards = ((RunOutcome.Run) outcome).yards();
       assertThat(yards).isBetween(-28, 98);
     }
   }
@@ -84,8 +85,8 @@ class BaselineRunResolverCalibrationTests {
 
     var outcome = resolver.resolve(RUN_CALL, state(), fbOnlyOffense, defense, rng);
 
-    assertThat(outcome).isInstanceOf(PlayOutcome.Run.class);
-    assertThat(((PlayOutcome.Run) outcome).carrier()).isEqualTo(fbId);
+    assertThat(outcome).isInstanceOf(RunOutcome.Run.class);
+    assertThat(((RunOutcome.Run) outcome).carrier()).isEqualTo(fbId);
   }
 
   private static GameState state() {

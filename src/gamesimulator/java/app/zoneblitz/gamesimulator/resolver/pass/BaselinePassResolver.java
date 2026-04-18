@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator.resolver;
+package app.zoneblitz.gamesimulator.resolver.pass;
 
 import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.PlayCaller;
@@ -8,6 +8,7 @@ import app.zoneblitz.gamesimulator.band.DistributionalBand;
 import app.zoneblitz.gamesimulator.band.RateBand;
 import app.zoneblitz.gamesimulator.event.IncompleteReason;
 import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
@@ -25,7 +26,7 @@ import java.util.Optional;
  * completion's {@code airYards} holds the sampled total and {@code yardsAfterCatch} is zero — the
  * air-vs-YAC split arrives with that same selector.
  */
-public final class BaselinePassResolver implements PlayResolver {
+public final class BaselinePassResolver implements PassResolver {
 
   private static final String PASSING_PLAYS = "passing-plays.json";
 
@@ -58,7 +59,7 @@ public final class BaselinePassResolver implements PlayResolver {
   }
 
   @Override
-  public PlayOutcome resolve(
+  public PassOutcome resolve(
       PlayCaller.PlayCall call, GameState state, Team offense, Team defense, RandomSource rng) {
     Objects.requireNonNull(call, "call");
     Objects.requireNonNull(state, "state");
@@ -78,23 +79,23 @@ public final class BaselinePassResolver implements PlayResolver {
     return switch (outcome) {
       case COMPLETE -> {
         var yards = sampler.sampleDistribution(completionYards, 0.0, rng);
-        yield new PlayOutcome.PassComplete(
+        yield new PassOutcome.PassComplete(
             qb, target, yards, 0, yards, Optional.empty(), List.of(), false, false);
       }
       case INCOMPLETE ->
-          new PlayOutcome.PassIncomplete(
+          new PassOutcome.PassIncomplete(
               qb, target, 0, IncompleteReason.OVERTHROWN, Optional.empty());
       case SACK -> {
         var sampled = sampler.sampleDistribution(sackYards, 0.0, rng);
-        yield new PlayOutcome.Sack(qb, List.of(), -sampled, Optional.empty());
+        yield new PassOutcome.Sack(qb, List.of(), -sampled, Optional.empty());
       }
       case SCRAMBLE -> {
         var yards = sampler.sampleDistribution(scrambleYards, 0.0, rng);
-        yield new PlayOutcome.Scramble(qb, yards, Optional.empty(), false, false);
+        yield new PassOutcome.Scramble(qb, yards, Optional.empty(), false, false);
       }
       case INTERCEPTION -> {
         var interceptor = pickInterceptor(defense.roster());
-        yield new PlayOutcome.Interception(qb, target, interceptor, 0, false);
+        yield new PassOutcome.Interception(qb, target, interceptor, 0, false);
       }
     };
   }

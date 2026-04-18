@@ -1,6 +1,8 @@
-package app.zoneblitz.gamesimulator.resolver;
+package app.zoneblitz.gamesimulator.resolver.pass;
 
 import app.zoneblitz.gamesimulator.PlayCaller;
+import app.zoneblitz.gamesimulator.resolver.RoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.Roles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 

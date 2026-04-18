@@ -5,8 +5,10 @@ import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayId;
 import app.zoneblitz.gamesimulator.event.Side;
+import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayResolver;
+import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import java.util.Objects;
 import java.util.UUID;
@@ -65,7 +67,7 @@ final class GameSimulator implements SimulateGame {
     var clockAfter = state.clock();
     var scoreAfter = state.score();
     return switch (outcome) {
-      case PlayOutcome.PassComplete c ->
+      case PassOutcome.PassComplete c ->
           new PlayEvent.PassComplete(
               id,
               gameId,
@@ -85,7 +87,7 @@ final class GameSimulator implements SimulateGame {
               c.defendersInCoverage(),
               c.touchdown(),
               c.firstDown());
-      case PlayOutcome.PassIncomplete i ->
+      case PassOutcome.PassIncomplete i ->
           new PlayEvent.PassIncomplete(
               id,
               gameId,
@@ -100,7 +102,7 @@ final class GameSimulator implements SimulateGame {
               i.airYards(),
               i.reason(),
               i.defender());
-      case PlayOutcome.Sack s ->
+      case PassOutcome.Sack s ->
           new PlayEvent.Sack(
               id,
               gameId,
@@ -114,7 +116,7 @@ final class GameSimulator implements SimulateGame {
               s.sackers(),
               s.yardsLost(),
               s.fumble());
-      case PlayOutcome.Scramble s ->
+      case PassOutcome.Scramble s ->
           new PlayEvent.Scramble(
               id,
               gameId,
@@ -130,7 +132,23 @@ final class GameSimulator implements SimulateGame {
               s.tackler(),
               s.slideOrOob(),
               s.touchdown());
-      case PlayOutcome.Run r ->
+      case PassOutcome.Interception x ->
+          new PlayEvent.Interception(
+              id,
+              gameId,
+              sequence,
+              preSnap,
+              preSnapSpot,
+              clockBefore,
+              clockAfter,
+              scoreAfter,
+              x.qb(),
+              x.intendedTarget(),
+              x.interceptor(),
+              x.returnYards(),
+              preSnapSpot,
+              x.touchdown());
+      case RunOutcome.Run r ->
           new PlayEvent.Run(
               id,
               gameId,
@@ -149,22 +167,6 @@ final class GameSimulator implements SimulateGame {
               r.touchdown(),
               r.firstDown(),
               0L);
-      case PlayOutcome.Interception x ->
-          new PlayEvent.Interception(
-              id,
-              gameId,
-              sequence,
-              preSnap,
-              preSnapSpot,
-              clockBefore,
-              clockAfter,
-              scoreAfter,
-              x.qb(),
-              x.intendedTarget(),
-              x.interceptor(),
-              x.returnYards(),
-              preSnapSpot,
-              x.touchdown());
     };
   }
 }

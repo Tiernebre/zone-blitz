@@ -6,15 +6,11 @@ import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Team;
 
 /**
- * Resolves an offensive play call into a {@link PlayOutcome} — the intermediate resolution result
- * before penalty application, clock advancement, and {@link
- * app.zoneblitz.gamesimulator.event.PlayEvent} assembly.
+ * Top-level resolver contract. Dispatches the incoming play call to a family-specific resolver
+ * (pass, run, …) and returns a {@link PlayOutcome} — the sealed root across every family.
  *
- * <p>Implementations must be pure given their inputs; all randomness flows through the supplied
- * {@link RandomSource}.
- *
- * <p>Target and defender selection are placeholder logic today (first-matching-position on the
- * roster); a dedicated target selector will replace it.
+ * <p>Implementations are pure given their inputs; all randomness flows through the supplied {@link
+ * RandomSource}.
  */
 public interface PlayResolver {
 
@@ -23,8 +19,8 @@ public interface PlayResolver {
    *
    * @param call the offensive play call
    * @param state current game state
-   * @param offense offensive team (source of the QB and receivers)
-   * @param defense defensive team (source of coverage defenders / pass rushers)
+   * @param offense offensive team
+   * @param defense defensive team
    * @param rng randomness source
    * @return the resolved {@link PlayOutcome}
    */

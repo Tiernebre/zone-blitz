@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator.resolver;
+package app.zoneblitz.gamesimulator.resolver.pass;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -11,8 +11,10 @@ import app.zoneblitz.gamesimulator.band.DistributionalBand;
 import app.zoneblitz.gamesimulator.band.RateBand;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
-import app.zoneblitz.gamesimulator.resolver.BaselinePassResolver.PassOutcomeKind;
-import app.zoneblitz.gamesimulator.resolver.MatchupPassResolver.PassMatchupShift;
+import app.zoneblitz.gamesimulator.resolver.PassOutcome;
+import app.zoneblitz.gamesimulator.resolver.PositionBasedRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.pass.BaselinePassResolver.PassOutcomeKind;
+import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver.PassMatchupShift;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
@@ -60,8 +62,8 @@ class MatchupPassResolverCalibrationTests {
 
     var baselineRng = new SplittableRandomSource(7L);
     var matchupRng = new SplittableRandomSource(7L);
-    var baselineOutcomes = new ArrayList<PlayOutcome>(1_000);
-    var matchupOutcomes = new ArrayList<PlayOutcome>(1_000);
+    var baselineOutcomes = new ArrayList<PassOutcome>(1_000);
+    var matchupOutcomes = new ArrayList<PassOutcome>(1_000);
     for (var i = 0; i < 1_000; i++) {
       baselineOutcomes.add(baseline.resolve(PASS_CALL, state(), offense, defense, baselineRng));
       matchupOutcomes.add(matchup.resolve(PASS_CALL, state(), offense, defense, matchupRng));
@@ -187,15 +189,13 @@ class MatchupPassResolverCalibrationTests {
     return counts.get(PassOutcomeKind.COMPLETE);
   }
 
-  private static PassOutcomeKind classify(PlayOutcome outcome) {
+  private static PassOutcomeKind classify(PassOutcome outcome) {
     return switch (outcome) {
-      case PlayOutcome.PassComplete ignored -> PassOutcomeKind.COMPLETE;
-      case PlayOutcome.PassIncomplete ignored -> PassOutcomeKind.INCOMPLETE;
-      case PlayOutcome.Interception ignored -> PassOutcomeKind.INTERCEPTION;
-      case PlayOutcome.Sack ignored -> PassOutcomeKind.SACK;
-      case PlayOutcome.Scramble ignored -> PassOutcomeKind.SCRAMBLE;
-      case PlayOutcome.Run ignored ->
-          throw new AssertionError("pass resolver unexpectedly produced a Run outcome");
+      case PassOutcome.PassComplete ignored -> PassOutcomeKind.COMPLETE;
+      case PassOutcome.PassIncomplete ignored -> PassOutcomeKind.INCOMPLETE;
+      case PassOutcome.Interception ignored -> PassOutcomeKind.INTERCEPTION;
+      case PassOutcome.Sack ignored -> PassOutcomeKind.SACK;
+      case PassOutcome.Scramble ignored -> PassOutcomeKind.SCRAMBLE;
     };
   }
 
@@ -230,14 +230,13 @@ class MatchupPassResolverCalibrationTests {
             new Player(new PlayerId(new UUID(3L, 7L)), Position.OL, "OL1")));
   }
 
-  private static Optional<PlayerId> throwTarget(PlayOutcome outcome) {
+  private static Optional<PlayerId> throwTarget(PassOutcome outcome) {
     return switch (outcome) {
-      case PlayOutcome.PassComplete c -> Optional.of(c.target());
-      case PlayOutcome.PassIncomplete i -> Optional.of(i.target());
-      case PlayOutcome.Interception pick -> Optional.of(pick.intendedTarget());
-      case PlayOutcome.Sack ignored -> Optional.empty();
-      case PlayOutcome.Scramble ignored -> Optional.empty();
-      case PlayOutcome.Run ignored -> Optional.empty();
+      case PassOutcome.PassComplete c -> Optional.of(c.target());
+      case PassOutcome.PassIncomplete i -> Optional.of(i.target());
+      case PassOutcome.Interception pick -> Optional.of(pick.intendedTarget());
+      case PassOutcome.Sack ignored -> Optional.empty();
+      case PassOutcome.Scramble ignored -> Optional.empty();
     };
   }
 
