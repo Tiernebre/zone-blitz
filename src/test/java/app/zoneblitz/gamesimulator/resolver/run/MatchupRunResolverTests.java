@@ -123,7 +123,37 @@ class MatchupRunResolverTests {
     for (var i = 0; i < 100; i++) {
       var run = (RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng);
       assertThat(run.fumble()).isPresent();
+      var fumble = run.fumble().get();
+      assertThat(fumble.recoveredBy())
+          .as("every fumble event must carry a non-null recoverer")
+          .isPresent();
+      assertThat(fumble.fumbledBy()).isEqualTo(run.carrier());
+      var recoverer = fumble.recoveredBy().get();
+      if (fumble.defenseRecovered()) {
+        assertThat(defense.players()).extracting(p -> p.id()).contains(recoverer);
+      } else {
+        assertThat(offense.players()).extracting(p -> p.id()).contains(recoverer);
+        assertThat(recoverer).isNotEqualTo(fumble.fumbledBy());
+      }
     }
+  }
+
+  @Test
+  void resolve_fumbleKind_defenseRecoveryRateMatchesModelBand() {
+    var resolver = buildResolver(forcedKind(RunOutcomeKind.FUMBLE), RunMatchupShift.ZERO);
+    var rng = new SplittableRandomSource(909L);
+    var trials = 5_000;
+    var defenseRecoveries = 0;
+    for (var i = 0; i < trials; i++) {
+      var run = (RunOutcome.Run) resolver.resolve(RUN_CALL, state(), offense, defense, rng);
+      if (run.fumble().orElseThrow().defenseRecovered()) {
+        defenseRecoveries++;
+      }
+    }
+    var rate = defenseRecoveries / (double) trials;
+    assertThat(rate)
+        .as("baseline recovery model flips ~50/50; ±3σ over 5k ≈ ±0.021")
+        .isBetween(0.46, 0.54);
   }
 
   @Test
