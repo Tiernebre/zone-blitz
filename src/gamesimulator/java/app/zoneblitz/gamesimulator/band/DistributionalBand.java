@@ -10,8 +10,8 @@ import java.util.TreeMap;
  *
  * <p>{@code percentileLadder} keys are percentiles in {@code (0, 1)} (e.g. {@code 0.10, 0.25, 0.50,
  * 0.75, 0.90}); values are the value at that percentile. {@code min}/{@code max} pin the ceiling
- * and floor. {@code gamma} is the percentile-shift coefficient applied to matchup inputs; in F2 it
- * defaults to {@code 0.0}.
+ * and floor. {@code gamma} is the percentile-shift coefficient applied to matchup inputs; defaults
+ * to {@code 0.0} until matchup math is wired.
  */
 public record DistributionalBand(
     int min, int max, SortedMap<Double, Double> percentileLadder, double gamma) {

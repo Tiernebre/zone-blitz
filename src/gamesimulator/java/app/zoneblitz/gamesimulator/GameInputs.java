@@ -30,6 +30,6 @@ public record GameInputs(
     Objects.requireNonNull(seed, "seed");
   }
 
-  /** Pre-game environmental + matchup context. Empty for F1; filled in by later tasks. */
+  /** Pre-game environmental + matchup context. Empty placeholder — filled in as models land. */
   public record PreGameContext() {}
 }

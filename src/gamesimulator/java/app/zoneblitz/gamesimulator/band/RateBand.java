@@ -8,8 +8,8 @@ import java.util.Objects;
  *
  * <p>{@code baseProbabilities} are the baseline outcome rates summing to ~1.0. {@code
  * matchupCoefficients} ({@code β}) control how each outcome's log-odds shifts in response to a
- * matchup input. In F2 all coefficients are {@code 0.0} — sampling with any shift reproduces the
- * base distribution. Coefficients are tuned by the calibration harness.
+ * matchup input. All coefficients default to {@code 0.0} until the calibration harness tunes them —
+ * with {@code β = 0} sampling at any shift reproduces the base distribution.
  *
  * @param <T> outcome key type (typically {@code String} or an enum)
  */

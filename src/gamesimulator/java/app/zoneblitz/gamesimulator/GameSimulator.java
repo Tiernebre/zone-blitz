@@ -13,9 +13,10 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
- * F1 walking-skeleton implementation of {@link SimulateGame}. Loops a fixed number of snaps from
- * the supplied {@link PlayCaller}, resolves each via the supplied {@link PlayResolver}, and emits
- * one event per snap. Bands, matchup math, and the model cluster are all out of scope.
+ * Walking-skeleton implementation of {@link SimulateGame}. Loops a fixed number of snaps from the
+ * supplied {@link PlayCaller}, resolves each via the supplied {@link PlayResolver}, and emits one
+ * event per snap. Matchup math and the model cluster (clock, penalty, fatigue, injury) are not yet
+ * wired.
  */
 final class GameSimulator implements SimulateGame {
 

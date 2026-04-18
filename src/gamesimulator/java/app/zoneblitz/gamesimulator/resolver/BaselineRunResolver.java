@@ -16,14 +16,14 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * R2 baseline run resolver: samples rushing yardage from {@code bands.overall} in {@code
+ * Baseline run resolver: samples rushing yardage from {@code bands.overall} in {@code
  * rushing-plays.json} with {@code matchupShift = 0}.
  *
- * <p>Carrier selection uses placeholder first-matching-position logic (RB → FB → QB). R2 leaves
- * fumble, touchdown, and first-down as constants ({@code empty}/{@code false}); field advancement,
- * fumble probability, and TD/first-down math are deferred to later tasks. All runs are stamped with
- * a single baseline {@link RunConcept} — R4+ will differentiate concepts with concept-specific
- * distributions.
+ * <p>Carrier selection uses placeholder first-matching-position logic (RB → FB → QB). Fumble,
+ * touchdown, and first-down are constants ({@code empty}/{@code false}) — field advancement, fumble
+ * probability, and TD/first-down math are deferred until field-position state is wired. All runs
+ * are stamped with a single baseline {@link RunConcept}; concept-specific distributions will follow
+ * when offensive scheme attributes land.
  */
 public final class BaselineRunResolver implements PlayResolver {
 

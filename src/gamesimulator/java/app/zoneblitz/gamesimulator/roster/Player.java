@@ -5,9 +5,9 @@ import java.util.Objects;
 
 /**
  * A player participating in a simulated game. Pre-fetched by the caller from the roster feature's
- * public use case; the sim never touches persistence. Attribute families (physical, skill,
- * tendencies) will be added by R4 — today a {@link Player} only carries the fields resolvers
- * actually consume.
+ * public use case; the sim never touches persistence. Carries only the fields resolvers actually
+ * consume — attribute families (physical, skill, tendencies) will be added alongside the
+ * matchup-aware resolvers that need them.
  */
 public record Player(PlayerId id, Position position, String displayName) {
 

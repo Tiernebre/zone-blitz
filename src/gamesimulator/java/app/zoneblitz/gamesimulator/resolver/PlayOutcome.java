@@ -16,8 +16,7 @@ import java.util.Optional;
  * the common headers (id, gameId, sequence, pre-snap state, clock, score). The engine stamps those
  * headers when lifting the outcome into a {@code PlayEvent}.
  *
- * <p>R1 introduces only pass-related variants; run, kick, and special-teams outcomes are added in
- * later tasks.
+ * <p>Kick and special-teams outcomes will be added as those resolvers land.
  */
 public sealed interface PlayOutcome
     permits PlayOutcome.PassComplete,

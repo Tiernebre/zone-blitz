@@ -17,13 +17,13 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * R1 baseline pass resolver: samples outcome and yardage from the bands in {@code
- * passing-plays.json} with {@code matchupShift = 0}.
+ * Baseline pass resolver: samples outcome and yardage from the bands in {@code passing-plays.json}
+ * with {@code matchupShift = 0}.
  *
- * <p>Target, defender, and sacker selection use placeholder first-matching-position logic; R5
- * replaces the target pick with a real {@code TargetSelector}. Per-receiver air-vs-YAC splitting
- * also lands in R5 — for R1 a completion's {@code airYards} holds the sampled total and {@code
- * yardsAfterCatch} is zero.
+ * <p>Target, defender, and sacker selection use placeholder first-matching-position logic; a
+ * dedicated target selector will replace the pick when per-receiver modeling lands. For now a
+ * completion's {@code airYards} holds the sampled total and {@code yardsAfterCatch} is zero — the
+ * air-vs-YAC split arrives with that same selector.
  */
 public final class BaselinePassResolver implements PlayResolver {
 

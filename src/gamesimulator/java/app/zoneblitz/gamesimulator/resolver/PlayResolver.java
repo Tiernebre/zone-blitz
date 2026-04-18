@@ -13,8 +13,8 @@ import app.zoneblitz.gamesimulator.roster.Team;
  * <p>Implementations must be pure given their inputs; all randomness flows through the supplied
  * {@link RandomSource}.
  *
- * <p>Target and defender selection are placeholder logic in R1 (first-matching-position); R5
- * replaces that with a real {@code TargetSelector}.
+ * <p>Target and defender selection are placeholder logic today (first-matching-position on the
+ * roster); a dedicated target selector will replace it.
  */
 public interface PlayResolver {
 

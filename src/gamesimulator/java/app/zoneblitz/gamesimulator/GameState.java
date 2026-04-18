@@ -67,8 +67,8 @@ public record GameState(
 
   /**
    * Produce a new state advanced past {@code event}, using {@code clock} as the post-play clock
-   * snapshot. The signature is intentionally minimal for F1 — later tasks will expand it to accept
-   * richer outcome and penalty payloads as those types exist. Never mutates the receiver.
+   * snapshot. The signature is intentionally minimal today — it will grow to accept richer outcome
+   * and penalty payloads as those types exist. Never mutates the receiver.
    */
   GameState apply(PlayEvent event, GameClock clock) {
     Objects.requireNonNull(event, "event");
@@ -88,7 +88,7 @@ public record GameState(
         overtimeRound);
   }
 
-  /** Per-drive bookkeeping. Placeholder-sized fields for F1. */
+  /** Per-drive bookkeeping. */
   record DriveState(int driveNumber, int playsInDrive, int yardsInDrive, Side startingPossession) {
     static DriveState initial() {
       return new DriveState(1, 0, 0, Side.HOME);

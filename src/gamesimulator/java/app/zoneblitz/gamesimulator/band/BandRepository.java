@@ -3,8 +3,8 @@ package app.zoneblitz.gamesimulator.band;
 /**
  * Loads calibrated bands from a backing store (typically classpath JSON under {@code bands/}).
  *
- * <p>F2 is plumbing-only: matchup coefficients ({@code β} for rate bands, {@code γ} for
- * distributional bands) default to {@code 0.0} and are not read from the JSON.
+ * <p>Matchup coefficients ({@code β} for rate bands, {@code γ} for distributional bands) default to
+ * {@code 0.0} and are not read from the JSON — they are tuned in-code by the calibration harness.
  */
 public interface BandRepository {
 

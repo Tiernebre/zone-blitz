@@ -8,10 +8,11 @@ public interface PlayCaller {
 
   /**
    * Return the offensive play call for the supplied state. The returned {@link PlayCall} is an
-   * opaque placeholder for F1; later tasks replace it with a real sealed hierarchy.
+   * opaque placeholder today; it will grow into a real sealed hierarchy as the decision layer
+   * lands.
    */
   PlayCall call(GameState state);
 
-  /** Opaque play-call placeholder for F1. Later tasks replace this with a richer type. */
+  /** Opaque play-call placeholder — will be replaced with a sealed hierarchy. */
   record PlayCall(String kind) {}
 }
