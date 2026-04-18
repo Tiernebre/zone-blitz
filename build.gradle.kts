@@ -176,6 +176,7 @@ tasks.withType<Test> {
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
+    sourceSets(sourceSets["main"], sourceSets["gamesimulator"])
     reports {
         xml.required.set(true)
         html.required.set(true)
