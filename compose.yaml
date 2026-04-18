@@ -7,13 +7,10 @@ services:
       POSTGRES_PASSWORD: zoneblitz
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    tmpfs:
+      - /var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U zoneblitz -d zoneblitz"]
       interval: 5s
       timeout: 5s
       retries: 10
-
-volumes:
-  postgres_data:
