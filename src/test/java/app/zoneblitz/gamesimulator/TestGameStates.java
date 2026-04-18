@@ -38,7 +38,8 @@ public final class TestGameStates {
         3,
         3,
         GameState.Phase.REGULATION,
-        0);
+        0,
+        GameState.OvertimeState.notStarted());
   }
 
   public static GameState neutral(int down, int yardsToGo, int yardLine) {

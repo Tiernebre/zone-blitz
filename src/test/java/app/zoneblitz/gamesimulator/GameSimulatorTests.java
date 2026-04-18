@@ -254,4 +254,149 @@ class GameSimulatorTests {
     var last = events.get(events.size() - 1);
     assertThat(last.scoreAfter().home() + last.scoreAfter().away()).isPositive();
   }
+
+  @Test
+  void concludeOvertimePossession_firstPossessionTouchdown_doesNotEndGameInOpeningOtPeriod() {
+    var state =
+        TestGameStates.of(1, 10, 25, 5, 600, 7, 0, Side.HOME)
+            .withPhase(GameState.Phase.OVERTIME)
+            .withOvertimeRound(1);
+
+    var result = GameSimulator.concludeOvertimePossession(state, Side.HOME);
+
+    assertThat(result.phase()).isEqualTo(GameState.Phase.OVERTIME);
+    assertThat(result.overtime().homePossessed()).isTrue();
+    assertThat(result.overtime().awayPossessed()).isFalse();
+    assertThat(result.overtime().suddenDeath()).isFalse();
+  }
+
+  @Test
+  void concludeOvertimePossession_bothPossessedScoresDiffer_finalizesGame() {
+    var state =
+        TestGameStates.of(1, 10, 25, 5, 300, 7, 0, Side.AWAY)
+            .withPhase(GameState.Phase.OVERTIME)
+            .withOvertimeRound(1)
+            .withOvertime(new GameState.OvertimeState(true, false, false));
+
+    var result = GameSimulator.concludeOvertimePossession(state, Side.AWAY);
+
+    assertThat(result.phase()).isEqualTo(GameState.Phase.FINAL);
+    assertThat(result.overtime().bothPossessed()).isTrue();
+    assertThat(result.overtime().suddenDeath()).isTrue();
+  }
+
+  @Test
+  void concludeOvertimePossession_bothPossessedStillTied_entersSuddenDeathWithoutFinalizing() {
+    var state =
+        TestGameStates.of(1, 10, 25, 5, 300, 3, 3, Side.AWAY)
+            .withPhase(GameState.Phase.OVERTIME)
+            .withOvertimeRound(1)
+            .withOvertime(new GameState.OvertimeState(true, false, false));
+
+    var result = GameSimulator.concludeOvertimePossession(state, Side.AWAY);
+
+    assertThat(result.phase()).isEqualTo(GameState.Phase.OVERTIME);
+    assertThat(result.overtime().suddenDeath()).isTrue();
+  }
+
+  @Test
+  void concludeOvertimePossession_suddenDeathScoreLeads_finalizesImmediately() {
+    var state =
+        TestGameStates.of(1, 10, 25, 5, 120, 10, 7, Side.HOME)
+            .withPhase(GameState.Phase.OVERTIME)
+            .withOvertimeRound(1)
+            .withOvertime(new GameState.OvertimeState(true, true, true));
+
+    var result = GameSimulator.concludeOvertimePossession(state, Side.HOME);
+
+    assertThat(result.phase()).isEqualTo(GameState.Phase.FINAL);
+  }
+
+  @Test
+  void concludeOvertimePossession_outsideOvertime_leavesStateUntouched() {
+    var state = TestGameStates.of(1, 10, 25, 2, 600, 7, 7, Side.HOME);
+
+    var result = GameSimulator.concludeOvertimePossession(state, Side.HOME);
+
+    assertThat(result).isSameAs(state);
+  }
+
+  @Test
+  void simulate_regularSeasonEndsInTie_whenNeitherSideScoresInRegulationOrOvertime() {
+    var events =
+        zeroYardSimulator(GameType.REGULAR_SEASON).simulate(inputs(Optional.of(42L))).toList();
+
+    var last = events.get(events.size() - 1);
+    assertThat(last.scoreAfter().home()).isEqualTo(last.scoreAfter().away());
+    var quarters =
+        events.stream()
+            .filter(e -> e instanceof PlayEvent.EndOfQuarter)
+            .map(e -> ((PlayEvent.EndOfQuarter) e).quarter())
+            .toList();
+    assertThat(quarters).contains(5);
+    assertThat(quarters.stream().filter(q -> q >= 5).count())
+        .as("regular-season OT plays at most one period before ending tied")
+        .isEqualTo(1L);
+  }
+
+  private SimulateGame zeroYardSimulator(GameType gameType) {
+    var personnel =
+        new FakePersonnelSelector(TestPersonnel.baselineOffense(), TestPersonnel.baselineDefense());
+    return new GameSimulator(
+        ScriptedPlayCaller.runs(1),
+        personnel,
+        zeroYardRunResolver(),
+        BandClockModel.load(new ClasspathBandRepository(), new DefaultBandSampler()),
+        new TouchbackKickoffResolver(),
+        new FlatRateExtraPointResolver(),
+        new DistanceCurveFieldGoalResolver(),
+        new DistanceCurvePuntResolver(),
+        new NoPenaltyModel(),
+        app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+  }
+
+  private PlayResolver zeroYardRunResolver() {
+    return new PlayResolver() {
+      @Override
+      public PlayOutcome resolve(
+          PlayCaller.PlayCall call,
+          GameState state,
+          OffensivePersonnel offense,
+          DefensivePersonnel defense,
+          RandomSource rng) {
+        rng.nextLong();
+        return new app.zoneblitz.gamesimulator.resolver.RunOutcome.Run(
+            QB_ID,
+            app.zoneblitz.gamesimulator.event.RunConcept.INSIDE_ZONE,
+            0,
+            Optional.<PlayerId>empty(),
+            Optional.<app.zoneblitz.gamesimulator.event.FumbleOutcome>empty(),
+            false);
+      }
+    };
+  }
+
+  private GameInputs playoffInputs(Optional<Long> seed) {
+    return new GameInputs(
+        GAME_ID,
+        HOME,
+        AWAY,
+        HOME_COACH,
+        AWAY_COACH,
+        new GameInputs.PreGameContext(),
+        GameType.PLAYOFFS,
+        seed);
+  }
+
+  @Test
+  void simulate_playoffGameNeverEndsTied_evenWhenBaseOffenseNeverScores() {
+    var events =
+        zeroYardSimulator(GameType.PLAYOFFS).simulate(playoffInputs(Optional.of(7L))).toList();
+
+    var last = events.get(events.size() - 1);
+    assertThat(events.size()).isLessThanOrEqualTo(500);
+    if (last.scoreAfter().home() == last.scoreAfter().away()) {
+      assertThat(events.size()).isEqualTo(500);
+    }
+  }
 }

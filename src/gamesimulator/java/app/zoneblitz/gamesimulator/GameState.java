@@ -32,7 +32,8 @@ public record GameState(
     int homeTimeouts,
     int awayTimeouts,
     Phase phase,
-    int overtimeRound) {
+    int overtimeRound,
+    OvertimeState overtime) {
 
   public GameState {
     Objects.requireNonNull(score, "score");
@@ -44,6 +45,7 @@ public record GameState(
     Objects.requireNonNull(fatigueSnapCounts, "fatigueSnapCounts");
     Objects.requireNonNull(injuredPlayers, "injuredPlayers");
     Objects.requireNonNull(phase, "phase");
+    Objects.requireNonNull(overtime, "overtime");
     fatigueSnapCounts = Map.copyOf(fatigueSnapCounts);
     injuredPlayers = List.copyOf(injuredPlayers);
   }
@@ -62,7 +64,8 @@ public record GameState(
         3,
         3,
         Phase.REGULATION,
-        0);
+        0,
+        OvertimeState.notStarted());
   }
 
   /**
@@ -89,7 +92,8 @@ public record GameState(
         homeTimeouts,
         awayTimeouts,
         phase,
-        overtimeRound);
+        overtimeRound,
+        overtime);
   }
 
   /** Replace the current score. Used after PAT and FG events update it on their own. */
@@ -107,7 +111,8 @@ public record GameState(
         homeTimeouts,
         awayTimeouts,
         phase,
-        overtimeRound);
+        overtimeRound,
+        overtime);
   }
 
   /**
@@ -133,7 +138,8 @@ public record GameState(
         homeTimeouts,
         awayTimeouts,
         phase,
-        overtimeRound);
+        overtimeRound,
+        overtime);
   }
 
   public GameState withPhase(Phase newPhase) {
@@ -150,7 +156,8 @@ public record GameState(
         homeTimeouts,
         awayTimeouts,
         newPhase,
-        overtimeRound);
+        overtimeRound,
+        overtime);
   }
 
   public GameState withPossessionAndSpot(Side newPossession, FieldPosition newSpot) {
@@ -168,13 +175,75 @@ public record GameState(
         homeTimeouts,
         awayTimeouts,
         phase,
-        overtimeRound);
+        overtimeRound,
+        overtime);
+  }
+
+  public GameState withOvertimeRound(int newOvertimeRound) {
+    return new GameState(
+        score,
+        clock,
+        downAndDistance,
+        spot,
+        possession,
+        drive,
+        fatigueSnapCounts,
+        injuredPlayers,
+        homeTimeouts,
+        awayTimeouts,
+        phase,
+        newOvertimeRound,
+        overtime);
+  }
+
+  public GameState withOvertime(OvertimeState newOvertime) {
+    Objects.requireNonNull(newOvertime, "newOvertime");
+    return new GameState(
+        score,
+        clock,
+        downAndDistance,
+        spot,
+        possession,
+        drive,
+        fatigueSnapCounts,
+        injuredPlayers,
+        homeTimeouts,
+        awayTimeouts,
+        phase,
+        overtimeRound,
+        newOvertime);
   }
 
   /** Per-drive bookkeeping. */
   record DriveState(int driveNumber, int playsInDrive, int yardsInDrive, Side startingPossession) {
     static DriveState initial() {
       return new DriveState(1, 0, 0, Side.HOME);
+    }
+  }
+
+  /**
+   * Per-OT bookkeeping. Tracks which sides have completed a possession (drives toward modified
+   * sudden-death's both-teams-possess rule) and whether the game has entered pure sudden-death
+   * mode, in which any score ends the game immediately.
+   */
+  public record OvertimeState(boolean homePossessed, boolean awayPossessed, boolean suddenDeath) {
+    public static OvertimeState notStarted() {
+      return new OvertimeState(false, false, false);
+    }
+
+    public OvertimeState withPossessed(Side side) {
+      Objects.requireNonNull(side, "side");
+      return side == Side.HOME
+          ? new OvertimeState(true, awayPossessed, suddenDeath)
+          : new OvertimeState(homePossessed, true, suddenDeath);
+    }
+
+    public OvertimeState enterSuddenDeath() {
+      return new OvertimeState(homePossessed, awayPossessed, true);
+    }
+
+    public boolean bothPossessed() {
+      return homePossessed && awayPossessed;
     }
   }
 
