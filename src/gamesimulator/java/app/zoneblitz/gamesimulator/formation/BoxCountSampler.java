@@ -10,7 +10,6 @@ import app.zoneblitz.gamesimulator.rng.RandomSource;
  * tracking data. The sampled value feeds the run-matchup shift: offenses tilt positive when the
  * sampled box is lighter than the formation's expected box, and negative when it's heavier.
  */
-@FunctionalInterface
 public interface BoxCountSampler {
 
   /**
@@ -23,4 +22,10 @@ public interface BoxCountSampler {
    * @return integer defender count, always non-negative
    */
   int sample(OffensiveFormation formation, PlayType playType, RandomSource rng);
+
+  /**
+   * Expected (mean) defender-in-box count for the given formation × play-type. Shifts that
+   * reference a "neutral" box call this to compute a delta without a second sampling pass.
+   */
+  double expectedBox(OffensiveFormation formation, PlayType playType);
 }

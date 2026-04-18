@@ -67,6 +67,20 @@ public final class BandBoxCountSampler implements BoxCountSampler {
     return weightedSample(weights, rng.nextDouble());
   }
 
+  @Override
+  public double expectedBox(OffensiveFormation formation, PlayType playType) {
+    Objects.requireNonNull(formation, "formation");
+    Objects.requireNonNull(playType, "playType");
+    var weights = pick(formation, playType);
+    var total = 0.0;
+    var weightedSum = 0.0;
+    for (var entry : weights.entrySet()) {
+      total += entry.getValue();
+      weightedSum += entry.getKey() * entry.getValue();
+    }
+    return weightedSum / total;
+  }
+
   private Map<Integer, Double> pick(OffensiveFormation formation, PlayType playType) {
     var primary = (playType == PlayType.RUN ? runWeights : passWeights).get(formation);
     if (primary != null) {

@@ -1,7 +1,6 @@
 package app.zoneblitz.gamesimulator.resolver.run;
 
-import app.zoneblitz.gamesimulator.event.RunConcept;
-import app.zoneblitz.gamesimulator.resolver.RunRoles;
+import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 import java.util.List;
 import java.util.Optional;
@@ -32,8 +31,9 @@ import java.util.function.ToDoubleFunction;
 public final class ClampedRunMatchupShift implements MatchupRunResolver.RunMatchupShift {
 
   @Override
-  public double compute(RunConcept concept, RunRoles roles) {
-    var profile = RunConceptProfiles.forConcept(concept);
+  public double compute(RunMatchupContext context, RandomSource rng) {
+    var profile = RunConceptProfiles.forConcept(context.concept());
+    var roles = context.roles();
 
     var blocking =
         clampedDelta(

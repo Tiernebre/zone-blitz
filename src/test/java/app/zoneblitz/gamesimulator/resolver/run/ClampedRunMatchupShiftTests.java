@@ -5,9 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.zoneblitz.gamesimulator.PlayCaller;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.RunConcept;
+import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.resolver.PositionBasedRunRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.RunRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.RunRoles;
+import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
@@ -21,12 +24,18 @@ class ClampedRunMatchupShiftTests {
   private final ClampedRunMatchupShift shift = new ClampedRunMatchupShift();
   private final RunRoleAssigner assigner = new PositionBasedRunRoleAssigner();
 
+  private double computeFor(RunConcept concept, RunRoles roles) {
+    return shift.compute(
+        new RunMatchupContext(concept, roles, OffensiveFormation.SINGLEBACK),
+        new SplittableRandomSource(0L));
+  }
+
   @Test
   void compute_averagePersonnel_returnsZero() {
     var offense = TestPersonnel.baselineOffense();
     var defense = TestPersonnel.baselineDefense();
 
-    var result = shift.compute(RunConcept.INSIDE_ZONE, assigner.assign(run(), offense, defense));
+    var result = computeFor(RunConcept.INSIDE_ZONE, assigner.assign(run(), offense, defense));
 
     assertThat(result).isZero();
   }
@@ -52,7 +61,7 @@ class ClampedRunMatchupShiftTests {
     var offense = TestPersonnel.offenseWith(eliteRb, eliteOl);
     var defense = TestPersonnel.baselineDefense();
 
-    var result = shift.compute(RunConcept.INSIDE_ZONE, assigner.assign(run(), offense, defense));
+    var result = computeFor(RunConcept.INSIDE_ZONE, assigner.assign(run(), offense, defense));
 
     assertThat(result).isPositive();
   }
@@ -86,7 +95,7 @@ class ClampedRunMatchupShiftTests {
     var offense = TestPersonnel.offenseWith(poorCarrier, poorBlocker);
     var defense = TestPersonnel.defenseWith(eliteDefender);
 
-    var clamped = shift.compute(RunConcept.INSIDE_ZONE, assigner.assign(run(), offense, defense));
+    var clamped = computeFor(RunConcept.INSIDE_ZONE, assigner.assign(run(), offense, defense));
     var rawSkillDeltaSum = (1.0 - 0.0) + (1.0 - 0.0);
 
     assertThat(clamped)
@@ -115,8 +124,8 @@ class ClampedRunMatchupShiftTests {
     var offense = TestPersonnel.offenseWith(eliteCarrier, weakBlocker);
     var defense = TestPersonnel.baselineDefense();
 
-    var power = shift.compute(RunConcept.POWER, assigner.assign(run(), offense, defense));
-    var draw = shift.compute(RunConcept.DRAW, assigner.assign(run(), offense, defense));
+    var power = computeFor(RunConcept.POWER, assigner.assign(run(), offense, defense));
+    var draw = computeFor(RunConcept.DRAW, assigner.assign(run(), offense, defense));
 
     assertThat(draw)
         .as("DRAW's 1.3 carrier weight amplifies the elite-carrier leg more than POWER's 0.8 does")

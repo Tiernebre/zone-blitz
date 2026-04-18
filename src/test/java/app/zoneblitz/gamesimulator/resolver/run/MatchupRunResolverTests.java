@@ -76,7 +76,7 @@ class MatchupRunResolverTests {
   @Test
   void resolve_positiveShift_reducesStuffsAndIncreasesBreakaways() {
     var zero = sampleCounts(loadedResolver(RunMatchupShift.ZERO), 11L);
-    var boosted = sampleCounts(loadedResolver((c, r) -> 2.0), 11L);
+    var boosted = sampleCounts(loadedResolver((ctx, rng) -> 2.0), 11L);
 
     assertThat(boosted.stuffs)
         .as("positive shift with negative STUFF β must reduce stuff count")
@@ -89,7 +89,7 @@ class MatchupRunResolverTests {
   @Test
   void resolve_negativeShift_increasesStuffsAndReducesBreakaways() {
     var zero = sampleCounts(loadedResolver(RunMatchupShift.ZERO), 22L);
-    var suppressed = sampleCounts(loadedResolver((c, r) -> -2.0), 22L);
+    var suppressed = sampleCounts(loadedResolver((ctx, rng) -> -2.0), 22L);
 
     assertThat(suppressed.stuffs).isGreaterThan(zero.stuffs);
     assertThat(suppressed.breakaways).isLessThan(zero.breakaways);
@@ -144,8 +144,8 @@ class MatchupRunResolverTests {
   void resolve_conceptReachesShiftImplementation() {
     var seen = new java.util.concurrent.atomic.AtomicReference<RunConcept>();
     RunMatchupShift capturing =
-        (concept, roles) -> {
-          seen.set(concept);
+        (ctx, rng) -> {
+          seen.set(ctx.concept());
           return 0.0;
         };
     var resolver = loadedResolver(capturing);
