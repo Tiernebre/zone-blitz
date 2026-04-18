@@ -1,0 +1,68 @@
+{
+  "generated_at": "2026-04-18T09:57:39Z",
+  "seasons": [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season dropbacks with air_yards >= 40. `deep_shots` is the full population (every 40+ air-yard attempt, irrespective of clock). `desperation` subsets to the true end-of-half/end-of-game window (game_seconds_remaining <= 30 or half_seconds_remaining <= 10), which is the sim's hail mary branch. outcome is mutually exclusive: sack > interception > complete > incomplete. 10-season window used (hail marys are rare — narrower windows produce unstable rates).",
+  "bands": {
+    "deep_shots": {
+      "n": 3138,
+      "outcome_mix": {
+        "complete": {
+          "n": 879,
+          "rate": 0.2801
+        },
+        "incomplete": {
+          "n": 1966,
+          "rate": 0.6265
+        },
+        "interception": {
+          "n": 293,
+          "rate": 0.0934
+        }
+      },
+      "completion_yards": {
+        "n": 879,
+        "mean": 51.9693,
+        "sd": 10.0366,
+        "min": 40,
+        "p10": 42,
+        "p25": 45,
+        "p50": 49,
+        "p75": 55,
+        "p90": 67,
+        "max": 97
+      },
+      "air_yards": {
+        "n": 3138,
+        "mean": 45.2626,
+        "sd": 4.4518,
+        "min": 40,
+        "p10": 40,
+        "p25": 42,
+        "p50": 44,
+        "p75": 48,
+        "p90": 52,
+        "max": 65
+      },
+      "touchdown_rate": 0.1026
+    },
+    "desperation": {
+      "n": 184,
+      "outcome_mix": {
+        "complete": {
+          "n": 23,
+          "rate": 0.125
+        },
+        "incomplete": {
+          "n": 110,
+          "rate": 0.5978
+        },
+        "interception": {
+          "n": 51,
+          "rate": 0.2772
+        }
+      },
+      "touchdown_rate": 0.0978,
+      "notes": "Subset of deep shots thrown with game_seconds_remaining <= 30 or half_seconds_remaining <= 10 — the end-of-half/game hail mary window."
+    }
+  }
+}
