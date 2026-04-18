@@ -59,8 +59,7 @@
 				        popovertarget="profile-menu"
 				        class="sidebar-nav-item flex items-center gap-2 w-full px-3 py-2 rounded hover:bg-slate-800 text-slate-200 text-sm cursor-pointer">
 					<svg th:replace="~{icons :: user-circle(cls='size-5 shrink-0')}"></svg>
-					<span class="sidebar-label truncate"
-					      sec:authentication="principal.attributes['name']">Name</span>
+					<span class="sidebar-label truncate">Profile</span>
 				</button>
 				<div id="profile-menu" popover
 				     class="min-w-48 bg-slate-800 rounded shadow-lg py-1 text-sm">
