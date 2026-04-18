@@ -42,11 +42,6 @@
 				</button>
 			</div>
 			<nav class="flex flex-col p-2 gap-1 text-sm flex-1">
-				<a th:href="@{/}"
-				   class="sidebar-nav-item flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-800 text-slate-300">
-					<svg th:replace="~{icons :: arrow-left(cls='size-4 shrink-0')}"></svg>
-					<span class="sidebar-label">All Leagues</span>
-				</a>
 				<a th:href="@{'/leagues/' + ${league.leagueId()}}"
 				   class="sidebar-nav-item flex items-center gap-2 px-3 py-2 rounded bg-slate-800 text-white font-medium">
 					<svg th:replace="~{icons :: home(cls='size-4 shrink-0')}"></svg>
@@ -54,6 +49,11 @@
 				</a>
 			</nav>
 			<div class="p-2 border-t border-slate-800 relative">
+				<a th:href="@{/}"
+				   class="sidebar-nav-item flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 text-sm mb-1">
+					<svg th:replace="~{icons :: arrow-left(cls='size-4 shrink-0')}"></svg>
+					<span class="sidebar-label">All Leagues</span>
+				</a>
 				<button type="button"
 				        id="profile-toggle"
 				        popovertarget="profile-menu"
