@@ -41,7 +41,8 @@ class MatchupPassResolverCalibrationTests {
     // R5: the default ScoreBasedTargetSelector picks by score and consumes Gaussians, so parity is
     // a structural property of the resolver + a non-consuming selector, not of the default wiring.
     var baseline = BaselinePassResolver.load(repo, sampler);
-    var outcomeMix = repo.loadRate("passing-plays.json", "bands.outcome_mix", PassOutcomeKind.class);
+    var outcomeMix =
+        repo.loadRate("passing-plays.json", "bands.outcome_mix", PassOutcomeKind.class);
     var completionYards =
         repo.loadDistribution("passing-plays.json", "bands.yardage.completion_yards");
     var sackYards = repo.loadDistribution("passing-plays.json", "bands.yardage.sack_yards");

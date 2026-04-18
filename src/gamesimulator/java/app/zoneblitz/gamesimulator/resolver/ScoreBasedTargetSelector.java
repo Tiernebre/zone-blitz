@@ -11,23 +11,22 @@ import app.zoneblitz.gamesimulator.roster.Position;
  *
  * <ul>
  *   <li><b>Per-receiver matchup</b> {@code m_route_i} is a two-axis (route running + hands vs.
- *       coverage technique) delta re-centered to {@code [-1, +1]}, matching the scaling of
- *       {@link ClampedPassMatchupShift}. Coverage assignment is positional round-robin.
- *   <li><b>Depth value</b> rewards shallow throws slightly — shorter routes are "more open"
- *       absent any other signal.
+ *       coverage technique) delta re-centered to {@code [-1, +1]}, matching the scaling of {@link
+ *       ClampedPassMatchupShift}. Coverage assignment is positional round-robin.
+ *   <li><b>Depth value</b> rewards shallow throws slightly — shorter routes are "more open" absent
+ *       any other signal.
  *   <li><b>Position-tier bias</b> separates WRs (primary reads) from TEs (secondary) from RBs
  *       (checkdown). Within a tier receivers are symmetric — target share inside the tier is
  *       noise-driven, not a dial. The tier step is calibrated so the roster-level target
  *       distribution reproduces {@code position-concentration.json} for equal-attribute rosters.
  *   <li><b>Gaussian processing noise</b> is drawn from the parent {@link RandomSource} once per
- *       receiver; σ is a decreasing function of the QB's
- *       {@link app.zoneblitz.gamesimulator.roster.Tendencies} {@code processing} and
- *       {@code footballIq}.
+ *       receiver; σ is a decreasing function of the QB's {@link
+ *       app.zoneblitz.gamesimulator.roster.Tendencies} {@code processing} and {@code footballIq}.
  * </ul>
  *
  * <p>Gunslinger / game-manager archetypes (a future tendency lever) will shift depth preference
- * here. The tendency field already ships on {@code Player.tendencies()} — the hook is a no-op
- * until archetype data arrives.
+ * here. The tendency field already ships on {@code Player.tendencies()} — the hook is a no-op until
+ * archetype data arrives.
  */
 public final class ScoreBasedTargetSelector implements TargetSelector {
 

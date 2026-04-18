@@ -18,11 +18,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Role-based, matchup-aware pass resolver. Uses the same {@code passing-plays.json} bands as
- * {@link BaselinePassResolver}; adds role bucketing via {@link RoleAssigner}, a single
- * {@link PassMatchupShift} scalar that feeds the rate band's per-outcome β coefficients inside
- * {@link BandSampler#sampleRate}, and a {@link TargetSelector} that picks the intended receiver
- * for throw-shaped outcomes.
+ * Role-based, matchup-aware pass resolver. Uses the same {@code passing-plays.json} bands as {@link
+ * BaselinePassResolver}; adds role bucketing via {@link RoleAssigner}, a single {@link
+ * PassMatchupShift} scalar that feeds the rate band's per-outcome β coefficients inside {@link
+ * BandSampler#sampleRate}, and a {@link TargetSelector} that picks the intended receiver for
+ * throw-shaped outcomes.
  *
  * <p>R5 carries the target-identity side of per-receiver resolution from {@code sim-engine.md}
  * lines 144–200. Per-receiver completion / catch / YAC rolls are still deferred — the outcome-mix
@@ -33,8 +33,8 @@ import java.util.Optional;
  * <p>With the shipped band (all β = 0), average-attribute rosters, and a deterministic target
  * selector that draws no randomness, this resolver reproduces {@link BaselinePassResolver}
  * byte-for-byte. The default {@link ScoreBasedTargetSelector} consumes one Gaussian per candidate
- * receiver, so the bit-parity property is a structural invariant of the resolver + a
- * non-consuming selector, not of the default wiring.
+ * receiver, so the bit-parity property is a structural invariant of the resolver + a non-consuming
+ * selector, not of the default wiring.
  */
 public final class MatchupPassResolver implements PlayResolver {
 
@@ -167,9 +167,9 @@ public final class MatchupPassResolver implements PlayResolver {
   /**
    * Single-scalar role-aggregate reducer. Encodes the full matchup signal — pass-rush win vs.
    * coverage win — into one number that combines with the rate band's per-outcome β coefficients
-   * inside {@link BandSampler#sampleRate}. The {@link #ZERO} default leaves outcome sampling at
-   * the base distribution; R4's attribute-aware aggregator replaces it once {@code Physical} and
-   * {@code Skill} land on {@code Player}.
+   * inside {@link BandSampler#sampleRate}. The {@link #ZERO} default leaves outcome sampling at the
+   * base distribution; R4's attribute-aware aggregator replaces it once {@code Physical} and {@code
+   * Skill} land on {@code Player}.
    */
   @FunctionalInterface
   public interface PassMatchupShift {
