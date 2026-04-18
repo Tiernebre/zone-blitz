@@ -14,6 +14,8 @@ import app.zoneblitz.gamesimulator.personnel.BaselinePersonnelSelector;
 import app.zoneblitz.gamesimulator.resolver.DispatchingPlayResolver;
 import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver;
 import app.zoneblitz.gamesimulator.resolver.run.MatchupRunResolver;
+import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.CoachId;
 import app.zoneblitz.gamesimulator.roster.Player;
@@ -21,6 +23,8 @@ import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
 import app.zoneblitz.gamesimulator.scoring.DistanceCurveFieldGoalResolver;
 import app.zoneblitz.gamesimulator.scoring.FlatRateExtraPointResolver;
+import app.zoneblitz.names.CuratedNameGenerator;
+import app.zoneblitz.names.NameGenerator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,8 +43,10 @@ public final class GameSimEmulator {
     var seed =
         args.length > 0 ? Long.parseLong(args[0]) : new java.security.SecureRandom().nextLong();
 
-    var home = buildTeam("HOME", 100);
-    var away = buildTeam("AWAY", 200);
+    var names = CuratedNameGenerator.maleDefaults();
+    var nameRng = new SplittableRandomSource(seed);
+    var home = buildTeam("HOME", 100, names, nameRng.split(1));
+    var away = buildTeam("AWAY", 200, names, nameRng.split(2));
 
     var repo = new ClasspathBandRepository();
     var sampler = new DefaultBandSampler();
@@ -68,12 +74,12 @@ public final class GameSimEmulator {
             new GameInputs.PreGameContext(),
             Optional.of(seed));
 
-    var names = new HashMap<PlayerId, String>();
-    home.roster().forEach(p -> names.put(p.id(), p.displayName()));
-    away.roster().forEach(p -> names.put(p.id(), p.displayName()));
+    var playerNames = new HashMap<PlayerId, String>();
+    home.roster().forEach(p -> playerNames.put(p.id(), p.displayName()));
+    away.roster().forEach(p -> playerNames.put(p.id(), p.displayName()));
     var context =
         new NarrationContext(
-            id -> Optional.ofNullable(names.get(id)),
+            id -> Optional.ofNullable(playerNames.get(id)),
             side -> side == Side.HOME ? home.displayName() : away.displayName());
     var narrator = PlayNarrator.defaultNarrator();
 
@@ -83,28 +89,32 @@ public final class GameSimEmulator {
         .forEach(event -> System.out.println(narrator.narrate(event, context)));
   }
 
-  private static Team buildTeam(String label, int idSeed) {
+  private static Team buildTeam(String label, int idSeed, NameGenerator names, RandomSource rng) {
     var roster = new ArrayList<Player>();
-    addPlayers(roster, Position.QB, 2, label, idSeed);
-    addPlayers(roster, Position.RB, 3, label, idSeed + 10);
-    addPlayers(roster, Position.TE, 3, label, idSeed + 20);
-    addPlayers(roster, Position.WR, 5, label, idSeed + 30);
-    addPlayers(roster, Position.OL, 8, label, idSeed + 40);
-    addPlayers(roster, Position.DL, 6, label, idSeed + 50);
-    addPlayers(roster, Position.LB, 5, label, idSeed + 60);
-    addPlayers(roster, Position.CB, 4, label, idSeed + 70);
-    addPlayers(roster, Position.S, 3, label, idSeed + 80);
-    addPlayers(roster, Position.K, 1, label, idSeed + 90);
-    addPlayers(roster, Position.P, 1, label, idSeed + 95);
+    addPlayers(roster, Position.QB, 2, idSeed, names, rng);
+    addPlayers(roster, Position.RB, 3, idSeed + 10, names, rng);
+    addPlayers(roster, Position.TE, 3, idSeed + 20, names, rng);
+    addPlayers(roster, Position.WR, 5, idSeed + 30, names, rng);
+    addPlayers(roster, Position.OL, 8, idSeed + 40, names, rng);
+    addPlayers(roster, Position.DL, 6, idSeed + 50, names, rng);
+    addPlayers(roster, Position.LB, 5, idSeed + 60, names, rng);
+    addPlayers(roster, Position.CB, 4, idSeed + 70, names, rng);
+    addPlayers(roster, Position.S, 3, idSeed + 80, names, rng);
+    addPlayers(roster, Position.K, 1, idSeed + 90, names, rng);
+    addPlayers(roster, Position.P, 1, idSeed + 95, names, rng);
     return new Team(new TeamId(new UUID(9L, idSeed)), label, List.copyOf(roster));
   }
 
   private static void addPlayers(
-      List<Player> out, Position position, int count, String label, int idSeed) {
+      List<Player> out,
+      Position position,
+      int count,
+      int idSeed,
+      NameGenerator names,
+      RandomSource rng) {
     for (var i = 0; i < count; i++) {
       var id = new PlayerId(new UUID(idSeed, i));
-      var name = "%s %s%d".formatted(label, position.name(), i + 1);
-      out.add(new Player(id, position, name));
+      out.add(new Player(id, position, names.generate(rng).display()));
     }
   }
 
