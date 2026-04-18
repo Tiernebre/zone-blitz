@@ -134,6 +134,8 @@ class BaselinePassResolverCalibrationTests {
       case PlayOutcome.Interception ignored -> PassOutcomeKind.INTERCEPTION;
       case PlayOutcome.Sack ignored -> PassOutcomeKind.SACK;
       case PlayOutcome.Scramble ignored -> PassOutcomeKind.SCRAMBLE;
+      case PlayOutcome.Run ignored ->
+          throw new AssertionError("pass resolver unexpectedly produced a Run outcome");
     };
   }
 

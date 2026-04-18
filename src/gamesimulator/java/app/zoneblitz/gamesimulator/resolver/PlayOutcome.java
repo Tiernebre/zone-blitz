@@ -3,6 +3,7 @@ package app.zoneblitz.gamesimulator.resolver;
 import app.zoneblitz.gamesimulator.event.FumbleOutcome;
 import app.zoneblitz.gamesimulator.event.IncompleteReason;
 import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.event.RunConcept;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -23,7 +24,8 @@ public sealed interface PlayOutcome
         PlayOutcome.PassIncomplete,
         PlayOutcome.Sack,
         PlayOutcome.Scramble,
-        PlayOutcome.Interception {
+        PlayOutcome.Interception,
+        PlayOutcome.Run {
 
   /** A completed pass. {@code totalYards = airYards + yardsAfterCatch}. */
   record PassComplete(
@@ -82,6 +84,24 @@ public sealed interface PlayOutcome
     public Scramble {
       Objects.requireNonNull(qb, "qb");
       Objects.requireNonNull(tackler, "tackler");
+    }
+  }
+
+  /** A designed rushing play. */
+  record Run(
+      PlayerId carrier,
+      RunConcept concept,
+      int yards,
+      Optional<PlayerId> tackler,
+      Optional<FumbleOutcome> fumble,
+      boolean touchdown,
+      boolean firstDown)
+      implements PlayOutcome {
+    public Run {
+      Objects.requireNonNull(carrier, "carrier");
+      Objects.requireNonNull(concept, "concept");
+      Objects.requireNonNull(tackler, "tackler");
+      Objects.requireNonNull(fumble, "fumble");
     }
   }
 

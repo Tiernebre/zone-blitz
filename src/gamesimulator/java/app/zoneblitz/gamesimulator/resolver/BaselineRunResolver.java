@@ -1,0 +1,75 @@
+package app.zoneblitz.gamesimulator.resolver;
+
+import app.zoneblitz.gamesimulator.GameState;
+import app.zoneblitz.gamesimulator.PlayCaller;
+import app.zoneblitz.gamesimulator.band.BandRepository;
+import app.zoneblitz.gamesimulator.band.BandSampler;
+import app.zoneblitz.gamesimulator.band.DistributionalBand;
+import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.event.RunConcept;
+import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.roster.Player;
+import app.zoneblitz.gamesimulator.roster.Position;
+import app.zoneblitz.gamesimulator.roster.Team;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+/**
+ * R2 baseline run resolver: samples rushing yardage from {@code bands.overall} in {@code
+ * rushing-plays.json} with {@code matchupShift = 0}.
+ *
+ * <p>Carrier selection uses placeholder first-matching-position logic (RB → FB → QB). R2 leaves
+ * fumble, touchdown, and first-down as constants ({@code empty}/{@code false}); field advancement,
+ * fumble probability, and TD/first-down math are deferred to later tasks. All runs are stamped with
+ * a single baseline {@link RunConcept} — R4+ will differentiate concepts with concept-specific
+ * distributions.
+ */
+public final class BaselineRunResolver implements PlayResolver {
+
+  private static final String RUSHING_PLAYS = "rushing-plays.json";
+  private static final RunConcept BASELINE_CONCEPT = RunConcept.INSIDE_ZONE;
+
+  private final BandSampler sampler;
+  private final DistributionalBand overallYards;
+
+  public BaselineRunResolver(BandSampler sampler, DistributionalBand overallYards) {
+    this.sampler = Objects.requireNonNull(sampler, "sampler");
+    this.overallYards = Objects.requireNonNull(overallYards, "overallYards");
+  }
+
+  /** Load a resolver from {@code rushing-plays.json} on the classpath. */
+  public static BaselineRunResolver load(BandRepository repo, BandSampler sampler) {
+    var overallYards = repo.loadDistribution(RUSHING_PLAYS, "bands.overall");
+    return new BaselineRunResolver(sampler, overallYards);
+  }
+
+  @Override
+  public PlayOutcome resolve(
+      PlayCaller.PlayCall call, GameState state, Team offense, Team defense, RandomSource rng) {
+    Objects.requireNonNull(call, "call");
+    Objects.requireNonNull(state, "state");
+    Objects.requireNonNull(offense, "offense");
+    Objects.requireNonNull(defense, "defense");
+    Objects.requireNonNull(rng, "rng");
+
+    var carrier = pickCarrier(offense.roster());
+    var yards = sampler.sampleDistribution(overallYards, 0.0, rng);
+    return new PlayOutcome.Run(
+        carrier, BASELINE_CONCEPT, yards, Optional.empty(), Optional.empty(), false, false);
+  }
+
+  private static PlayerId pickCarrier(List<Player> roster) {
+    for (var pos : new Position[] {Position.RB, Position.FB, Position.QB}) {
+      var p = firstWithPosition(roster, pos);
+      if (p.isPresent()) {
+        return p.get();
+      }
+    }
+    throw new IllegalStateException("no rushing-eligible player on roster");
+  }
+
+  private static Optional<PlayerId> firstWithPosition(List<Player> roster, Position position) {
+    return roster.stream().filter(p -> p.position() == position).map(Player::id).findFirst();
+  }
+}

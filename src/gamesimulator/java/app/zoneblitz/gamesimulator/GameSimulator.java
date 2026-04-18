@@ -129,6 +129,25 @@ final class GameSimulator implements SimulateGame {
               s.tackler(),
               s.slideOrOob(),
               s.touchdown());
+      case PlayOutcome.Run r ->
+          new PlayEvent.Run(
+              id,
+              gameId,
+              sequence,
+              preSnap,
+              preSnapSpot,
+              clockBefore,
+              clockAfter,
+              scoreAfter,
+              r.carrier(),
+              r.concept(),
+              r.yards(),
+              new FieldPosition(preSnapSpot.yardLine() + r.yards()),
+              r.tackler(),
+              r.fumble(),
+              r.touchdown(),
+              r.firstDown(),
+              0L);
       case PlayOutcome.Interception x ->
           new PlayEvent.Interception(
               id,
