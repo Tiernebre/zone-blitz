@@ -30,6 +30,19 @@ public record GameInputs(
     Objects.requireNonNull(seed, "seed");
   }
 
-  /** Pre-game environmental + matchup context. Empty placeholder — filled in as models land. */
-  public record PreGameContext() {}
+  /**
+   * Pre-game environmental + matchup context. Carries the home team's {@link HomeFieldAdvantage};
+   * weather, surface, and injury priors land here as those models come online.
+   */
+  public record PreGameContext(HomeFieldAdvantage homeFieldAdvantage) {
+
+    public PreGameContext {
+      Objects.requireNonNull(homeFieldAdvantage, "homeFieldAdvantage");
+    }
+
+    /** Convenience constructor — defaults to neutral home field (no shift applied). */
+    public PreGameContext() {
+      this(HomeFieldAdvantage.neutral());
+    }
+  }
 }

@@ -70,7 +70,8 @@ public final class GameSimEmulator {
             new DistanceCurveFieldGoalResolver(),
             BandPuntResolver.load(repo, sampler),
             new BandPenaltyModel(),
-            BaselineDefensiveCallSelector.load(repo));
+            BaselineDefensiveCallSelector.load(repo),
+            new DefaultHomeFieldModel());
 
     var inputs =
         new GameInputs(
@@ -79,7 +80,7 @@ public final class GameSimEmulator {
             away,
             Coach.average(new CoachId(new UUID(1L, 1L)), "Home HC"),
             Coach.average(new CoachId(new UUID(1L, 2L)), "Away HC"),
-            new GameInputs.PreGameContext(),
+            new GameInputs.PreGameContext(HomeFieldAdvantage.leagueAverage()),
             Optional.of(seed));
 
     var playerNames = new HashMap<PlayerId, String>();

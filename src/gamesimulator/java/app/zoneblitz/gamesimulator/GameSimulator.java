@@ -57,6 +57,7 @@ final class GameSimulator implements SimulateGame {
   private static final long PENALTY_PRE_KEY = 0xFD44_4444L;
   private static final long PENALTY_LIVE_KEY = 0xFE33_3333L;
   private static final long PENALTY_POST_KEY = 0xFF22_2222L;
+  private static final long HOME_FIELD_KEY = 0xFEED_FACEL;
 
   /**
    * Inside this many yards of the opposing goal line a 4th down triggers a field-goal attempt.
@@ -81,6 +82,7 @@ final class GameSimulator implements SimulateGame {
   private final PuntResolver puntResolver;
   private final PenaltyModel penaltyModel;
   private final DefensiveCallSelector defensiveCallSelector;
+  private final HomeFieldModel homeFieldModel;
 
   GameSimulator(
       PlayCaller caller,
@@ -93,6 +95,32 @@ final class GameSimulator implements SimulateGame {
       PuntResolver puntResolver,
       PenaltyModel penaltyModel,
       DefensiveCallSelector defensiveCallSelector) {
+    this(
+        caller,
+        personnel,
+        resolver,
+        clockModel,
+        kickoffResolver,
+        extraPointResolver,
+        fieldGoalResolver,
+        puntResolver,
+        penaltyModel,
+        defensiveCallSelector,
+        HomeFieldModel.neutral());
+  }
+
+  GameSimulator(
+      PlayCaller caller,
+      PersonnelSelector personnel,
+      PlayResolver resolver,
+      ClockModel clockModel,
+      KickoffResolver kickoffResolver,
+      ExtraPointResolver extraPointResolver,
+      FieldGoalResolver fieldGoalResolver,
+      PuntResolver puntResolver,
+      PenaltyModel penaltyModel,
+      DefensiveCallSelector defensiveCallSelector,
+      HomeFieldModel homeFieldModel) {
     this.caller = Objects.requireNonNull(caller, "caller");
     this.personnel = Objects.requireNonNull(personnel, "personnel");
     this.resolver = Objects.requireNonNull(resolver, "resolver");
@@ -104,6 +132,7 @@ final class GameSimulator implements SimulateGame {
     this.penaltyModel = Objects.requireNonNull(penaltyModel, "penaltyModel");
     this.defensiveCallSelector =
         Objects.requireNonNull(defensiveCallSelector, "defensiveCallSelector");
+    this.homeFieldModel = Objects.requireNonNull(homeFieldModel, "homeFieldModel");
   }
 
   @Override
@@ -163,6 +192,16 @@ final class GameSimulator implements SimulateGame {
     Objects.requireNonNull(defensiveCall, "defensiveCall");
     var offPersonnel = personnel.selectOffense(call, state, offense);
     var defPersonnel = personnel.selectDefense(call, offPersonnel, state, defense);
+
+    var homeFieldDraw =
+        homeFieldModel.drawRoadPreSnapPenalty(
+            offenseSide,
+            offPersonnel,
+            inputs.preGameContext().homeFieldAdvantage(),
+            snapRng.split(HOME_FIELD_KEY));
+    if (homeFieldDraw.isPresent()) {
+      return emitPreSnapPenalty(out, state, homeFieldDraw.get(), seq, inputs.gameId(), offenseSide);
+    }
 
     var preSnapPenalty =
         penaltyModel.preSnap(state, offPersonnel, defPersonnel, snapRng.split(PENALTY_PRE_KEY));
