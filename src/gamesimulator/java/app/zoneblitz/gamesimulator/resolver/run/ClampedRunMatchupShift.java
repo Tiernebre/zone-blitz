@@ -3,7 +3,6 @@ package app.zoneblitz.gamesimulator.resolver.run;
 import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.resolver.RunRoles;
 import app.zoneblitz.gamesimulator.roster.Player;
-import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.ToDoubleFunction;
@@ -33,7 +32,7 @@ import java.util.function.ToDoubleFunction;
 public final class ClampedRunMatchupShift implements MatchupRunResolver.RunMatchupShift {
 
   @Override
-  public double compute(RunConcept concept, RunRoles roles, Team offense, Team defense) {
+  public double compute(RunConcept concept, RunRoles roles) {
     var profile = RunConceptProfiles.forConcept(concept);
 
     var blocking =

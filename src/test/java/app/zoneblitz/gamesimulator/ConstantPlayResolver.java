@@ -1,11 +1,12 @@
 package app.zoneblitz.gamesimulator;
 
 import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayResolver;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
-import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +28,11 @@ final class ConstantPlayResolver implements PlayResolver {
 
   @Override
   public PlayOutcome resolve(
-      PlayCaller.PlayCall call, GameState state, Team offense, Team defense, RandomSource rng) {
+      PlayCaller.PlayCall call,
+      GameState state,
+      OffensivePersonnel offense,
+      DefensivePersonnel defense,
+      RandomSource rng) {
     var draw = rng.nextLong();
     var yards = (int) Math.floorMod(draw, 20);
     return new PassOutcome.PassComplete(

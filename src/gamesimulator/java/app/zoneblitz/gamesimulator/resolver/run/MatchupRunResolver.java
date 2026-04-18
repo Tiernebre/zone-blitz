@@ -9,12 +9,13 @@ import app.zoneblitz.gamesimulator.band.RateBand;
 import app.zoneblitz.gamesimulator.event.FumbleOutcome;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.RunConcept;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.resolver.PositionBasedRunRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.resolver.RunRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.RunRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
-import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
@@ -118,7 +119,11 @@ public final class MatchupRunResolver implements RunResolver {
 
   @Override
   public RunOutcome resolve(
-      PlayCaller.PlayCall call, GameState state, Team offense, Team defense, RandomSource rng) {
+      PlayCaller.PlayCall call,
+      GameState state,
+      OffensivePersonnel offense,
+      DefensivePersonnel defense,
+      RandomSource rng) {
     Objects.requireNonNull(call, "call");
     Objects.requireNonNull(state, "state");
     Objects.requireNonNull(offense, "offense");
@@ -132,10 +137,9 @@ public final class MatchupRunResolver implements RunResolver {
             .orElseThrow(
                 () ->
                     new IllegalStateException(
-                        "Offense has no rushing-eligible player on roster: "
-                            + offense.displayName()));
+                        "Offensive personnel has no rushing-eligible player"));
     var concept = call.runConcept();
-    var shift = matchupShift.compute(concept, roles, offense, defense);
+    var shift = matchupShift.compute(concept, roles);
     var kind = sampler.sampleRate(outcomeMix, shift, rng);
     var yardsBand = kind == RunOutcomeKind.FUMBLE ? fumbleYards : yardsByKind.get(kind);
     var yards = sampler.sampleDistribution(yardsBand, shift, rng);
@@ -162,17 +166,15 @@ public final class MatchupRunResolver implements RunResolver {
   public interface RunMatchupShift {
 
     /** Identity shift — keeps the resolver baseline-equivalent. */
-    RunMatchupShift ZERO = (concept, roles, offense, defense) -> 0.0;
+    RunMatchupShift ZERO = (concept, roles) -> 0.0;
 
     /**
      * Compute the scalar shift for the supplied run concept and role buckets.
      *
      * @param concept offensive run concept (coach intent); selects the attribute-weighting profile
      * @param roles per-snap role buckets
-     * @param offense offensive team
-     * @param defense defensive team
      * @return signed scalar; positive values represent an offensive talent advantage
      */
-    double compute(RunConcept concept, RunRoles roles, Team offense, Team defense);
+    double compute(RunConcept concept, RunRoles roles);
   }
 }

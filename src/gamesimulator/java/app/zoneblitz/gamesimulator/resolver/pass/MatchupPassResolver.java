@@ -8,6 +8,8 @@ import app.zoneblitz.gamesimulator.band.DistributionalBand;
 import app.zoneblitz.gamesimulator.band.RateBand;
 import app.zoneblitz.gamesimulator.event.IncompleteReason;
 import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.PassRoles;
@@ -15,8 +17,6 @@ import app.zoneblitz.gamesimulator.resolver.PositionBasedPassRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.pass.BaselinePassResolver.PassOutcomeKind;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
-import app.zoneblitz.gamesimulator.roster.Position;
-import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,12 +27,6 @@ import java.util.Optional;
  * PassMatchupShift} scalar that feeds the rate band's per-outcome β coefficients inside {@link
  * BandSampler#sampleRate}, and a {@link TargetSelector} that picks the intended receiver for
  * throw-shaped outcomes.
- *
- * <p>R5 carries the target-identity side of per-receiver resolution from {@code sim-engine.md}
- * lines 144–200. Per-receiver completion / catch / YAC rolls are still deferred — the outcome-mix
- * rate band drives COMPLETE / INCOMPLETE / SACK / SCRAMBLE / INTERCEPTION shape. Target and
- * interceptor picks prefer role buckets so a blitzing CB no longer intercepts from the coverage
- * pool.
  *
  * <p>With the shipped band (all β = 0), average-attribute rosters, and a deterministic target
  * selector that draws no randomness, this resolver reproduces {@link BaselinePassResolver}
@@ -94,22 +88,21 @@ public final class MatchupPassResolver implements PassResolver {
 
   @Override
   public PassOutcome resolve(
-      PlayCaller.PlayCall call, GameState state, Team offense, Team defense, RandomSource rng) {
+      PlayCaller.PlayCall call,
+      GameState state,
+      OffensivePersonnel offense,
+      DefensivePersonnel defense,
+      RandomSource rng) {
     Objects.requireNonNull(call, "call");
     Objects.requireNonNull(state, "state");
     Objects.requireNonNull(offense, "offense");
     Objects.requireNonNull(defense, "defense");
     Objects.requireNonNull(rng, "rng");
 
-    var qbPlayer =
-        firstPlayerWithPosition(offense.roster(), Position.QB)
-            .orElseThrow(
-                () ->
-                    new IllegalStateException(
-                        "Offense has no QB on roster: " + offense.displayName()));
+    var qbPlayer = offense.quarterback();
     var qb = qbPlayer.id();
     var roles = roleAssigner.assign(call, offense, defense);
-    var shift = matchupShift.compute(roles, offense, defense);
+    var shift = matchupShift.compute(roles);
     var target = resolveTarget(call, roles, qbPlayer, qb, rng);
     var outcome = sampler.sampleRate(outcomeMix, shift, rng);
 
@@ -131,7 +124,7 @@ public final class MatchupPassResolver implements PassResolver {
         yield new PassOutcome.Scramble(qb, yards, Optional.empty(), false, false);
       }
       case INTERCEPTION -> {
-        var interceptor = pickInterceptor(roles, defense.roster());
+        var interceptor = pickInterceptor(roles, defense);
         yield new PassOutcome.Interception(qb, target, interceptor, 0, false);
       }
     };
@@ -151,21 +144,17 @@ public final class MatchupPassResolver implements PassResolver {
     };
   }
 
-  private static PlayerId pickInterceptor(PassRoles roles, List<Player> defenseRoster) {
+  private static PlayerId pickInterceptor(PassRoles roles, DefensivePersonnel defense) {
     if (!roles.coverageDefenders().isEmpty()) {
       return roles.coverageDefenders().get(0).id();
     }
     if (!roles.passRushers().isEmpty()) {
       return roles.passRushers().get(0).id();
     }
-    if (defenseRoster.isEmpty()) {
+    if (defense.players().isEmpty()) {
       throw new IllegalStateException("Defense has no players to intercept the pass");
     }
-    return defenseRoster.get(0).id();
-  }
-
-  private static Optional<Player> firstPlayerWithPosition(List<Player> roster, Position position) {
-    return roster.stream().filter(p -> p.position() == position).findFirst();
+    return defense.players().get(0).id();
   }
 
   /**
@@ -179,8 +168,8 @@ public final class MatchupPassResolver implements PassResolver {
   public interface PassMatchupShift {
 
     /** Identity shift — keeps the resolver baseline-equivalent. */
-    PassMatchupShift ZERO = (roles, offense, defense) -> 0.0;
+    PassMatchupShift ZERO = roles -> 0.0;
 
-    double compute(PassRoles roles, Team offense, Team defense);
+    double compute(PassRoles roles);
   }
 }

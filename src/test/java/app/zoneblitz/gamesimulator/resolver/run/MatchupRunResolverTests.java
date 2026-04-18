@@ -1,7 +1,6 @@
 package app.zoneblitz.gamesimulator.resolver.run;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.PlayCaller;
@@ -9,20 +8,16 @@ import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
 import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
 import app.zoneblitz.gamesimulator.band.DistributionalBand;
 import app.zoneblitz.gamesimulator.band.RateBand;
-import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.RunConcept;
-import app.zoneblitz.gamesimulator.event.TeamId;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.resolver.PositionBasedRunRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.resolver.run.MatchupRunResolver.RunMatchupShift;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
-import app.zoneblitz.gamesimulator.roster.Player;
-import app.zoneblitz.gamesimulator.roster.Position;
-import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class MatchupRunResolverTests {
@@ -32,8 +27,8 @@ class MatchupRunResolverTests {
 
   private final ClasspathBandRepository repo = new ClasspathBandRepository();
   private final DefaultBandSampler sampler = new DefaultBandSampler();
-  private final Team offense = offenseRoster();
-  private final Team defense = defenseRoster();
+  private final OffensivePersonnel offense = TestPersonnel.baselineOffense();
+  private final DefensivePersonnel defense = TestPersonnel.baselineDefense();
 
   @Test
   void resolve_zeroShift_outcomeRatesTrackBase() {
@@ -52,7 +47,7 @@ class MatchupRunResolverTests {
   @Test
   void resolve_positiveShift_reducesStuffsAndIncreasesBreakaways() {
     var zero = sampleCounts(loadedResolver(RunMatchupShift.ZERO), 11L);
-    var boosted = sampleCounts(loadedResolver((c, r, o, d) -> 2.0), 11L);
+    var boosted = sampleCounts(loadedResolver((c, r) -> 2.0), 11L);
 
     assertThat(boosted.stuffs)
         .as("positive shift with negative STUFF β must reduce stuff count")
@@ -65,7 +60,7 @@ class MatchupRunResolverTests {
   @Test
   void resolve_negativeShift_increasesStuffsAndReducesBreakaways() {
     var zero = sampleCounts(loadedResolver(RunMatchupShift.ZERO), 22L);
-    var suppressed = sampleCounts(loadedResolver((c, r, o, d) -> -2.0), 22L);
+    var suppressed = sampleCounts(loadedResolver((c, r) -> -2.0), 22L);
 
     assertThat(suppressed.stuffs).isGreaterThan(zero.stuffs);
     assertThat(suppressed.breakaways).isLessThan(zero.breakaways);
@@ -120,7 +115,7 @@ class MatchupRunResolverTests {
   void resolve_conceptReachesShiftImplementation() {
     var seen = new java.util.concurrent.atomic.AtomicReference<RunConcept>();
     RunMatchupShift capturing =
-        (concept, roles, offense, defense) -> {
+        (concept, roles) -> {
           seen.set(concept);
           return 0.0;
         };
@@ -133,22 +128,6 @@ class MatchupRunResolverTests {
         new SplittableRandomSource(4L));
 
     assertThat(seen.get()).isEqualTo(RunConcept.COUNTER);
-  }
-
-  @Test
-  void resolve_withoutCarrier_throwsIllegalState() {
-    var resolver = MatchupRunResolver.load(repo, sampler);
-    var noCarrier =
-        new Team(
-            new TeamId(new UUID(9L, 9L)),
-            "No Carrier",
-            List.of(new Player(new PlayerId(new UUID(9L, 1L)), Position.WR, "WR")));
-
-    assertThatThrownBy(
-            () ->
-                resolver.resolve(
-                    RUN_CALL, state(), noCarrier, defense, new SplittableRandomSource(1L)))
-        .isInstanceOf(IllegalStateException.class);
   }
 
   private MatchupRunResolver loadedResolver(RunMatchupShift shift) {
@@ -214,28 +193,5 @@ class MatchupRunResolverTests {
 
   private static GameState state() {
     return GameState.initial();
-  }
-
-  private static Team offenseRoster() {
-    return new Team(
-        new TeamId(new UUID(1L, 0L)),
-        "Offense",
-        List.of(
-            new Player(new PlayerId(new UUID(1L, 1L)), Position.QB, "QB"),
-            new Player(new PlayerId(new UUID(1L, 2L)), Position.RB, "RB"),
-            new Player(new PlayerId(new UUID(1L, 3L)), Position.OL, "LT"),
-            new Player(new PlayerId(new UUID(1L, 4L)), Position.OL, "C"),
-            new Player(new PlayerId(new UUID(1L, 5L)), Position.TE, "TE")));
-  }
-
-  private static Team defenseRoster() {
-    return new Team(
-        new TeamId(new UUID(2L, 0L)),
-        "Defense",
-        List.of(
-            new Player(new PlayerId(new UUID(2L, 1L)), Position.DL, "DE"),
-            new Player(new PlayerId(new UUID(2L, 2L)), Position.DL, "DT"),
-            new Player(new PlayerId(new UUID(2L, 3L)), Position.LB, "MLB"),
-            new Player(new PlayerId(new UUID(2L, 4L)), Position.S, "FS")));
   }
 }

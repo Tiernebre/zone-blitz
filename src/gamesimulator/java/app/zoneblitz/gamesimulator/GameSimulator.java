@@ -5,6 +5,7 @@ import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayId;
 import app.zoneblitz.gamesimulator.event.Side;
+import app.zoneblitz.gamesimulator.personnel.PersonnelSelector;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayResolver;
@@ -16,24 +17,26 @@ import java.util.stream.Stream;
 
 /**
  * Walking-skeleton implementation of {@link SimulateGame}. Loops a fixed number of snaps from the
- * supplied {@link PlayCaller}, resolves each via the supplied {@link PlayResolver}, and emits one
- * event per snap. Matchup math and the model cluster (clock, penalty, fatigue, injury) are not yet
- * wired.
+ * supplied {@link PlayCaller}, selects on-field personnel via the supplied {@link
+ * PersonnelSelector}, resolves each via the supplied {@link PlayResolver}, and emits one event per
+ * snap. Matchup math and the model cluster (clock, penalty, fatigue, injury) are not yet wired.
  */
 final class GameSimulator implements SimulateGame {
 
   private static final int DEFAULT_SNAPS = 130;
 
   private final PlayCaller caller;
+  private final PersonnelSelector personnel;
   private final PlayResolver resolver;
   private final int snaps;
 
-  GameSimulator(PlayCaller caller, PlayResolver resolver) {
-    this(caller, resolver, DEFAULT_SNAPS);
+  GameSimulator(PlayCaller caller, PersonnelSelector personnel, PlayResolver resolver) {
+    this(caller, personnel, resolver, DEFAULT_SNAPS);
   }
 
-  GameSimulator(PlayCaller caller, PlayResolver resolver, int snaps) {
+  GameSimulator(PlayCaller caller, PersonnelSelector personnel, PlayResolver resolver, int snaps) {
     this.caller = Objects.requireNonNull(caller, "caller");
+    this.personnel = Objects.requireNonNull(personnel, "personnel");
     this.resolver = Objects.requireNonNull(resolver, "resolver");
     this.snaps = snaps;
   }
@@ -53,7 +56,9 @@ final class GameSimulator implements SimulateGame {
               var offense = state.possession() == Side.HOME ? inputs.home() : inputs.away();
               var defense = state.possession() == Side.HOME ? inputs.away() : inputs.home();
               var call = caller.call(state);
-              var outcome = resolver.resolve(call, state, offense, defense, snapRng);
+              var offPersonnel = personnel.selectOffense(call, state, offense);
+              var defPersonnel = personnel.selectDefense(call, offPersonnel, state, defense);
+              var outcome = resolver.resolve(call, state, offPersonnel, defPersonnel, snapRng);
               return toEvent(outcome, state, inputs.gameId(), i);
             });
   }

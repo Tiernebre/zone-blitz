@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
+import app.zoneblitz.gamesimulator.personnel.FakePersonnelSelector;
+import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.CoachId;
 import app.zoneblitz.gamesimulator.roster.Player;
@@ -29,8 +31,10 @@ class GameSimulatorTests {
   private static final Team AWAY = new Team(new TeamId(new UUID(4L, 4L)), "Away Team", List.of());
 
   private SimulateGame newSimulator(int snaps) {
+    var personnel =
+        new FakePersonnelSelector(TestPersonnel.baselineOffense(), TestPersonnel.baselineDefense());
     return new GameSimulator(
-        ScriptedPlayCaller.runs(snaps), new ConstantPlayResolver(QB_ID, WR_ID), snaps);
+        ScriptedPlayCaller.runs(snaps), personnel, new ConstantPlayResolver(QB_ID, WR_ID), snaps);
   }
 
   private static GameInputs inputs(Optional<Long> seed) {

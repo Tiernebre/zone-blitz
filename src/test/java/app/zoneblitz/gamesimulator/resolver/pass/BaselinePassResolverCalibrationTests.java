@@ -4,24 +4,19 @@ import static app.zoneblitz.gamesimulator.CalibrationAssertions.WILSON_Z_99;
 import static app.zoneblitz.gamesimulator.CalibrationAssertions.assertPercentile;
 import static app.zoneblitz.gamesimulator.CalibrationAssertions.wilsonContains;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.PlayCaller;
 import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
 import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
-import app.zoneblitz.gamesimulator.event.PlayerId;
-import app.zoneblitz.gamesimulator.event.TeamId;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.pass.BaselinePassResolver.PassOutcomeKind;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
-import app.zoneblitz.gamesimulator.roster.Player;
-import app.zoneblitz.gamesimulator.roster.Position;
-import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class BaselinePassResolverCalibrationTests {
@@ -31,8 +26,8 @@ class BaselinePassResolverCalibrationTests {
 
   private final BaselinePassResolver resolver =
       BaselinePassResolver.load(new ClasspathBandRepository(), new DefaultBandSampler());
-  private final Team offense = offenseRoster();
-  private final Team defense = defenseRoster();
+  private final OffensivePersonnel offense = TestPersonnel.baselineOffense();
+  private final DefensivePersonnel defense = TestPersonnel.baselineDefense();
 
   @Test
   void resolve_10kSnaps_outcomeMix_withinWilson99CI() {
@@ -117,19 +112,6 @@ class BaselinePassResolverCalibrationTests {
     assertPercentile(sorted, 0.90, 14, 2);
   }
 
-  @Test
-  void resolve_withoutQB_throwsIllegalState() {
-    var noQbOffense =
-        new Team(
-            new TeamId(new UUID(9L, 9L)),
-            "No QB",
-            List.of(new Player(new PlayerId(new UUID(9L, 1L)), Position.WR, "WR")));
-    var rng = new SplittableRandomSource(1L);
-
-    assertThatThrownBy(() -> resolver.resolve(PASS_CALL, state(), noQbOffense, defense, rng))
-        .isInstanceOf(IllegalStateException.class);
-  }
-
   private static PassOutcomeKind classify(PassOutcome outcome) {
     return switch (outcome) {
       case PassOutcome.PassComplete ignored -> PassOutcomeKind.COMPLETE;
@@ -142,29 +124,5 @@ class BaselinePassResolverCalibrationTests {
 
   private static GameState state() {
     return GameState.initial();
-  }
-
-  private static Team offenseRoster() {
-    return new Team(
-        new TeamId(new UUID(1L, 0L)),
-        "Offense",
-        List.of(
-            new Player(new PlayerId(new UUID(1L, 1L)), Position.QB, "QB"),
-            new Player(new PlayerId(new UUID(1L, 2L)), Position.WR, "WR1"),
-            new Player(new PlayerId(new UUID(1L, 3L)), Position.WR, "WR2"),
-            new Player(new PlayerId(new UUID(1L, 4L)), Position.TE, "TE1"),
-            new Player(new PlayerId(new UUID(1L, 5L)), Position.RB, "RB1")));
-  }
-
-  private static Team defenseRoster() {
-    return new Team(
-        new TeamId(new UUID(2L, 0L)),
-        "Defense",
-        List.of(
-            new Player(new PlayerId(new UUID(2L, 1L)), Position.CB, "CB1"),
-            new Player(new PlayerId(new UUID(2L, 2L)), Position.CB, "CB2"),
-            new Player(new PlayerId(new UUID(2L, 3L)), Position.S, "S1"),
-            new Player(new PlayerId(new UUID(2L, 4L)), Position.LB, "LB1"),
-            new Player(new PlayerId(new UUID(2L, 5L)), Position.DL, "DL1")));
   }
 }

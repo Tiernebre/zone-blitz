@@ -2,10 +2,11 @@ package app.zoneblitz.gamesimulator.resolver;
 
 import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.PlayCaller;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.resolver.pass.PassResolver;
 import app.zoneblitz.gamesimulator.resolver.run.RunResolver;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
-import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -28,7 +29,11 @@ public final class DispatchingPlayResolver implements PlayResolver {
 
   @Override
   public PlayOutcome resolve(
-      PlayCaller.PlayCall call, GameState state, Team offense, Team defense, RandomSource rng) {
+      PlayCaller.PlayCall call,
+      GameState state,
+      OffensivePersonnel offense,
+      DefensivePersonnel defense,
+      RandomSource rng) {
     Objects.requireNonNull(call, "call");
     var kind = call.kind() == null ? "" : call.kind().toLowerCase(Locale.ROOT);
     return switch (kind) {

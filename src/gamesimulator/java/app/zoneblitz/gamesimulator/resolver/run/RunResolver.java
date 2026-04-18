@@ -2,9 +2,10 @@ package app.zoneblitz.gamesimulator.resolver.run;
 
 import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.PlayCaller;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
-import app.zoneblitz.gamesimulator.roster.Team;
 
 /**
  * Resolves a run-shaped play call into a {@link RunOutcome}. Pure given its inputs; all randomness
@@ -17,11 +18,15 @@ public interface RunResolver {
    *
    * @param call the offensive play call
    * @param state current game state
-   * @param offense offensive team (source of the ball carrier and blockers)
-   * @param defense defensive team (source of run-fit defenders and tacklers)
+   * @param offense 11 offensive players on the field (carrier, blockers)
+   * @param defense 11 defensive players on the field (run-fit defenders, tacklers)
    * @param rng randomness source
    * @return the resolved {@link RunOutcome}
    */
   RunOutcome resolve(
-      PlayCaller.PlayCall call, GameState state, Team offense, Team defense, RandomSource rng);
+      PlayCaller.PlayCall call,
+      GameState state,
+      OffensivePersonnel offense,
+      DefensivePersonnel defense,
+      RandomSource rng);
 }

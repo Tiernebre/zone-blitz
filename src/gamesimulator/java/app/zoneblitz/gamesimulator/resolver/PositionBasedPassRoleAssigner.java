@@ -1,8 +1,9 @@
 package app.zoneblitz.gamesimulator.resolver;
 
 import app.zoneblitz.gamesimulator.PlayCaller;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.roster.Player;
-import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,16 +17,17 @@ import java.util.List;
  *   <li>CB, S → coverage defenders.
  * </ul>
  *
- * <p>QBs and specialists (K, P, LS) are dropped from the buckets — the QB holds the ball, and
- * specialists never appear on scrimmage snaps.
+ * <p>QBs are dropped — the QB holds the ball; specialists never appear in scrimmage personnel at
+ * all.
  */
 public final class PositionBasedPassRoleAssigner implements PassRoleAssigner {
 
   @Override
-  public PassRoles assign(PlayCaller.PlayCall call, Team offense, Team defense) {
+  public PassRoles assign(
+      PlayCaller.PlayCall call, OffensivePersonnel offense, DefensivePersonnel defense) {
     var passBlockers = new ArrayList<Player>();
     var routeRunners = new ArrayList<Player>();
-    for (var p : offense.roster()) {
+    for (var p : offense.players()) {
       switch (p.position()) {
         case OL, FB -> passBlockers.add(p);
         case WR, TE, RB -> routeRunners.add(p);
@@ -35,7 +37,7 @@ public final class PositionBasedPassRoleAssigner implements PassRoleAssigner {
 
     var passRushers = new ArrayList<Player>();
     var coverageDefenders = new ArrayList<Player>();
-    for (var p : defense.roster()) {
+    for (var p : defense.players()) {
       switch (p.position()) {
         case DL, LB -> passRushers.add(p);
         case CB, S -> coverageDefenders.add(p);
