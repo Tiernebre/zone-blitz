@@ -27,6 +27,8 @@ import app.zoneblitz.gamesimulator.roster.Team;
 import app.zoneblitz.gamesimulator.roster.Tendencies;
 import app.zoneblitz.gamesimulator.scoring.DistanceCurveFieldGoalResolver;
 import app.zoneblitz.gamesimulator.scoring.FlatRateExtraPointResolver;
+import app.zoneblitz.gamesimulator.scoring.FlatRateTwoPointResolver;
+import app.zoneblitz.gamesimulator.scoring.StandardTwoPointDecisionPolicy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -89,7 +91,9 @@ class FullGameCalibrationTests {
               new DistanceCurveFieldGoalResolver(),
               BandPuntResolver.load(repo, sampler),
               new BandPenaltyModel(),
-              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
+              new StandardTwoPointDecisionPolicy(),
+              new FlatRateTwoPointResolver());
       var inputs =
           new GameInputs(
               new GameId(new UUID(0xDEADBEEFL, seed)),
@@ -167,7 +171,9 @@ class FullGameCalibrationTests {
               new DistanceCurveFieldGoalResolver(),
               BandPuntResolver.load(repo, sampler),
               new BandPenaltyModel(),
-              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
+              new StandardTwoPointDecisionPolicy(),
+              new FlatRateTwoPointResolver());
       var inputs =
           new GameInputs(
               new GameId(new UUID(0xF1A9BEEFL, seed)),
@@ -236,7 +242,9 @@ class FullGameCalibrationTests {
               new DistanceCurveFieldGoalResolver(),
               BandPuntResolver.load(repo, sampler),
               new BandPenaltyModel(),
-              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
+              new StandardTwoPointDecisionPolicy(),
+              new FlatRateTwoPointResolver());
       var inputs =
           new GameInputs(
               new GameId(new UUID(0xE117E11L, seed)),
@@ -315,7 +323,9 @@ class FullGameCalibrationTests {
               new DistanceCurveFieldGoalResolver(),
               BandPuntResolver.load(repo, sampler),
               new BandPenaltyModel(),
-              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+              app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
+              new StandardTwoPointDecisionPolicy(),
+              new FlatRateTwoPointResolver());
       var inputs =
           new GameInputs(
               new GameId(new UUID(0xBE1C4BEEFL, seed)),

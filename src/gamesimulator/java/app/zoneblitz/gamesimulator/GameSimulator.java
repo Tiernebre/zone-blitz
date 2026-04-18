@@ -26,6 +26,8 @@ import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.scoring.ExtraPointResolver;
 import app.zoneblitz.gamesimulator.scoring.FieldGoalResolver;
+import app.zoneblitz.gamesimulator.scoring.TwoPointDecisionPolicy;
+import app.zoneblitz.gamesimulator.scoring.TwoPointResolver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -52,6 +54,7 @@ final class GameSimulator implements SimulateGame {
   private static final int HARD_SNAP_CAP = 500;
   private static final long CLOCK_SPLIT_KEY = 0x3333_eeffL;
   private static final long PAT_SPLIT_KEY = 0xFA77_7777L;
+  private static final long TWO_POINT_SPLIT_KEY = 0xFB77_7777L;
   private static final long FG_SPLIT_KEY = 0xFB66_6666L;
   private static final long PUNT_SPLIT_KEY = 0xFC55_5555L;
   private static final long PENALTY_PRE_KEY = 0xFD44_4444L;
@@ -83,6 +86,8 @@ final class GameSimulator implements SimulateGame {
   private final PenaltyModel penaltyModel;
   private final DefensiveCallSelector defensiveCallSelector;
   private final HomeFieldModel homeFieldModel;
+  private final TwoPointDecisionPolicy twoPointPolicy;
+  private final TwoPointResolver twoPointResolver;
 
   GameSimulator(
       PlayCaller caller,
@@ -94,7 +99,9 @@ final class GameSimulator implements SimulateGame {
       FieldGoalResolver fieldGoalResolver,
       PuntResolver puntResolver,
       PenaltyModel penaltyModel,
-      DefensiveCallSelector defensiveCallSelector) {
+      DefensiveCallSelector defensiveCallSelector,
+      TwoPointDecisionPolicy twoPointPolicy,
+      TwoPointResolver twoPointResolver) {
     this(
         caller,
         personnel,
@@ -106,6 +113,8 @@ final class GameSimulator implements SimulateGame {
         puntResolver,
         penaltyModel,
         defensiveCallSelector,
+        twoPointPolicy,
+        twoPointResolver,
         HomeFieldModel.neutral());
   }
 
@@ -120,6 +129,8 @@ final class GameSimulator implements SimulateGame {
       PuntResolver puntResolver,
       PenaltyModel penaltyModel,
       DefensiveCallSelector defensiveCallSelector,
+      TwoPointDecisionPolicy twoPointPolicy,
+      TwoPointResolver twoPointResolver,
       HomeFieldModel homeFieldModel) {
     this.caller = Objects.requireNonNull(caller, "caller");
     this.personnel = Objects.requireNonNull(personnel, "personnel");
@@ -132,6 +143,8 @@ final class GameSimulator implements SimulateGame {
     this.penaltyModel = Objects.requireNonNull(penaltyModel, "penaltyModel");
     this.defensiveCallSelector =
         Objects.requireNonNull(defensiveCallSelector, "defensiveCallSelector");
+    this.twoPointPolicy = Objects.requireNonNull(twoPointPolicy, "twoPointPolicy");
+    this.twoPointResolver = Objects.requireNonNull(twoPointResolver, "twoPointResolver");
     this.homeFieldModel = Objects.requireNonNull(homeFieldModel, "homeFieldModel");
   }
 
@@ -511,6 +524,9 @@ final class GameSimulator implements SimulateGame {
       int[] seq,
       SplittableRandomSource root,
       long key) {
+    if (twoPointPolicy.goForTwo(state.score(), scoringSide, state.clock())) {
+      return emitTwoPointAttempt(out, state, inputs, scoringSide, seq, root, key);
+    }
     var sequence = seq[0]++;
     var kicking = scoringSide == Side.HOME ? inputs.home() : inputs.away();
     var rng = root.split(key ^ PAT_SPLIT_KEY ^ ((long) sequence << 32));
@@ -521,6 +537,24 @@ final class GameSimulator implements SimulateGame {
     return state
         .withScore(resolved.scoreAfter())
         .withClock(tickKickClock(state, Kick.EXTRA_POINT, rng));
+  }
+
+  private GameState emitTwoPointAttempt(
+      List<PlayEvent> out,
+      GameState state,
+      GameInputs inputs,
+      Side scoringSide,
+      int[] seq,
+      SplittableRandomSource root,
+      long key) {
+    var sequence = seq[0]++;
+    var scoring = scoringSide == Side.HOME ? inputs.home() : inputs.away();
+    var rng = root.split(key ^ TWO_POINT_SPLIT_KEY ^ ((long) sequence << 32));
+    var resolved =
+        twoPointResolver.resolve(
+            scoring, scoringSide, inputs.gameId(), sequence, state.clock(), state.score(), rng);
+    out.add(resolved.event());
+    return state.withScore(resolved.scoreAfter());
   }
 
   private GameClock tickKickClock(GameState state, Kick kick, RandomSource rng) {

@@ -28,6 +28,8 @@ import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
 import app.zoneblitz.gamesimulator.scoring.DistanceCurveFieldGoalResolver;
 import app.zoneblitz.gamesimulator.scoring.FlatRateExtraPointResolver;
+import app.zoneblitz.gamesimulator.scoring.FlatRateTwoPointResolver;
+import app.zoneblitz.gamesimulator.scoring.StandardTwoPointDecisionPolicy;
 import app.zoneblitz.names.CuratedNameGenerator;
 import app.zoneblitz.names.NameGenerator;
 import java.util.ArrayList;
@@ -71,6 +73,8 @@ public final class GameSimEmulator {
             BandPuntResolver.load(repo, sampler),
             new BandPenaltyModel(),
             BaselineDefensiveCallSelector.load(repo),
+            new StandardTwoPointDecisionPolicy(),
+            new FlatRateTwoPointResolver(),
             new DefaultHomeFieldModel());
 
     var inputs =

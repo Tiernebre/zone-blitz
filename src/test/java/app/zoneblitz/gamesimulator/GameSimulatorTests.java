@@ -29,6 +29,8 @@ import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
 import app.zoneblitz.gamesimulator.scoring.DistanceCurveFieldGoalResolver;
 import app.zoneblitz.gamesimulator.scoring.FlatRateExtraPointResolver;
+import app.zoneblitz.gamesimulator.scoring.FlatRateTwoPointResolver;
+import app.zoneblitz.gamesimulator.scoring.StandardTwoPointDecisionPolicy;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,7 +69,9 @@ class GameSimulatorTests {
         new DistanceCurveFieldGoalResolver(),
         new DistanceCurvePuntResolver(),
         new NoPenaltyModel(),
-        app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+        app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
+        new StandardTwoPointDecisionPolicy(),
+        new FlatRateTwoPointResolver());
   }
 
   private static GameInputs inputs(Optional<Long> seed) {
@@ -134,7 +138,9 @@ class GameSimulatorTests {
             new DistanceCurveFieldGoalResolver(),
             new DistanceCurvePuntResolver(),
             new BandPenaltyModel(),
-            app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+            app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
+            new StandardTwoPointDecisionPolicy(),
+            new FlatRateTwoPointResolver());
 
     var penalties = 0;
     for (var seed = 1L; seed <= 10L; seed++) {
@@ -176,7 +182,9 @@ class GameSimulatorTests {
             new DistanceCurveFieldGoalResolver(),
             new DistanceCurvePuntResolver(),
             new NoPenaltyModel(),
-            app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+            app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
+            new StandardTwoPointDecisionPolicy(),
+            new FlatRateTwoPointResolver());
 
     var events = simulator.simulate(inputs(Optional.of(7L))).toList();
 
@@ -197,6 +205,46 @@ class GameSimulatorTests {
     assertThat(safety.spot().yardLine()).isEqualTo(20);
     assertThat(safety.scoreAfter().away()).isEqualTo(2);
     assertThat(safety.scoreAfter().home()).isZero();
+  }
+
+  @Test
+  void simulate_twoPointPolicyChoosesTwo_replacesExtraPointWithTwoPointAttempt() {
+    var personnel =
+        new FakePersonnelSelector(TestPersonnel.baselineOffense(), TestPersonnel.baselineDefense());
+    var simulator =
+        new GameSimulator(
+            ScriptedPlayCaller.runs(1),
+            personnel,
+            new ConstantPlayResolver(QB_ID, WR_ID),
+            BandClockModel.load(new ClasspathBandRepository(), new DefaultBandSampler()),
+            new TouchbackKickoffResolver(),
+            new FlatRateExtraPointResolver(),
+            new DistanceCurveFieldGoalResolver(),
+            new DistanceCurvePuntResolver(),
+            new NoPenaltyModel(),
+            app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
+            (score, side, clock) -> true,
+            new app.zoneblitz.gamesimulator.scoring.FlatRateTwoPointResolver(1.0, 0.0));
+
+    var events = simulator.simulate(inputs(Optional.of(1L))).toList();
+
+    var firstTdIndex = -1;
+    for (var i = 0; i < events.size(); i++) {
+      if (events.get(i) instanceof PlayEvent.PassComplete pc && pc.touchdown()) {
+        firstTdIndex = i;
+        break;
+      }
+    }
+    assertThat(firstTdIndex)
+        .as("expected at least one offensive touchdown")
+        .isGreaterThanOrEqualTo(0);
+    assertThat(events.get(firstTdIndex + 1)).isInstanceOf(PlayEvent.TwoPointAttempt.class);
+    var twoPoint = (PlayEvent.TwoPointAttempt) events.get(firstTdIndex + 1);
+    assertThat(twoPoint.success()).isTrue();
+    var tdScore = events.get(firstTdIndex).scoreAfter();
+    assertThat(twoPoint.scoreAfter().home() + twoPoint.scoreAfter().away())
+        .isEqualTo(tdScore.home() + tdScore.away() + 2);
+    assertThat(events.get(firstTdIndex + 2)).isInstanceOf(PlayEvent.Kickoff.class);
   }
 
   @Test
