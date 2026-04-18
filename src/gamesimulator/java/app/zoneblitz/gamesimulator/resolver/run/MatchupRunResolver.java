@@ -132,7 +132,7 @@ public final class MatchupRunResolver implements RunResolver {
     var boxSampler = BandBoxCountSampler.load(repo);
     var composite =
         new CompositeRunMatchupShift(
-            new ClampedRunMatchupShift(), new BoxCountRunShift(boxSampler));
+            new ClampedRunMatchupShift(), new BoxCountRunShift(boxSampler), new GoalLineRunShift());
 
     return new MatchupRunResolver(
         sampler,
@@ -165,7 +165,13 @@ public final class MatchupRunResolver implements RunResolver {
                     new IllegalStateException(
                         "Offensive personnel has no rushing-eligible player"));
     var concept = call.runConcept();
-    var context = new RunMatchupContext(concept, roles, call.formation());
+    var context =
+        new RunMatchupContext(
+            concept,
+            roles,
+            call.formation(),
+            state.spot().yardLine(),
+            state.downAndDistance().yardsToGo());
     var shift = matchupShift.compute(context, rng);
     var kind = sampler.sampleRate(outcomeMix, shift, rng);
     var yardsBand = kind == RunOutcomeKind.FUMBLE ? fumbleYards : yardsByKind.get(kind);
