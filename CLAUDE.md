@@ -10,7 +10,7 @@ The overarching theme: **small, focused, composable code**. Files stay under 500
 
 - Java 25, Spring Boot 4, Gradle (Kotlin DSL)
 - jOOQ 3.19 + Flyway for persistence (Postgres)
-- Thymeleaf + HTMX + Alpine + Tailwind for the web layer
+- Thymeleaf + HTMX + Tailwind for the web layer (vanilla JS sprinkles where needed)
 - JUnit 5 + AssertJ + Testcontainers + Playwright for tests
 - Spotless with google-java-format 1.28.0
 - JaCoCo for coverage
@@ -238,7 +238,7 @@ Use Spring Security defaults (401/403 via its handlers). No custom exception nee
 
 ---
 
-## Web layer (Thymeleaf + HTMX + Alpine + Tailwind)
+## Web layer (Thymeleaf + HTMX + Tailwind)
 
 ### Templates
 
@@ -269,11 +269,11 @@ Use Spring Security defaults (401/403 via its handlers). No custom exception nee
 
 Spring Security default enabled. HTMX configured with `hx-headers` to send the token.
 
-### Alpine
+### JavaScript
 
-- Not currently used. Add only for genuinely local interactivity (toggles, dropdowns, inline editing before submit).
-- Server-authoritative for anything touching data — HTMX handles that.
-- No global Alpine stores.
+- HTMX is the default for any interactivity that touches data — server-authoritative.
+- For genuinely local interactivity (toggles, dropdowns, inline editing before submit), write small vanilla JS in an IIFE co-located with the template. No framework.
+- No global JS state. Persisted UI state (e.g. sidebar collapsed) goes in `localStorage`, read inline in `<head>` to avoid FOUC.
 
 ### Tailwind
 

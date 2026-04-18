@@ -70,7 +70,6 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
 
     implementation("org.webjars.npm:htmx.org:2.0.4")
-    implementation("org.webjars.npm:alpinejs:3.14.8")
     implementation("org.webjars:webjars-locator-core")
 
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
