@@ -1,5 +1,8 @@
 package app.zoneblitz.gamesimulator.band;
 
+import static app.zoneblitz.gamesimulator.CalibrationAssertions.WILSON_Z_99;
+import static app.zoneblitz.gamesimulator.CalibrationAssertions.assertPercentile;
+import static app.zoneblitz.gamesimulator.CalibrationAssertions.wilsonContains;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
@@ -9,8 +12,6 @@ import java.util.TreeMap;
 import org.junit.jupiter.api.Test;
 
 class BandSamplerCalibrationTests {
-
-  private static final double WILSON_Z_99 = 2.5758;
 
   private final BandSampler sampler = new DefaultBandSampler();
   private final BandRepository repository = new ClasspathBandRepository();
@@ -135,21 +136,5 @@ class BandSamplerCalibrationTests {
     ladder.put(0.75, 14.0);
     ladder.put(0.90, 22.0);
     return new DistributionalBand(-24, 98, ladder, gamma);
-  }
-
-  private static void assertPercentile(int[] sortedSamples, double p, int target, int tolerance) {
-    var idx = (int) Math.round(p * (sortedSamples.length - 1));
-    var observed = sortedSamples[idx];
-    assertThat(observed)
-        .as("p%.2f observed=%d target=%d tol=%d", p, observed, target, tolerance)
-        .isBetween(target - tolerance, target + tolerance);
-  }
-
-  private static boolean wilsonContains(double observed, int trials, double expected, double z) {
-    var denom = 1.0 + z * z / trials;
-    var center = (observed + z * z / (2.0 * trials)) / denom;
-    var halfWidth =
-        z * Math.sqrt((observed * (1.0 - observed) + z * z / (4.0 * trials)) / trials) / denom;
-    return expected >= center - halfWidth && expected <= center + halfWidth;
   }
 }

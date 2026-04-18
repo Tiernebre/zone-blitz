@@ -1,5 +1,6 @@
 package app.zoneblitz.gamesimulator.resolver;
 
+import static app.zoneblitz.gamesimulator.CalibrationAssertions.assertPercentile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -111,13 +112,5 @@ class BaselineRunResolverCalibrationTests {
             new Player(new PlayerId(new UUID(2L, 1L)), Position.CB, "CB1"),
             new Player(new PlayerId(new UUID(2L, 2L)), Position.LB, "LB1"),
             new Player(new PlayerId(new UUID(2L, 3L)), Position.DL, "DL1")));
-  }
-
-  private static void assertPercentile(int[] sortedSamples, double p, int target, int tolerance) {
-    var idx = (int) Math.round(p * (sortedSamples.length - 1));
-    var observed = sortedSamples[idx];
-    assertThat(observed)
-        .as("p%.2f observed=%d target=%d tol=%d", p, observed, target, tolerance)
-        .isBetween(target - tolerance, target + tolerance);
   }
 }

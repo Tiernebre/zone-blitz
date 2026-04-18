@@ -1,5 +1,8 @@
 package app.zoneblitz.gamesimulator.resolver;
 
+import static app.zoneblitz.gamesimulator.CalibrationAssertions.WILSON_Z_99;
+import static app.zoneblitz.gamesimulator.CalibrationAssertions.assertPercentile;
+import static app.zoneblitz.gamesimulator.CalibrationAssertions.wilsonContains;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -22,7 +25,6 @@ import org.junit.jupiter.api.Test;
 
 class BaselinePassResolverCalibrationTests {
 
-  private static final double WILSON_Z_99 = 2.5758;
   private static final int TRIALS = 10_000;
   private static final PlayCaller.PlayCall PASS_CALL = new PlayCaller.PlayCall("pass");
 
@@ -165,21 +167,5 @@ class BaselinePassResolverCalibrationTests {
             new Player(new PlayerId(new UUID(2L, 3L)), Position.S, "S1"),
             new Player(new PlayerId(new UUID(2L, 4L)), Position.LB, "LB1"),
             new Player(new PlayerId(new UUID(2L, 5L)), Position.DL, "DL1")));
-  }
-
-  private static void assertPercentile(int[] sortedSamples, double p, int target, int tolerance) {
-    var idx = (int) Math.round(p * (sortedSamples.length - 1));
-    var observed = sortedSamples[idx];
-    assertThat(observed)
-        .as("p%.2f observed=%d target=%d tol=%d", p, observed, target, tolerance)
-        .isBetween(target - tolerance, target + tolerance);
-  }
-
-  private static boolean wilsonContains(double observed, int trials, double expected, double z) {
-    var denom = 1.0 + z * z / trials;
-    var center = (observed + z * z / (2.0 * trials)) / denom;
-    var halfWidth =
-        z * Math.sqrt((observed * (1.0 - observed) + z * z / (4.0 * trials)) / trials) / denom;
-    return expected >= center - halfWidth && expected <= center + halfWidth;
   }
 }
