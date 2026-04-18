@@ -5,6 +5,8 @@ import app.zoneblitz.gamesimulator.event.FumbleOutcome;
 import app.zoneblitz.gamesimulator.event.GameClock;
 import app.zoneblitz.gamesimulator.event.IncompleteReason;
 import app.zoneblitz.gamesimulator.event.PlayEvent;
+import app.zoneblitz.gamesimulator.event.Score;
+import app.zoneblitz.gamesimulator.event.Side;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -28,16 +30,16 @@ final class DefaultPlayNarrator implements PlayNarrator {
       case PlayEvent.Run r -> run(r, context);
       case PlayEvent.FieldGoalAttempt fg -> fieldGoal(fg, context);
       case PlayEvent.ExtraPoint xp -> extraPoint(xp, context);
-      case PlayEvent.TwoPointAttempt tp -> twoPoint(tp);
+      case PlayEvent.TwoPointAttempt tp -> twoPoint(tp, context);
       case PlayEvent.Punt p -> punt(p, context);
       case PlayEvent.Kickoff k -> kickoff(k, context);
       case PlayEvent.Penalty p -> penalty(p, context);
-      case PlayEvent.Kneel k -> "%s. Kneel down.".formatted(situation(k));
-      case PlayEvent.Spike s -> "%s. Spike.".formatted(situation(s));
+      case PlayEvent.Kneel k -> "%s. Kneel down.".formatted(situation(k, context));
+      case PlayEvent.Spike s -> "%s. Spike.".formatted(situation(s, context));
       case PlayEvent.Timeout t -> "Timeout, %s.".formatted(context.nameOf(t.team()));
       case PlayEvent.TwoMinuteWarning w ->
           "Two-minute warning, Q%d.".formatted(w.clockAfter().quarter());
-      case PlayEvent.EndOfQuarter e -> endOfQuarter(e);
+      case PlayEvent.EndOfQuarter e -> endOfQuarter(e, context);
     };
   }
 
@@ -45,28 +47,35 @@ final class DefaultPlayNarrator implements PlayNarrator {
     var base =
         "%s %s throws to %s for %d."
             .formatted(
-                situation(pc), ctx.nameOf(pc.qb()), ctx.nameOf(pc.target()), pc.totalYards());
-    return base + scoreOrFirstDown(pc.touchdown(), pc.firstDown()) + spotSuffix(pc.endSpot());
+                situation(pc, ctx), ctx.nameOf(pc.qb()), ctx.nameOf(pc.target()), pc.totalYards());
+    if (pc.touchdown()) {
+      return base + " TOUCHDOWN.";
+    }
+    return base + (pc.firstDown() ? " 1ST DOWN." : "") + spotSuffix(pc.endSpot());
   }
 
   private String passIncomplete(PlayEvent.PassIncomplete pi, NarrationContext ctx) {
     return "%s %s threw an incomplete pass intended for %s (%s)."
         .formatted(
-            situation(pi), ctx.nameOf(pi.qb()), ctx.nameOf(pi.target()), describe(pi.reason()));
+            situation(pi, ctx),
+            ctx.nameOf(pi.qb()),
+            ctx.nameOf(pi.target()),
+            describe(pi.reason()));
   }
 
   private String sack(PlayEvent.Sack s, NarrationContext ctx) {
     var first = s.sackers().isEmpty() ? "defense" : ctx.nameOf(s.sackers().get(0));
     var base =
         "%s %s sacked by %s for -%d."
-            .formatted(situation(s), ctx.nameOf(s.qb()), first, Math.abs(s.yardsLost()));
+            .formatted(situation(s, ctx), ctx.nameOf(s.qb()), first, Math.abs(s.yardsLost()));
     return base + fumbleSuffix(s.fumble(), ctx);
   }
 
   private String scramble(PlayEvent.Scramble s, NarrationContext ctx) {
-    var base = "%s %s scrambles for %d.".formatted(situation(s), ctx.nameOf(s.qb()), s.yards());
+    var base =
+        "%s %s scrambles for %d.".formatted(situation(s, ctx), ctx.nameOf(s.qb()), s.yards());
     if (s.touchdown()) {
-      return base + " TOUCHDOWN." + spotSuffix(s.endSpot());
+      return base + " TOUCHDOWN.";
     }
     if (s.slideOrOob()) {
       return base + " Slides/out of bounds." + spotSuffix(s.endSpot());
@@ -78,9 +87,12 @@ final class DefaultPlayNarrator implements PlayNarrator {
     var base =
         "%s %s intercepted by %s, returned %d."
             .formatted(
-                situation(i), ctx.nameOf(i.qb()), ctx.nameOf(i.interceptor()), i.returnYards());
+                situation(i, ctx),
+                ctx.nameOf(i.qb()),
+                ctx.nameOf(i.interceptor()),
+                i.returnYards());
     if (i.touchdown()) {
-      return base + " PICK SIX." + spotSuffix(i.endSpot());
+      return base + " PICK SIX.";
     }
     return base + spotSuffix(i.endSpot());
   }
@@ -89,26 +101,30 @@ final class DefaultPlayNarrator implements PlayNarrator {
     var base =
         "%s %s runs (%s) for %d."
             .formatted(
-                situation(r),
+                situation(r, ctx),
                 ctx.nameOf(r.carrier()),
                 r.concept().name().toLowerCase().replace('_', ' '),
                 r.yards());
-    var suffix = scoreOrFirstDown(r.touchdown(), r.firstDown()) + fumbleSuffix(r.fumble(), ctx);
-    return base + suffix + spotSuffix(r.endSpot());
+    var fumble = fumbleSuffix(r.fumble(), ctx);
+    if (r.touchdown()) {
+      return base + " TOUCHDOWN." + fumble;
+    }
+    var firstDown = r.firstDown() ? " 1ST DOWN." : "";
+    return base + firstDown + fumble + spotSuffix(r.endSpot());
   }
 
   private String fieldGoal(PlayEvent.FieldGoalAttempt fg, NarrationContext ctx) {
     return switch (fg.result()) {
       case GOOD ->
           "%s %s %d-yard field goal is GOOD."
-              .formatted(situation(fg), ctx.nameOf(fg.kicker()), fg.distance());
+              .formatted(situation(fg, ctx), ctx.nameOf(fg.kicker()), fg.distance());
       case MISSED ->
           "%s %s %d-yard field goal MISSED."
-              .formatted(situation(fg), ctx.nameOf(fg.kicker()), fg.distance());
+              .formatted(situation(fg, ctx), ctx.nameOf(fg.kicker()), fg.distance());
       case BLOCKED ->
           "%s %s %d-yard field goal BLOCKED%s."
               .formatted(
-                  situation(fg),
+                  situation(fg, ctx),
                   ctx.nameOf(fg.kicker()),
                   fg.distance(),
                   fg.blocker().map(b -> " by " + ctx.nameOf(b)).orElse(""));
@@ -117,23 +133,26 @@ final class DefaultPlayNarrator implements PlayNarrator {
 
   private String extraPoint(PlayEvent.ExtraPoint xp, NarrationContext ctx) {
     return switch (xp.result()) {
-      case GOOD -> "%s %s extra point is GOOD.".formatted(situation(xp), ctx.nameOf(xp.kicker()));
-      case MISSED -> "%s %s extra point MISSED.".formatted(situation(xp), ctx.nameOf(xp.kicker()));
+      case GOOD ->
+          "%s %s extra point is GOOD.".formatted(situation(xp, ctx), ctx.nameOf(xp.kicker()));
+      case MISSED ->
+          "%s %s extra point MISSED.".formatted(situation(xp, ctx), ctx.nameOf(xp.kicker()));
       case BLOCKED ->
-          "%s %s extra point BLOCKED.".formatted(situation(xp), ctx.nameOf(xp.kicker()));
+          "%s %s extra point BLOCKED.".formatted(situation(xp, ctx), ctx.nameOf(xp.kicker()));
     };
   }
 
-  private String twoPoint(PlayEvent.TwoPointAttempt tp) {
+  private String twoPoint(PlayEvent.TwoPointAttempt tp, NarrationContext ctx) {
     var kind = tp.play().name().toLowerCase();
-    return "%s Two-point %s %s.".formatted(situation(tp), kind, tp.success() ? "GOOD" : "NO GOOD");
+    return "%s Two-point %s %s."
+        .formatted(situation(tp, ctx), kind, tp.success() ? "GOOD" : "NO GOOD");
   }
 
   private String punt(PlayEvent.Punt p, NarrationContext ctx) {
     var returner = p.returner().map(ctx::nameOf).orElse("no return");
     return "%s %s punts %d yds — %s (%s, %d return)."
         .formatted(
-            situation(p),
+            situation(p, ctx),
             ctx.nameOf(p.punter()),
             p.grossYards(),
             p.result().name().toLowerCase().replace('_', ' '),
@@ -146,7 +165,7 @@ final class DefaultPlayNarrator implements PlayNarrator {
     var returner = k.returner().map(ctx::nameOf).orElse("no return");
     return "%s %s %s — %s (%s, %d return)."
         .formatted(
-            situation(k),
+            situation(k, ctx),
             prefix,
             ctx.nameOf(k.kicker()),
             k.result().name().toLowerCase().replace('_', ' '),
@@ -159,30 +178,38 @@ final class DefaultPlayNarrator implements PlayNarrator {
     var against = ctx.nameOf(p.against());
     var replay = p.replayDown() ? ", replay down" : "";
     return "%s FLAG — %s on %s (%s), %d yards%s."
-        .formatted(situation(p), type, against, ctx.nameOf(p.committedBy()), p.yards(), replay);
+        .formatted(
+            situation(p, ctx), type, against, ctx.nameOf(p.committedBy()), p.yards(), replay);
   }
 
-  private String endOfQuarter(PlayEvent.EndOfQuarter e) {
+  private String endOfQuarter(PlayEvent.EndOfQuarter e, NarrationContext ctx) {
+    var score = scoreLabel(e.scoreAfter(), ctx);
     if (e.quarter() == 2) {
-      return "End of first half.";
+      return "End of first half. " + score;
     }
     if (e.quarter() == 4) {
-      return "End of regulation.";
+      return "End of regulation. " + score;
     }
-    return "End of Q%d.".formatted(e.quarter());
+    return "End of Q%d. %s".formatted(e.quarter(), score);
   }
 
   // --- helpers ----------------------------------------------------------------------------------
 
-  private static String situation(PlayEvent event) {
+  private static String situation(PlayEvent event, NarrationContext ctx) {
     var dd = event.preSnap();
     var clock = event.clockBefore();
     var spot = describeSpot(event.preSnapSpot());
+    var score = scoreLabel(event.scoreAfter(), ctx);
     if (dd.down() == 0) {
-      return "(%s %s, %s)".formatted(clockLabel(clock), spot, "kickoff/free");
+      return "(%s %s, kickoff/free, %s)".formatted(clockLabel(clock), spot, score);
     }
-    return "(%s %s-%s, %s)"
-        .formatted(clockLabel(clock), ordinal(dd.down()), distance(dd.yardsToGo()), spot);
+    return "(%s %s-%s, %s, %s)"
+        .formatted(clockLabel(clock), ordinal(dd.down()), distance(dd.yardsToGo()), spot, score);
+  }
+
+  private static String scoreLabel(Score score, NarrationContext ctx) {
+    return "%s %d – %s %d"
+        .formatted(ctx.nameOf(Side.HOME), score.home(), ctx.nameOf(Side.AWAY), score.away());
   }
 
   private static String clockLabel(GameClock clock) {
@@ -217,16 +244,6 @@ final class DefaultPlayNarrator implements PlayNarrator {
 
   private static String distance(int yardsToGo) {
     return yardsToGo <= 0 ? "goal" : Integer.toString(yardsToGo);
-  }
-
-  private static String scoreOrFirstDown(boolean touchdown, boolean firstDown) {
-    if (touchdown) {
-      return " TOUCHDOWN.";
-    }
-    if (firstDown) {
-      return " 1ST DOWN.";
-    }
-    return "";
   }
 
   private String fumbleSuffix(Optional<FumbleOutcome> fumble, NarrationContext ctx) {
