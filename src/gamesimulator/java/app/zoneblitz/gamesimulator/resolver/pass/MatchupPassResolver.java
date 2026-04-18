@@ -64,11 +64,14 @@ public final class MatchupPassResolver implements PassResolver {
           PassOutcomeKind.SACK, -0.5,
           PassOutcomeKind.SCRAMBLE, 0.1);
 
+  private static final long PRESSURE_SPLIT_KEY = 0x3333_eeffL;
+
   private final BandSampler sampler;
   private final PassRoleAssigner roleAssigner;
   private final PassMatchupShift matchupShift;
   private final CoverageShellSampler shellSampler;
   private final TargetSelector targetSelector;
+  private final PressureModel pressureModel;
   private final RateBand<PassOutcomeKind> outcomeMix;
   private final DistributionalBand completionYards;
   private final DistributionalBand sackYards;
@@ -81,6 +84,7 @@ public final class MatchupPassResolver implements PassResolver {
       PassMatchupShift matchupShift,
       CoverageShellSampler shellSampler,
       TargetSelector targetSelector,
+      PressureModel pressureModel,
       RateBand<PassOutcomeKind> outcomeMix,
       DistributionalBand completionYards,
       DistributionalBand sackYards,
@@ -91,6 +95,7 @@ public final class MatchupPassResolver implements PassResolver {
     this.matchupShift = Objects.requireNonNull(matchupShift, "matchupShift");
     this.shellSampler = Objects.requireNonNull(shellSampler, "shellSampler");
     this.targetSelector = Objects.requireNonNull(targetSelector, "targetSelector");
+    this.pressureModel = Objects.requireNonNull(pressureModel, "pressureModel");
     this.outcomeMix = Objects.requireNonNull(outcomeMix, "outcomeMix");
     this.completionYards = Objects.requireNonNull(completionYards, "completionYards");
     this.sackYards = Objects.requireNonNull(sackYards, "sackYards");
@@ -122,6 +127,7 @@ public final class MatchupPassResolver implements PassResolver {
         composite,
         shellSampler,
         new ScoreBasedTargetSelector(),
+        new QbPressureEscape(),
         outcomeMix,
         completionYards,
         sackYards,
@@ -161,10 +167,7 @@ public final class MatchupPassResolver implements PassResolver {
       case INCOMPLETE ->
           new PassOutcome.PassIncomplete(
               qb, target, 0, IncompleteReason.OVERTHROWN, Optional.empty());
-      case SACK -> {
-        var sampled = sampler.sampleDistribution(sackYards, shift, rng);
-        yield new PassOutcome.Sack(qb, List.of(), -sampled, Optional.empty());
-      }
+      case SACK -> resolvePressure(qb, target, roles, qbPlayer, shift, rng);
       case SCRAMBLE -> {
         var yards = sampler.sampleDistribution(scrambleYards, shift, rng);
         yield new PassOutcome.Scramble(qb, yards, Optional.empty(), false);
@@ -174,6 +177,30 @@ public final class MatchupPassResolver implements PassResolver {
         var returnYards = sampler.sampleDistribution(interceptionReturnYards, shift, rng);
         yield new PassOutcome.Interception(qb, target, interceptor, returnYards);
       }
+    };
+  }
+
+  private PassOutcome resolvePressure(
+      PlayerId qb,
+      PlayerId target,
+      PassRoles roles,
+      Player qbPlayer,
+      double shift,
+      RandomSource rng) {
+    var pressureRng = rng.split(PRESSURE_SPLIT_KEY);
+    var resolution = pressureModel.resolve(roles, qbPlayer, pressureRng);
+    return switch (resolution) {
+      case SACK -> {
+        var sampled = sampler.sampleDistribution(sackYards, shift, rng);
+        yield new PassOutcome.Sack(qb, List.of(), -sampled, Optional.empty());
+      }
+      case SCRAMBLE -> {
+        var yards = sampler.sampleDistribution(scrambleYards, shift, rng);
+        yield new PassOutcome.Scramble(qb, yards, Optional.empty(), false);
+      }
+      case THROWAWAY ->
+          new PassOutcome.PassIncomplete(
+              qb, target, 0, IncompleteReason.THROWN_AWAY, Optional.empty());
     };
   }
 
