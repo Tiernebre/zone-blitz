@@ -18,17 +18,19 @@ import org.junit.jupiter.api.Test;
 class GameSimulatorTests {
 
   private static final GameId GAME_ID = new GameId(new UUID(42L, 99L));
-  private static final PlayerId CARRIER_ID = new PlayerId(new UUID(1L, 1L));
-  private static final Player CARRIER = new Player(CARRIER_ID, Position.RB, "Test Carrier");
+  private static final PlayerId QB_ID = new PlayerId(new UUID(1L, 1L));
+  private static final PlayerId WR_ID = new PlayerId(new UUID(1L, 2L));
+  private static final Player QB = new Player(QB_ID, Position.QB, "Test QB");
+  private static final Player WR = new Player(WR_ID, Position.WR, "Test WR");
   private static final Coach HOME_COACH = new Coach(new CoachId(new UUID(2L, 2L)), "Home Coach");
   private static final Coach AWAY_COACH = new Coach(new CoachId(new UUID(2L, 3L)), "Away Coach");
   private static final Team HOME =
-      new Team(new TeamId(new UUID(3L, 3L)), "Home Team", List.of(CARRIER));
+      new Team(new TeamId(new UUID(3L, 3L)), "Home Team", List.of(QB, WR));
   private static final Team AWAY = new Team(new TeamId(new UUID(4L, 4L)), "Away Team", List.of());
 
   private SimulateGame newSimulator(int snaps) {
     return new GameSimulator(
-        ScriptedPlayCaller.runs(snaps), new ConstantPlayResolver(GAME_ID, CARRIER_ID), snaps);
+        ScriptedPlayCaller.runs(snaps), new ConstantPlayResolver(QB_ID, WR_ID), snaps);
   }
 
   private static GameInputs inputs(Optional<Long> seed) {

@@ -84,7 +84,7 @@ public final class ClasspathBandRepository implements BandRepository {
       return (T) key;
     }
     if (outcomeType.isEnum()) {
-      return (T) Enum.valueOf((Class<Enum>) outcomeType, key);
+      return (T) Enum.valueOf((Class<Enum>) outcomeType, key.toUpperCase(java.util.Locale.ROOT));
     }
     throw new IllegalArgumentException(
         "Unsupported outcome type: " + outcomeType + "; must be String or Enum");

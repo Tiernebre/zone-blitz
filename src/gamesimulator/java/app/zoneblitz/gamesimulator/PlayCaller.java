@@ -4,7 +4,7 @@ package app.zoneblitz.gamesimulator;
  * Decides what play the offense runs at a given game state. Implementations range from scripted
  * (tests) to tendency-driven (production).
  */
-interface PlayCaller {
+public interface PlayCaller {
 
   /**
    * Return the offensive play call for the supplied state. The returned {@link PlayCall} is an

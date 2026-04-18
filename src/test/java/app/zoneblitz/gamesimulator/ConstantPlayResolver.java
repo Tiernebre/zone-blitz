@@ -1,52 +1,36 @@
 package app.zoneblitz.gamesimulator;
 
-import app.zoneblitz.gamesimulator.event.FieldPosition;
-import app.zoneblitz.gamesimulator.event.FumbleOutcome;
-import app.zoneblitz.gamesimulator.event.GameId;
-import app.zoneblitz.gamesimulator.event.PlayEvent;
-import app.zoneblitz.gamesimulator.event.PlayId;
 import app.zoneblitz.gamesimulator.event.PlayerId;
-import app.zoneblitz.gamesimulator.event.RunConcept;
+import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
+import app.zoneblitz.gamesimulator.resolver.PlayResolver;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Test double: resolves every call to a 5-yard {@link PlayEvent.Run}, consuming one RNG draw so
- * seed differences are observable in the emitted stream.
+ * Test double: resolves every call to a constant {@link PlayOutcome.PassComplete}, consuming one
+ * RNG draw so seed differences are observable in the emitted stream. The draw is folded into {@code
+ * totalYards} (modulo 20) so the resulting {@link
+ * app.zoneblitz.gamesimulator.event.PlayEvent.PassComplete} values diverge across seeds.
  */
 final class ConstantPlayResolver implements PlayResolver {
 
-  private final GameId gameId;
-  private final PlayerId carrier;
+  private final PlayerId qb;
+  private final PlayerId target;
 
-  ConstantPlayResolver(GameId gameId, PlayerId carrier) {
-    this.gameId = gameId;
-    this.carrier = carrier;
+  ConstantPlayResolver(PlayerId qb, PlayerId target) {
+    this.qb = qb;
+    this.target = target;
   }
 
   @Override
-  public PlayEvent resolve(
-      PlayCaller.PlayCall call, GameState state, RandomSource rng, int sequence) {
+  public PlayOutcome resolve(
+      PlayCaller.PlayCall call, GameState state, Team offense, Team defense, RandomSource rng) {
     var draw = rng.nextLong();
-    return new PlayEvent.Run(
-        new PlayId(new java.util.UUID(0L, sequence)),
-        gameId,
-        sequence,
-        state.downAndDistance(),
-        state.spot(),
-        state.clock(),
-        state.clock(),
-        state.score(),
-        carrier,
-        RunConcept.INSIDE_ZONE,
-        5,
-        new FieldPosition(state.spot().yardLine() + 5),
-        Optional.<PlayerId>empty(),
-        Optional.<FumbleOutcome>empty(),
-        false,
-        false,
-        draw);
+    var yards = (int) Math.floorMod(draw, 20);
+    return new PlayOutcome.PassComplete(
+        qb, target, yards, 0, yards, Optional.empty(), List.of(), false, false);
   }
 
   static List<PlayerId> noDefenders() {

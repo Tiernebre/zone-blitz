@@ -20,7 +20,7 @@ import java.util.Objects;
  * <p>Package-private per doc 804; promoted types required by {@link PlayEvent} live in their own
  * files.
  */
-record GameState(
+public record GameState(
     Score score,
     GameClock clock,
     DownAndDistance downAndDistance,
@@ -34,7 +34,7 @@ record GameState(
     Phase phase,
     int overtimeRound) {
 
-  GameState {
+  public GameState {
     Objects.requireNonNull(score, "score");
     Objects.requireNonNull(clock, "clock");
     Objects.requireNonNull(downAndDistance, "downAndDistance");
@@ -49,7 +49,7 @@ record GameState(
   }
 
   /** Initial state: zeros, empty collections, home possession at their own 25, regulation Q1. */
-  static GameState initial() {
+  public static GameState initial() {
     return new GameState(
         new Score(0, 0),
         new GameClock(1, 15 * 60),
