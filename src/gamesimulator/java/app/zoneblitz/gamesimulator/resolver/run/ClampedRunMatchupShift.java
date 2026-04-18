@@ -1,16 +1,18 @@
-package app.zoneblitz.gamesimulator.resolver.pass;
+package app.zoneblitz.gamesimulator.resolver.run;
 
-import app.zoneblitz.gamesimulator.resolver.PassRoles;
+import app.zoneblitz.gamesimulator.resolver.RunRoles;
 import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.ToDoubleFunction;
 
 /**
- * Role-based pass-matchup shift with physical-fit clamping.
+ * Role-based run-matchup shift with physical-fit clamping, mirroring {@code
+ * ClampedPassMatchupShift}.
  *
- * <p>Follows the formula from the design doc (lines 214-232):
+ * <p>Formula per axis:
  *
  * <pre>
  *   physical_gap = off_physical_score(role) − def_physical_score(role)
@@ -19,33 +21,38 @@ import java.util.function.ToDoubleFunction;
  *   m            = clamp(off_skill_aggregate − def_skill_aggregate, floor, ceiling)
  * </pre>
  *
- * <p>Physical gap creates the window; skill delta moves within it. This is the math that rules out
- * an OL covering a 4.3 WR via maxed coverage skill: the floor rises with the offense's physical
- * advantage, preventing any defensive skill pool from dragging the matchup back below it.
+ * <p>Two clamped deltas feed the result: the blocking delta (run blockers vs. run defenders) and
+ * the carrier delta (ball carrier vs. run defenders). The offense-is-positive sign convention
+ * matches the pass side — a positive shift biases outcome sampling toward {@code NORMAL} (vs.
+ * {@code FUMBLE}) and pushes yardage percentile draws upward.
  *
- * <p>Returns a single scalar combining the coverage clamp and the pass-rush clamp. R3 collapsed
- * coverage into one aggregate — per-receiver matchups land in R5. Tendency levers (composure,
- * football IQ, processing, …) will modulate the clamped {@code m} once the corresponding downstream
- * models land; this class only honors the attribute fields R4 ships.
+ * <p>Defenders sit on both the blocking and carrier legs — that's intentional: front seven
+ * performance determines both block defeat at the LOS and the downhill tackle. Duplication is the
+ * cost of collapsing the fit/tackle split; a future assigner that separates first-level from
+ * second-level defenders can un-collapse without changing this class's shape.
  */
-public final class ClampedPassMatchupShift implements MatchupPassResolver.PassMatchupShift {
+public final class ClampedRunMatchupShift implements MatchupRunResolver.RunMatchupShift {
 
   @Override
-  public double compute(PassRoles roles, Team offense, Team defense) {
-    var coverage =
+  public double compute(RunRoles roles, Team offense, Team defense) {
+    var blocking =
         clampedDelta(
-            aggregate(roles.routeRunners(), SkillAxis.ROUTE::score),
-            aggregate(roles.coverageDefenders(), SkillAxis.COVERAGE::score),
-            aggregatePhysical(roles.routeRunners(), PhysicalRole.ROUTE),
-            aggregatePhysical(roles.coverageDefenders(), PhysicalRole.COVERAGE));
-    var passRush =
+            aggregate(roles.runBlockers(), SkillAxis.RUN_BLOCK::score),
+            aggregate(roles.runDefenders(), SkillAxis.RUN_DEFENSE::score),
+            aggregatePhysical(roles.runBlockers(), PhysicalRole.RUN_BLOCK),
+            aggregatePhysical(roles.runDefenders(), PhysicalRole.RUN_DEFENSE));
+    var carrier =
         clampedDelta(
-            aggregate(roles.passRushers(), SkillAxis.PASS_RUSH::score),
-            aggregate(roles.passBlockers(), SkillAxis.PASS_BLOCK::score),
-            aggregatePhysical(roles.passRushers(), PhysicalRole.PASS_RUSH),
-            aggregatePhysical(roles.passBlockers(), PhysicalRole.PASS_BLOCK));
+            aggregate(asList(roles.ballCarrier()), SkillAxis.CARRY::score),
+            aggregate(roles.runDefenders(), SkillAxis.RUN_DEFENSE::score),
+            aggregatePhysical(asList(roles.ballCarrier()), PhysicalRole.CARRY),
+            aggregatePhysical(roles.runDefenders(), PhysicalRole.RUN_DEFENSE));
 
-    return coverage - passRush;
+    return blocking + carrier;
+  }
+
+  private static List<Player> asList(Optional<Player> player) {
+    return player.map(List::of).orElse(List.of());
   }
 
   private static double clampedDelta(
@@ -81,39 +88,35 @@ public final class ClampedPassMatchupShift implements MatchupPassResolver.PassMa
    * weighted score is re-centered so an all-50 player scores 0 and an all-100 player scores +1.
    */
   private enum PhysicalRole {
-    ROUTE {
+    CARRY {
       @Override
       double score(Physical p) {
         return center(
-            (p.speed() * 35 + p.acceleration() * 25 + p.agility() * 20 + p.explosiveness() * 20)
+            (p.speed() * 25
+                    + p.agility() * 25
+                    + p.explosiveness() * 20
+                    + p.power() * 15
+                    + p.strength() * 15)
                 / 100.0);
       }
     },
-    COVERAGE {
-      @Override
-      double score(Physical p) {
-        return center(
-            (p.speed() * 35 + p.acceleration() * 25 + p.agility() * 25 + p.explosiveness() * 15)
-                / 100.0);
-      }
-    },
-    PASS_RUSH {
-      @Override
-      double score(Physical p) {
-        return center(
-            (p.strength() * 25
-                    + p.power() * 25
-                    + p.speed() * 20
-                    + p.bend() * 15
-                    + p.explosiveness() * 15)
-                / 100.0);
-      }
-    },
-    PASS_BLOCK {
+    RUN_BLOCK {
       @Override
       double score(Physical p) {
         return center(
             (p.strength() * 30 + p.power() * 30 + p.agility() * 20 + p.stamina() * 20) / 100.0);
+      }
+    },
+    RUN_DEFENSE {
+      @Override
+      double score(Physical p) {
+        return center(
+            (p.strength() * 25
+                    + p.power() * 20
+                    + p.speed() * 20
+                    + p.agility() * 20
+                    + p.explosiveness() * 15)
+                / 100.0);
       }
     };
 
@@ -125,30 +128,24 @@ public final class ClampedPassMatchupShift implements MatchupPassResolver.PassMa
    * {@code [-1, +1]} so every axis sits in the same scalar space as the physical window.
    */
   private enum SkillAxis {
-    ROUTE {
+    CARRY {
       @Override
       double score(Player player) {
         var s = player.skill();
-        return center((s.routeRunning() + s.hands()) / 2.0);
+        return center((s.ballCarrierVision() + s.breakTackle()) / 2.0);
       }
     },
-    COVERAGE {
+    RUN_BLOCK {
       @Override
       double score(Player player) {
-        return center(player.skill().coverageTechnique());
+        return center(player.skill().runBlock());
       }
     },
-    PASS_RUSH {
+    RUN_DEFENSE {
       @Override
       double score(Player player) {
         var s = player.skill();
-        return center((s.passRushMoves() + s.blockShedding()) / 2.0);
-      }
-    },
-    PASS_BLOCK {
-      @Override
-      double score(Player player) {
-        return center(player.skill().passSet());
+        return center((s.tackling() + s.blockShedding()) / 2.0);
       }
     };
 

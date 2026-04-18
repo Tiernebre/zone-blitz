@@ -1,14 +1,14 @@
 package app.zoneblitz.gamesimulator.resolver.pass;
 
 import app.zoneblitz.gamesimulator.PlayCaller;
-import app.zoneblitz.gamesimulator.resolver.RoleAssigner;
-import app.zoneblitz.gamesimulator.resolver.Roles;
+import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.PassRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 
 /**
- * Chooses what the QB does with the ball on a pass snap. Pure over {@link Roles} and the pre-snap
- * inputs; consumes randomness only for the QB's Gaussian processing noise.
+ * Chooses what the QB does with the ball on a pass snap. Pure over {@link PassRoles} and the
+ * pre-snap inputs; consumes randomness only for the QB's Gaussian processing noise.
  *
  * <p>Implementations encode the scoring formula from {@code sim-engine.md} lines 162-174:
  *
@@ -41,11 +41,11 @@ public interface TargetSelector {
    * selector that draws no randomness.
    *
    * @param call the play call
-   * @param roles role buckets from {@link RoleAssigner#assign}
+   * @param roles role buckets from {@link PassRoleAssigner#assign}
    * @param qb the QB executing the dropback
    * @param rng randomness source
    * @return a {@link TargetChoice} describing the outcome shape and (for {@code Throw}) the target
    *     receiver and intended depth
    */
-  TargetChoice select(PlayCaller.PlayCall call, Roles roles, Player qb, RandomSource rng);
+  TargetChoice select(PlayCaller.PlayCall call, PassRoles roles, Player qb, RandomSource rng);
 }

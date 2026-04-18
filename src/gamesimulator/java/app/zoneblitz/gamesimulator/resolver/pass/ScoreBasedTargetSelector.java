@@ -1,7 +1,7 @@
 package app.zoneblitz.gamesimulator.resolver.pass;
 
 import app.zoneblitz.gamesimulator.PlayCaller;
-import app.zoneblitz.gamesimulator.resolver.Roles;
+import app.zoneblitz.gamesimulator.resolver.PassRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
@@ -40,7 +40,8 @@ public final class ScoreBasedTargetSelector implements TargetSelector {
   private static final double SIGMA_AT_FLOOR = 0.70;
 
   @Override
-  public TargetChoice select(PlayCaller.PlayCall call, Roles roles, Player qb, RandomSource rng) {
+  public TargetChoice select(
+      PlayCaller.PlayCall call, PassRoles roles, Player qb, RandomSource rng) {
     var receivers = roles.routeRunners();
     if (receivers.isEmpty()) {
       return new TargetChoice.Throwaway();

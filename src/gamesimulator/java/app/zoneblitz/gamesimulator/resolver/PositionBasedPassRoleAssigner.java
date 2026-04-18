@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Default {@link RoleAssigner}: buckets players by position for pass plays.
+ * Default {@link PassRoleAssigner}: buckets players by position for pass plays.
  *
  * <ul>
  *   <li>OL, FB → pass blockers.
@@ -19,10 +19,10 @@ import java.util.List;
  * <p>QBs and specialists (K, P, LS) are dropped from the buckets — the QB holds the ball, and
  * specialists never appear on scrimmage snaps.
  */
-public final class PositionBasedRoleAssigner implements RoleAssigner {
+public final class PositionBasedPassRoleAssigner implements PassRoleAssigner {
 
   @Override
-  public Roles assign(PlayCaller.PlayCall call, Team offense, Team defense) {
+  public PassRoles assign(PlayCaller.PlayCall call, Team offense, Team defense) {
     var passBlockers = new ArrayList<Player>();
     var routeRunners = new ArrayList<Player>();
     for (var p : offense.roster()) {
@@ -43,7 +43,7 @@ public final class PositionBasedRoleAssigner implements RoleAssigner {
       }
     }
 
-    return new Roles(
+    return new PassRoles(
         List.copyOf(passRushers),
         List.copyOf(passBlockers),
         List.copyOf(routeRunners),

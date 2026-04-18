@@ -12,11 +12,11 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-class RoleAssignerTests {
+class PassRoleAssignerTests {
 
   private static final PlayCaller.PlayCall PASS_CALL = new PlayCaller.PlayCall("pass");
 
-  private final RoleAssigner assigner = new PositionBasedRoleAssigner();
+  private final PassRoleAssigner assigner = new PositionBasedPassRoleAssigner();
 
   @Test
   void assign_mixedRoster_bucketsByPosition() {

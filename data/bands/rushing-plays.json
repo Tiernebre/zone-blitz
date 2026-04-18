@@ -3,6 +3,16 @@
   "seasons": [2020, 2021, 2022, 2023, 2024],
   "notes": "Regular-season rushes only (rush == 1), excluding QB scrambles (those are classified as dropbacks in passing-plays.json), kneels, and two-point conversions. down_distance_bucket splits non-1st downs into short (<=3 or <=2 on 4th), medium (4-6), long (>=7). field_zone uses yardline_100 (yards from opponent endzone): own_deep >=90, own_side 50-89, opp_side 20-49, red_zone_outer 10-19, red_zone_inner <10. rates are per-rush fractions over the full window.",
   "bands": {
+    "outcome_mix": {
+      "normal": {
+        "n": 66000,
+        "rate": 0.9844
+      },
+      "fumble": {
+        "n": 1046,
+        "rate": 0.0156
+      }
+    },
     "overall": {
       "n": 67046,
       "mean": 4.2165,

@@ -12,16 +12,16 @@ import java.util.Objects;
  * {@link #routeRunners} into {@link #passBlockers}. The blitz tradeoff — more rushers but fewer
  * coverage defenders — falls out of the aggregate sizes without any special-case branches.
  *
- * <p>Only pass-play buckets are populated today. Run-play roles (ball carrier, run blockers,
- * run-fit defenders, tacklers) will be added alongside the run-matchup resolver.
+ * <p>Run-play roles live in {@link RunRoles}; each play shape owns its own bucket record so
+ * consumers pattern-match against the buckets they actually use.
  */
-public record Roles(
+public record PassRoles(
     List<Player> passRushers,
     List<Player> passBlockers,
     List<Player> routeRunners,
     List<Player> coverageDefenders) {
 
-  public Roles {
+  public PassRoles {
     Objects.requireNonNull(passRushers, "passRushers");
     Objects.requireNonNull(passBlockers, "passBlockers");
     Objects.requireNonNull(routeRunners, "routeRunners");

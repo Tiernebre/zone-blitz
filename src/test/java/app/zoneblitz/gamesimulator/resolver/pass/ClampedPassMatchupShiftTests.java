@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.zoneblitz.gamesimulator.PlayCaller;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
-import app.zoneblitz.gamesimulator.resolver.PositionBasedRoleAssigner;
-import app.zoneblitz.gamesimulator.resolver.RoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.PositionBasedPassRoleAssigner;
 import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 class ClampedPassMatchupShiftTests {
 
   private final ClampedPassMatchupShift shift = new ClampedPassMatchupShift();
-  private final RoleAssigner assigner = new PositionBasedRoleAssigner();
+  private final PassRoleAssigner assigner = new PositionBasedPassRoleAssigner();
 
   @Test
   void compute_averageRosters_returnsZero() {
@@ -40,7 +40,7 @@ class ClampedPassMatchupShiftTests {
             Position.WR,
             "WR",
             Physical.average(),
-            new Skill(50, 90, 50, 50, 50, 90),
+            new Skill(50, 90, 50, 50, 50, 90, 50, 50, 50, 50),
             Tendencies.average());
     var cb =
         new Player(
@@ -48,7 +48,7 @@ class ClampedPassMatchupShiftTests {
             Position.CB,
             "CB",
             Physical.average(),
-            new Skill(50, 50, 50, 50, 50, 50),
+            new Skill(50, 50, 50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var offense = team(1, List.of(wr));
     var defense = team(2, List.of(cb));
@@ -74,7 +74,7 @@ class ClampedPassMatchupShiftTests {
             Position.CB,
             "OL-masquerading",
             new Physical(35, 35, 30, 95, 95, 20, 50, 25),
-            new Skill(50, 50, 100, 50, 50, 50),
+            new Skill(50, 50, 100, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var offense = team(1, List.of(wr));
     var defense = team(2, List.of(olInCoverage));
@@ -96,7 +96,7 @@ class ClampedPassMatchupShiftTests {
             Position.WR,
             "poor-WR",
             new Physical(35, 35, 30, 50, 50, 50, 50, 25),
-            new Skill(50, 100, 50, 50, 50, 100),
+            new Skill(50, 100, 50, 50, 50, 100, 50, 50, 50, 50),
             Tendencies.average());
     var eliteCb =
         new Player(

@@ -9,9 +9,9 @@ import app.zoneblitz.gamesimulator.band.RateBand;
 import app.zoneblitz.gamesimulator.event.IncompleteReason;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
-import app.zoneblitz.gamesimulator.resolver.PositionBasedRoleAssigner;
-import app.zoneblitz.gamesimulator.resolver.RoleAssigner;
-import app.zoneblitz.gamesimulator.resolver.Roles;
+import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.PassRoles;
+import app.zoneblitz.gamesimulator.resolver.PositionBasedPassRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.pass.BaselinePassResolver.PassOutcomeKind;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
@@ -23,7 +23,7 @@ import java.util.Optional;
 
 /**
  * Role-based, matchup-aware pass resolver. Uses the same {@code passing-plays.json} bands as {@link
- * BaselinePassResolver}; adds role bucketing via {@link RoleAssigner}, a single {@link
+ * BaselinePassResolver}; adds role bucketing via {@link PassRoleAssigner}, a single {@link
  * PassMatchupShift} scalar that feeds the rate band's per-outcome β coefficients inside {@link
  * BandSampler#sampleRate}, and a {@link TargetSelector} that picks the intended receiver for
  * throw-shaped outcomes.
@@ -45,7 +45,7 @@ public final class MatchupPassResolver implements PassResolver {
   private static final String PASSING_PLAYS = "passing-plays.json";
 
   private final BandSampler sampler;
-  private final RoleAssigner roleAssigner;
+  private final PassRoleAssigner roleAssigner;
   private final PassMatchupShift matchupShift;
   private final TargetSelector targetSelector;
   private final RateBand<PassOutcomeKind> outcomeMix;
@@ -55,7 +55,7 @@ public final class MatchupPassResolver implements PassResolver {
 
   public MatchupPassResolver(
       BandSampler sampler,
-      RoleAssigner roleAssigner,
+      PassRoleAssigner roleAssigner,
       PassMatchupShift matchupShift,
       TargetSelector targetSelector,
       RateBand<PassOutcomeKind> outcomeMix,
@@ -83,7 +83,7 @@ public final class MatchupPassResolver implements PassResolver {
     var scrambleYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.scramble_yards");
     return new MatchupPassResolver(
         sampler,
-        new PositionBasedRoleAssigner(),
+        new PositionBasedPassRoleAssigner(),
         new ClampedPassMatchupShift(),
         new ScoreBasedTargetSelector(),
         outcomeMix,
@@ -138,7 +138,7 @@ public final class MatchupPassResolver implements PassResolver {
   }
 
   private PlayerId resolveTarget(
-      PlayCaller.PlayCall call, Roles roles, Player qbPlayer, PlayerId qbId, RandomSource rng) {
+      PlayCaller.PlayCall call, PassRoles roles, Player qbPlayer, PlayerId qbId, RandomSource rng) {
     if (roles.routeRunners().isEmpty()) {
       return qbId;
     }
@@ -151,7 +151,7 @@ public final class MatchupPassResolver implements PassResolver {
     };
   }
 
-  private static PlayerId pickInterceptor(Roles roles, List<Player> defenseRoster) {
+  private static PlayerId pickInterceptor(PassRoles roles, List<Player> defenseRoster) {
     if (!roles.coverageDefenders().isEmpty()) {
       return roles.coverageDefenders().get(0).id();
     }
@@ -181,6 +181,6 @@ public final class MatchupPassResolver implements PassResolver {
     /** Identity shift — keeps the resolver baseline-equivalent. */
     PassMatchupShift ZERO = (roles, offense, defense) -> 0.0;
 
-    double compute(Roles roles, Team offense, Team defense);
+    double compute(PassRoles roles, Team offense, Team defense);
   }
 }

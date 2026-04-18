@@ -1,7 +1,7 @@
 package app.zoneblitz.gamesimulator.resolver.pass;
 
 import app.zoneblitz.gamesimulator.PlayCaller;
-import app.zoneblitz.gamesimulator.resolver.Roles;
+import app.zoneblitz.gamesimulator.resolver.PassRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 
@@ -13,7 +13,8 @@ import app.zoneblitz.gamesimulator.roster.Player;
 final class FirstRouteRunnerTargetSelector implements TargetSelector {
 
   @Override
-  public TargetChoice select(PlayCaller.PlayCall call, Roles roles, Player qb, RandomSource rng) {
+  public TargetChoice select(
+      PlayCaller.PlayCall call, PassRoles roles, Player qb, RandomSource rng) {
     if (roles.routeRunners().isEmpty()) {
       return new TargetChoice.Throwaway();
     }

@@ -12,7 +12,7 @@ import app.zoneblitz.gamesimulator.band.RateBand;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
-import app.zoneblitz.gamesimulator.resolver.PositionBasedRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.PositionBasedPassRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.pass.BaselinePassResolver.PassOutcomeKind;
 import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver.PassMatchupShift;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
@@ -52,7 +52,7 @@ class MatchupPassResolverCalibrationTests {
     var matchup =
         new MatchupPassResolver(
             sampler,
-            new PositionBasedRoleAssigner(),
+            new PositionBasedPassRoleAssigner(),
             PassMatchupShift.ZERO,
             new FirstRouteRunnerTargetSelector(),
             outcomeMix,
@@ -170,7 +170,7 @@ class MatchupPassResolverCalibrationTests {
     var resolver =
         new MatchupPassResolver(
             sampler,
-            new PositionBasedRoleAssigner(),
+            new PositionBasedPassRoleAssigner(),
             shift,
             new ScoreBasedTargetSelector(),
             band,
