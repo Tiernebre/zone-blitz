@@ -16,31 +16,53 @@ import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.PassRoles;
 import app.zoneblitz.gamesimulator.resolver.PositionBasedPassRoleAssigner;
-import app.zoneblitz.gamesimulator.resolver.pass.BaselinePassResolver.PassOutcomeKind;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Role-based, matchup-aware pass resolver. Uses the same {@code passing-plays.json} bands as {@link
- * BaselinePassResolver}; adds role bucketing via {@link PassRoleAssigner}, a single {@link
- * PassMatchupShift} scalar that feeds the rate band's per-outcome β coefficients inside {@link
- * BandSampler#sampleRate}, and a {@link TargetSelector} that picks the intended receiver for
- * throw-shaped outcomes.
+ * Role-based, matchup-aware pass resolver. Loads a five-way {@code RateBand<PassOutcomeKind>} from
+ * {@code passing-plays.json} ({@code COMPLETE | INCOMPLETE | INTERCEPTION | SACK | SCRAMBLE})
+ * together with per-outcome yardage distributions for completions, sacks, and scrambles. The {@link
+ * PassMatchupShift} scalar feeds per-outcome β coefficients inside {@link BandSampler} so a talent
+ * advantage redirects probability mass toward {@code COMPLETE} and away from {@code SACK} and
+ * {@code INTERCEPTION} instead of merely sliding one aggregate ladder.
  *
- * <p>With the shipped band (all β = 0), average-attribute rosters, and a deterministic target
- * selector that draws no randomness, this resolver reproduces {@link BaselinePassResolver}
- * byte-for-byte. The default {@link ScoreBasedTargetSelector} consumes one Gaussian per candidate
- * receiver, so the bit-parity property is a structural invariant of the resolver + a non-consuming
- * selector, not of the default wiring.
+ * <p>With {@link PassMatchupShift#ZERO} (or average-attribute rosters under {@link
+ * ClampedPassMatchupShift}'s {@code DROPBACK} profile) the resolver reproduces the shipped
+ * outcome-mix rates — baseline parity is a structural invariant of the resolver, not a wiring
+ * accident. Target identity is decided by the {@link TargetSelector}; interceptor identity falls
+ * back to first-available-by-role within coverage and rush roles until per-defender modeling lands.
+ *
+ * <p>{@link PassOutcomeKind} is an engine-internal sampling classifier. Consumers see only {@link
+ * PassOutcome} variants — the classifier never escapes this package.
  */
 public final class MatchupPassResolver implements PassResolver {
 
   private static final String PASSING_PLAYS = "passing-plays.json";
 
   private static final long SHELL_SPLIT_KEY = 0x2222_ccddL;
+
+  /**
+   * First-cut β coefficients for outcome sampling. Sign convention matches the shift: positive
+   * shift ⇒ offense talent advantage.
+   *
+   * <p>Completions and scrambles get positive β so a strong offense produces more of each; sacks,
+   * interceptions, and incompletions get negative β so the same shift produces fewer. These are
+   * hand-tuned starting values grounded in 2022-24 league splits (sack rate 0% screen → 14%
+   * dropback; completion rate 85% screen → 45% dropback); the calibration harness will refine them
+   * once concept-aware simulate-season runs land.
+   */
+  private static final Map<PassOutcomeKind, Double> DEFAULT_BETAS =
+      Map.of(
+          PassOutcomeKind.COMPLETE, 0.4,
+          PassOutcomeKind.INCOMPLETE, -0.1,
+          PassOutcomeKind.INTERCEPTION, -0.4,
+          PassOutcomeKind.SACK, -0.5,
+          PassOutcomeKind.SCRAMBLE, 0.1);
 
   private final BandSampler sampler;
   private final PassRoleAssigner roleAssigner;
@@ -74,11 +96,14 @@ public final class MatchupPassResolver implements PassResolver {
   }
 
   /**
-   * Load a resolver from {@code passing-plays.json} with position-based roles, the clamped
-   * attribute-aware pass-matchup shift, and the score-based target selector.
+   * Load a resolver from {@code passing-plays.json} with position-based roles, the default
+   * per-outcome β coefficients, and a composite shift stacking the clamped attribute-aware shift
+   * and a coverage-shell shift.
    */
   public static MatchupPassResolver load(BandRepository repo, BandSampler sampler) {
-    var outcomeMix = repo.loadRate(PASSING_PLAYS, "bands.outcome_mix", PassOutcomeKind.class);
+    var loadedMix = repo.loadRate(PASSING_PLAYS, "bands.outcome_mix", PassOutcomeKind.class);
+    var outcomeMix = new RateBand<>(loadedMix.baseProbabilities(), DEFAULT_BETAS);
+
     var completionYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.completion_yards");
     var sackYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.sack_yards");
     var scrambleYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.scramble_yards");
@@ -115,14 +140,14 @@ public final class MatchupPassResolver implements PassResolver {
     var roles = roleAssigner.assign(call, offense, defense);
     var shellRng = rng.split(SHELL_SPLIT_KEY);
     var shell = shellSampler.sample(call.formation(), shellRng);
-    var context = new PassMatchupContext(roles, call.formation(), shell);
+    var context = new PassMatchupContext(call.passConcept(), roles, call.formation(), shell);
     var shift = matchupShift.compute(context, rng);
     var target = resolveTarget(call, roles, qbPlayer, qb, rng);
     var outcome = sampler.sampleRate(outcomeMix, shift, rng);
 
     return switch (outcome) {
       case COMPLETE -> {
-        var yards = sampler.sampleDistribution(completionYards, 0.0, rng);
+        var yards = sampler.sampleDistribution(completionYards, shift, rng);
         yield new PassOutcome.PassComplete(
             qb, target, yards, 0, yards, Optional.empty(), List.of(), false, false);
       }
@@ -130,11 +155,11 @@ public final class MatchupPassResolver implements PassResolver {
           new PassOutcome.PassIncomplete(
               qb, target, 0, IncompleteReason.OVERTHROWN, Optional.empty());
       case SACK -> {
-        var sampled = sampler.sampleDistribution(sackYards, 0.0, rng);
+        var sampled = sampler.sampleDistribution(sackYards, shift, rng);
         yield new PassOutcome.Sack(qb, List.of(), -sampled, Optional.empty());
       }
       case SCRAMBLE -> {
-        var yards = sampler.sampleDistribution(scrambleYards, 0.0, rng);
+        var yards = sampler.sampleDistribution(scrambleYards, shift, rng);
         yield new PassOutcome.Scramble(qb, yards, Optional.empty(), false, false);
       }
       case INTERCEPTION -> {
@@ -172,11 +197,10 @@ public final class MatchupPassResolver implements PassResolver {
   }
 
   /**
-   * Single-scalar role-aggregate reducer. Encodes the full matchup signal — pass-rush win vs.
-   * coverage win — into one number that combines with the rate band's per-outcome β coefficients
-   * inside {@link BandSampler#sampleRate}. The {@link #ZERO} default leaves outcome sampling at the
-   * base distribution; R4's attribute-aware aggregator replaces it once {@code Physical} and {@code
-   * Skill} land on {@code Player}.
+   * Single-scalar role-aggregate reducer for pass plays. Encodes the full matchup signal — coverage
+   * win minus pass-rush win, weighted by concept — into one number that combines with the
+   * outcome-mix band's per-outcome β coefficients inside {@link BandSampler#sampleRate}. A positive
+   * shift represents an offensive talent advantage.
    */
   @FunctionalInterface
   public interface PassMatchupShift {
@@ -184,6 +208,14 @@ public final class MatchupPassResolver implements PassResolver {
     /** Identity shift — keeps the resolver baseline-equivalent. */
     PassMatchupShift ZERO = (context, rng) -> 0.0;
 
+    /**
+     * Compute the scalar shift for the supplied context.
+     *
+     * @param context pre-snap inputs: concept, roles, formation, coverage shell
+     * @param rng randomness source; implementations that sample (e.g. shell) should {@link
+     *     RandomSource#split(long)} off a child stream so the parent is not disturbed
+     * @return signed scalar; positive values represent an offensive talent advantage
+     */
     double compute(PassMatchupContext context, RandomSource rng);
   }
 }

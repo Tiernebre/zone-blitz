@@ -12,7 +12,7 @@ import app.zoneblitz.gamesimulator.output.NarrationContext;
 import app.zoneblitz.gamesimulator.output.PlayNarrator;
 import app.zoneblitz.gamesimulator.personnel.BaselinePersonnelSelector;
 import app.zoneblitz.gamesimulator.resolver.DispatchingPlayResolver;
-import app.zoneblitz.gamesimulator.resolver.pass.BaselinePassResolver;
+import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver;
 import app.zoneblitz.gamesimulator.resolver.run.MatchupRunResolver;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.CoachId;
@@ -44,7 +44,7 @@ public final class GameSimEmulator {
     var sampler = new DefaultBandSampler();
     var resolver =
         new DispatchingPlayResolver(
-            BaselinePassResolver.load(repo, sampler), MatchupRunResolver.load(repo, sampler));
+            MatchupPassResolver.load(repo, sampler), MatchupRunResolver.load(repo, sampler));
 
     var simulator =
         new GameSimulator(

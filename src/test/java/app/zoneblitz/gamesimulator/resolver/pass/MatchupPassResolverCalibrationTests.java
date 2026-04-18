@@ -15,12 +15,10 @@ import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PositionBasedPassRoleAssigner;
-import app.zoneblitz.gamesimulator.resolver.pass.BaselinePassResolver.PassOutcomeKind;
 import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver.PassMatchupShift;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,64 +37,66 @@ class MatchupPassResolverCalibrationTests {
   private final DefensivePersonnel defense = TestPersonnel.baselineDefense();
 
   @Test
-  void resolve_zeroShiftWithFirstRouteRunnerSelector_matchesBaselineResolverByteForByte() {
-    var baseline = BaselinePassResolver.load(repo, sampler);
-    var outcomeMix =
-        repo.loadRate("passing-plays.json", "bands.outcome_mix", PassOutcomeKind.class);
-    var completionYards =
-        repo.loadDistribution("passing-plays.json", "bands.yardage.completion_yards");
-    var sackYards = repo.loadDistribution("passing-plays.json", "bands.yardage.sack_yards");
-    var scrambleYards = repo.loadDistribution("passing-plays.json", "bands.yardage.scramble_yards");
-    var matchup =
-        new MatchupPassResolver(
-            sampler,
-            new PositionBasedPassRoleAssigner(),
-            PassMatchupShift.ZERO,
-            BandCoverageShellSampler.load(repo),
-            new FirstRouteRunnerTargetSelector(),
-            outcomeMix,
-            completionYards,
-            sackYards,
-            scrambleYards);
+  void resolve_zeroShift_outcomeRatesTrackBase() {
+    var resolver = loadedResolver(PassMatchupShift.ZERO);
+    var counts = sampleCounts(resolver, 99L);
 
-    var baselineRng = new SplittableRandomSource(7L);
-    var matchupRng = new SplittableRandomSource(7L);
-    var baselineOutcomes = new ArrayList<PassOutcome>(1_000);
-    var matchupOutcomes = new ArrayList<PassOutcome>(1_000);
-    for (var i = 0; i < 1_000; i++) {
-      baselineOutcomes.add(baseline.resolve(PASS_CALL, state(), offense, defense, baselineRng));
-      matchupOutcomes.add(matchup.resolve(PASS_CALL, state(), offense, defense, matchupRng));
-    }
-
-    assertThat(matchupOutcomes).isEqualTo(baselineOutcomes);
+    assertThat(counts.get(PassOutcomeKind.COMPLETE))
+        .as("base complete rate ~0.5791 over 10k trials; ±3σ ≈ 5640..5940")
+        .isBetween(5500, 6050);
+    assertThat(counts.get(PassOutcomeKind.SACK))
+        .as("base sack rate ~0.0629 over 10k trials")
+        .isBetween(520, 740);
+    assertThat(counts.get(PassOutcomeKind.INTERCEPTION))
+        .as("base interception rate ~0.0203 over 10k trials")
+        .isBetween(150, 270);
   }
 
   @Test
-  void resolve_positiveShiftOnComplete_raisesCompletionRate() {
-    var boostedBand =
-        new RateBand<>(
-            Map.of(
-                PassOutcomeKind.COMPLETE, 0.5791,
-                PassOutcomeKind.INCOMPLETE, 0.2908,
-                PassOutcomeKind.INTERCEPTION, 0.0203,
-                PassOutcomeKind.SACK, 0.0629,
-                PassOutcomeKind.SCRAMBLE, 0.0469),
-            Map.of(PassOutcomeKind.COMPLETE, 2.0));
-    var completionYards =
-        repo.loadDistribution("passing-plays.json", "bands.yardage.completion_yards");
-    var sackYards = repo.loadDistribution("passing-plays.json", "bands.yardage.sack_yards");
-    var scrambleYards = repo.loadDistribution("passing-plays.json", "bands.yardage.scramble_yards");
+  void resolve_positiveShift_raisesCompletionsAndReducesSacks() {
+    var zero = sampleCounts(loadedResolver(PassMatchupShift.ZERO), 11L);
+    var boosted = sampleCounts(loadedResolver((ctx, rng) -> 2.0), 11L);
 
-    var baselineCompletions =
-        countCompletions(
-            boostedBand, PassMatchupShift.ZERO, completionYards, sackYards, scrambleYards, 11L);
-    var shiftedCompletions =
-        countCompletions(
-            boostedBand, (ctx, rng) -> 1.0, completionYards, sackYards, scrambleYards, 11L);
+    assertThat(boosted.get(PassOutcomeKind.COMPLETE))
+        .as("positive shift with positive COMPLETE β must raise completion count")
+        .isGreaterThan(zero.get(PassOutcomeKind.COMPLETE));
+    assertThat(boosted.get(PassOutcomeKind.SACK))
+        .as("positive shift with negative SACK β must reduce sack count")
+        .isLessThan(zero.get(PassOutcomeKind.SACK));
+    assertThat(boosted.get(PassOutcomeKind.INTERCEPTION))
+        .as("positive shift with negative INTERCEPTION β must reduce pick count")
+        .isLessThan(zero.get(PassOutcomeKind.INTERCEPTION));
+  }
 
-    assertThat(shiftedCompletions)
-        .as("beta=+2 on COMPLETE with shift=+1 must raise completion count vs zero shift")
-        .isGreaterThan(baselineCompletions + 500);
+  @Test
+  void resolve_negativeShift_reducesCompletionsAndIncreasesSacks() {
+    var zero = sampleCounts(loadedResolver(PassMatchupShift.ZERO), 22L);
+    var suppressed = sampleCounts(loadedResolver((ctx, rng) -> -2.0), 22L);
+
+    assertThat(suppressed.get(PassOutcomeKind.COMPLETE))
+        .isLessThan(zero.get(PassOutcomeKind.COMPLETE));
+    assertThat(suppressed.get(PassOutcomeKind.SACK)).isGreaterThan(zero.get(PassOutcomeKind.SACK));
+  }
+
+  @Test
+  void resolve_conceptReachesShiftImplementation() {
+    var seen =
+        new java.util.concurrent.atomic.AtomicReference<
+            app.zoneblitz.gamesimulator.event.PassConcept>();
+    PassMatchupShift capturing =
+        (ctx, rng) -> {
+          seen.set(ctx.concept());
+          return 0.0;
+        };
+    var resolver = buildResolver(loadedMix(), capturing);
+    resolver.resolve(
+        new PlayCaller.PlayCall("pass", app.zoneblitz.gamesimulator.event.PassConcept.SCREEN),
+        state(),
+        offense,
+        defense,
+        new SplittableRandomSource(4L));
+
+    assertThat(seen.get()).isEqualTo(app.zoneblitz.gamesimulator.event.PassConcept.SCREEN);
   }
 
   @Test
@@ -136,24 +136,45 @@ class MatchupPassResolverCalibrationTests {
         .isBetween(0.283, 0.467);
   }
 
-  private int countCompletions(
-      RateBand<PassOutcomeKind> band,
-      PassMatchupShift shift,
-      DistributionalBand completionYards,
-      DistributionalBand sackYards,
-      DistributionalBand scrambleYards,
-      long seed) {
-    var resolver =
-        new MatchupPassResolver(
-            sampler,
-            new PositionBasedPassRoleAssigner(),
-            shift,
-            BandCoverageShellSampler.load(repo),
-            new ScoreBasedTargetSelector(),
-            band,
-            completionYards,
-            sackYards,
-            scrambleYards);
+  private RateBand<PassOutcomeKind> loadedMix() {
+    var base =
+        repo.loadRate("passing-plays.json", "bands.outcome_mix", PassOutcomeKind.class)
+            .baseProbabilities();
+    var betas =
+        Map.of(
+            PassOutcomeKind.COMPLETE, 0.4,
+            PassOutcomeKind.INCOMPLETE, -0.1,
+            PassOutcomeKind.INTERCEPTION, -0.4,
+            PassOutcomeKind.SACK, -0.5,
+            PassOutcomeKind.SCRAMBLE, 0.1);
+    return new RateBand<>(base, betas);
+  }
+
+  private MatchupPassResolver loadedResolver(PassMatchupShift shift) {
+    return buildResolver(loadedMix(), shift);
+  }
+
+  private MatchupPassResolver buildResolver(
+      RateBand<PassOutcomeKind> outcomeMix, PassMatchupShift shift) {
+    DistributionalBand completionYards =
+        repo.loadDistribution("passing-plays.json", "bands.yardage.completion_yards");
+    DistributionalBand sackYards =
+        repo.loadDistribution("passing-plays.json", "bands.yardage.sack_yards");
+    DistributionalBand scrambleYards =
+        repo.loadDistribution("passing-plays.json", "bands.yardage.scramble_yards");
+    return new MatchupPassResolver(
+        sampler,
+        new PositionBasedPassRoleAssigner(),
+        shift,
+        BandCoverageShellSampler.load(repo),
+        new ScoreBasedTargetSelector(),
+        outcomeMix,
+        completionYards,
+        sackYards,
+        scrambleYards);
+  }
+
+  private EnumMap<PassOutcomeKind, Integer> sampleCounts(MatchupPassResolver resolver, long seed) {
     var rng = new SplittableRandomSource(seed);
     var counts = new EnumMap<PassOutcomeKind, Integer>(PassOutcomeKind.class);
     for (var kind : PassOutcomeKind.values()) {
@@ -163,7 +184,7 @@ class MatchupPassResolverCalibrationTests {
       counts.merge(
           classify(resolver.resolve(PASS_CALL, state(), offense, defense, rng)), 1, Integer::sum);
     }
-    return counts.get(PassOutcomeKind.COMPLETE);
+    return counts;
   }
 
   private static Player wr(int seed, String name) {

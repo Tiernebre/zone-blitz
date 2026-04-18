@@ -1,5 +1,6 @@
 package app.zoneblitz.gamesimulator;
 
+import app.zoneblitz.gamesimulator.event.PassConcept;
 import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
 import java.util.Objects;
@@ -21,31 +22,59 @@ public interface PlayCaller {
    * Opaque play-call placeholder — will be replaced with a sealed hierarchy.
    *
    * <p>{@code runConcept} carries coach intent into the run resolver's matchup shift and is stamped
-   * onto the resulting {@code RunOutcome.Run}. {@code formation} feeds the pre-snap box-count and
-   * coverage-shell samplers. All three fields are required. Convenience constructors default the
-   * missing fields — formation defaults to {@link OffensiveFormation#SINGLEBACK} for runs and
-   * {@link OffensiveFormation#SHOTGUN} for everything else, matching the modal real-NFL formation
-   * for each play type.
+   * onto the resulting {@code RunOutcome.Run}. {@code passConcept} does the same for passes via
+   * {@code PassConceptProfiles}. {@code formation} feeds the pre-snap box-count and coverage-shell
+   * samplers. All fields are required. Convenience constructors default the missing fields:
+   *
+   * <ul>
+   *   <li>run kind → {@link RunConcept#INSIDE_ZONE}, {@link PassConcept#DROPBACK} (placeholder,
+   *       ignored for runs), {@link OffensiveFormation#SINGLEBACK}
+   *   <li>pass kind → {@link RunConcept#INSIDE_ZONE} (placeholder, ignored for passes), {@link
+   *       PassConcept#DROPBACK}, {@link OffensiveFormation#SHOTGUN} (except {@link
+   *       PassConcept#PLAY_ACTION} which modally runs from SINGLEBACK)
+   * </ul>
    */
-  record PlayCall(String kind, RunConcept runConcept, OffensiveFormation formation) {
+  record PlayCall(
+      String kind, RunConcept runConcept, PassConcept passConcept, OffensiveFormation formation) {
     public PlayCall {
       Objects.requireNonNull(kind, "kind");
       Objects.requireNonNull(runConcept, "runConcept");
+      Objects.requireNonNull(passConcept, "passConcept");
       Objects.requireNonNull(formation, "formation");
     }
 
     public PlayCall(String kind, RunConcept runConcept) {
-      this(kind, runConcept, defaultFormation(kind));
+      this(kind, runConcept, PassConcept.DROPBACK, defaultFormation(kind, PassConcept.DROPBACK));
+    }
+
+    public PlayCall(String kind, PassConcept passConcept) {
+      this(kind, RunConcept.INSIDE_ZONE, passConcept, defaultFormation(kind, passConcept));
+    }
+
+    public PlayCall(String kind, RunConcept runConcept, OffensiveFormation formation) {
+      this(kind, runConcept, PassConcept.DROPBACK, formation);
+    }
+
+    public PlayCall(String kind, PassConcept passConcept, OffensiveFormation formation) {
+      this(kind, RunConcept.INSIDE_ZONE, passConcept, formation);
     }
 
     public PlayCall(String kind) {
-      this(kind, RunConcept.INSIDE_ZONE);
+      this(
+          kind,
+          RunConcept.INSIDE_ZONE,
+          PassConcept.DROPBACK,
+          defaultFormation(kind, PassConcept.DROPBACK));
     }
 
-    private static OffensiveFormation defaultFormation(String kind) {
-      return "run".equalsIgnoreCase(kind)
-          ? OffensiveFormation.SINGLEBACK
-          : OffensiveFormation.SHOTGUN;
+    private static OffensiveFormation defaultFormation(String kind, PassConcept passConcept) {
+      if ("run".equalsIgnoreCase(kind)) {
+        return OffensiveFormation.SINGLEBACK;
+      }
+      return switch (passConcept) {
+        case PLAY_ACTION -> OffensiveFormation.SINGLEBACK;
+        case QUICK_GAME, DROPBACK, SCREEN, RPO, HAIL_MARY -> OffensiveFormation.SHOTGUN;
+      };
     }
   }
 }

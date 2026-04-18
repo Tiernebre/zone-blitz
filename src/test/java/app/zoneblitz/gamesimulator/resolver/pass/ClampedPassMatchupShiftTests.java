@@ -3,6 +3,7 @@ package app.zoneblitz.gamesimulator.resolver.pass;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.PlayCaller;
+import app.zoneblitz.gamesimulator.event.PassConcept;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.formation.CoverageShell;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
@@ -26,7 +27,8 @@ class ClampedPassMatchupShiftTests {
 
   private double computeFor(PassRoles roles) {
     return shift.compute(
-        new PassMatchupContext(roles, OffensiveFormation.SHOTGUN, CoverageShell.COVER_3),
+        new PassMatchupContext(
+            PassConcept.DROPBACK, roles, OffensiveFormation.SHOTGUN, CoverageShell.COVER_3),
         new SplittableRandomSource(0L));
   }
 
