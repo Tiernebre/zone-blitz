@@ -297,27 +297,33 @@ Spring Security default enabled. HTMX configured with `hx-headers` to send the t
 - **Test-first, always.** Write the failing test against the interface before the implementation exists.
 - **Coverage target: 85%.** JaCoCo reports wired up in `build.gradle.kts`.
 
-### Unit vs integration
+### DB-touching code always uses Testcontainers
 
-- Bias toward many fast unit tests using fakes for interface dependencies.
-- Smaller set of integration tests at the seams.
+**Anything that touches the database is tested against a real Postgres container — never a fake, never a mock, never H2.** This applies to:
+
+- Repository adapters (`Jooq*Repository`) — the whole point is to verify jOOQ + SQL + Flyway schema stay in sync.
+- Use cases that depend on a repository — a `CreateLeagueUseCase` is an integration test that runs against real rows, because the repo contract (unique constraints, transaction boundaries, cascade deletes, case-insensitive uniqueness, FK failures) is load-bearing for the use case's behavior.
+
+Wire the use case manually in `@BeforeEach` with the real `Jooq*Repository` passed a `DSLContext` from `@JooqTest`. No `InMemoryLeagueRepository`, no Mockito stubs of `LeagueRepository`. Mocked DB behavior always drifts from real DB behavior.
 
 ### Slice tests
 
 - `@WebMvcTest` for controllers.
-- `@DataJooqTest` for repositories.
+- `@JooqTest` for repositories **and** repository-backed use cases (construct the use case over real `Jooq*Repository` instances in `setUp`).
 - Full `@SpringBootTest` only when a slice isn't enough.
 
 ### Testcontainers
 
 - Reusable containers across the suite. Configure `.withReuse(true)` + `~/.testcontainers.properties` locally.
-- Single Postgres container shared by all DB-touching tests.
+- Single Postgres container shared by all DB-touching tests (see `PostgresTestcontainer` — `@Import` it into every `@JooqTest` and `@SpringBootTest`).
 
-### Fakes over mocks
+### Fakes over mocks — but only for non-DB ports
 
-- Prefer hand-written fakes (`InMemoryPlayerRepository`, `FakeClock`, `FakeEmailSender`) that implement the interface.
+Use hand-written fakes for ports that aren't the database: `FakeClock`, `FakeEmailSender`, `InMemoryEventPublisher`, `FakeRandomSource`. These are the seams where faking beats a real implementation (deterministic time, no external network, reproducible RNG).
+
+- Never write an `InMemory*Repository`. Repositories are tested through Testcontainers; anything that consumes a repository is too.
+- Mockito is the fallback, not the default. Controller slice tests are the one place it's common — `@MockitoBean` for use-case interfaces so the controller test stays focused on request mapping, validation, and rendering.
 - Fakes live in `src/test/java` alongside the tests that use them. Promote to `src/main/java` only when a dev/demo profile needs them.
-- Mockito is the fallback, not the default.
 
 ### Assertions
 

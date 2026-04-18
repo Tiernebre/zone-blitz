@@ -9,11 +9,24 @@
 	<script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
-	<main class="max-w-xl mx-auto p-8">
-		<h1 class="text-3xl font-bold mb-6">Zone Blitz</h1>
+	<main class="max-w-4xl mx-auto p-8">
+		<header class="flex items-center justify-between mb-8">
+			<h1 class="text-3xl font-bold">Zone Blitz</h1>
+			<div sec:authorize="isAuthenticated()" class="text-sm text-slate-600 flex items-center gap-3">
+				<span>
+					<span class="font-semibold" sec:authentication="principal.attributes['name']">User</span>
+				</span>
+				<form th:action="@{/logout}" method="post" class="inline">
+					<button type="submit"
+					        class="px-3 py-1.5 text-sm bg-slate-200 text-slate-800 rounded hover:bg-slate-300">
+						Sign out
+					</button>
+				</form>
+			</div>
+		</header>
 
-		<div sec:authorize="!isAuthenticated()" class="mb-8">
-			<p class="mb-4">Sign in to get started.</p>
+		<div sec:authorize="!isAuthenticated()">
+			<p class="mb-4">Sign in to manage your leagues.</p>
 			<a th:href="@{/oauth2/authorization/google}"
 			   class="inline-flex items-center gap-3 bg-white border border-slate-300 rounded-md px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500"
 			   style="font-family: 'Roboto', Arial, sans-serif;">
@@ -28,29 +41,47 @@
 			</a>
 		</div>
 
-		<div sec:authorize="isAuthenticated()" class="mb-8">
-			<p class="mb-2">
-				Signed in as
-				<span class="font-semibold" sec:authentication="principal.attributes['name']">User</span>
-				(<span sec:authentication="principal.attributes['email']">email</span>)
-			</p>
-			<form th:action="@{/logout}" method="post" class="inline">
-				<button type="submit"
-				        class="px-3 py-1.5 text-sm bg-slate-200 text-slate-800 rounded hover:bg-slate-300">
-					Sign out
-				</button>
-			</form>
-		</div>
+		<section sec:authorize="isAuthenticated()">
+			<div class="flex items-center justify-between mb-4">
+				<h2 class="text-xl font-semibold">Your leagues</h2>
+				<a th:href="@{/leagues/new}"
+				   class="px-4 py-2 bg-slate-900 text-white text-sm rounded hover:bg-slate-700">
+					Create league
+				</a>
+			</div>
 
-		<p class="mb-4">Click below to ping the database.</p>
-		<button
-			class="px-4 py-2 bg-slate-900 text-white rounded hover:bg-slate-700"
-			hx-get="/api/health"
-			hx-target="#health"
-			hx-swap="innerHTML">
-			Check health
-		</button>
-		<div id="health" class="mt-4"></div>
+			<div th:if="${leagues.isEmpty()}"
+			     class="border border-dashed border-slate-300 rounded-md p-8 text-center text-slate-600">
+				<p class="mb-2">You haven't created a league yet.</p>
+				<p>Click <span class="font-semibold">Create league</span> to get started.</p>
+			</div>
+
+			<table th:unless="${leagues.isEmpty()}"
+			       class="w-full border border-slate-200 bg-white rounded-md overflow-hidden">
+				<thead class="bg-slate-100 text-left text-sm text-slate-600">
+					<tr>
+						<th class="px-4 py-2">Name</th>
+						<th class="px-4 py-2">Your franchise</th>
+						<th class="px-4 py-2">Phase</th>
+						<th class="px-4 py-2">Created</th>
+					</tr>
+				</thead>
+				<tbody class="text-sm">
+					<tr th:each="league : ${leagues}" class="border-t border-slate-200">
+						<td class="px-4 py-2 font-semibold" th:text="${league.leagueName()}">League</td>
+						<td class="px-4 py-2">
+							<span class="inline-flex items-center gap-2">
+								<span class="inline-block w-3 h-3 rounded-full border border-slate-300"
+								      th:style="'background-color: ' + ${league.userFranchise().primaryColor()}"></span>
+								<span th:text="${league.userFranchise().city().name() + ' ' + league.userFranchise().name()}">Team</span>
+							</span>
+						</td>
+						<td class="px-4 py-2 text-slate-600" th:text="${league.phase()}">PHASE</td>
+						<td class="px-4 py-2 text-slate-500" th:text="${#temporals.format(league.createdAt(), 'yyyy-MM-dd')}">date</td>
+					</tr>
+				</tbody>
+			</table>
+		</section>
 	</main>
 </body>
 </html>

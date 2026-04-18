@@ -1,0 +1,136 @@
+package app.zoneblitz.league;
+
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+import app.zoneblitz.config.SecurityConfig;
+import java.time.Instant;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.web.servlet.ServletWebSecurityAutoConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+@WebMvcTest(LeagueController.class)
+@Import(SecurityConfig.class)
+@ImportAutoConfiguration({
+  SecurityAutoConfiguration.class,
+  ServletWebSecurityAutoConfiguration.class
+})
+class LeagueControllerTests {
+
+  @Autowired MockMvc mvc;
+
+  @MockitoBean ListLeaguesForUser listLeagues;
+  @MockitoBean ListFranchises listFranchises;
+  @MockitoBean CreateLeague createLeague;
+  @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
+
+  @Test
+  void home_whenUnauthenticated_rendersIndexWithEmptyLeagues() throws Exception {
+    mvc.perform(get("/"))
+        .andExpect(status().isOk())
+        .andExpect(view().name("index"))
+        .andExpect(model().attribute("leagues", List.of()));
+  }
+
+  @Test
+  void home_whenAuthenticated_loadsLeaguesForSubject() throws Exception {
+    given(listLeagues.listFor("google-sub-abc")).willReturn(List.of());
+
+    mvc.perform(get("/").with(oauth2Login().attributes(a -> a.put("sub", "google-sub-abc"))))
+        .andExpect(status().isOk())
+        .andExpect(view().name("index"));
+
+    verify(listLeagues).listFor("google-sub-abc");
+  }
+
+  @Test
+  void newLeagueForm_requiresAuthentication() throws Exception {
+    mvc.perform(get("/leagues/new")).andExpect(status().is3xxRedirection());
+  }
+
+  @Test
+  void newLeagueForm_whenAuthenticated_rendersForm() throws Exception {
+    given(listFranchises.list()).willReturn(List.of());
+
+    mvc.perform(get("/leagues/new").with(oauth2Login()))
+        .andExpect(status().isOk())
+        .andExpect(view().name("league/new"))
+        .andExpect(model().attributeExists("form", "franchises"));
+  }
+
+  @Test
+  void create_whenValid_delegatesAndRedirectsHome() throws Exception {
+    var league =
+        new League(
+            1L,
+            "Dynasty",
+            "sub-1",
+            LeaguePhase.INITIAL_SETUP,
+            LeagueSettings.defaults(),
+            Instant.now());
+    given(createLeague.create(eq("sub-1"), eq("Dynasty"), anyLong()))
+        .willReturn(new CreateLeagueResult.Created(league));
+
+    mvc.perform(
+            post("/leagues")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf())
+                .param("name", "Dynasty")
+                .param("franchiseId", "3"))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/"));
+
+    verify(createLeague).create("sub-1", "Dynasty", 3L);
+  }
+
+  @Test
+  void create_whenNameBlank_reRendersFormWithErrors() throws Exception {
+    given(listFranchises.list()).willReturn(List.of());
+
+    mvc.perform(
+            post("/leagues")
+                .with(oauth2Login())
+                .with(csrf())
+                .param("name", "")
+                .param("franchiseId", "3"))
+        .andExpect(status().isOk())
+        .andExpect(view().name("league/new"))
+        .andExpect(model().attributeHasFieldErrors("form", "name"));
+  }
+
+  @Test
+  void create_whenNameTaken_surfacesError() throws Exception {
+    given(createLeague.create(anyString(), anyString(), anyLong()))
+        .willReturn(new CreateLeagueResult.NameTaken("Dynasty"));
+    given(listFranchises.list()).willReturn(List.of());
+
+    mvc.perform(
+            post("/leagues")
+                .with(oauth2Login())
+                .with(csrf())
+                .param("name", "Dynasty")
+                .param("franchiseId", "3"))
+        .andExpect(status().isOk())
+        .andExpect(view().name("league/new"))
+        .andExpect(model().attributeHasFieldErrors("form", "name"));
+  }
+}
