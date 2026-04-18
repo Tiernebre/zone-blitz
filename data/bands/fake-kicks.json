@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-04-18T09:58:35Z",
+  "seasons": [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season 4th-down plays over 10 seasons (fakes are rare). Fake detection is heuristic on pbp.desc: matches 'fake punt' / 'fake field goal' text or a pass/run executed by the punter/holder on a 4th-down punt/FG situation. Denominator is all 4th-down plays where a punt/FG was lined up (punt attempts + fake punts, FG attempts + fake FGs). first_down_success_rate is the conversion rate on the fake.",
+  "bands": {
+    "fake_punts": {
+      "n_fakes": 15,
+      "n_punt_situations": 22095,
+      "rate": 0.0007,
+      "first_down_success_rate": 0.8,
+      "mean_yards_gained": 12.8,
+      "touchdown_rate": 0.0667
+    },
+    "fake_field_goals": {
+      "n_fakes": 1,
+      "n_fg_situations": 9320,
+      "rate": 0.0001,
+      "first_down_success_rate": 0,
+      "mean_yards_gained": 0,
+      "touchdown_rate": 0
+    }
+  }
+}
