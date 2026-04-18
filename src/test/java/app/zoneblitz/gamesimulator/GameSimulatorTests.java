@@ -224,7 +224,9 @@ class GameSimulatorTests {
             new NoPenaltyModel(),
             app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
             (score, side, clock) -> true,
-            new app.zoneblitz.gamesimulator.scoring.FlatRateTwoPointResolver(1.0, 0.0));
+            new app.zoneblitz.gamesimulator.scoring.FlatRateTwoPointResolver(1.0, 0.0),
+            HomeFieldModel.neutral(),
+            TimeoutDecider.never());
 
     var events = simulator.simulate(inputs(Optional.of(1L))).toList();
 
@@ -245,6 +247,73 @@ class GameSimulatorTests {
     assertThat(twoPoint.scoreAfter().home() + twoPoint.scoreAfter().away())
         .isEqualTo(tdScore.home() + tdScore.away() + 2);
     assertThat(events.get(firstTdIndex + 2)).isInstanceOf(PlayEvent.Kickoff.class);
+  }
+
+  @Test
+  void simulate_withAggressiveTimeoutDecider_emitsTimeoutEventsAndStopsClock() {
+    var personnel =
+        new FakePersonnelSelector(TestPersonnel.baselineOffense(), TestPersonnel.baselineDefense());
+    var alwaysHome =
+        (TimeoutDecider)
+            (state, home, away, rng) ->
+                state.timeoutsFor(Side.HOME) > 0 ? Optional.of(Side.HOME) : Optional.empty();
+    var simulator =
+        new GameSimulator(
+            ScriptedPlayCaller.runs(1),
+            personnel,
+            new ConstantPlayResolver(QB_ID, WR_ID),
+            BandClockModel.load(new ClasspathBandRepository(), new DefaultBandSampler()),
+            new TouchbackKickoffResolver(),
+            new FlatRateExtraPointResolver(),
+            new DistanceCurveFieldGoalResolver(),
+            new DistanceCurvePuntResolver(),
+            new NoPenaltyModel(),
+            app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
+            new StandardTwoPointDecisionPolicy(),
+            new FlatRateTwoPointResolver(),
+            HomeFieldModel.neutral(),
+            alwaysHome);
+
+    var events = simulator.simulate(inputs(Optional.of(1L))).toList();
+
+    var timeouts = events.stream().filter(e -> e instanceof PlayEvent.Timeout).toList();
+    assertThat(timeouts).as("expected at least one timeout emission").isNotEmpty();
+    for (var event : timeouts) {
+      var timeout = (PlayEvent.Timeout) event;
+      assertThat(timeout.team()).isEqualTo(Side.HOME);
+      assertThat(timeout.clockBefore().secondsRemaining())
+          .as("timeout stops the clock — clockAfter equals clockBefore")
+          .isEqualTo(timeout.clockAfter().secondsRemaining());
+    }
+    // With 4 halves-equivalent resets (half + OT), HOME cannot emit more than 12 timeouts total
+    // (3 per reset bucket); a game with an aggressive decider should sit well within that bound.
+    assertThat(timeouts.size()).isLessThanOrEqualTo(12);
+  }
+
+  @Test
+  void simulate_withNeverDecider_emitsNoTimeouts() {
+    var personnel =
+        new FakePersonnelSelector(TestPersonnel.baselineOffense(), TestPersonnel.baselineDefense());
+    var simulator =
+        new GameSimulator(
+            ScriptedPlayCaller.runs(1),
+            personnel,
+            new ConstantPlayResolver(QB_ID, WR_ID),
+            BandClockModel.load(new ClasspathBandRepository(), new DefaultBandSampler()),
+            new TouchbackKickoffResolver(),
+            new FlatRateExtraPointResolver(),
+            new DistanceCurveFieldGoalResolver(),
+            new DistanceCurvePuntResolver(),
+            new NoPenaltyModel(),
+            app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
+            new StandardTwoPointDecisionPolicy(),
+            new FlatRateTwoPointResolver(),
+            HomeFieldModel.neutral(),
+            TimeoutDecider.never());
+
+    var events = simulator.simulate(inputs(Optional.of(1L))).toList();
+
+    assertThat(events).noneMatch(e -> e instanceof PlayEvent.Timeout);
   }
 
   @Test
@@ -352,7 +421,9 @@ class GameSimulatorTests {
         new DistanceCurveFieldGoalResolver(),
         new DistanceCurvePuntResolver(),
         new NoPenaltyModel(),
-        app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+        app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
+        new StandardTwoPointDecisionPolicy(),
+        new FlatRateTwoPointResolver());
   }
 
   private PlayResolver zeroYardRunResolver() {

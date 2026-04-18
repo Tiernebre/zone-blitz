@@ -160,6 +160,57 @@ public record GameState(
         overtime);
   }
 
+  /**
+   * Decrement the calling side's remaining timeouts by one. Throws {@link IllegalStateException} if
+   * the side has none left; callers are expected to check via {@link #timeoutsFor(Side)} first.
+   */
+  public GameState withTimeoutUsed(Side side) {
+    Objects.requireNonNull(side, "side");
+    var newHome = side == Side.HOME ? homeTimeouts - 1 : homeTimeouts;
+    var newAway = side == Side.AWAY ? awayTimeouts - 1 : awayTimeouts;
+    if (newHome < 0 || newAway < 0) {
+      throw new IllegalStateException("no timeouts remaining for " + side);
+    }
+    return new GameState(
+        score,
+        clock,
+        downAndDistance,
+        spot,
+        possession,
+        drive,
+        fatigueSnapCounts,
+        injuredPlayers,
+        newHome,
+        newAway,
+        phase,
+        overtimeRound,
+        overtime);
+  }
+
+  /** Reset both sides' timeouts to 3 each. Invoked at half and at the start of overtime. */
+  public GameState withTimeoutsReset() {
+    return new GameState(
+        score,
+        clock,
+        downAndDistance,
+        spot,
+        possession,
+        drive,
+        fatigueSnapCounts,
+        injuredPlayers,
+        3,
+        3,
+        phase,
+        overtimeRound,
+        overtime);
+  }
+
+  /** Remaining timeouts for the given side. */
+  public int timeoutsFor(Side side) {
+    Objects.requireNonNull(side, "side");
+    return side == Side.HOME ? homeTimeouts : awayTimeouts;
+  }
+
   public GameState withPossessionAndSpot(Side newPossession, FieldPosition newSpot) {
     Objects.requireNonNull(newPossession, "newPossession");
     Objects.requireNonNull(newSpot, "newSpot");

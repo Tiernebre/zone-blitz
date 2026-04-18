@@ -63,6 +63,7 @@ final class GameSimulator implements SimulateGame {
   private static final long PENALTY_LIVE_KEY = 0xFE33_3333L;
   private static final long PENALTY_POST_KEY = 0xFF22_2222L;
   private static final long HOME_FIELD_KEY = 0xFEED_FACEL;
+  private static final long TIMEOUT_SPLIT_KEY = 0xF011_7011L;
 
   /**
    * Inside this many yards of the opposing goal line a 4th down triggers a field-goal attempt.
@@ -90,6 +91,7 @@ final class GameSimulator implements SimulateGame {
   private final HomeFieldModel homeFieldModel;
   private final TwoPointDecisionPolicy twoPointPolicy;
   private final TwoPointResolver twoPointResolver;
+  private final TimeoutDecider timeoutDecider;
 
   GameSimulator(
       PlayCaller caller,
@@ -117,7 +119,8 @@ final class GameSimulator implements SimulateGame {
         defensiveCallSelector,
         twoPointPolicy,
         twoPointResolver,
-        HomeFieldModel.neutral());
+        HomeFieldModel.neutral(),
+        new TendencyTimeoutDecider());
   }
 
   GameSimulator(
@@ -133,7 +136,8 @@ final class GameSimulator implements SimulateGame {
       DefensiveCallSelector defensiveCallSelector,
       TwoPointDecisionPolicy twoPointPolicy,
       TwoPointResolver twoPointResolver,
-      HomeFieldModel homeFieldModel) {
+      HomeFieldModel homeFieldModel,
+      TimeoutDecider timeoutDecider) {
     this.caller = Objects.requireNonNull(caller, "caller");
     this.personnel = Objects.requireNonNull(personnel, "personnel");
     this.resolver = Objects.requireNonNull(resolver, "resolver");
@@ -148,6 +152,7 @@ final class GameSimulator implements SimulateGame {
     this.twoPointPolicy = Objects.requireNonNull(twoPointPolicy, "twoPointPolicy");
     this.twoPointResolver = Objects.requireNonNull(twoPointResolver, "twoPointResolver");
     this.homeFieldModel = Objects.requireNonNull(homeFieldModel, "homeFieldModel");
+    this.timeoutDecider = Objects.requireNonNull(timeoutDecider, "timeoutDecider");
   }
 
   @Override
@@ -170,6 +175,7 @@ final class GameSimulator implements SimulateGame {
         state = endOfQuarter(events, state, inputs, openingReceiver, seq, root, gameKey);
         continue;
       }
+      state = maybeCallTimeout(events, state, inputs, seq, root, gameKey);
       state = runSnap(events, state, inputs, seq, root, gameKey);
     }
     return events.stream();
@@ -702,8 +708,9 @@ final class GameSimulator implements SimulateGame {
     var advanced = state.withClock(nextClock);
     if (quarter == 2) {
       var secondHalfReceiver = openingReceiver == Side.HOME ? Side.AWAY : Side.HOME;
+      var afterHalf = advanced.withTimeoutsReset();
       return emitKickoff(
-          out, advanced, inputs, secondHalfReceiver, seq, root.split(gameKey ^ 0xB00BL));
+          out, afterHalf, inputs, secondHalfReceiver, seq, root.split(gameKey ^ 0xB00BL));
     }
     return advanced;
   }
@@ -728,7 +735,8 @@ final class GameSimulator implements SimulateGame {
             .withPhase(GameState.Phase.OVERTIME)
             .withClock(otClock)
             .withOvertimeRound(round)
-            .withOvertime(GameState.OvertimeState.notStarted());
+            .withOvertime(GameState.OvertimeState.notStarted())
+            .withTimeoutsReset();
     return emitKickoff(out, withOt, inputs, receiver, seq, root.split(gameKey ^ 0xD1AABBL ^ round));
   }
 
@@ -746,6 +754,41 @@ final class GameSimulator implements SimulateGame {
       return state.withPhase(GameState.Phase.FINAL);
     }
     return startOvertimePeriod(out, state, inputs, seq, root, gameKey, state.overtimeRound() + 1);
+  }
+
+  private GameState maybeCallTimeout(
+      List<PlayEvent> out,
+      GameState state,
+      GameInputs inputs,
+      int[] seq,
+      SplittableRandomSource root,
+      long gameKey) {
+    var rng = root.split(gameKey ^ TIMEOUT_SPLIT_KEY ^ ((long) seq[0] << 16));
+    var called = timeoutDecider.decide(state, inputs.homeCoach(), inputs.awayCoach(), rng);
+    if (called.isEmpty()) {
+      return state;
+    }
+    var side = called.get();
+    if (state.timeoutsFor(side) <= 0) {
+      return state;
+    }
+    var sequence = seq[0]++;
+    var id =
+        new PlayId(
+            new UUID(inputs.gameId().value().getMostSignificantBits(), 0xA700L | (long) sequence));
+    var event =
+        new PlayEvent.Timeout(
+            id,
+            inputs.gameId(),
+            sequence,
+            state.downAndDistance(),
+            state.spot(),
+            state.clock(),
+            state.clock(),
+            state.score(),
+            side);
+    out.add(event);
+    return state.withTimeoutUsed(side);
   }
 
   private GameState emitKickoff(
