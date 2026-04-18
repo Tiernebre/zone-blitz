@@ -5,6 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
+import app.zoneblitz.gamesimulator.roster.Coach;
+import app.zoneblitz.gamesimulator.roster.CoachId;
+import app.zoneblitz.gamesimulator.roster.Player;
+import app.zoneblitz.gamesimulator.roster.Position;
+import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,27 +18,22 @@ import org.junit.jupiter.api.Test;
 class GameSimulatorTests {
 
   private static final GameId GAME_ID = new GameId(new UUID(42L, 99L));
-  private static final PlayerId CARRIER = new PlayerId(new UUID(1L, 1L));
-  private static final PlayerId COACH = new PlayerId(new UUID(2L, 2L));
-  private static final TeamId HOME = new TeamId(new UUID(3L, 3L));
-  private static final TeamId AWAY = new TeamId(new UUID(4L, 4L));
+  private static final PlayerId CARRIER_ID = new PlayerId(new UUID(1L, 1L));
+  private static final Player CARRIER = new Player(CARRIER_ID, Position.RB, "Test Carrier");
+  private static final Coach HOME_COACH = new Coach(new CoachId(new UUID(2L, 2L)), "Home Coach");
+  private static final Coach AWAY_COACH = new Coach(new CoachId(new UUID(2L, 3L)), "Away Coach");
+  private static final Team HOME =
+      new Team(new TeamId(new UUID(3L, 3L)), "Home Team", List.of(CARRIER));
+  private static final Team AWAY = new Team(new TeamId(new UUID(4L, 4L)), "Away Team", List.of());
 
   private SimulateGame newSimulator(int snaps) {
     return new GameSimulator(
-        ScriptedPlayCaller.runs(snaps), new ConstantPlayResolver(GAME_ID, CARRIER), snaps);
+        ScriptedPlayCaller.runs(snaps), new ConstantPlayResolver(GAME_ID, CARRIER_ID), snaps);
   }
 
   private static GameInputs inputs(Optional<Long> seed) {
     return new GameInputs(
-        GAME_ID,
-        HOME,
-        AWAY,
-        List.of(CARRIER),
-        List.of(),
-        COACH,
-        COACH,
-        new GameInputs.PreGameContext(),
-        seed);
+        GAME_ID, HOME, AWAY, HOME_COACH, AWAY_COACH, new GameInputs.PreGameContext(), seed);
   }
 
   @Test

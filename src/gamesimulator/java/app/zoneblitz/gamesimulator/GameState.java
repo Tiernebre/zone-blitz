@@ -6,7 +6,7 @@ import app.zoneblitz.gamesimulator.event.GameClock;
 import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.Score;
-import app.zoneblitz.gamesimulator.event.Team;
+import app.zoneblitz.gamesimulator.event.Side;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -25,7 +25,7 @@ record GameState(
     GameClock clock,
     DownAndDistance downAndDistance,
     FieldPosition spot,
-    Team possession,
+    Side possession,
     DriveState drive,
     Map<PlayerId, Integer> fatigueSnapCounts,
     List<PlayerId> injuredPlayers,
@@ -55,7 +55,7 @@ record GameState(
         new GameClock(1, 15 * 60),
         new DownAndDistance(1, 10),
         new FieldPosition(25),
-        Team.HOME,
+        Side.HOME,
         DriveState.initial(),
         Map.of(),
         List.of(),
@@ -89,9 +89,9 @@ record GameState(
   }
 
   /** Per-drive bookkeeping. Placeholder-sized fields for F1. */
-  record DriveState(int driveNumber, int playsInDrive, int yardsInDrive, Team startingPossession) {
+  record DriveState(int driveNumber, int playsInDrive, int yardsInDrive, Side startingPossession) {
     static DriveState initial() {
-      return new DriveState(1, 0, 0, Team.HOME);
+      return new DriveState(1, 0, 0, Side.HOME);
     }
   }
 

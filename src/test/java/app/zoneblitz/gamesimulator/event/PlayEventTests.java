@@ -158,14 +158,14 @@ class PlayEventTests {
                 CLOCK,
                 SCORE,
                 PenaltyType.FALSE_START,
-                Team.HOME,
+                Side.HOME,
                 PLAYER,
                 5,
                 true,
                 Optional.<PlayEvent>empty()),
             new PlayEvent.Kneel(PLAY, GAME, 12, DD, SPOT, CLOCK, CLOCK, SCORE),
             new PlayEvent.Spike(PLAY, GAME, 13, DD, SPOT, CLOCK, CLOCK, SCORE),
-            new PlayEvent.Timeout(PLAY, GAME, 14, DD, SPOT, CLOCK, CLOCK, SCORE, Team.HOME),
+            new PlayEvent.Timeout(PLAY, GAME, 14, DD, SPOT, CLOCK, CLOCK, SCORE, Side.HOME),
             new PlayEvent.TwoMinuteWarning(PLAY, GAME, 15, DD, SPOT, CLOCK, CLOCK, SCORE),
             new PlayEvent.EndOfQuarter(PLAY, GAME, 16, DD, SPOT, CLOCK, CLOCK, SCORE, 1));
 

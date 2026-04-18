@@ -240,7 +240,7 @@ public sealed interface PlayEvent
       GameClock clockAfter,
       Score scoreAfter,
       PenaltyType type,
-      Team against,
+      Side against,
       PlayerId committedBy,
       int yards,
       boolean replayDown,
@@ -278,7 +278,7 @@ public sealed interface PlayEvent
       GameClock clockBefore,
       GameClock clockAfter,
       Score scoreAfter,
-      Team team)
+      Side team)
       implements PlayEvent {}
 
   record TwoMinuteWarning(
