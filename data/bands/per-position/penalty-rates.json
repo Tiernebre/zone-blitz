@@ -1,0 +1,1068 @@
+{
+  "generated_at": "2026-04-18T09:59:37Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season penalties with a named penalty_player_id, joined to load_rosters() to tag position. Positions are bucketed into sim groups: QB, RB (incl FB), WR, TE, OT, IOL (G/C), EDGE (DE/OLB), IDL (DT/NT), LB (ILB/MLB), CB, S, ST (K/P/LS/returners), OTHER/UNKNOWN. For each group: n_penalties, mean penalty_yards, and share by penalty_type. Penalties with NA penalty_player_id (team/dead-ball fouls) are excluded — those live in data/bands/penalties.json.",
+  "bands": {
+    "total_penalties_with_player": 14428,
+    "position_groups": {
+      "LB": {
+        "n_penalties": 1550,
+        "mean_yards": 9.0626,
+        "by_type": {
+          "Defensive Offside": {
+            "n": 201,
+            "share": 0.1297
+          },
+          "Unnecessary Roughness": {
+            "n": 177,
+            "share": 0.1142
+          },
+          "Roughing the Passer": {
+            "n": 167,
+            "share": 0.1077
+          },
+          "Offensive Holding": {
+            "n": 164,
+            "share": 0.1058
+          },
+          "Neutral Zone Infraction": {
+            "n": 147,
+            "share": 0.0948
+          },
+          "Defensive Pass Interference": {
+            "n": 111,
+            "share": 0.0716
+          },
+          "Defensive Holding": {
+            "n": 100,
+            "share": 0.0645
+          },
+          "Face Mask": {
+            "n": 98,
+            "share": 0.0632
+          },
+          "Illegal Block Above the Waist": {
+            "n": 48,
+            "share": 0.031
+          },
+          "False Start": {
+            "n": 44,
+            "share": 0.0284
+          },
+          "Illegal Contact": {
+            "n": 43,
+            "share": 0.0277
+          },
+          "Illegal Use of Hands": {
+            "n": 35,
+            "share": 0.0226
+          },
+          "Illegal Formation": {
+            "n": 33,
+            "share": 0.0213
+          },
+          "Horse Collar Tackle": {
+            "n": 29,
+            "share": 0.0187
+          },
+          "Ineligible Downfield Kick": {
+            "n": 19,
+            "share": 0.0123
+          },
+          "Unsportsmanlike Conduct": {
+            "n": 17,
+            "share": 0.011
+          },
+          "Taunting": {
+            "n": 16,
+            "share": 0.0103
+          },
+          "Encroachment": {
+            "n": 12,
+            "share": 0.0077
+          },
+          "Roughing the Kicker": {
+            "n": 12,
+            "share": 0.0077
+          },
+          "Disqualification": {
+            "n": 11,
+            "share": 0.0071
+          },
+          "Lowering the Head to Initiate Contact": {
+            "n": 10,
+            "share": 0.0065
+          },
+          "Running Into the Kicker": {
+            "n": 9,
+            "share": 0.0058
+          },
+          "Illegal Blindside Block": {
+            "n": 8,
+            "share": 0.0052
+          },
+          "Offside on Free Kick": {
+            "n": 6,
+            "share": 0.0039
+          },
+          "Defensive Delay of Game": {
+            "n": 5,
+            "share": 0.0032
+          },
+          "Low Block": {
+            "n": 5,
+            "share": 0.0032
+          },
+          "Lowering the Head to Make Forcible Contact": {
+            "n": 5,
+            "share": 0.0032
+          },
+          "Tripping": {
+            "n": 4,
+            "share": 0.0026
+          },
+          "Illegal Bat": {
+            "n": 2,
+            "share": 0.0013
+          },
+          "Illegal Forward Pass": {
+            "n": 2,
+            "share": 0.0013
+          },
+          "Illegal Touch Kick": {
+            "n": 2,
+            "share": 0.0013
+          },
+          "Fair Catch Interference": {
+            "n": 1,
+            "share": 0.0006
+          },
+          "Hip Drop Tackle": {
+            "n": 1,
+            "share": 0.0006
+          },
+          "Illegal Shift": {
+            "n": 1,
+            "share": 0.0006
+          },
+          "Illegal Touch Pass": {
+            "n": 1,
+            "share": 0.0006
+          },
+          "Ineligible Downfield Pass": {
+            "n": 1,
+            "share": 0.0006
+          },
+          "Leaping": {
+            "n": 1,
+            "share": 0.0006
+          },
+          "Leverage": {
+            "n": 1,
+            "share": 0.0006
+          },
+          "Player Out of Bounds on Kick": {
+            "n": 1,
+            "share": 0.0006
+          }
+        }
+      },
+      "QB": {
+        "n_penalties": 287,
+        "mean_yards": 10.0767,
+        "by_type": {
+          "Intentional Grounding": {
+            "n": 204,
+            "share": 0.7108
+          },
+          "False Start": {
+            "n": 38,
+            "share": 0.1324
+          },
+          "Illegal Forward Pass": {
+            "n": 17,
+            "share": 0.0592
+          },
+          "Delay of Game": {
+            "n": 5,
+            "share": 0.0174
+          },
+          "Taunting": {
+            "n": 4,
+            "share": 0.0139
+          },
+          "Unnecessary Roughness": {
+            "n": 4,
+            "share": 0.0139
+          },
+          "Unsportsmanlike Conduct": {
+            "n": 4,
+            "share": 0.0139
+          },
+          "Face Mask": {
+            "n": 3,
+            "share": 0.0105
+          },
+          "Illegal Motion": {
+            "n": 2,
+            "share": 0.007
+          },
+          "Horse Collar Tackle": {
+            "n": 1,
+            "share": 0.0035
+          },
+          "Illegal Shift": {
+            "n": 1,
+            "share": 0.0035
+          },
+          "Offensive Holding": {
+            "n": 1,
+            "share": 0.0035
+          },
+          "Offensive Offside": {
+            "n": 1,
+            "share": 0.0035
+          },
+          "Offensive Pass Interference": {
+            "n": 1,
+            "share": 0.0035
+          },
+          "Tripping": {
+            "n": 1,
+            "share": 0.0035
+          }
+        }
+      },
+      "WR": {
+        "n_penalties": 1216,
+        "mean_yards": 8.2097,
+        "by_type": {
+          "False Start": {
+            "n": 335,
+            "share": 0.2755
+          },
+          "Offensive Pass Interference": {
+            "n": 247,
+            "share": 0.2031
+          },
+          "Offensive Holding": {
+            "n": 226,
+            "share": 0.1859
+          },
+          "Illegal Block Above the Waist": {
+            "n": 70,
+            "share": 0.0576
+          },
+          "Illegal Shift": {
+            "n": 61,
+            "share": 0.0502
+          },
+          "Taunting": {
+            "n": 37,
+            "share": 0.0304
+          },
+          "Unsportsmanlike Conduct": {
+            "n": 33,
+            "share": 0.0271
+          },
+          "Unnecessary Roughness": {
+            "n": 32,
+            "share": 0.0263
+          },
+          "Illegal Formation": {
+            "n": 24,
+            "share": 0.0197
+          },
+          "Illegal Motion": {
+            "n": 24,
+            "share": 0.0197
+          },
+          "Offensive Offside": {
+            "n": 19,
+            "share": 0.0156
+          },
+          "Illegal Touch Pass": {
+            "n": 16,
+            "share": 0.0132
+          },
+          "Face Mask": {
+            "n": 15,
+            "share": 0.0123
+          },
+          "Illegal Blindside Block": {
+            "n": 15,
+            "share": 0.0123
+          },
+          "Player Out of Bounds on Kick": {
+            "n": 10,
+            "share": 0.0082
+          },
+          "Illegal Forward Pass": {
+            "n": 8,
+            "share": 0.0066
+          },
+          "Illegal Crackback": {
+            "n": 7,
+            "share": 0.0058
+          },
+          "Offside on Free Kick": {
+            "n": 5,
+            "share": 0.0041
+          },
+          "Disqualification": {
+            "n": 4,
+            "share": 0.0033
+          },
+          "Fair Catch Interference": {
+            "n": 4,
+            "share": 0.0033
+          },
+          "Defensive Offside": {
+            "n": 2,
+            "share": 0.0016
+          },
+          "Delay of Game": {
+            "n": 2,
+            "share": 0.0016
+          },
+          "Illegal Double-Team Block": {
+            "n": 2,
+            "share": 0.0016
+          },
+          "Illegal Substitution": {
+            "n": 2,
+            "share": 0.0016
+          },
+          "Illegal Touch Kick": {
+            "n": 2,
+            "share": 0.0016
+          },
+          "Kick Catch Interference": {
+            "n": 2,
+            "share": 0.0016
+          },
+          "Low Block": {
+            "n": 2,
+            "share": 0.0016
+          },
+          "Roughing the Kicker": {
+            "n": 2,
+            "share": 0.0016
+          },
+          "Horse Collar Tackle": {
+            "n": 1,
+            "share": 0.0008
+          },
+          "Illegal Bat": {
+            "n": 1,
+            "share": 0.0008
+          },
+          "Illegal Use of Hands": {
+            "n": 1,
+            "share": 0.0008
+          },
+          "Illegal Wedge": {
+            "n": 1,
+            "share": 0.0008
+          },
+          "Invalid Fair Catch Signal": {
+            "n": 1,
+            "share": 0.0008
+          },
+          "Leaping": {
+            "n": 1,
+            "share": 0.0008
+          },
+          "Lowering the Head to Initiate Contact": {
+            "n": 1,
+            "share": 0.0008
+          },
+          "Running Into the Kicker": {
+            "n": 1,
+            "share": 0.0008
+          }
+        }
+      },
+      "TE": {
+        "n_penalties": 1023,
+        "mean_yards": 7.696,
+        "by_type": {
+          "False Start": {
+            "n": 424,
+            "share": 0.4145
+          },
+          "Offensive Holding": {
+            "n": 381,
+            "share": 0.3724
+          },
+          "Offensive Pass Interference": {
+            "n": 83,
+            "share": 0.0811
+          },
+          "Illegal Block Above the Waist": {
+            "n": 29,
+            "share": 0.0283
+          },
+          "Unnecessary Roughness": {
+            "n": 13,
+            "share": 0.0127
+          },
+          "Face Mask": {
+            "n": 12,
+            "share": 0.0117
+          },
+          "Illegal Formation": {
+            "n": 12,
+            "share": 0.0117
+          },
+          "Illegal Motion": {
+            "n": 9,
+            "share": 0.0088
+          },
+          "Illegal Double-Team Block": {
+            "n": 8,
+            "share": 0.0078
+          },
+          "Illegal Shift": {
+            "n": 7,
+            "share": 0.0068
+          },
+          "Illegal Crackback": {
+            "n": 6,
+            "share": 0.0059
+          },
+          "Unsportsmanlike Conduct": {
+            "n": 6,
+            "share": 0.0059
+          },
+          "Chop Block": {
+            "n": 5,
+            "share": 0.0049
+          },
+          "Offensive Offside": {
+            "n": 5,
+            "share": 0.0049
+          },
+          "Taunting": {
+            "n": 4,
+            "share": 0.0039
+          },
+          "Illegal Blindside Block": {
+            "n": 3,
+            "share": 0.0029
+          },
+          "Illegal Touch Pass": {
+            "n": 3,
+            "share": 0.0029
+          },
+          "Ineligible Downfield Kick": {
+            "n": 3,
+            "share": 0.0029
+          },
+          "Tripping": {
+            "n": 3,
+            "share": 0.0029
+          },
+          "Defensive Offside": {
+            "n": 1,
+            "share": 0.001
+          },
+          "Delay of Game": {
+            "n": 1,
+            "share": 0.001
+          },
+          "Illegal Bat": {
+            "n": 1,
+            "share": 0.001
+          },
+          "Illegal Touch Kick": {
+            "n": 1,
+            "share": 0.001
+          },
+          "Ineligible Downfield Pass": {
+            "n": 1,
+            "share": 0.001
+          },
+          "Low Block": {
+            "n": 1,
+            "share": 0.001
+          },
+          "Offside on Free Kick": {
+            "n": 1,
+            "share": 0.001
+          }
+        }
+      },
+      "IOL": {
+        "n_penalties": 4327,
+        "mean_yards": 7.4091,
+        "by_type": {
+          "False Start": {
+            "n": 1896,
+            "share": 0.4382
+          },
+          "Offensive Holding": {
+            "n": 1768,
+            "share": 0.4086
+          },
+          "Ineligible Downfield Pass": {
+            "n": 263,
+            "share": 0.0608
+          },
+          "Illegal Formation": {
+            "n": 82,
+            "share": 0.019
+          },
+          "Illegal Use of Hands": {
+            "n": 74,
+            "share": 0.0171
+          },
+          "Unnecessary Roughness": {
+            "n": 68,
+            "share": 0.0157
+          },
+          "Face Mask": {
+            "n": 40,
+            "share": 0.0092
+          },
+          "Illegal Block Above the Waist": {
+            "n": 39,
+            "share": 0.009
+          },
+          "Chop Block": {
+            "n": 15,
+            "share": 0.0035
+          },
+          "Unsportsmanlike Conduct": {
+            "n": 14,
+            "share": 0.0032
+          },
+          "Offensive Offside": {
+            "n": 12,
+            "share": 0.0028
+          },
+          "Tripping": {
+            "n": 11,
+            "share": 0.0025
+          },
+          "Illegal Blindside Block": {
+            "n": 10,
+            "share": 0.0023
+          },
+          "Clipping": {
+            "n": 9,
+            "share": 0.0021
+          },
+          "Low Block": {
+            "n": 8,
+            "share": 0.0018
+          },
+          "Illegal Touch Pass": {
+            "n": 6,
+            "share": 0.0014
+          },
+          "Disqualification": {
+            "n": 3,
+            "share": 0.0007
+          },
+          "Taunting": {
+            "n": 3,
+            "share": 0.0007
+          },
+          "Encroachment": {
+            "n": 1,
+            "share": 0.0002
+          },
+          "Illegal Peelback": {
+            "n": 1,
+            "share": 0.0002
+          },
+          "Illegal Substitution": {
+            "n": 1,
+            "share": 0.0002
+          },
+          "Lowering the Head to Initiate Contact": {
+            "n": 1,
+            "share": 0.0002
+          },
+          "Offensive Pass Interference": {
+            "n": 1,
+            "share": 0.0002
+          },
+          "Roughing the Passer": {
+            "n": 1,
+            "share": 0.0002
+          }
+        }
+      },
+      "RB": {
+        "n_penalties": 325,
+        "mean_yards": 8.6708,
+        "by_type": {
+          "False Start": {
+            "n": 105,
+            "share": 0.3231
+          },
+          "Offensive Holding": {
+            "n": 69,
+            "share": 0.2123
+          },
+          "Illegal Block Above the Waist": {
+            "n": 24,
+            "share": 0.0738
+          },
+          "Unnecessary Roughness": {
+            "n": 22,
+            "share": 0.0677
+          },
+          "Illegal Double-Team Block": {
+            "n": 12,
+            "share": 0.0369
+          },
+          "Chop Block": {
+            "n": 11,
+            "share": 0.0338
+          },
+          "Offensive Pass Interference": {
+            "n": 10,
+            "share": 0.0308
+          },
+          "Face Mask": {
+            "n": 9,
+            "share": 0.0277
+          },
+          "Low Block": {
+            "n": 7,
+            "share": 0.0215
+          },
+          "Taunting": {
+            "n": 6,
+            "share": 0.0185
+          },
+          "Unsportsmanlike Conduct": {
+            "n": 6,
+            "share": 0.0185
+          },
+          "Illegal Blindside Block": {
+            "n": 5,
+            "share": 0.0154
+          },
+          "Illegal Shift": {
+            "n": 5,
+            "share": 0.0154
+          },
+          "Illegal Formation": {
+            "n": 4,
+            "share": 0.0123
+          },
+          "Lowering the Head to Initiate Contact": {
+            "n": 4,
+            "share": 0.0123
+          },
+          "Defensive Offside": {
+            "n": 3,
+            "share": 0.0092
+          },
+          "Player Out of Bounds on Kick": {
+            "n": 3,
+            "share": 0.0092
+          },
+          "Roughing the Kicker": {
+            "n": 3,
+            "share": 0.0092
+          },
+          "Tripping": {
+            "n": 3,
+            "share": 0.0092
+          },
+          "Illegal Motion": {
+            "n": 2,
+            "share": 0.0062
+          },
+          "Illegal Use of Hands": {
+            "n": 2,
+            "share": 0.0062
+          },
+          "Offside on Free Kick": {
+            "n": 2,
+            "share": 0.0062
+          },
+          "Running Into the Kicker": {
+            "n": 2,
+            "share": 0.0062
+          },
+          "Delay of Game": {
+            "n": 1,
+            "share": 0.0031
+          },
+          "Disqualification": {
+            "n": 1,
+            "share": 0.0031
+          },
+          "Illegal Crackback": {
+            "n": 1,
+            "share": 0.0031
+          },
+          "Illegal Forward Pass": {
+            "n": 1,
+            "share": 0.0031
+          },
+          "Illegal Kick/Kicking Loose Ball": {
+            "n": 1,
+            "share": 0.0031
+          },
+          "Ineligible Downfield Kick": {
+            "n": 1,
+            "share": 0.0031
+          }
+        }
+      },
+      "CB": {
+        "n_penalties": 3674,
+        "mean_yards": 10.9545,
+        "by_type": {
+          "Defensive Pass Interference": {
+            "n": 1295,
+            "share": 0.3525
+          },
+          "Defensive Holding": {
+            "n": 607,
+            "share": 0.1652
+          },
+          "Unnecessary Roughness": {
+            "n": 343,
+            "share": 0.0934
+          },
+          "Offensive Holding": {
+            "n": 299,
+            "share": 0.0814
+          },
+          "Illegal Contact": {
+            "n": 251,
+            "share": 0.0683
+          },
+          "Face Mask": {
+            "n": 116,
+            "share": 0.0316
+          },
+          "Illegal Use of Hands": {
+            "n": 102,
+            "share": 0.0278
+          },
+          "Illegal Block Above the Waist": {
+            "n": 99,
+            "share": 0.0269
+          },
+          "Defensive Offside": {
+            "n": 94,
+            "share": 0.0256
+          },
+          "False Start": {
+            "n": 46,
+            "share": 0.0125
+          },
+          "Roughing the Passer": {
+            "n": 43,
+            "share": 0.0117
+          },
+          "Player Out of Bounds on Kick": {
+            "n": 37,
+            "share": 0.0101
+          },
+          "Neutral Zone Infraction": {
+            "n": 31,
+            "share": 0.0084
+          },
+          "Horse Collar Tackle": {
+            "n": 30,
+            "share": 0.0082
+          },
+          "Taunting": {
+            "n": 30,
+            "share": 0.0082
+          },
+          "Unsportsmanlike Conduct": {
+            "n": 30,
+            "share": 0.0082
+          },
+          "Fair Catch Interference": {
+            "n": 28,
+            "share": 0.0076
+          },
+          "Illegal Formation": {
+            "n": 26,
+            "share": 0.0071
+          },
+          "Lowering the Head to Initiate Contact": {
+            "n": 25,
+            "share": 0.0068
+          },
+          "Low Block": {
+            "n": 24,
+            "share": 0.0065
+          },
+          "Illegal Blindside Block": {
+            "n": 18,
+            "share": 0.0049
+          },
+          "Disqualification": {
+            "n": 15,
+            "share": 0.0041
+          },
+          "Illegal Touch Kick": {
+            "n": 13,
+            "share": 0.0035
+          },
+          "Roughing the Kicker": {
+            "n": 10,
+            "share": 0.0027
+          },
+          "Kick Catch Interference": {
+            "n": 9,
+            "share": 0.0024
+          },
+          "Offside on Free Kick": {
+            "n": 9,
+            "share": 0.0024
+          },
+          "Running Into the Kicker": {
+            "n": 9,
+            "share": 0.0024
+          },
+          "Defensive Delay of Game": {
+            "n": 5,
+            "share": 0.0014
+          },
+          "Encroachment": {
+            "n": 4,
+            "share": 0.0011
+          },
+          "Illegal Motion": {
+            "n": 4,
+            "share": 0.0011
+          },
+          "Lowering the Head to Make Forcible Contact": {
+            "n": 4,
+            "share": 0.0011
+          },
+          "Illegal Substitution": {
+            "n": 3,
+            "share": 0.0008
+          },
+          "Tripping": {
+            "n": 3,
+            "share": 0.0008
+          },
+          "Illegal Double-Team Block": {
+            "n": 2,
+            "share": 0.0005
+          },
+          "Illegal Forward Pass": {
+            "n": 2,
+            "share": 0.0005
+          },
+          "Illegal Shift": {
+            "n": 2,
+            "share": 0.0005
+          },
+          "Ineligible Downfield Kick": {
+            "n": 2,
+            "share": 0.0005
+          },
+          "Leverage": {
+            "n": 2,
+            "share": 0.0005
+          },
+          "Chop Block": {
+            "n": 1,
+            "share": 0.0003
+          },
+          "Illegal Kick/Kicking Loose Ball": {
+            "n": 1,
+            "share": 0.0003
+          }
+        }
+      },
+      "IDL": {
+        "n_penalties": 1934,
+        "mean_yards": 7.5832,
+        "by_type": {
+          "Defensive Offside": {
+            "n": 436,
+            "share": 0.2254
+          },
+          "Neutral Zone Infraction": {
+            "n": 355,
+            "share": 0.1836
+          },
+          "Roughing the Passer": {
+            "n": 342,
+            "share": 0.1768
+          },
+          "Defensive Holding": {
+            "n": 178,
+            "share": 0.092
+          },
+          "Encroachment": {
+            "n": 154,
+            "share": 0.0796
+          },
+          "Unnecessary Roughness": {
+            "n": 151,
+            "share": 0.0781
+          },
+          "Illegal Use of Hands": {
+            "n": 89,
+            "share": 0.046
+          },
+          "Face Mask": {
+            "n": 87,
+            "share": 0.045
+          },
+          "Offensive Holding": {
+            "n": 17,
+            "share": 0.0088
+          },
+          "Unsportsmanlike Conduct": {
+            "n": 16,
+            "share": 0.0083
+          },
+          "Horse Collar Tackle": {
+            "n": 15,
+            "share": 0.0078
+          },
+          "False Start": {
+            "n": 14,
+            "share": 0.0072
+          },
+          "Illegal Formation": {
+            "n": 14,
+            "share": 0.0072
+          },
+          "Leverage": {
+            "n": 14,
+            "share": 0.0072
+          },
+          "Defensive Delay of Game": {
+            "n": 10,
+            "share": 0.0052
+          },
+          "Disqualification": {
+            "n": 9,
+            "share": 0.0047
+          },
+          "Running Into the Kicker": {
+            "n": 7,
+            "share": 0.0036
+          },
+          "Lowering the Head to Initiate Contact": {
+            "n": 4,
+            "share": 0.0021
+          },
+          "Illegal Block Above the Waist": {
+            "n": 3,
+            "share": 0.0016
+          },
+          "Roughing the Kicker": {
+            "n": 3,
+            "share": 0.0016
+          },
+          "Taunting": {
+            "n": 3,
+            "share": 0.0016
+          },
+          "Tripping": {
+            "n": 3,
+            "share": 0.0016
+          },
+          "Defensive Pass Interference": {
+            "n": 2,
+            "share": 0.001
+          },
+          "Illegal Blindside Block": {
+            "n": 2,
+            "share": 0.001
+          },
+          "Defensive Too Many Men on Field": {
+            "n": 1,
+            "share": 0.0005
+          },
+          "Illegal Contact": {
+            "n": 1,
+            "share": 0.0005
+          },
+          "Illegal Substitution": {
+            "n": 1,
+            "share": 0.0005
+          },
+          "Ineligible Downfield Kick": {
+            "n": 1,
+            "share": 0.0005
+          },
+          "Low Block": {
+            "n": 1,
+            "share": 0.0005
+          },
+          "Offside on Free Kick": {
+            "n": 1,
+            "share": 0.0005
+          }
+        }
+      },
+      "ST": {
+        "n_penalties": 92,
+        "mean_yards": 5.9457,
+        "by_type": {
+          "False Start": {
+            "n": 33,
+            "share": 0.3587
+          },
+          "Offensive Holding": {
+            "n": 26,
+            "share": 0.2826
+          },
+          "Kickoff Short of Landing Zone": {
+            "n": 20,
+            "share": 0.2174
+          },
+          "Ineligible Downfield Kick": {
+            "n": 3,
+            "share": 0.0326
+          },
+          "Unsportsmanlike Conduct": {
+            "n": 3,
+            "share": 0.0326
+          },
+          "Face Mask": {
+            "n": 1,
+            "share": 0.0109
+          },
+          "Illegal Formation": {
+            "n": 1,
+            "share": 0.0109
+          },
+          "Illegal Kick/Kicking Loose Ball": {
+            "n": 1,
+            "share": 0.0109
+          },
+          "Illegal Touch Kick": {
+            "n": 1,
+            "share": 0.0109
+          },
+          "Low Block": {
+            "n": 1,
+            "share": 0.0109
+          },
+          "Tripping": {
+            "n": 1,
+            "share": 0.0109
+          },
+          "Unnecessary Roughness": {
+            "n": 1,
+            "share": 0.0109
+          }
+        }
+      }
+    }
+  }
+}

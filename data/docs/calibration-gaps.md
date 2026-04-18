@@ -135,7 +135,7 @@ B1–B11). Status tracking for the MVP blockers and downstream model feeds.
 | B8  | [`muffed-punts.json`](../bands/muffed-punts.json)         | nflfastR    | Done                                                       |
 | B9  | `checkdown-under-pressure.json`                           | bigdatabowl | Pending                                                    |
 | B10 | `sub-play-pass-breakdown.json`                            | bigdatabowl | Pending                                                    |
-| B11 | per-position penalty rates (`per-position/*.json`)        | nflfastR    | Pending                                                    |
+| B11 | [per-position penalty rates](../bands/per-position/penalty-rates.json) | nflfastR | Done                                                       |
 
 ## Future consideration (not yet issue-filed)
 
