@@ -81,6 +81,7 @@ public final class GameSimEmulator {
             Coach.average(new CoachId(new UUID(1L, 1L)), "Home HC"),
             Coach.average(new CoachId(new UUID(1L, 2L)), "Away HC"),
             new GameInputs.PreGameContext(HomeFieldAdvantage.leagueAverage()),
+            GameType.REGULAR_SEASON,
             Optional.of(seed));
 
     var playerNames = new HashMap<PlayerId, String>();

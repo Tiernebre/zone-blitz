@@ -48,8 +48,10 @@ import java.util.stream.Stream;
 final class GameSimulator implements SimulateGame {
 
   private static final int REGULATION_QUARTER_SECONDS = 15 * 60;
-  private static final int OVERTIME_PERIOD_SECONDS = 10 * 60;
+  private static final int REGULAR_SEASON_OT_PERIOD_SECONDS = 10 * 60;
+  private static final int PLAYOFF_OT_PERIOD_SECONDS = 15 * 60;
   private static final int HARD_SNAP_CAP = 500;
+  private static final long OT_COIN_TOSS_KEY = 0xC0DE_CAFEL;
   private static final long CLOCK_SPLIT_KEY = 0x3333_eeffL;
   private static final long PAT_SPLIT_KEY = 0xFA77_7777L;
   private static final long FG_SPLIT_KEY = 0xFB66_6666L;
@@ -243,12 +245,20 @@ final class GameSimulator implements SimulateGame {
 
     if (advance.touchdown()) {
       state = state.withScore(scoreAfter).withClock(clockAfter);
+      state = concludeOvertimePossession(state, offenseSide);
+      if (state.phase() == GameState.Phase.FINAL) {
+        return state;
+      }
       state = emitPat(out, state, inputs, offenseSide, seq, root, gameKey ^ sequence);
       return emitKickoff(
           out, state, inputs, defenseSide, seq, root.split(gameKey ^ sequence ^ 0x5C01DL));
     }
     if (advance.defensiveTouchdown()) {
       state = state.withScore(scoreAfter).withClock(clockAfter);
+      state = concludeOvertimePossession(state, offenseSide);
+      if (state.phase() == GameState.Phase.FINAL) {
+        return state;
+      }
       state = emitPat(out, state, inputs, defenseSide, seq, root, gameKey ^ sequence);
       return emitKickoff(
           out, state, inputs, offenseSide, seq, root.split(gameKey ^ sequence ^ 0x5C02DL));
@@ -257,10 +267,18 @@ final class GameSimulator implements SimulateGame {
       state = state.withScore(scoreAfter).withClock(clockAfter);
       var freeKickSpot = new FieldPosition(SAFETY_FREE_KICK_SPOT);
       out.add(safetyEvent(state, inputs.gameId(), seq[0]++, freeKickSpot, offenseSide));
+      state = concludeOvertimePossession(state, offenseSide);
+      if (state.phase() == GameState.Phase.FINAL) {
+        return state;
+      }
       return state.withPossessionAndSpot(defenseSide, freeKickSpot);
     }
     if (advance.turnover() != SnapAdvance.Turnover.NONE) {
       state = state.withScore(scoreAfter).withClock(clockAfter);
+      state = concludeOvertimePossession(state, offenseSide);
+      if (state.phase() == GameState.Phase.FINAL) {
+        return state;
+      }
       return state.withPossessionAndSpot(defenseSide, new FieldPosition(advance.endYardLine()));
     }
 
@@ -268,6 +286,10 @@ final class GameSimulator implements SimulateGame {
     if (newDd == null) {
       // Turnover on downs.
       state = state.withClock(clockAfter);
+      state = concludeOvertimePossession(state, offenseSide);
+      if (state.phase() == GameState.Phase.FINAL) {
+        return state;
+      }
       return state.withPossessionAndSpot(
           defenseSide, new FieldPosition(100 - advance.endYardLine()));
     }
@@ -397,7 +419,8 @@ final class GameSimulator implements SimulateGame {
               state.homeTimeouts(),
               state.awayTimeouts(),
               state.phase(),
-              state.overtimeRound());
+              state.overtimeRound(),
+              state.overtime());
       case PenaltyEnforcer.Applied.TurnoverOnDowns t ->
           state
               .withClock(clockAfter)
@@ -464,6 +487,10 @@ final class GameSimulator implements SimulateGame {
             .withScore(resolved.scoreAfter())
             .withClock(tickKickClock(state, Kick.FIELD_GOAL, rng));
 
+    state = concludeOvertimePossession(state, offenseSide);
+    if (state.phase() == GameState.Phase.FINAL) {
+      return state;
+    }
     if (resolved.made()) {
       return emitKickoff(
           out, state, inputs, defenseSide, seq, root.split(gameKey ^ sequence ^ 0x5C03DL));
@@ -499,6 +526,10 @@ final class GameSimulator implements SimulateGame {
             rng);
     out.add(resolved.event());
     state = state.withClock(tickKickClock(state, Kick.PUNT, rng));
+    state = concludeOvertimePossession(state, offenseSide);
+    if (state.phase() == GameState.Phase.FINAL) {
+      return state;
+    }
     return state.withPossessionAndSpot(
         defenseSide, new FieldPosition(resolved.receivingTakeoverYardLine()));
   }
@@ -546,6 +577,32 @@ final class GameSimulator implements SimulateGame {
 
   private static Side otherSide(Side side) {
     return side == Side.HOME ? Side.AWAY : Side.HOME;
+  }
+
+  /**
+   * Marks that {@code possessingSide} just finished a possession in overtime and evaluates whether
+   * the game has ended. Applies modified sudden death: both teams are guaranteed a possession in
+   * the opening OT period (even if the opener is a TD); once both have possessed, pure sudden death
+   * applies and any lead finalizes the result. Returns the updated state (possibly {@link
+   * GameState.Phase#FINAL}); callers must honor {@code FINAL} and skip any follow-up PAT/kickoff.
+   */
+  static GameState concludeOvertimePossession(GameState state, Side possessingSide) {
+    if (state.phase() != GameState.Phase.OVERTIME) {
+      return state;
+    }
+    var ot = state.overtime().withPossessed(possessingSide);
+    var tied = state.score().home() == state.score().away();
+    if (ot.suddenDeath() && !tied) {
+      return state.withOvertime(ot).withPhase(GameState.Phase.FINAL);
+    }
+    if (ot.bothPossessed()) {
+      var enteredSd = ot.enterSuddenDeath();
+      if (!tied) {
+        return state.withOvertime(enteredSd).withPhase(GameState.Phase.FINAL);
+      }
+      return state.withOvertime(enteredSd);
+    }
+    return state.withOvertime(ot);
   }
 
   private static Score scoreAfterPlay(
@@ -600,13 +657,11 @@ final class GameSimulator implements SimulateGame {
       if (state.score().home() != state.score().away()) {
         return state.withPhase(GameState.Phase.FINAL);
       }
-      var otClock = new GameClock(5, OVERTIME_PERIOD_SECONDS);
-      var withOt = state.withPhase(GameState.Phase.OVERTIME).withClock(otClock);
-      return emitKickoff(out, withOt, inputs, Side.HOME, seq, root.split(gameKey ^ 0xD1AABBL));
+      return startOvertimePeriod(out, state, inputs, seq, root, gameKey, 1);
     }
 
     if (quarter >= 5) {
-      return state.withPhase(GameState.Phase.FINAL);
+      return endOfOvertimePeriod(out, state, inputs, seq, root, gameKey);
     }
 
     var nextClock = new GameClock(quarter + 1, REGULATION_QUARTER_SECONDS);
@@ -617,6 +672,46 @@ final class GameSimulator implements SimulateGame {
           out, advanced, inputs, secondHalfReceiver, seq, root.split(gameKey ^ 0xB00BL));
     }
     return advanced;
+  }
+
+  private GameState startOvertimePeriod(
+      List<PlayEvent> out,
+      GameState state,
+      GameInputs inputs,
+      int[] seq,
+      SplittableRandomSource root,
+      long gameKey,
+      int round) {
+    var periodSeconds =
+        inputs.gameType() == GameType.PLAYOFFS
+            ? PLAYOFF_OT_PERIOD_SECONDS
+            : REGULAR_SEASON_OT_PERIOD_SECONDS;
+    var otClock = new GameClock(4 + round, periodSeconds);
+    var coinTossRng = root.split(gameKey ^ OT_COIN_TOSS_KEY ^ (long) round);
+    var receiver = coinTossRng.nextDouble() < 0.5 ? Side.HOME : Side.AWAY;
+    var withOt =
+        state
+            .withPhase(GameState.Phase.OVERTIME)
+            .withClock(otClock)
+            .withOvertimeRound(round)
+            .withOvertime(GameState.OvertimeState.notStarted());
+    return emitKickoff(out, withOt, inputs, receiver, seq, root.split(gameKey ^ 0xD1AABBL ^ round));
+  }
+
+  private GameState endOfOvertimePeriod(
+      List<PlayEvent> out,
+      GameState state,
+      GameInputs inputs,
+      int[] seq,
+      SplittableRandomSource root,
+      long gameKey) {
+    if (state.score().home() != state.score().away()) {
+      return state.withPhase(GameState.Phase.FINAL);
+    }
+    if (inputs.gameType() == GameType.REGULAR_SEASON) {
+      return state.withPhase(GameState.Phase.FINAL);
+    }
+    return startOvertimePeriod(out, state, inputs, seq, root, gameKey, state.overtimeRound() + 1);
   }
 
   private GameState emitKickoff(

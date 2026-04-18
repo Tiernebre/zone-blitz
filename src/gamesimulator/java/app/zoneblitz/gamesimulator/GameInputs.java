@@ -10,6 +10,10 @@ import java.util.Optional;
  * All inputs required to simulate a single game. Rosters and coaches are pre-fetched by the caller
  * from the roster feature's public use case — the sim never touches persistence. {@link
  * PreGameContext} is a stub today; later tasks fill in weather, surface, and home-field context.
+ *
+ * <p>{@link #gameType()} drives overtime rules: regular-season games use modified sudden death with
+ * a single 10-minute period that may end tied; playoff games play indefinite 15-minute sudden-death
+ * periods until a winner is determined.
  */
 public record GameInputs(
     GameId gameId,
@@ -18,6 +22,7 @@ public record GameInputs(
     Coach homeCoach,
     Coach awayCoach,
     PreGameContext preGameContext,
+    GameType gameType,
     Optional<Long> seed) {
 
   public GameInputs {
@@ -27,7 +32,22 @@ public record GameInputs(
     Objects.requireNonNull(homeCoach, "homeCoach");
     Objects.requireNonNull(awayCoach, "awayCoach");
     Objects.requireNonNull(preGameContext, "preGameContext");
+    Objects.requireNonNull(gameType, "gameType");
     Objects.requireNonNull(seed, "seed");
+  }
+
+  /**
+   * Convenience constructor that defaults {@link #gameType()} to {@link GameType#REGULAR_SEASON}.
+   */
+  public GameInputs(
+      GameId gameId,
+      Team home,
+      Team away,
+      Coach homeCoach,
+      Coach awayCoach,
+      PreGameContext preGameContext,
+      Optional<Long> seed) {
+    this(gameId, home, away, homeCoach, awayCoach, preGameContext, GameType.REGULAR_SEASON, seed);
   }
 
   /**
