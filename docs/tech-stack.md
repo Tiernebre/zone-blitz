@@ -35,7 +35,7 @@
 
 - **Runner + assertions:** JUnit 5 with AssertJ for fluent assertions.
 - **Mocking:** Mockito, used sparingly — prefer real collaborators where cheap.
-- **Database / integration:** Testcontainers running Postgres 16 (same major version as prod). Flyway migrates the container on startup so tests exercise the real schema and real jOOQ-generated code.
+- **Database / integration:** Testcontainers running Postgres 17 (same major version as prod). Flyway migrates the container on startup so tests exercise the real schema and real jOOQ-generated code.
 - **Web layer:** Spring MockMvc — covers both `@WebMvcTest` slice tests for controller logic and `@SpringBootTest` + MockMvc end-to-end flows that assert on rendered HTMX fragments.
 - **End-to-end / browser:** Playwright for Java — small suite covering golden-path flows (sign-in, core game actions, HTMX swaps) against a fully booted app + Testcontainers Postgres.
 - **Coverage:** JaCoCo — report published in CI as a directional signal, not a hard gate.
