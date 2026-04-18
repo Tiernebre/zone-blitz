@@ -9,6 +9,7 @@ import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
 import app.zoneblitz.gamesimulator.band.DistributionalBand;
 import app.zoneblitz.gamesimulator.band.RateBand;
 import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.formation.BandCoverageShellSampler;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
@@ -51,6 +52,7 @@ class MatchupPassResolverCalibrationTests {
             sampler,
             new PositionBasedPassRoleAssigner(),
             PassMatchupShift.ZERO,
+            BandCoverageShellSampler.load(repo),
             new FirstRouteRunnerTargetSelector(),
             outcomeMix,
             completionYards,
@@ -89,7 +91,8 @@ class MatchupPassResolverCalibrationTests {
         countCompletions(
             boostedBand, PassMatchupShift.ZERO, completionYards, sackYards, scrambleYards, 11L);
     var shiftedCompletions =
-        countCompletions(boostedBand, roles -> 1.0, completionYards, sackYards, scrambleYards, 11L);
+        countCompletions(
+            boostedBand, (ctx, rng) -> 1.0, completionYards, sackYards, scrambleYards, 11L);
 
     assertThat(shiftedCompletions)
         .as("beta=+2 on COMPLETE with shift=+1 must raise completion count vs zero shift")
@@ -145,6 +148,7 @@ class MatchupPassResolverCalibrationTests {
             sampler,
             new PositionBasedPassRoleAssigner(),
             shift,
+            BandCoverageShellSampler.load(repo),
             new ScoreBasedTargetSelector(),
             band,
             completionYards,

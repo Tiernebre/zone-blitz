@@ -4,9 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.PlayCaller;
 import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.formation.CoverageShell;
+import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.PassRoles;
 import app.zoneblitz.gamesimulator.resolver.PositionBasedPassRoleAssigner;
+import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
@@ -20,12 +24,18 @@ class ClampedPassMatchupShiftTests {
   private final ClampedPassMatchupShift shift = new ClampedPassMatchupShift();
   private final PassRoleAssigner assigner = new PositionBasedPassRoleAssigner();
 
+  private double computeFor(PassRoles roles) {
+    return shift.compute(
+        new PassMatchupContext(roles, OffensiveFormation.SHOTGUN, CoverageShell.COVER_3),
+        new SplittableRandomSource(0L));
+  }
+
   @Test
   void compute_averagePersonnel_returnsZero() {
     var offense = TestPersonnel.baselineOffense();
     var defense = TestPersonnel.baselineDefense();
 
-    var result = shift.compute(assigner.assign(pass(), offense, defense));
+    var result = computeFor(assigner.assign(pass(), offense, defense));
 
     assertThat(result).isZero();
   }
@@ -51,7 +61,7 @@ class ClampedPassMatchupShiftTests {
     var offense = TestPersonnel.offenseWith(wr);
     var defense = TestPersonnel.defenseWith(cb);
 
-    var result = shift.compute(assigner.assign(pass(), offense, defense));
+    var result = computeFor(assigner.assign(pass(), offense, defense));
 
     assertThat(result).isPositive();
   }
@@ -77,7 +87,7 @@ class ClampedPassMatchupShiftTests {
     var offense = TestPersonnel.offenseWith(wr);
     var defense = TestPersonnel.defenseWith(olInCoverage);
 
-    var clamped = shift.compute(assigner.assign(pass(), offense, defense));
+    var clamped = computeFor(assigner.assign(pass(), offense, defense));
     var rawSkillDelta = (0.0) - (1.0);
 
     assertThat(clamped)
@@ -106,7 +116,7 @@ class ClampedPassMatchupShiftTests {
     var offense = TestPersonnel.offenseWith(poorWr);
     var defense = TestPersonnel.defenseWith(eliteCb);
 
-    var clamped = shift.compute(assigner.assign(pass(), offense, defense));
+    var clamped = computeFor(assigner.assign(pass(), offense, defense));
     var rawSkillDelta = 1.0 - 0.0;
 
     assertThat(clamped)

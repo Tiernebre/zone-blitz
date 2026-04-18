@@ -1,6 +1,6 @@
 package app.zoneblitz.gamesimulator.resolver.pass;
 
-import app.zoneblitz.gamesimulator.resolver.PassRoles;
+import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
 import java.util.List;
@@ -30,7 +30,8 @@ import java.util.function.ToDoubleFunction;
 public final class ClampedPassMatchupShift implements MatchupPassResolver.PassMatchupShift {
 
   @Override
-  public double compute(PassRoles roles) {
+  public double compute(PassMatchupContext context, RandomSource rng) {
+    var roles = context.roles();
     var coverage =
         clampedDelta(
             aggregate(roles.routeRunners(), SkillAxis.ROUTE::score),

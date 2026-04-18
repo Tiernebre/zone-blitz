@@ -8,6 +8,8 @@ import app.zoneblitz.gamesimulator.band.DistributionalBand;
 import app.zoneblitz.gamesimulator.band.RateBand;
 import app.zoneblitz.gamesimulator.event.IncompleteReason;
 import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.formation.BandCoverageShellSampler;
+import app.zoneblitz.gamesimulator.formation.CoverageShellSampler;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
@@ -38,9 +40,12 @@ public final class MatchupPassResolver implements PassResolver {
 
   private static final String PASSING_PLAYS = "passing-plays.json";
 
+  private static final long SHELL_SPLIT_KEY = 0x2222_ccddL;
+
   private final BandSampler sampler;
   private final PassRoleAssigner roleAssigner;
   private final PassMatchupShift matchupShift;
+  private final CoverageShellSampler shellSampler;
   private final TargetSelector targetSelector;
   private final RateBand<PassOutcomeKind> outcomeMix;
   private final DistributionalBand completionYards;
@@ -51,6 +56,7 @@ public final class MatchupPassResolver implements PassResolver {
       BandSampler sampler,
       PassRoleAssigner roleAssigner,
       PassMatchupShift matchupShift,
+      CoverageShellSampler shellSampler,
       TargetSelector targetSelector,
       RateBand<PassOutcomeKind> outcomeMix,
       DistributionalBand completionYards,
@@ -59,6 +65,7 @@ public final class MatchupPassResolver implements PassResolver {
     this.sampler = Objects.requireNonNull(sampler, "sampler");
     this.roleAssigner = Objects.requireNonNull(roleAssigner, "roleAssigner");
     this.matchupShift = Objects.requireNonNull(matchupShift, "matchupShift");
+    this.shellSampler = Objects.requireNonNull(shellSampler, "shellSampler");
     this.targetSelector = Objects.requireNonNull(targetSelector, "targetSelector");
     this.outcomeMix = Objects.requireNonNull(outcomeMix, "outcomeMix");
     this.completionYards = Objects.requireNonNull(completionYards, "completionYards");
@@ -75,10 +82,14 @@ public final class MatchupPassResolver implements PassResolver {
     var completionYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.completion_yards");
     var sackYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.sack_yards");
     var scrambleYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.scramble_yards");
+    var shellSampler = BandCoverageShellSampler.load(repo);
+    var composite =
+        new CompositePassMatchupShift(new ClampedPassMatchupShift(), new CoverageShellPassShift());
     return new MatchupPassResolver(
         sampler,
         new PositionBasedPassRoleAssigner(),
-        new ClampedPassMatchupShift(),
+        composite,
+        shellSampler,
         new ScoreBasedTargetSelector(),
         outcomeMix,
         completionYards,
@@ -102,7 +113,10 @@ public final class MatchupPassResolver implements PassResolver {
     var qbPlayer = offense.quarterback();
     var qb = qbPlayer.id();
     var roles = roleAssigner.assign(call, offense, defense);
-    var shift = matchupShift.compute(roles);
+    var shellRng = rng.split(SHELL_SPLIT_KEY);
+    var shell = shellSampler.sample(call.formation(), shellRng);
+    var context = new PassMatchupContext(roles, call.formation(), shell);
+    var shift = matchupShift.compute(context, rng);
     var target = resolveTarget(call, roles, qbPlayer, qb, rng);
     var outcome = sampler.sampleRate(outcomeMix, shift, rng);
 
@@ -168,8 +182,8 @@ public final class MatchupPassResolver implements PassResolver {
   public interface PassMatchupShift {
 
     /** Identity shift — keeps the resolver baseline-equivalent. */
-    PassMatchupShift ZERO = roles -> 0.0;
+    PassMatchupShift ZERO = (context, rng) -> 0.0;
 
-    double compute(PassRoles roles);
+    double compute(PassMatchupContext context, RandomSource rng);
   }
 }
