@@ -7,6 +7,7 @@ import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.Score;
 import app.zoneblitz.gamesimulator.event.Side;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -211,23 +212,31 @@ public record GameState(
     return side == Side.HOME ? homeTimeouts : awayTimeouts;
   }
 
+  /**
+   * Drive-change recovery fraction. Each new possession partially restores fatigue (sideline rest
+   * during the change of possession). Tuned low so heavy starters still trend upward across the
+   * game while short three-and-outs don't accumulate as harshly as long sustained drives.
+   */
+  private static final double DRIVE_RECOVERY_FRACTION = 0.10;
+
   public GameState withPossessionAndSpot(Side newPossession, FieldPosition newSpot) {
     Objects.requireNonNull(newPossession, "newPossession");
     Objects.requireNonNull(newSpot, "newSpot");
+    var recovered = withFatigueRecovered(DRIVE_RECOVERY_FRACTION);
     return new GameState(
-        score,
-        clock,
+        recovered.score,
+        recovered.clock,
         freshFirstDown(newSpot.yardLine()),
         newSpot,
         newPossession,
-        drive,
-        fatigueSnapCounts,
-        injuredPlayers,
-        homeTimeouts,
-        awayTimeouts,
-        phase,
-        overtimeRound,
-        overtime);
+        recovered.drive,
+        recovered.fatigueSnapCounts,
+        recovered.injuredPlayers,
+        recovered.homeTimeouts,
+        recovered.awayTimeouts,
+        recovered.phase,
+        recovered.overtimeRound,
+        recovered.overtime);
   }
 
   public GameState withOvertimeRound(int newOvertimeRound) {
@@ -244,6 +253,74 @@ public record GameState(
         awayTimeouts,
         phase,
         newOvertimeRound,
+        overtime);
+  }
+
+  /**
+   * Accumulate one snap for every on-field player. Callers pass the 22 {@link PlayerId}s that
+   * participated in the snap just resolved; each entry's count is incremented by one, with missing
+   * entries treated as zero.
+   */
+  public GameState withSnapsAccumulated(List<PlayerId> onField) {
+    Objects.requireNonNull(onField, "onField");
+    if (onField.isEmpty()) {
+      return this;
+    }
+    var updated = new HashMap<>(fatigueSnapCounts);
+    for (var id : onField) {
+      Objects.requireNonNull(id, "onField entry");
+      updated.merge(id, 1, Integer::sum);
+    }
+    return new GameState(
+        score,
+        clock,
+        downAndDistance,
+        spot,
+        possession,
+        drive,
+        updated,
+        injuredPlayers,
+        homeTimeouts,
+        awayTimeouts,
+        phase,
+        overtimeRound,
+        overtime);
+  }
+
+  /**
+   * Partially recover fatigue by scaling every player's snap count by {@code (1 - fraction)}. Used
+   * between drives so that short possessions leave starters fresher. A {@code fraction} of 1.0
+   * fully zeroes snap counts (halftime reset); 0.0 is a no-op.
+   */
+  public GameState withFatigueRecovered(double fraction) {
+    if (fraction <= 0.0) {
+      return this;
+    }
+    var clamped = Math.min(1.0, fraction);
+    if (fatigueSnapCounts.isEmpty()) {
+      return this;
+    }
+    var updated = new HashMap<PlayerId, Integer>();
+    for (var entry : fatigueSnapCounts.entrySet()) {
+      var snaps = entry.getValue();
+      var recovered = (int) Math.round(snaps * (1.0 - clamped));
+      if (recovered > 0) {
+        updated.put(entry.getKey(), recovered);
+      }
+    }
+    return new GameState(
+        score,
+        clock,
+        downAndDistance,
+        spot,
+        possession,
+        drive,
+        updated,
+        injuredPlayers,
+        homeTimeouts,
+        awayTimeouts,
+        phase,
+        overtimeRound,
         overtime);
   }
 

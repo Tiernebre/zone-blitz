@@ -101,6 +101,7 @@ final class GameSimulator implements SimulateGame {
   private final TwoPointResolver twoPointResolver;
   private final TimeoutDecider timeoutDecider;
   private final EndOfHalfDecider endOfHalfDecider;
+  private final FatigueModel fatigueModel;
 
   GameSimulator(
       PlayCaller caller,
@@ -130,7 +131,8 @@ final class GameSimulator implements SimulateGame {
         twoPointResolver,
         HomeFieldModel.neutral(),
         new TendencyTimeoutDecider(),
-        new TendencyEndOfHalfDecider());
+        new TendencyEndOfHalfDecider(),
+        new PositionalFatigueModel());
   }
 
   GameSimulator(
@@ -163,7 +165,8 @@ final class GameSimulator implements SimulateGame {
         twoPointResolver,
         homeFieldModel,
         timeoutDecider,
-        new TendencyEndOfHalfDecider());
+        new TendencyEndOfHalfDecider(),
+        new PositionalFatigueModel());
   }
 
   GameSimulator(
@@ -182,6 +185,42 @@ final class GameSimulator implements SimulateGame {
       HomeFieldModel homeFieldModel,
       TimeoutDecider timeoutDecider,
       EndOfHalfDecider endOfHalfDecider) {
+    this(
+        caller,
+        personnel,
+        resolver,
+        clockModel,
+        kickoffResolver,
+        extraPointResolver,
+        fieldGoalResolver,
+        puntResolver,
+        penaltyModel,
+        defensiveCallSelector,
+        twoPointPolicy,
+        twoPointResolver,
+        homeFieldModel,
+        timeoutDecider,
+        endOfHalfDecider,
+        new PositionalFatigueModel());
+  }
+
+  GameSimulator(
+      PlayCaller caller,
+      PersonnelSelector personnel,
+      PlayResolver resolver,
+      ClockModel clockModel,
+      KickoffResolver kickoffResolver,
+      ExtraPointResolver extraPointResolver,
+      FieldGoalResolver fieldGoalResolver,
+      PuntResolver puntResolver,
+      PenaltyModel penaltyModel,
+      DefensiveCallSelector defensiveCallSelector,
+      TwoPointDecisionPolicy twoPointPolicy,
+      TwoPointResolver twoPointResolver,
+      HomeFieldModel homeFieldModel,
+      TimeoutDecider timeoutDecider,
+      EndOfHalfDecider endOfHalfDecider,
+      FatigueModel fatigueModel) {
     this.caller = Objects.requireNonNull(caller, "caller");
     this.personnel = Objects.requireNonNull(personnel, "personnel");
     this.resolver = Objects.requireNonNull(resolver, "resolver");
@@ -198,10 +237,23 @@ final class GameSimulator implements SimulateGame {
     this.homeFieldModel = Objects.requireNonNull(homeFieldModel, "homeFieldModel");
     this.timeoutDecider = Objects.requireNonNull(timeoutDecider, "timeoutDecider");
     this.endOfHalfDecider = Objects.requireNonNull(endOfHalfDecider, "endOfHalfDecider");
+    this.fatigueModel = Objects.requireNonNull(fatigueModel, "fatigueModel");
   }
 
   @Override
   public Stream<PlayEvent> simulate(GameInputs inputs) {
+    return runFullGame(inputs).events.stream();
+  }
+
+  @Override
+  public GameSummary summarize(GameInputs inputs) {
+    var run = runFullGame(inputs);
+    return new GameSummary(run.events, run.terminalState.fatigueSnapCounts());
+  }
+
+  private record GameRun(List<PlayEvent> events, GameState terminalState) {}
+
+  private GameRun runFullGame(GameInputs inputs) {
     Objects.requireNonNull(inputs, "inputs");
     var seed = inputs.seed().orElse(0L);
     var root = new SplittableRandomSource(seed);
@@ -227,7 +279,7 @@ final class GameSimulator implements SimulateGame {
       state = maybeCallTimeout(events, state, inputs, seq, root, gameKey);
       state = runSnap(events, state, inputs, seq, root, gameKey, gameFieldGoal, gamePunt);
     }
-    return events.stream();
+    return new GameRun(events, state);
   }
 
   private GameState runSnap(
@@ -272,8 +324,13 @@ final class GameSimulator implements SimulateGame {
         defensiveCallSelector.select(
             state, call.formation(), defenseCoach.defense(), snapRng.split(0xDEFE_7155L));
     Objects.requireNonNull(defensiveCall, "defensiveCall");
-    var offPersonnel = personnel.selectOffense(call, state, offense);
-    var defPersonnel = personnel.selectDefense(call, offPersonnel, state, defense);
+    var offPersonnelRaw = personnel.selectOffense(call, state, offense);
+    var offPersonnel =
+        fatigueModel.rotateOffense(offPersonnelRaw, offense, state.fatigueSnapCounts());
+    var defPersonnelRaw = personnel.selectDefense(call, offPersonnel, state, defense);
+    var defPersonnel =
+        fatigueModel.rotateDefense(
+            defPersonnelRaw, defense, state.fatigueSnapCounts(), defenseCoach.defense());
 
     var homeFieldDraw =
         homeFieldModel.drawRoadPreSnapPenalty(
@@ -322,6 +379,7 @@ final class GameSimulator implements SimulateGame {
     }
 
     out.add(event);
+    state = state.withSnapsAccumulated(snapParticipants(offPersonnel, defPersonnel));
 
     if (advance.touchdown()) {
       state = state.withScore(scoreAfter).withClock(clockAfter);
@@ -769,6 +827,21 @@ final class GameSimulator implements SimulateGame {
     return state.spot().yardLine() < FIELD_GOAL_MIN_YARD_LINE;
   }
 
+  private static java.util.List<app.zoneblitz.gamesimulator.event.PlayerId> snapParticipants(
+      app.zoneblitz.gamesimulator.personnel.OffensivePersonnel offense,
+      app.zoneblitz.gamesimulator.personnel.DefensivePersonnel defense) {
+    var ids =
+        new ArrayList<app.zoneblitz.gamesimulator.event.PlayerId>(
+            offense.players().size() + defense.players().size());
+    for (var p : offense.players()) {
+      ids.add(p.id());
+    }
+    for (var p : defense.players()) {
+      ids.add(p.id());
+    }
+    return List.copyOf(ids);
+  }
+
   private static Side otherSide(Side side) {
     return side == Side.HOME ? Side.AWAY : Side.HOME;
   }
@@ -862,7 +935,7 @@ final class GameSimulator implements SimulateGame {
     var advanced = state.withClock(nextClock);
     if (quarter == 2) {
       var secondHalfReceiver = openingReceiver == Side.HOME ? Side.AWAY : Side.HOME;
-      var afterHalf = advanced.withTimeoutsReset();
+      var afterHalf = advanced.withTimeoutsReset().withFatigueRecovered(1.0);
       return emitKickoff(
           out, afterHalf, inputs, secondHalfReceiver, seq, root.split(gameKey ^ 0xB00BL));
     }
