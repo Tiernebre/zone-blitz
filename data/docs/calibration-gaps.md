@@ -133,8 +133,8 @@ B1–B11). Status tracking for the MVP blockers and downstream model feeds.
 | B6  | `overtime.json`                                           | UFL/XFL     | Deferred — needs non-nflfastR (UFL/XFL) sources for rule-variant OT data. |
 | B7  | [`fake-kicks.json`](../bands/fake-kicks.json)             | nflfastR    | Done — small n (heuristic on desc); consider FTN enrichment |
 | B8  | [`muffed-punts.json`](../bands/muffed-punts.json)         | nflfastR    | Done                                                       |
-| B9  | `checkdown-under-pressure.json`                           | bigdatabowl | Pending                                                    |
-| B10 | `sub-play-pass-breakdown.json`                            | bigdatabowl | Pending                                                    |
+| B9  | `checkdown-under-pressure.json`                           | bigdatabowl | Deferred — Kaggle API auth returns 401 in this environment; BDB tracking data unreachable until credentials are rotated. |
+| B10 | `sub-play-pass-breakdown.json`                            | bigdatabowl | Deferred — same Kaggle 401 blocker as B9. **MVP blocker** still open. |
 | B11 | [per-position penalty rates](../bands/per-position/penalty-rates.json) | nflfastR | Done                                                       |
 
 ## Future consideration (not yet issue-filed)
