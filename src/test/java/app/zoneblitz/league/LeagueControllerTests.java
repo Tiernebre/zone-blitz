@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import app.zoneblitz.config.SecurityConfig;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -41,6 +42,7 @@ class LeagueControllerTests {
   @MockitoBean ListLeaguesForUser listLeagues;
   @MockitoBean ListFranchises listFranchises;
   @MockitoBean CreateLeague createLeague;
+  @MockitoBean GetLeague getLeague;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
@@ -78,10 +80,10 @@ class LeagueControllerTests {
   }
 
   @Test
-  void create_whenValid_delegatesAndRedirectsHome() throws Exception {
+  void create_whenValid_delegatesAndRedirectsToDashboard() throws Exception {
     var league =
         new League(
-            1L,
+            42L,
             "Dynasty",
             "sub-1",
             LeaguePhase.INITIAL_SETUP,
@@ -97,9 +99,39 @@ class LeagueControllerTests {
                 .param("name", "Dynasty")
                 .param("franchiseId", "3"))
         .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/"));
+        .andExpect(redirectedUrl("/leagues/42"));
 
     verify(createLeague).create("sub-1", "Dynasty", 3L);
+  }
+
+  @Test
+  void dashboard_whenLeagueFound_rendersDashboard() throws Exception {
+    var summary =
+        new LeagueSummary(
+            42L,
+            "Dynasty",
+            LeaguePhase.INITIAL_SETUP,
+            Instant.now(),
+            new Franchise(
+                1L,
+                "Minutemen",
+                new City(1L, "Boston", new State(1L, "MA", "Massachusetts")),
+                "#000000",
+                "#ffffff"));
+    given(getLeague.get(42L, "sub-1")).willReturn(Optional.of(summary));
+
+    mvc.perform(get("/leagues/42").with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isOk())
+        .andExpect(view().name("league/dashboard"))
+        .andExpect(model().attribute("league", summary));
+  }
+
+  @Test
+  void dashboard_whenLeagueMissing_returns404() throws Exception {
+    given(getLeague.get(42L, "sub-1")).willReturn(Optional.empty());
+
+    mvc.perform(get("/leagues/42").with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isNotFound());
   }
 
   @Test

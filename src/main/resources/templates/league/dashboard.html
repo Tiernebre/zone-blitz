@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title th:text="${league.leagueName() + ' — Zone Blitz'}">League — Zone Blitz</title>
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+	<script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+	<div class="flex min-h-screen">
+		<aside class="w-60 bg-slate-900 text-slate-100 flex flex-col">
+			<nav class="flex flex-col p-4 gap-1 text-sm">
+				<a th:href="@{/}"
+				   class="px-3 py-2 rounded hover:bg-slate-800 text-slate-300">&larr; All Leagues</a>
+				<a th:href="@{'/leagues/' + ${league.leagueId()}}"
+				   class="px-3 py-2 rounded bg-slate-800 text-white font-medium">Home</a>
+			</nav>
+		</aside>
+
+		<main class="flex-1 p-8">
+			<h1 class="text-3xl font-bold" th:text="${league.leagueName()}">League name</h1>
+		</main>
+	</div>
+</body>
+</html>

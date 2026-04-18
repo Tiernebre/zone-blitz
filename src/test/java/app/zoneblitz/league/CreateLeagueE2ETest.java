@@ -62,7 +62,7 @@ class CreateLeagueE2ETest {
   }
 
   @Test
-  void authenticatedUserCreatesLeagueAndSeesItInTable() {
+  void authenticatedUserCreatesLeagueAndLandsOnDashboard() {
     var subject = "e2e-user-" + System.nanoTime();
     signIn(subject);
 
@@ -79,20 +79,14 @@ class CreateLeagueE2ETest {
         .check(new Locator.CheckOptions().setForce(true));
     page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Create league")).click();
 
-    assertThat(page).hasURL(Pattern.compile(".*/$"));
-    assertThat(
-            page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName("Your leagues")))
+    assertThat(page).hasURL(Pattern.compile(".*/leagues/\\d+$"));
+    assertThat(page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName(leagueName)))
         .isVisible();
-
-    var row =
-        page.getByRole(AriaRole.ROW).filter(new Locator.FilterOptions().setHasText(leagueName));
-    assertThat(row).isVisible();
-    assertThat(row.getByRole(AriaRole.CELL, new Locator.GetByRoleOptions().setName(leagueName)))
+    assertThat(page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("Home")))
         .isVisible();
     assertThat(
-            row.getByRole(
-                AriaRole.CELL,
-                new Locator.GetByRoleOptions().setName(Pattern.compile("INITIAL_SETUP"))))
+            page.getByRole(
+                AriaRole.LINK, new Page.GetByRoleOptions().setName("\u2190 All Leagues")))
         .isVisible();
   }
 

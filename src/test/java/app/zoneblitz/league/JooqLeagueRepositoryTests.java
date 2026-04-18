@@ -83,6 +83,33 @@ class JooqLeagueRepositoryTests {
         .satisfies(s -> assertThat(s.leagueName()).isEqualTo("Mine"));
   }
 
+  @Test
+  void findSummaryByIdAndOwner_whenOwned_returnsSummary() {
+    var franchise = franchises.listAll().getFirst();
+    var league =
+        leagues.insert("sub-1", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
+    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("sub-1"))));
+
+    var summary = leagues.findSummaryByIdAndOwner(league.id(), "sub-1");
+
+    assertThat(summary).hasValueSatisfying(s -> assertThat(s.leagueName()).isEqualTo("Dynasty"));
+  }
+
+  @Test
+  void findSummaryByIdAndOwner_whenNotOwned_returnsEmpty() {
+    var franchise = franchises.listAll().getFirst();
+    var league =
+        leagues.insert("owner", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
+    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("owner"))));
+
+    assertThat(leagues.findSummaryByIdAndOwner(league.id(), "someone-else")).isEmpty();
+  }
+
+  @Test
+  void findSummaryByIdAndOwner_whenMissing_returnsEmpty() {
+    assertThat(leagues.findSummaryByIdAndOwner(999_999L, "sub-1")).isEmpty();
+  }
+
   private long pickOther(long excludeId) {
     return franchises.listAll().stream()
         .filter(f -> f.id() != excludeId)

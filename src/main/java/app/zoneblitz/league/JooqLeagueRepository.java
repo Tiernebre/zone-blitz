@@ -8,6 +8,7 @@ import static app.zoneblitz.jooq.Tables.TEAMS;
 import static org.jooq.impl.DSL.lower;
 
 import java.util.List;
+import java.util.Optional;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
@@ -86,6 +87,44 @@ class JooqLeagueRepository implements LeagueRepository {
         .where(LEAGUES.OWNER_SUBJECT.eq(ownerSubject))
         .orderBy(LEAGUES.CREATED_AT.desc())
         .fetch(
+            r ->
+                new LeagueSummary(
+                    r.get(LEAGUES.ID),
+                    r.get(LEAGUES.NAME),
+                    LeaguePhase.valueOf(r.get(LEAGUES.PHASE)),
+                    r.get(LEAGUES.CREATED_AT).toInstant(),
+                    JooqFranchiseRepository.mapFranchise(r)));
+  }
+
+  @Override
+  public Optional<LeagueSummary> findSummaryByIdAndOwner(long id, String ownerSubject) {
+    return dsl.select(
+            LEAGUES.ID,
+            LEAGUES.NAME,
+            LEAGUES.PHASE,
+            LEAGUES.CREATED_AT,
+            FRANCHISES.ID,
+            FRANCHISES.NAME,
+            FRANCHISES.PRIMARY_COLOR,
+            FRANCHISES.SECONDARY_COLOR,
+            CITIES.ID,
+            CITIES.NAME,
+            STATES.ID,
+            STATES.CODE,
+            STATES.NAME)
+        .from(LEAGUES)
+        .join(TEAMS)
+        .on(TEAMS.LEAGUE_ID.eq(LEAGUES.ID))
+        .and(TEAMS.OWNER_SUBJECT.eq(LEAGUES.OWNER_SUBJECT))
+        .join(FRANCHISES)
+        .on(FRANCHISES.ID.eq(TEAMS.FRANCHISE_ID))
+        .join(CITIES)
+        .on(CITIES.ID.eq(FRANCHISES.CITY_ID))
+        .join(STATES)
+        .on(STATES.ID.eq(CITIES.STATE_ID))
+        .where(LEAGUES.ID.eq(id))
+        .and(LEAGUES.OWNER_SUBJECT.eq(ownerSubject))
+        .fetchOptional(
             r ->
                 new LeagueSummary(
                     r.get(LEAGUES.ID),

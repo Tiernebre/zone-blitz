@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
@@ -11,7 +12,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 class LeagueController {
@@ -21,12 +24,17 @@ class LeagueController {
   private final ListLeaguesForUser listLeagues;
   private final ListFranchises listFranchises;
   private final CreateLeague createLeague;
+  private final GetLeague getLeague;
 
   LeagueController(
-      ListLeaguesForUser listLeagues, ListFranchises listFranchises, CreateLeague createLeague) {
+      ListLeaguesForUser listLeagues,
+      ListFranchises listFranchises,
+      CreateLeague createLeague,
+      GetLeague getLeague) {
     this.listLeagues = listLeagues;
     this.listFranchises = listFranchises;
     this.createLeague = createLeague;
+    this.getLeague = getLeague;
   }
 
   @GetMapping("/")
@@ -35,6 +43,17 @@ class LeagueController {
         principal == null ? List.of() : listLeagues.listFor(principal.getAttribute("sub"));
     model.addAttribute("leagues", leagues);
     return "index";
+  }
+
+  @GetMapping("/leagues/{id}")
+  String dashboard(
+      @AuthenticationPrincipal OAuth2User principal, @PathVariable long id, Model model) {
+    var league =
+        getLeague
+            .get(id, principal.getAttribute("sub"))
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    model.addAttribute("league", league);
+    return "league/dashboard";
   }
 
   @GetMapping("/leagues/new")
@@ -63,7 +82,7 @@ class LeagueController {
     return switch (result) {
       case CreateLeagueResult.Created created -> {
         log.info("league created id={} owner={}", created.league().id(), ownerSubject);
-        yield "redirect:/";
+        yield "redirect:/leagues/" + created.league().id();
       }
       case CreateLeagueResult.NameTaken taken -> {
         binding.rejectValue("name", "name.taken", "You already have a league with that name.");
