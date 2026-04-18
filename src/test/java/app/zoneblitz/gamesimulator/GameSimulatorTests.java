@@ -2,7 +2,9 @@ package app.zoneblitz.gamesimulator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.zoneblitz.gamesimulator.clock.BaselineClockModel;
+import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
+import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
+import app.zoneblitz.gamesimulator.clock.BandClockModel;
 import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
@@ -44,7 +46,7 @@ class GameSimulatorTests {
         ScriptedPlayCaller.runs(1),
         personnel,
         new ConstantPlayResolver(QB_ID, WR_ID),
-        new BaselineClockModel(),
+        BandClockModel.load(new ClasspathBandRepository(), new DefaultBandSampler()),
         new TouchbackKickoffResolver());
   }
 

@@ -2,7 +2,7 @@ package app.zoneblitz.gamesimulator;
 
 import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
 import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
-import app.zoneblitz.gamesimulator.clock.BaselineClockModel;
+import app.zoneblitz.gamesimulator.clock.BandClockModel;
 import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.Side;
@@ -51,7 +51,7 @@ public final class GameSimEmulator {
             new AlternatingPlayCaller(),
             new BaselinePersonnelSelector(),
             resolver,
-            new BaselineClockModel(),
+            BandClockModel.load(repo, sampler),
             new TouchbackKickoffResolver());
 
     var inputs =

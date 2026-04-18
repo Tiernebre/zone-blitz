@@ -33,6 +33,7 @@ final class GameSimulator implements SimulateGame {
   private static final int REGULATION_QUARTER_SECONDS = 15 * 60;
   private static final int OVERTIME_PERIOD_SECONDS = 10 * 60;
   private static final int HARD_SNAP_CAP = 500;
+  private static final long CLOCK_SPLIT_KEY = 0x3333_eeffL;
 
   private final PlayCaller caller;
   private final PersonnelSelector personnel;
@@ -96,7 +97,7 @@ final class GameSimulator implements SimulateGame {
     var defPersonnel = personnel.selectDefense(call, offPersonnel, state, defense);
     var outcome = resolver.resolve(call, state, offPersonnel, defPersonnel, snapRng);
 
-    var secondsOff = clockModel.secondsConsumed(outcome, state);
+    var secondsOff = clockModel.secondsConsumed(outcome, state, snapRng.split(CLOCK_SPLIT_KEY));
     var clockAfter =
         new GameClock(state.clock().quarter(), state.clock().secondsRemaining() - secondsOff);
     var event = toEvent(outcome, state, clockAfter, inputs.gameId(), sequence);
