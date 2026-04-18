@@ -132,7 +132,7 @@ B1–B11). Status tracking for the MVP blockers and downstream model feeds.
 | B5  | `hail-mary.json`                                          | nflfastR    | Pending                                                    |
 | B6  | `overtime.json`                                           | UFL/XFL     | Deferred — needs non-nflfastR (UFL/XFL) sources for rule-variant OT data. |
 | B7  | `fake-kicks.json`                                         | nflfastR    | Pending                                                    |
-| B8  | `muffed-punts.json`                                       | nflfastR    | Pending                                                    |
+| B8  | [`muffed-punts.json`](../bands/muffed-punts.json)         | nflfastR    | Done                                                       |
 | B9  | `checkdown-under-pressure.json`                           | bigdatabowl | Pending                                                    |
 | B10 | `sub-play-pass-breakdown.json`                            | bigdatabowl | Pending                                                    |
 | B11 | per-position penalty rates (`per-position/*.json`)        | nflfastR    | Pending                                                    |
