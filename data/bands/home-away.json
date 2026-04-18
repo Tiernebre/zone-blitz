@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-04-18T09:55:58Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season home vs away splits. Play-level slice uses posteam == home_team to tag side. Game-level aggregates come from load_schedules() (home_score, away_score). home_field_deltas are home minus away — the canonical 'home field advantage' modifier set.",
+  "bands": {
+    "by_side": {
+      "home": {
+        "n_plays": 111545,
+        "pass": {
+          "n": 50921,
+          "completion_pct": 0.5841,
+          "yards_per_dropback": 6.3498,
+          "sack_rate": 0.0613,
+          "int_rate": 0.0199
+        },
+        "rush": {
+          "n": 33740,
+          "yards_per_carry": 4.2421,
+          "stuff_rate": 0.2011
+        }
+      },
+      "away": {
+        "n_plays": 110629,
+        "pass": {
+          "n": 50829,
+          "completion_pct": 0.574,
+          "yards_per_dropback": 6.2005,
+          "sack_rate": 0.0645,
+          "int_rate": 0.0208
+        },
+        "rush": {
+          "n": 33342,
+          "yards_per_carry": 4.1907,
+          "stuff_rate": 0.1998
+        }
+      }
+    },
+    "game_level": {
+      "n_games": 1343,
+      "home_win_rate": 0.5316,
+      "tie_rate": 0.003,
+      "home_mean_points": 23.6835,
+      "away_mean_points": 22.0052,
+      "home_points_minus_away": 1.6783,
+      "home_total_points_sd": 10.0082,
+      "away_total_points_sd": 9.771
+    },
+    "home_field_deltas": {
+      "completion_pct_delta": 0.01,
+      "yards_per_dropback_delta": 0.1493,
+      "sack_rate_delta": -0.0032,
+      "yards_per_carry_delta": 0.0515,
+      "mean_points_delta": 1.6783
+    }
+  }
+}
