@@ -4,3 +4,8 @@ spring:
   web:
     resources:
       static-locations: file:src/main/resources/static/
+  devtools:
+    restart:
+      enabled: true
+      poll-interval: 1s
+      quiet-period: 400ms

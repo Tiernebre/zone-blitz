@@ -25,7 +25,8 @@ log() { printf "%s[dev %s]%s %s\n" "$DIM" "$(elapsed)" "$RESET" "$1"; }
 
 printf "\n%s%s▶ Zone Blitz dev%s\n" "$BOLD" "$CYAN" "$RESET"
 printf "%sGradle daemons take ~10-20s to warm up on first run, then bootRun adds another 15-30s before the app binds to :3000.%s\n" "$DIM" "$RESET"
-printf "%sTailwind watch rebuilds CSS on template saves; Thymeleaf hot-reload (dev profile) picks up template edits without restart.%s\n\n" "$DIM" "$RESET"
+printf "%sTailwind watch rebuilds CSS on template saves; Thymeleaf hot-reload (dev profile) picks up template edits without restart.%s\n" "$DIM" "$RESET"
+printf "%s'classes' runs in continuous mode so Java edits recompile; Spring Boot devtools restarts the app when build/classes changes.%s\n\n" "$DIM" "$RESET"
 
 prefix() {
 	local tag=$1 color=$2
@@ -84,6 +85,10 @@ pids+=($!)
 
 log "starting bootRun…"
 ./gradlew --console=plain bootRun 2>&1 | prefix "boot    " "$GREEN" &
+pids+=($!)
+
+log "starting classes --continuous…"
+./gradlew --console=plain -t classes -x generateJooq 2>&1 | prefix "compile " "$YELLOW" &
 pids+=($!)
 
 wait
