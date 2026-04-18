@@ -21,6 +21,7 @@ public sealed interface PlayEvent
         PlayEvent.Punt,
         PlayEvent.Kickoff,
         PlayEvent.Penalty,
+        PlayEvent.Safety,
         PlayEvent.Kneel,
         PlayEvent.Spike,
         PlayEvent.Timeout,
@@ -245,6 +246,27 @@ public sealed interface PlayEvent
       int yards,
       boolean replayDown,
       Optional<PlayEvent> underlyingPlay)
+      implements PlayEvent {}
+
+  /**
+   * Emitted immediately after the triggering play event whenever that play resulted in a safety.
+   * The {@link #scoreAfter} matches the scoring math already applied on the triggering event (+2 to
+   * the defense). {@link #spot} is the free-kick spot awarded to the scoring team — today the ball
+   * is placed directly at that team's own 20 (a simplification; full free-kick modeling is a
+   * follow-up). {@link #concedingSide} is the side that gave up the two points (the offense on the
+   * triggering play).
+   */
+  record Safety(
+      PlayId id,
+      GameId gameId,
+      int sequence,
+      DownAndDistance preSnap,
+      FieldPosition preSnapSpot,
+      GameClock clockBefore,
+      GameClock clockAfter,
+      Score scoreAfter,
+      FieldPosition spot,
+      Side concedingSide)
       implements PlayEvent {}
 
   record Kneel(

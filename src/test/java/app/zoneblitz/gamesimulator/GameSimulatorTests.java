@@ -8,13 +8,20 @@ import app.zoneblitz.gamesimulator.clock.BandClockModel;
 import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayerId;
+import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.event.TeamId;
 import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
 import app.zoneblitz.gamesimulator.penalty.BandPenaltyModel;
 import app.zoneblitz.gamesimulator.penalty.NoPenaltyModel;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.FakePersonnelSelector;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.punt.DistanceCurvePuntResolver;
+import app.zoneblitz.gamesimulator.resolver.PassOutcome;
+import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
+import app.zoneblitz.gamesimulator.resolver.PlayResolver;
+import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.CoachId;
 import app.zoneblitz.gamesimulator.roster.Player;
@@ -140,6 +147,56 @@ class GameSimulatorTests {
     }
     // 10 games at ~13 flags/game average ≈ 130; a floor of 50 is a safe regression guard.
     assertThat(penalties).isGreaterThan(50);
+  }
+
+  @Test
+  void simulate_sackInOwnEndZone_emitsSafetyEventImmediatelyAfterTriggeringPlay() {
+    var personnel =
+        new FakePersonnelSelector(TestPersonnel.baselineOffense(), TestPersonnel.baselineDefense());
+    PlayResolver safetyResolver =
+        new PlayResolver() {
+          @Override
+          public PlayOutcome resolve(
+              PlayCaller.PlayCall call,
+              GameState state,
+              OffensivePersonnel offense,
+              DefensivePersonnel defense,
+              RandomSource rng) {
+            return new PassOutcome.Sack(QB_ID, List.of(), 50, Optional.empty());
+          }
+        };
+    var simulator =
+        new GameSimulator(
+            ScriptedPlayCaller.runs(1),
+            personnel,
+            safetyResolver,
+            BandClockModel.load(new ClasspathBandRepository(), new DefaultBandSampler()),
+            new TouchbackKickoffResolver(),
+            new FlatRateExtraPointResolver(),
+            new DistanceCurveFieldGoalResolver(),
+            new DistanceCurvePuntResolver(),
+            new NoPenaltyModel(),
+            app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral());
+
+    var events = simulator.simulate(inputs(Optional.of(7L))).toList();
+
+    var safetyIndex = -1;
+    for (var i = 0; i < events.size(); i++) {
+      if (events.get(i) instanceof PlayEvent.Safety) {
+        safetyIndex = i;
+        break;
+      }
+    }
+    assertThat(safetyIndex).as("expected a Safety event to be emitted").isGreaterThanOrEqualTo(1);
+    var safety = (PlayEvent.Safety) events.get(safetyIndex);
+    var trigger = events.get(safetyIndex - 1);
+    assertThat(trigger).isInstanceOf(PlayEvent.Sack.class);
+    assertThat(safety.sequence()).isEqualTo(trigger.sequence() + 1);
+    assertThat(safety.scoreAfter()).isEqualTo(trigger.scoreAfter());
+    assertThat(safety.concedingSide()).isEqualTo(Side.HOME);
+    assertThat(safety.spot().yardLine()).isEqualTo(20);
+    assertThat(safety.scoreAfter().away()).isEqualTo(2);
+    assertThat(safety.scoreAfter().home()).isZero();
   }
 
   @Test
