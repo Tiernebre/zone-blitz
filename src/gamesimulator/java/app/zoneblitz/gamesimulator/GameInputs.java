@@ -9,7 +9,8 @@ import java.util.Optional;
 /**
  * All inputs required to simulate a single game. Rosters and coaches are pre-fetched by the caller
  * from the roster feature's public use case — the sim never touches persistence. {@link
- * PreGameContext} is a stub today; later tasks fill in weather, surface, and home-field context.
+ * PreGameContext} carries environmental inputs (weather, surface, roof) alongside the home team's
+ * {@link HomeFieldAdvantage}.
  *
  * <p>{@link #gameType()} drives overtime rules: regular-season games use modified sudden death with
  * a single 10-minute period that may end tied; playoff games play indefinite 15-minute sudden-death
@@ -51,18 +52,27 @@ public record GameInputs(
   }
 
   /**
-   * Pre-game environmental + matchup context. Carries the home team's {@link HomeFieldAdvantage};
-   * weather, surface, and injury priors land here as those models come online.
+   * Pre-game environmental + matchup context. Carries the home team's {@link HomeFieldAdvantage}
+   * alongside {@link Weather}, {@link Surface}, and {@link Roof}; resolvers consult derived {@link
+   * EnvironmentalModifiers} to bias kick accuracy, punt distance, deep-pass completion, fumble
+   * rate, and kicker range.
+   *
+   * <p>Indoor or roof-closed games should pass {@link Roof#DOME} / {@link Roof#RETRACTABLE_CLOSED};
+   * the modifier layer zeroes weather out in that case regardless of the supplied {@link Weather}.
    */
-  public record PreGameContext(HomeFieldAdvantage homeFieldAdvantage) {
+  public record PreGameContext(
+      HomeFieldAdvantage homeFieldAdvantage, Weather weather, Surface surface, Roof roof) {
 
     public PreGameContext {
       Objects.requireNonNull(homeFieldAdvantage, "homeFieldAdvantage");
+      Objects.requireNonNull(weather, "weather");
+      Objects.requireNonNull(surface, "surface");
+      Objects.requireNonNull(roof, "roof");
     }
 
-    /** Convenience constructor — defaults to neutral home field (no shift applied). */
+    /** Neutral baseline — no HFA shift, indoor/calm/grass. */
     public PreGameContext() {
-      this(HomeFieldAdvantage.neutral());
+      this(HomeFieldAdvantage.neutral(), Weather.indoor(), Surface.GRASS, Roof.DOME);
     }
   }
 }
