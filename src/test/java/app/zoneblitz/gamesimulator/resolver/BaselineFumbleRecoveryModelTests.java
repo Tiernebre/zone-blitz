@@ -3,6 +3,8 @@ package app.zoneblitz.gamesimulator.resolver;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
+import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
@@ -110,6 +112,58 @@ class BaselineFumbleRecoveryModelTests {
 
     assertThat(outcome.defenseRecovered()).isTrue();
     assertThat(defense).extracting(Player::id).contains(outcome.recoveredBy().get());
+  }
+
+  @Test
+  void resolve_defenseRecoveryWithBand_samplesReturnYards() {
+    var repo = new ClasspathBandRepository();
+    var sampler = new DefaultBandSampler();
+    var band = repo.loadDistribution("rushing-plays.json", "bands.fumble_return_yards");
+    var modelWithBand = new BaselineFumbleRecoveryModel(1.0, sampler, band);
+    var offense = players(Position.QB, "qb", "rb");
+    var defense = players(Position.DL, "dl1", "dl2", "dl3", "dl4");
+    var fumbler = offense.get(0).id();
+    var rng = new SplittableRandomSource(909L);
+    var trials = 5_000;
+    var nonZeroReturns = 0;
+    var sum = 0L;
+    var maxReturn = Integer.MIN_VALUE;
+    for (var i = 0; i < trials; i++) {
+      var outcome = modelWithBand.resolve(fumbler, offense, defense, rng);
+      assertThat(outcome.defenseRecovered()).isTrue();
+      sum += outcome.returnYards();
+      if (outcome.returnYards() != 0) {
+        nonZeroReturns++;
+      }
+      maxReturn = Math.max(maxReturn, outcome.returnYards());
+    }
+    var mean = sum / (double) trials;
+    assertThat(mean)
+        .as("fumble_return_yards band mean = 0.73; heavily zero-weighted distribution")
+        .isBetween(0.1, 2.5);
+    assertThat(nonZeroReturns)
+        .as("at least some recoveries should produce non-zero returns from the tail")
+        .isGreaterThan(50);
+    assertThat(maxReturn)
+        .as("the heavy tail must occasionally fire and produce a long return")
+        .isGreaterThan(10);
+  }
+
+  @Test
+  void resolve_offenseRecoveryWithBand_returnYardsStillZero() {
+    var repo = new ClasspathBandRepository();
+    var sampler = new DefaultBandSampler();
+    var band = repo.loadDistribution("rushing-plays.json", "bands.fumble_return_yards");
+    var modelWithBand = new BaselineFumbleRecoveryModel(0.0, sampler, band);
+    var offense = players(Position.QB, "qb", "rb", "wr");
+    var defense = players(Position.DL, "dl1", "dl2");
+    var fumbler = offense.get(0).id();
+    var rng = new SplittableRandomSource(77L);
+    for (var i = 0; i < 500; i++) {
+      var outcome = modelWithBand.resolve(fumbler, offense, defense, rng);
+      assertThat(outcome.defenseRecovered()).isFalse();
+      assertThat(outcome.returnYards()).isZero();
+    }
   }
 
   @Test

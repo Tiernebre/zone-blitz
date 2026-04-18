@@ -224,6 +224,38 @@ class MatchupPassResolverCalibrationTests {
     }
   }
 
+  @Test
+  void resolve_forcedInterception_returnYardsPercentilesMatchBand() {
+    var resolver = buildResolver(forcedKind(PassOutcomeKind.INTERCEPTION), PassMatchupShift.ZERO);
+    var returns =
+        sampleYards(resolver, 201L, MatchupPassResolverCalibrationTests::interceptionReturn);
+    assertPercentile(returns, 0.10, 0, 2);
+    assertPercentile(returns, 0.25, 0, 2);
+    assertPercentile(returns, 0.50, 4, 2);
+    assertPercentile(returns, 0.75, 20, 3);
+    assertPercentile(returns, 0.90, 34, 4);
+  }
+
+  @Test
+  void resolve_forcedInterception_returnYardsMeanTracksReportedMean() {
+    var resolver = buildResolver(forcedKind(PassOutcomeKind.INTERCEPTION), PassMatchupShift.ZERO);
+    var returns =
+        sampleYards(resolver, 202L, MatchupPassResolverCalibrationTests::interceptionReturn);
+    assertThat(meanOf(returns))
+        .as("interception_return_yards band mean = 12.23; tail shape must not inflate it")
+        .isBetween(9.0, 15.0);
+  }
+
+  @Test
+  void resolve_forcedInterception_returnYardsRespectsBandMinMax() {
+    var resolver = buildResolver(forcedKind(PassOutcomeKind.INTERCEPTION), PassMatchupShift.ZERO);
+    var rng = new SplittableRandomSource(203L);
+    for (var i = 0; i < TRIALS; i++) {
+      var r = interceptionReturn(resolver.resolve(PASS_CALL, state(), offense, defense, rng));
+      assertThat(r).isBetween(-6, 103);
+    }
+  }
+
   private static int completionYards(PassOutcome outcome) {
     return ((PassOutcome.PassComplete) outcome).totalYards();
   }
@@ -234,6 +266,10 @@ class MatchupPassResolverCalibrationTests {
 
   private static int scrambleYards(PassOutcome outcome) {
     return ((PassOutcome.Scramble) outcome).yards();
+  }
+
+  private static int interceptionReturn(PassOutcome outcome) {
+    return ((PassOutcome.Interception) outcome).returnYards();
   }
 
   private int[] sampleYards(
@@ -293,6 +329,8 @@ class MatchupPassResolverCalibrationTests {
         repo.loadDistribution("passing-plays.json", "bands.yardage.sack_yards");
     DistributionalBand scrambleYards =
         repo.loadDistribution("passing-plays.json", "bands.yardage.scramble_yards");
+    DistributionalBand interceptionReturnYards =
+        repo.loadDistribution("passing-plays.json", "bands.yardage.interception_return_yards");
     return new MatchupPassResolver(
         sampler,
         new PositionBasedPassRoleAssigner(),
@@ -302,7 +340,8 @@ class MatchupPassResolverCalibrationTests {
         outcomeMix,
         completionYards,
         sackYards,
-        scrambleYards);
+        scrambleYards,
+        interceptionReturnYards);
   }
 
   private EnumMap<PassOutcomeKind, Integer> sampleCounts(MatchupPassResolver resolver, long seed) {
