@@ -1,0 +1,597 @@
+{
+  "generated_at": "2026-04-18T09:52:36Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season plays where a penalty could be called: pass, run, punt, field_goal, kickoff, extra_point, and no_play (pre-snap dead-ball penalties like false start / offside). Excludes kneels, spikes, two-point conversions. Rate is per-play (penalty plays / total plays). Penalty type uses nflfastR penalty_type. Side derived from penalty_team vs posteam/defteam; 'unknown' rows are penalties with NA penalty_team (mostly dead-ball fouls). yards distribution covers all penalty plays with non-NA penalty_yards.",
+  "bands": {
+    "overall": {
+      "n_plays": 224933,
+      "n_penalty_plays": 15677,
+      "rate": 0.0697
+    },
+    "by_side": {
+      "defense": {
+        "n": 6927,
+        "rate_of_penalties": 0.4419,
+        "rate_per_play": 0.0308
+      },
+      "offense": {
+        "n": 8750,
+        "rate_of_penalties": 0.5581,
+        "rate_per_play": 0.0389
+      }
+    },
+    "by_play_type": {
+      "extra_point": {
+        "n_plays": 6192,
+        "n_penalty_plays": 75,
+        "rate": 0.0121
+      },
+      "field_goal": {
+        "n_plays": 5224,
+        "n_penalty_plays": 13,
+        "rate": 0.0025
+      },
+      "kickoff": {
+        "n_plays": 13733,
+        "n_penalty_plays": 486,
+        "rate": 0.0354
+      },
+      "no_play": {
+        "n_plays": 22042,
+        "n_penalty_plays": 11883,
+        "rate": 0.5391
+      },
+      "pass": {
+        "n_plays": 96975,
+        "n_penalty_plays": 1259,
+        "rate": 0.013
+      },
+      "punt": {
+        "n_plays": 10488,
+        "n_penalty_plays": 814,
+        "rate": 0.0776
+      },
+      "run": {
+        "n_plays": 70279,
+        "n_penalty_plays": 1163,
+        "rate": 0.0165
+      }
+    },
+    "by_type": {
+      "Offensive Holding": {
+        "n": 2951,
+        "rate_per_play": 0.0131,
+        "share_of_penalties": 0.1882,
+        "mean_yards": 9.6432,
+        "sd_yards": 1.3237,
+        "offense_n": 2628,
+        "defense_n": 323
+      },
+      "False Start": {
+        "n": 2940,
+        "rate_per_play": 0.0131,
+        "share_of_penalties": 0.1875,
+        "mean_yards": 4.8895,
+        "sd_yards": 0.5555,
+        "offense_n": 2940,
+        "defense_n": 0
+      },
+      "Defensive Pass Interference": {
+        "n": 1408,
+        "rate_per_play": 0.0063,
+        "share_of_penalties": 0.0898,
+        "mean_yards": 16.0256,
+        "sd_yards": 10.819,
+        "offense_n": 0,
+        "defense_n": 1408
+      },
+      "Defensive Holding": {
+        "n": 882,
+        "rate_per_play": 0.0039,
+        "share_of_penalties": 0.0563,
+        "mean_yards": 4.754,
+        "sd_yards": 0.8534,
+        "offense_n": 0,
+        "defense_n": 882
+      },
+      "Unnecessary Roughness": {
+        "n": 809,
+        "rate_per_play": 0.0036,
+        "share_of_penalties": 0.0516,
+        "mean_yards": 13.1347,
+        "sd_yards": 3.8906,
+        "offense_n": 167,
+        "defense_n": 642
+      },
+      "Delay of Game": {
+        "n": 763,
+        "rate_per_play": 0.0034,
+        "share_of_penalties": 0.0487,
+        "mean_yards": 4.9135,
+        "sd_yards": 0.5278,
+        "offense_n": 761,
+        "defense_n": 2
+      },
+      "Defensive Offside": {
+        "n": 728,
+        "rate_per_play": 0.0032,
+        "share_of_penalties": 0.0464,
+        "mean_yards": 4.7596,
+        "sd_yards": 0.9564,
+        "offense_n": 0,
+        "defense_n": 728
+      },
+      "Roughing the Passer": {
+        "n": 552,
+        "rate_per_play": 0.0025,
+        "share_of_penalties": 0.0352,
+        "mean_yards": 13.1033,
+        "sd_yards": 3.8669,
+        "offense_n": 1,
+        "defense_n": 551
+      },
+      "Neutral Zone Infraction": {
+        "n": 533,
+        "rate_per_play": 0.0024,
+        "share_of_penalties": 0.034,
+        "mean_yards": 4.8293,
+        "sd_yards": 0.7652,
+        "offense_n": 0,
+        "defense_n": 533
+      },
+      "Face Mask": {
+        "n": 381,
+        "rate_per_play": 0.0017,
+        "share_of_penalties": 0.0243,
+        "mean_yards": 13.4934,
+        "sd_yards": 3.5263,
+        "offense_n": 88,
+        "defense_n": 293
+      },
+      "Illegal Formation": {
+        "n": 344,
+        "rate_per_play": 0.0015,
+        "share_of_penalties": 0.0219,
+        "mean_yards": 4.8953,
+        "sd_yards": 0.5072,
+        "offense_n": 282,
+        "defense_n": 62
+      },
+      "Offensive Pass Interference": {
+        "n": 342,
+        "rate_per_play": 0.0015,
+        "share_of_penalties": 0.0218,
+        "mean_yards": 9.6871,
+        "sd_yards": 1.3652,
+        "offense_n": 342,
+        "defense_n": 0
+      },
+      "Illegal Block Above the Waist": {
+        "n": 312,
+        "rate_per_play": 0.0014,
+        "share_of_penalties": 0.0199,
+        "mean_yards": 9.3077,
+        "sd_yards": 1.7954,
+        "offense_n": 177,
+        "defense_n": 135
+      },
+      "Illegal Use of Hands": {
+        "n": 303,
+        "rate_per_play": 0.0013,
+        "share_of_penalties": 0.0193,
+        "mean_yards": 6.1155,
+        "sd_yards": 2.2808,
+        "offense_n": 77,
+        "defense_n": 226
+      },
+      "Illegal Contact": {
+        "n": 295,
+        "rate_per_play": 0.0013,
+        "share_of_penalties": 0.0188,
+        "mean_yards": 4.9661,
+        "sd_yards": 0.2837,
+        "offense_n": 0,
+        "defense_n": 295
+      },
+      "Ineligible Downfield Pass": {
+        "n": 265,
+        "rate_per_play": 0.0012,
+        "share_of_penalties": 0.0169,
+        "mean_yards": 4.966,
+        "sd_yards": 0.318,
+        "offense_n": 265,
+        "defense_n": 0
+      },
+      "Intentional Grounding": {
+        "n": 203,
+        "rate_per_play": 0.0009,
+        "share_of_penalties": 0.0129,
+        "mean_yards": 11.4729,
+        "sd_yards": 3.0931,
+        "offense_n": 203,
+        "defense_n": 0
+      },
+      "Defensive Too Many Men on Field": {
+        "n": 187,
+        "rate_per_play": 0.0008,
+        "share_of_penalties": 0.0119,
+        "mean_yards": 4.4278,
+        "sd_yards": 1.5059,
+        "offense_n": 0,
+        "defense_n": 187
+      },
+      "Illegal Shift": {
+        "n": 172,
+        "rate_per_play": 0.0008,
+        "share_of_penalties": 0.011,
+        "mean_yards": 4.9593,
+        "sd_yards": 0.2933,
+        "offense_n": 172,
+        "defense_n": 0
+      },
+      "Encroachment": {
+        "n": 171,
+        "rate_per_play": 0.0008,
+        "share_of_penalties": 0.0109,
+        "mean_yards": 4.7018,
+        "sd_yards": 1.1926,
+        "offense_n": 0,
+        "defense_n": 171
+      },
+      "Unsportsmanlike Conduct": {
+        "n": 143,
+        "rate_per_play": 0.0006,
+        "share_of_penalties": 0.0091,
+        "mean_yards": 13.3217,
+        "sd_yards": 3.8868,
+        "offense_n": 81,
+        "defense_n": 62
+      },
+      "Taunting": {
+        "n": 104,
+        "rate_per_play": 0.0005,
+        "share_of_penalties": 0.0066,
+        "mean_yards": 14.0385,
+        "sd_yards": 2.9293,
+        "offense_n": 56,
+        "defense_n": 48
+      },
+      "Horse Collar Tackle": {
+        "n": 76,
+        "rate_per_play": 0.0003,
+        "share_of_penalties": 0.0048,
+        "mean_yards": 13.2368,
+        "sd_yards": 3.8777,
+        "offense_n": 6,
+        "defense_n": 70
+      },
+      "Illegal Blindside Block": {
+        "n": 61,
+        "rate_per_play": 0.0003,
+        "share_of_penalties": 0.0039,
+        "mean_yards": 12.4754,
+        "sd_yards": 4.1417,
+        "offense_n": 36,
+        "defense_n": 25
+      },
+      "Offensive Too Many Men on Field": {
+        "n": 53,
+        "rate_per_play": 0.0002,
+        "share_of_penalties": 0.0034,
+        "mean_yards": 4.8868,
+        "sd_yards": 0.6978,
+        "offense_n": 53,
+        "defense_n": 0
+      },
+      "Player Out of Bounds on Kick": {
+        "n": 51,
+        "rate_per_play": 0.0002,
+        "share_of_penalties": 0.0033,
+        "mean_yards": 4.9804,
+        "sd_yards": 0.14,
+        "offense_n": 51,
+        "defense_n": 0
+      },
+      "Low Block": {
+        "n": 49,
+        "rate_per_play": 0.0002,
+        "share_of_penalties": 0.0031,
+        "mean_yards": 12.5306,
+        "sd_yards": 4.3354,
+        "offense_n": 20,
+        "defense_n": 29
+      },
+      "Lowering the Head to Initiate Contact": {
+        "n": 45,
+        "rate_per_play": 0.0002,
+        "share_of_penalties": 0.0029,
+        "mean_yards": 13.6889,
+        "sd_yards": 3.4564,
+        "offense_n": 7,
+        "defense_n": 38
+      },
+      "Disqualification": {
+        "n": 43,
+        "rate_per_play": 0.0002,
+        "share_of_penalties": 0.0027,
+        "mean_yards": 12.6047,
+        "sd_yards": 4.249,
+        "offense_n": 8,
+        "defense_n": 35
+      },
+      "Illegal Motion": {
+        "n": 42,
+        "rate_per_play": 0.0002,
+        "share_of_penalties": 0.0027,
+        "mean_yards": 5.1905,
+        "sd_yards": 1.5655,
+        "offense_n": 39,
+        "defense_n": 3
+      },
+      "Offensive Offside": {
+        "n": 36,
+        "rate_per_play": 0.0002,
+        "share_of_penalties": 0.0023,
+        "mean_yards": 4.7778,
+        "sd_yards": 0.4216,
+        "offense_n": 36,
+        "defense_n": 0
+      },
+      "Fair Catch Interference": {
+        "n": 33,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0021,
+        "mean_yards": 15,
+        "sd_yards": 0,
+        "offense_n": 33,
+        "defense_n": 0
+      },
+      "Chop Block": {
+        "n": 32,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.002,
+        "mean_yards": 14.0312,
+        "sd_yards": 2.6456,
+        "offense_n": 32,
+        "defense_n": 0
+      },
+      "Illegal Forward Pass": {
+        "n": 30,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0019,
+        "mean_yards": 4.3667,
+        "sd_yards": 1.5862,
+        "offense_n": 25,
+        "defense_n": 5
+      },
+      "Roughing the Kicker": {
+        "n": 30,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0019,
+        "mean_yards": 14.8,
+        "sd_yards": 0.8052,
+        "offense_n": 0,
+        "defense_n": 30
+      },
+      "Ineligible Downfield Kick": {
+        "n": 29,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0018,
+        "mean_yards": 5,
+        "sd_yards": 0.2673,
+        "offense_n": 29,
+        "defense_n": 0
+      },
+      "Tripping": {
+        "n": 29,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0018,
+        "mean_yards": 11.5172,
+        "sd_yards": 2.8613,
+        "offense_n": 21,
+        "defense_n": 8
+      },
+      "Running Into the Kicker": {
+        "n": 28,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0018,
+        "mean_yards": 4.8571,
+        "sd_yards": 0.8483,
+        "offense_n": 0,
+        "defense_n": 28
+      },
+      "Defensive Delay of Game": {
+        "n": 25,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0016,
+        "mean_yards": 4.52,
+        "sd_yards": 1.1944,
+        "offense_n": 0,
+        "defense_n": 25
+      },
+      "Illegal Touch Pass": {
+        "n": 25,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0016,
+        "mean_yards": 1.36,
+        "sd_yards": 2.2338,
+        "offense_n": 25,
+        "defense_n": 0
+      },
+      "Illegal Double-Team Block": {
+        "n": 24,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0015,
+        "mean_yards": 9.375,
+        "sd_yards": 2.4103,
+        "offense_n": 24,
+        "defense_n": 0
+      },
+      "Offside on Free Kick": {
+        "n": 24,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0015,
+        "mean_yards": 5,
+        "sd_yards": 0,
+        "offense_n": 0,
+        "defense_n": 24
+      },
+      "Kickoff Short of Landing Zone": {
+        "n": 20,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0013,
+        "mean_yards": 0,
+        "sd_yards": 0,
+        "offense_n": 0,
+        "defense_n": 20
+      },
+      "Illegal Touch Kick": {
+        "n": 19,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0012,
+        "mean_yards": 4.7368,
+        "sd_yards": 1.1471,
+        "offense_n": 14,
+        "defense_n": 5
+      },
+      "Leverage": {
+        "n": 17,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0011,
+        "mean_yards": 11.7059,
+        "sd_yards": 4.896,
+        "offense_n": 0,
+        "defense_n": 17
+      },
+      "Illegal Crackback": {
+        "n": 14,
+        "rate_per_play": 0.0001,
+        "share_of_penalties": 0.0009,
+        "mean_yards": 14.6429,
+        "sd_yards": 0.8419,
+        "offense_n": 14,
+        "defense_n": 0
+      },
+      "Kick Catch Interference": {
+        "n": 11,
+        "rate_per_play": 0,
+        "share_of_penalties": 0.0007,
+        "mean_yards": 15,
+        "sd_yards": 0,
+        "offense_n": 11,
+        "defense_n": 0
+      },
+      "Illegal Substitution": {
+        "n": 10,
+        "rate_per_play": 0,
+        "share_of_penalties": 0.0006,
+        "mean_yards": 5.1,
+        "sd_yards": 0.3162,
+        "offense_n": 6,
+        "defense_n": 4
+      },
+      "Clipping": {
+        "n": 9,
+        "rate_per_play": 0,
+        "share_of_penalties": 0.0006,
+        "mean_yards": 13.8889,
+        "sd_yards": 1.5366,
+        "offense_n": 9,
+        "defense_n": 0
+      },
+      "Lowering the Head to Make Forcible Contact": {
+        "n": 9,
+        "rate_per_play": 0,
+        "share_of_penalties": 0.0006,
+        "mean_yards": 14.8889,
+        "sd_yards": 0.3333,
+        "offense_n": 2,
+        "defense_n": 7
+      },
+      "Illegal Bat": {
+        "n": 4,
+        "rate_per_play": 0,
+        "share_of_penalties": 0.0003,
+        "mean_yards": 10,
+        "sd_yards": 0,
+        "offense_n": 4,
+        "defense_n": 0
+      },
+      "Illegal Kick/Kicking Loose Ball": {
+        "n": 3,
+        "rate_per_play": 0,
+        "share_of_penalties": 0.0002,
+        "mean_yards": 10,
+        "sd_yards": 0,
+        "offense_n": 3,
+        "defense_n": 0
+      },
+      "Delay of Kickoff": {
+        "n": 2,
+        "rate_per_play": 8.8915e-06,
+        "share_of_penalties": 0.0001,
+        "mean_yards": 5,
+        "sd_yards": 0,
+        "offense_n": 0,
+        "defense_n": 2
+      },
+      "Leaping": {
+        "n": 2,
+        "rate_per_play": 8.8915e-06,
+        "share_of_penalties": 0.0001,
+        "mean_yards": 10,
+        "sd_yards": 5.6569,
+        "offense_n": 0,
+        "defense_n": 2
+      },
+      "Hip Drop Tackle": {
+        "n": 1,
+        "rate_per_play": 4.4458e-06,
+        "share_of_penalties": 0.0001,
+        "mean_yards": 15,
+        "sd_yards": "NA",
+        "offense_n": 0,
+        "defense_n": 1
+      },
+      "Illegal Peelback": {
+        "n": 1,
+        "rate_per_play": 4.4458e-06,
+        "share_of_penalties": 0.0001,
+        "mean_yards": 15,
+        "sd_yards": "NA",
+        "offense_n": 1,
+        "defense_n": 0
+      },
+      "Illegal Wedge": {
+        "n": 1,
+        "rate_per_play": 4.4458e-06,
+        "share_of_penalties": 0.0001,
+        "mean_yards": 12,
+        "sd_yards": "NA",
+        "offense_n": 1,
+        "defense_n": 0
+      },
+      "Invalid Fair Catch Signal": {
+        "n": 1,
+        "rate_per_play": 4.4458e-06,
+        "share_of_penalties": 0.0001,
+        "mean_yards": 5,
+        "sd_yards": "NA",
+        "offense_n": 0,
+        "defense_n": 1
+      }
+    },
+    "yards": {
+      "n": 15677,
+      "mean": 8.3737,
+      "sd": 5.4217,
+      "min": 0,
+      "p10": 5,
+      "p25": 5,
+      "p50": 5,
+      "p75": 10,
+      "p90": 15,
+      "max": 51
+    }
+  }
+}

@@ -118,6 +118,25 @@ flowchart LR
 | 11 | YoY win correlation + playoff persistence + division churn + per-seed playoff advancement — [band](../bands/league-volatility.json) + [doc](./league-volatility.md) | `nflreadr::load_schedules()` + `load_teams()`           | #535 (done) |
 | 12 | UDFA market (signings per team/offseason by position, hit rate vs late-round picks) — [band](../bands/udfa-market.json) + [doc](./udfa-market.md)                   | `load_rosters()` left-anti `load_draft_picks()` + snaps | #536 (done) |
 
+## Sim-engine band extraction (B-series)
+
+Bands extracted for the sim engine (`docs/technical/sim-tasks/INDEX.md`
+B1–B11). Status tracking for the MVP blockers and downstream model feeds.
+
+| #   | Band                                                      | Source      | Status                                                     |
+| --- | --------------------------------------------------------- | ----------- | ---------------------------------------------------------- |
+| B1  | [`penalties.json`](../bands/penalties.json)               | nflfastR    | Done                                                       |
+| B2  | `weather-modifiers.json`                                  | nflfastR    | Pending                                                    |
+| B3  | `surface-modifiers.json`                                  | nflfastR    | Pending                                                    |
+| B4  | `home-away.json`                                          | nflfastR    | Pending                                                    |
+| B5  | `hail-mary.json`                                          | nflfastR    | Pending                                                    |
+| B6  | `overtime.json`                                           | UFL/XFL     | Deferred — needs non-nflfastR (UFL/XFL) sources for rule-variant OT data. |
+| B7  | `fake-kicks.json`                                         | nflfastR    | Pending                                                    |
+| B8  | `muffed-punts.json`                                       | nflfastR    | Pending                                                    |
+| B9  | `checkdown-under-pressure.json`                           | bigdatabowl | Pending                                                    |
+| B10 | `sub-play-pass-breakdown.json`                            | bigdatabowl | Pending                                                    |
+| B11 | per-position penalty rates (`per-position/*.json`)        | nflfastR    | Pending                                                    |
+
 ## Future consideration (not yet issue-filed)
 
 Promising but lower-priority, or requiring non-nflfastR sources:
