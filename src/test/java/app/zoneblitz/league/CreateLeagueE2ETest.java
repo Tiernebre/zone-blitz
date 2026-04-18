@@ -84,9 +84,7 @@ class CreateLeagueE2ETest {
         .isVisible();
     assertThat(page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("Home")))
         .isVisible();
-    assertThat(
-            page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("\u2190 All Leagues")))
+    assertThat(page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("All Leagues")))
         .isVisible();
   }
 

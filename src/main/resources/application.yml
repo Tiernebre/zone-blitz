@@ -23,6 +23,10 @@ spring:
     sql-dialect: POSTGRES
   flyway:
     locations: classpath:db/migration
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: never
   thymeleaf:
     cache: false
 

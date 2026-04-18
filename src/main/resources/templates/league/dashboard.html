@@ -3,24 +3,53 @@
 <head>
 	<meta charset="UTF-8">
 	<title th:text="${league.leagueName() + ' — Zone Blitz'}">League — Zone Blitz</title>
+	<script>
+		if (localStorage.getItem('sidebar-collapsed') === '1') {
+			document.documentElement.classList.add('sidebar-collapsed');
+		}
+	</script>
 	<link rel="stylesheet" th:href="@{/css/app.css}">
+	<style>
+		[x-cloak] { display: none !important; }
+		.sidebar { width: 15rem; transition: width 150ms ease; }
+		html.sidebar-collapsed .sidebar { width: 4rem; }
+		html.sidebar-collapsed .sidebar-label { display: none; }
+		html.sidebar-collapsed .sidebar-toggle-icon { transform: rotate(180deg); }
+	</style>
 	<script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
+	<script th:src="@{/webjars/alpinejs/3.14.8/dist/cdn.min.js}" defer></script>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
 	<div class="flex min-h-screen">
-		<aside class="w-60 bg-slate-900 text-slate-100 flex flex-col">
-			<nav class="flex flex-col p-4 gap-1 text-sm">
+		<aside class="sidebar bg-slate-900 text-slate-100 flex flex-col"
+		       x-data="{
+		           collapsed: document.documentElement.classList.contains('sidebar-collapsed'),
+		           toggle() {
+		               this.collapsed = !this.collapsed;
+		               localStorage.setItem('sidebar-collapsed', this.collapsed ? '1' : '0');
+		               document.documentElement.classList.toggle('sidebar-collapsed', this.collapsed);
+		           }
+		       }">
+			<nav class="flex flex-col p-4 gap-1 text-sm flex-1">
 				<a th:href="@{/}"
 				   class="flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-800 text-slate-300">
-					<svg th:replace="~{icons :: arrow-left(cls='size-4')}"></svg>
-					<span>All Leagues</span>
+					<svg th:replace="~{icons :: arrow-left(cls='size-4 shrink-0')}"></svg>
+					<span class="sidebar-label">All Leagues</span>
 				</a>
 				<a th:href="@{'/leagues/' + ${league.leagueId()}}"
 				   class="flex items-center gap-2 px-3 py-2 rounded bg-slate-800 text-white font-medium">
-					<svg th:replace="~{icons :: home(cls='size-4')}"></svg>
-					<span>Home</span>
+					<svg th:replace="~{icons :: home(cls='size-4 shrink-0')}"></svg>
+					<span class="sidebar-label">Home</span>
 				</a>
 			</nav>
+			<button type="button"
+			        @click="toggle()"
+			        :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+			        :aria-expanded="!collapsed"
+			        class="flex items-center justify-center gap-2 m-3 px-3 py-2 rounded text-slate-300 hover:bg-slate-800 text-sm">
+				<svg th:replace="~{icons :: chevron-left(cls='size-4 shrink-0 sidebar-toggle-icon transition-transform')}"></svg>
+				<span class="sidebar-label">Collapse</span>
+			</button>
 		</aside>
 
 		<main class="flex-1 p-8">

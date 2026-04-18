@@ -62,6 +62,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
+    implementation("org.springframework.session:spring-session-jdbc")
 
     implementation("org.springframework.boot:spring-boot-flyway")
     implementation("org.flywaydb:flyway-core")
@@ -109,7 +110,7 @@ jooq {
                     database.apply {
                         name = "org.jooq.meta.postgres.PostgresDatabase"
                         inputSchema = "public"
-                        excludes = "flyway_schema_history"
+                        excludes = "flyway_schema_history|spring_session|spring_session_attributes"
                     }
                     target.apply {
                         packageName = "app.zoneblitz.jooq"
