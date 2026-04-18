@@ -216,7 +216,9 @@ final class GameSimulator implements SimulateGame {
     }
     if (advance.safety()) {
       state = state.withScore(scoreAfter).withClock(clockAfter);
-      return state.withPossessionAndSpot(defenseSide, new FieldPosition(SAFETY_FREE_KICK_SPOT));
+      var freeKickSpot = new FieldPosition(SAFETY_FREE_KICK_SPOT);
+      out.add(safetyEvent(state, inputs.gameId(), seq[0]++, freeKickSpot, offenseSide));
+      return state.withPossessionAndSpot(defenseSide, freeKickSpot);
     }
     if (advance.turnover() != SnapAdvance.Turnover.NONE) {
       state = state.withScore(scoreAfter).withClock(clockAfter);
@@ -602,6 +604,27 @@ final class GameSimulator implements SimulateGame {
     state = state.withClock(tickKickClock(state, Kick.KICKOFF, rng));
     return state.withPossessionAndSpot(
         receivingSide, new FieldPosition(resolved.receivingSpotYardLine()));
+  }
+
+  private static PlayEvent.Safety safetyEvent(
+      GameState state,
+      GameId gameId,
+      int sequence,
+      FieldPosition freeKickSpot,
+      Side concedingSide) {
+    var id =
+        new PlayId(new UUID(gameId.value().getMostSignificantBits(), 0x5A00L | (long) sequence));
+    return new PlayEvent.Safety(
+        id,
+        gameId,
+        sequence,
+        state.downAndDistance(),
+        state.spot(),
+        state.clock(),
+        state.clock(),
+        state.score(),
+        freeKickSpot,
+        concedingSide);
   }
 
   private static PlayEvent.EndOfQuarter endOfQuarterEvent(

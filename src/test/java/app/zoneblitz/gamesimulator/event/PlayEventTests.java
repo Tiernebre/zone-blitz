@@ -163,6 +163,8 @@ class PlayEventTests {
                 5,
                 true,
                 Optional.<PlayEvent>empty()),
+            new PlayEvent.Safety(
+                PLAY, GAME, 12, DD, SPOT, CLOCK, CLOCK, SCORE, new FieldPosition(20), Side.HOME),
             new PlayEvent.Kneel(PLAY, GAME, 12, DD, SPOT, CLOCK, CLOCK, SCORE),
             new PlayEvent.Spike(PLAY, GAME, 13, DD, SPOT, CLOCK, CLOCK, SCORE),
             new PlayEvent.Timeout(PLAY, GAME, 14, DD, SPOT, CLOCK, CLOCK, SCORE, Side.HOME),
@@ -184,6 +186,7 @@ class PlayEventTests {
             case PlayEvent.Punt p -> "punt";
             case PlayEvent.Kickoff k -> "kickoff";
             case PlayEvent.Penalty p -> "penalty";
+            case PlayEvent.Safety sf -> "safety";
             case PlayEvent.Kneel k -> "kneel";
             case PlayEvent.Spike s -> "spike";
             case PlayEvent.Timeout t -> "timeout";
@@ -192,6 +195,6 @@ class PlayEventTests {
           };
       assertThat(label).isNotBlank();
     }
-    assertThat(events).hasSize(17);
+    assertThat(events).hasSize(18);
   }
 }

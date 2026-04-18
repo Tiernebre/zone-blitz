@@ -34,6 +34,7 @@ final class DefaultPlayNarrator implements PlayNarrator {
       case PlayEvent.Punt p -> punt(p, context);
       case PlayEvent.Kickoff k -> kickoff(k, context);
       case PlayEvent.Penalty p -> penalty(p, context);
+      case PlayEvent.Safety s -> safety(s, context);
       case PlayEvent.Kneel k -> "%s. Kneel down.".formatted(situation(k, context));
       case PlayEvent.Spike s -> "%s. Spike.".formatted(situation(s, context));
       case PlayEvent.Timeout t -> "Timeout, %s.".formatted(context.nameOf(t.team()));
@@ -180,6 +181,12 @@ final class DefaultPlayNarrator implements PlayNarrator {
     return "%s FLAG — %s on %s (%s), %d yards%s."
         .formatted(
             situation(p, ctx), type, against, ctx.nameOf(p.committedBy()), p.yards(), replay);
+  }
+
+  private String safety(PlayEvent.Safety s, NarrationContext ctx) {
+    return "SAFETY — 2 points awarded against %s. Free kick from own %d. %s"
+        .formatted(
+            ctx.nameOf(s.concedingSide()), s.spot().yardLine(), scoreLabel(s.scoreAfter(), ctx));
   }
 
   private String endOfQuarter(PlayEvent.EndOfQuarter e, NarrationContext ctx) {

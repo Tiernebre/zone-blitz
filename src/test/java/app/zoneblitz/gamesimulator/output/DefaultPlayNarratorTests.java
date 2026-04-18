@@ -541,6 +541,26 @@ class DefaultPlayNarratorTests {
   }
 
   @Test
+  void narrate_safety_includesSafetyTagConcedingTeamAndScore() {
+    var event =
+        new PlayEvent.Safety(
+            PLAY,
+            GAME,
+            0,
+            FIRST_AND_TEN,
+            new FieldPosition(1),
+            Q1_OPEN,
+            Q1_OPEN,
+            new Score(0, 2),
+            new FieldPosition(20),
+            Side.HOME);
+
+    var line = narrator.narrate(event, context);
+
+    assertThat(line).contains("SAFETY").contains("Chiefs").contains("own 20").contains("0 – ");
+  }
+
+  @Test
   void narrate_goalLineRun_spotShownAsOpp() {
     var event =
         new PlayEvent.Run(
