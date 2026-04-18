@@ -337,6 +337,7 @@ class MatchupPassResolverCalibrationTests {
         shift,
         BandCoverageShellSampler.load(repo),
         new ScoreBasedTargetSelector(),
+        PressureModel.ALWAYS_SACK,
         outcomeMix,
         completionYards,
         sackYards,
