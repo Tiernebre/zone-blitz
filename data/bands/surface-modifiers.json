@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-04-18T09:55:11Z",
+  "seasons": [2020, 2021, 2022, 2023, 2024],
+  "notes": "Regular-season plays grouped by field surface. Category: grass = pbp.surface == 'grass'; turf = all other non-empty surface values (fieldturf, sportturf, astroturf, matrixturf, etc.); unknown = NA/''. Each category reports pass (completion%, yards/dropback, sack%, fumble%), rush (YPC, fumble%, stuff%, 10+%), and field goal (make rate, mean distance). raw_surface_counts exposes the finer-grained surface strings in case the sim wants turf-variant specificity.",
+  "bands": {
+    "overall": {
+      "n_plays": 234887,
+      "n_games": 1343,
+      "pass": {
+        "n": 101750,
+        "completion_pct": 0.5791,
+        "yards_per_dropback": 6.2752,
+        "sack_rate": 0.0629,
+        "fumble_rate": 0.0164
+      },
+      "rush": {
+        "n": 67082,
+        "yards_per_carry": 4.2165,
+        "fumble_rate": 0.0156,
+        "stuff_rate": 0.2004,
+        "gain_10_plus_rate": 0.105
+      },
+      "field_goal": {
+        "n": 5224,
+        "make_rate": 0.8493,
+        "mean_distance": 39.2052
+      }
+    },
+    "by_category": {
+      "grass": {
+        "n_plays": 107537,
+        "n_games": 618,
+        "pass": {
+          "n": 46346,
+          "completion_pct": 0.5771,
+          "yards_per_dropback": 6.2094,
+          "sack_rate": 0.0628,
+          "fumble_rate": 0.0164
+        },
+        "rush": {
+          "n": 31001,
+          "yards_per_carry": 4.2422,
+          "fumble_rate": 0.0165,
+          "stuff_rate": 0.2031,
+          "gain_10_plus_rate": 0.1057
+        },
+        "field_goal": {
+          "n": 2368,
+          "make_rate": 0.8522,
+          "mean_distance": 39.0236
+        }
+      },
+      "turf": {
+        "n_plays": 119745,
+        "n_games": 682,
+        "pass": {
+          "n": 52089,
+          "completion_pct": 0.5807,
+          "yards_per_dropback": 6.3455,
+          "sack_rate": 0.0629,
+          "fumble_rate": 0.0164
+        },
+        "rush": {
+          "n": 33959,
+          "yards_per_carry": 4.2028,
+          "fumble_rate": 0.0148,
+          "stuff_rate": 0.1976,
+          "gain_10_plus_rate": 0.1048
+        },
+        "field_goal": {
+          "n": 2676,
+          "make_rate": 0.8457,
+          "mean_distance": 39.3565
+        }
+      },
+      "unknown": {
+        "n_plays": 7605,
+        "n_games": 43,
+        "pass": {
+          "n": 3315,
+          "completion_pct": 0.5804,
+          "yards_per_dropback": 6.0905,
+          "sack_rate": 0.0652,
+          "fumble_rate": 0.0175
+        },
+        "rush": {
+          "n": 2122,
+          "yards_per_carry": 4.0622,
+          "fumble_rate": 0.016,
+          "stuff_rate": 0.2078,
+          "gain_10_plus_rate": 0.0985
+        },
+        "field_goal": {
+          "n": 180,
+          "make_rate": 0.8667,
+          "mean_distance": 39.3444
+        }
+      }
+    },
+    "raw_surface_counts": {
+      "grass": {
+        "n_plays": 107537,
+        "n_games": 618
+      },
+      "fieldturf": {
+        "n_plays": 55591,
+        "n_games": 316
+      },
+      "matrixturf": {
+        "n_plays": 20231,
+        "n_games": 115
+      },
+      "grass ": {
+        "n_plays": 16231,
+        "n_games": 93
+      },
+      "sportturf": {
+        "n_plays": 12540,
+        "n_games": 71
+      },
+      "astroturf": {
+        "n_plays": 9838,
+        "n_games": 56
+      },
+      "unknown": {
+        "n_plays": 7605,
+        "n_games": 43
+      },
+      "a_turf": {
+        "n_plays": 5314,
+        "n_games": 31
+      }
+    }
+  }
+}

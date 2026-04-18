@@ -127,7 +127,7 @@ B1–B11). Status tracking for the MVP blockers and downstream model feeds.
 | --- | --------------------------------------------------------- | ----------- | ---------------------------------------------------------- |
 | B1  | [`penalties.json`](../bands/penalties.json)               | nflfastR    | Done                                                       |
 | B2  | [`weather-modifiers.json`](../bands/weather-modifiers.json) | nflfastR  | Done                                                       |
-| B3  | `surface-modifiers.json`                                  | nflfastR    | Pending                                                    |
+| B3  | [`surface-modifiers.json`](../bands/surface-modifiers.json) | nflfastR  | Done                                                       |
 | B4  | `home-away.json`                                          | nflfastR    | Pending                                                    |
 | B5  | `hail-mary.json`                                          | nflfastR    | Pending                                                    |
 | B6  | `overtime.json`                                           | UFL/XFL     | Deferred — needs non-nflfastR (UFL/XFL) sources for rule-variant OT data. |
