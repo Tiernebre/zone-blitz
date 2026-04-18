@@ -128,11 +128,16 @@ public final class MatchupRunResolver implements RunResolver {
         RunOutcomeKind.BREAKAWAY,
         repo.loadDistribution(RUSHING_PLAYS, "bands.by_outcome.breakaway"));
     var fumbleYards = repo.loadDistribution(RUSHING_PLAYS, "bands.overall");
+    var fumbleReturnYards = repo.loadDistribution(RUSHING_PLAYS, "bands.fumble_return_yards");
 
     var boxSampler = BandBoxCountSampler.load(repo);
     var composite =
         new CompositeRunMatchupShift(
             new ClampedRunMatchupShift(), new BoxCountRunShift(boxSampler));
+
+    var fumbleRecoveryModel =
+        new BaselineFumbleRecoveryModel(
+            BaselineFumbleRecoveryModel.DEFAULT_DEFENSE_RECOVERY_RATE, sampler, fumbleReturnYards);
 
     return new MatchupRunResolver(
         sampler,
@@ -140,7 +145,8 @@ public final class MatchupRunResolver implements RunResolver {
         composite,
         outcomeMix,
         yardsByKind,
-        fumbleYards);
+        fumbleYards,
+        fumbleRecoveryModel);
   }
 
   @Override

@@ -264,6 +264,22 @@
         "rate": 0.0156
       }
     },
+    "fumble_return_yards": {
+      "n": 1400,
+      "mean": 0.7321,
+      "sd": 3.7843,
+      "min": -3,
+      "p10": 0,
+      "p25": 0,
+      "p50": 0,
+      "p75": 0,
+      "p90": 0,
+      "p95": 2,
+      "p99": 23,
+      "max": 37,
+      "fumble_return_td_rate": 0.0643,
+      "notes": "Regular-season 2020-2024, plays where offense lost fumble (fumble_lost==1). Heavily zero-weighted because most defensive recoveries are immediate-down (the defender falls on the ball); TDs come from the rare long-return tail."
+    },
     "rates": {
       "n_rushes": 67082,
       "stuff_rate": 0.2003,

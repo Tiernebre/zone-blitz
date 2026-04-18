@@ -73,6 +73,7 @@ public final class MatchupPassResolver implements PassResolver {
   private final DistributionalBand completionYards;
   private final DistributionalBand sackYards;
   private final DistributionalBand scrambleYards;
+  private final DistributionalBand interceptionReturnYards;
 
   public MatchupPassResolver(
       BandSampler sampler,
@@ -83,7 +84,8 @@ public final class MatchupPassResolver implements PassResolver {
       RateBand<PassOutcomeKind> outcomeMix,
       DistributionalBand completionYards,
       DistributionalBand sackYards,
-      DistributionalBand scrambleYards) {
+      DistributionalBand scrambleYards,
+      DistributionalBand interceptionReturnYards) {
     this.sampler = Objects.requireNonNull(sampler, "sampler");
     this.roleAssigner = Objects.requireNonNull(roleAssigner, "roleAssigner");
     this.matchupShift = Objects.requireNonNull(matchupShift, "matchupShift");
@@ -93,6 +95,8 @@ public final class MatchupPassResolver implements PassResolver {
     this.completionYards = Objects.requireNonNull(completionYards, "completionYards");
     this.sackYards = Objects.requireNonNull(sackYards, "sackYards");
     this.scrambleYards = Objects.requireNonNull(scrambleYards, "scrambleYards");
+    this.interceptionReturnYards =
+        Objects.requireNonNull(interceptionReturnYards, "interceptionReturnYards");
   }
 
   /**
@@ -107,6 +111,8 @@ public final class MatchupPassResolver implements PassResolver {
     var completionYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.completion_yards");
     var sackYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.sack_yards");
     var scrambleYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.scramble_yards");
+    var interceptionReturnYards =
+        repo.loadDistribution(PASSING_PLAYS, "bands.yardage.interception_return_yards");
     var shellSampler = BandCoverageShellSampler.load(repo);
     var composite =
         new CompositePassMatchupShift(new ClampedPassMatchupShift(), new CoverageShellPassShift());
@@ -119,7 +125,8 @@ public final class MatchupPassResolver implements PassResolver {
         outcomeMix,
         completionYards,
         sackYards,
-        scrambleYards);
+        scrambleYards,
+        interceptionReturnYards);
   }
 
   @Override
@@ -164,7 +171,8 @@ public final class MatchupPassResolver implements PassResolver {
       }
       case INTERCEPTION -> {
         var interceptor = pickInterceptor(roles, defense);
-        yield new PassOutcome.Interception(qb, target, interceptor, 0);
+        var returnYards = sampler.sampleDistribution(interceptionReturnYards, shift, rng);
+        yield new PassOutcome.Interception(qb, target, interceptor, returnYards);
       }
     };
   }
