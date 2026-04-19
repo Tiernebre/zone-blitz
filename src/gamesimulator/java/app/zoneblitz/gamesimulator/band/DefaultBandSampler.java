@@ -7,15 +7,23 @@ public final class DefaultBandSampler implements BandSampler {
 
   private static final double EPSILON = 1e-9;
 
+  /**
+   * Soft-cap on the per-snap matchup shift before it feeds the logit/percentile bias. {@code 0.6 ×
+   * tanh(shift / 0.6)} has slope 1 at zero (matched matchups behave as before) and asymptotes at
+   * ±0.6, so a per-snap edge can't compound into shutouts when applied across 60+ plays.
+   */
+  private static final double SHIFT_SATURATION = 0.6;
+
   @Override
   public <T> T sampleRate(RateBand<T> band, double matchupShift, RandomSource rng) {
+    var shift = saturate(matchupShift);
     var shifted = new LinkedHashMap<T, Double>(band.baseProbabilities().size());
     var total = 0.0;
     for (var entry : band.baseProbabilities().entrySet()) {
       var outcome = entry.getKey();
       var pBase = clamp(entry.getValue(), EPSILON, 1.0 - EPSILON);
       var beta = band.matchupCoefficients().getOrDefault(outcome, 0.0);
-      var shiftedLogit = logit(pBase) + beta * matchupShift;
+      var shiftedLogit = logit(pBase) + beta * shift;
       var pShifted = sigmoid(shiftedLogit);
       shifted.put(outcome, pShifted);
       total += pShifted;
@@ -35,11 +43,16 @@ public final class DefaultBandSampler implements BandSampler {
 
   @Override
   public int sampleDistribution(DistributionalBand band, double matchupShift, RandomSource rng) {
+    var shift = saturate(matchupShift);
     var u = rng.nextDouble();
-    var uShifted = clamp(u + band.gamma() * matchupShift, EPSILON, 1.0 - EPSILON);
+    var uShifted = clamp(u + band.gamma() * shift, EPSILON, 1.0 - EPSILON);
     var value = interpolate(band, uShifted);
     var clamped = Math.max(band.min(), Math.min(band.max(), (int) Math.round(value)));
     return clamped;
+  }
+
+  private static double saturate(double shift) {
+    return SHIFT_SATURATION * Math.tanh(shift / SHIFT_SATURATION);
   }
 
   /**
