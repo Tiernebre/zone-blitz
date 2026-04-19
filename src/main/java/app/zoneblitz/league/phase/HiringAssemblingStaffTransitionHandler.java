@@ -255,10 +255,7 @@ public class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHa
       List<GeneratedCandidate> generated,
       java.util.function.ToDoubleFunction<GeneratedCandidate> bias) {
     var ranked = new ArrayList<>(generated);
-    ranked.sort(
-        Comparator.<GeneratedCandidate>comparingDouble(
-                c -> scoutedOverall(c.candidate().scoutedAttrs()) + bias.applyAsDouble(c))
-            .reversed());
+    ranked.sort(Comparator.<GeneratedCandidate>comparingDouble(bias::applyAsDouble).reversed());
     return ranked.getFirst();
   }
 
@@ -329,36 +326,10 @@ public class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHa
             pick.candidate().totalExperienceYears(),
             pick.candidate().experienceByRole(),
             pick.candidate().hiddenAttrs(),
-            pick.candidate().scoutedAttrs(),
             pick.candidate().scoutBranch());
     var saved = candidates.insert(insert);
     preferences.insert(pick.preferences().withCandidateId(saved.id()));
     candidates.markHired(saved.id(), teamId);
     staff.insert(new NewTeamStaffMember(teamId, saved.id(), role, scoutBranch, phase(), 1));
-  }
-
-  private static double scoutedOverall(String scoutedAttrsJson) {
-    var idx = scoutedAttrsJson.indexOf("\"overall\"");
-    if (idx < 0) {
-      return 0.0;
-    }
-    var colon = scoutedAttrsJson.indexOf(':', idx);
-    if (colon < 0) {
-      return 0.0;
-    }
-    var end = scoutedAttrsJson.length();
-    var stop = scoutedAttrsJson.indexOf(',', colon);
-    var close = scoutedAttrsJson.indexOf('}', colon);
-    if (stop >= 0) {
-      end = Math.min(end, stop);
-    }
-    if (close >= 0) {
-      end = Math.min(end, close);
-    }
-    try {
-      return Double.parseDouble(scoutedAttrsJson.substring(colon + 1, end).trim());
-    } catch (NumberFormatException ex) {
-      return 0.0;
-    }
   }
 }

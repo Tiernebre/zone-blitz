@@ -13,7 +13,7 @@ import app.zoneblitz.league.hiring.OfferResolver;
 import app.zoneblitz.league.phase.AdvancePhase;
 import app.zoneblitz.league.phase.AdvancePhaseResult;
 import app.zoneblitz.league.phase.AdvancePhaseUseCase;
-import app.zoneblitz.league.phase.BestScoutedHiringAutofill;
+import app.zoneblitz.league.phase.BestFitHiringAutofill;
 import app.zoneblitz.league.phase.HiringHeadCoachTransitionHandler;
 import app.zoneblitz.league.phase.HiringPhaseAutofill;
 import app.zoneblitz.league.phase.HiringStep;
@@ -82,9 +82,18 @@ class AdvanceWeekUseCaseTests {
             hiringStates,
             new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             rngs);
+    var teamProfiles = new app.zoneblitz.league.team.CityTeamProfiles(dsl, franchises);
     autofill =
-        new BestScoutedHiringAutofill(
-            pools, candidates, preferences, offers, hiringStates, staff, teamLookup, rngs);
+        new BestFitHiringAutofill(
+            pools,
+            candidates,
+            preferences,
+            offers,
+            hiringStates,
+            staff,
+            teamLookup,
+            teamProfiles,
+            rngs);
     advancePhase = new AdvancePhaseUseCase(leagues, List.of());
     noopResolver = (leagueId, phase, week) -> {};
     recordingAutofill = new RecordingAutofill();

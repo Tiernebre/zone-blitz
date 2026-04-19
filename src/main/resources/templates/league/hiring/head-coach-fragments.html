@@ -16,7 +16,7 @@
 	         id="hc-pool"
 	         class="bg-white border border-slate-200 rounded p-4 shadow-sm">
 		<h2 class="text-lg font-semibold text-slate-900">Head Coach candidate pool</h2>
-		<p class="text-sm text-slate-500 mb-3">Scouted attributes only. True ratings are hidden.</p>
+		<p class="text-sm text-slate-500 mb-3">Coaching ability is not visible. Interview to gauge mutual interest; judge everything else from the public record.</p>
 		<div th:if="${view.pool().isEmpty()}" class="text-slate-500 italic text-sm">
 			No candidates available yet.
 		</div>
@@ -28,11 +28,13 @@
 					<th class="py-2 pr-2">Archetype</th>
 					<th class="py-2 pr-2">Specialty</th>
 					<th class="py-2 pr-2">Age</th>
-					<th class="py-2 pr-2">Exp (HC / OC / PC)</th>
-					<th class="py-2 pr-2">Scouted</th>
+					<th class="py-2 pr-2" title="Years as head coach">HC Yrs</th>
+					<th class="py-2 pr-2" title="Years as offensive or defensive coordinator">Coord. Yrs</th>
+					<th class="py-2 pr-2" title="Years as a position coach">Pos. Coach Yrs</th>
 					<th class="py-2 pr-2">Comp target</th>
 					<th class="py-2 pr-2">Length</th>
 					<th class="py-2 pr-2">Guaranteed</th>
+					<th class="py-2 pr-2">Interest</th>
 					<th class="py-2 pr-2"></th>
 				</tr>
 			</thead>
@@ -41,17 +43,25 @@
 				    th:attr="data-candidate-id=${row.id()}"
 				    class="border-b border-slate-100">
 					<td class="py-2 pr-2 font-medium text-slate-900" th:text="${row.name()}"></td>
-					<td class="py-2 pr-2" th:text="${row.archetype()}"></td>
+					<td class="py-2 pr-2" th:text="${row.archetype().displayName()}"></td>
 					<td class="py-2 pr-2" th:text="${row.specialty()}"></td>
 					<td class="py-2 pr-2" th:text="${row.age()}"></td>
-					<td class="py-2 pr-2">
-						<span th:text="${row.hcYears()} + ' / ' + ${row.ocYears()} + ' / ' + ${row.positionCoachYears()}"></span>
-						<span class="text-slate-400 text-xs" th:text="'(' + ${row.totalExperienceYears()} + ' yrs total)'"></span>
-					</td>
-					<td class="py-2 pr-2" th:text="${row.scoutedOverall()}"></td>
+					<td class="py-2 pr-2 tabular-nums" th:text="${row.hcYears()}"></td>
+					<td class="py-2 pr-2 tabular-nums" th:text="${row.coordinatorYears()}"></td>
+					<td class="py-2 pr-2 tabular-nums" th:text="${row.positionCoachYears()}"></td>
 					<td class="py-2 pr-2" th:text="'$' + ${#numbers.formatDecimal(row.compensationTarget(), 0, 'COMMA', 0, 'POINT')}"></td>
 					<td class="py-2 pr-2" th:text="${row.contractLengthTarget()} + ' yr'"></td>
 					<td class="py-2 pr-2" th:text="${#numbers.formatPercent(row.guaranteedMoneyTarget(), 1, 0)}"></td>
+					<td class="py-2 pr-2">
+						<span th:unless="${row.interviewed()}" class="text-slate-400 text-xs italic">—</span>
+						<span th:if="${row.interviewed()}"
+						      th:with="level=${row.interest().get().name()}"
+						      th:classappend="${level == 'INTERESTED'} ? ' bg-emerald-100 text-emerald-800'
+						                    : (${level == 'LUKEWARM'} ? ' bg-amber-100 text-amber-800'
+						                    : ' bg-rose-100 text-rose-800')"
+						      class="inline-block px-2 py-0.5 rounded text-xs font-medium"
+						      th:text="${row.interest().get().displayName()}">Interested</span>
+					</td>
 					<td class="py-2 pr-2 space-x-1">
 						<button type="button"
 						        th:unless="${row.shortlisted()}"
@@ -70,15 +80,14 @@
 							Shortlisted
 						</button>
 						<button type="button"
+						        th:unless="${row.interviewed()}"
 						        th:attr="hx-post=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/head-coach/interview/' + ${row.id()}},
 						                 disabled=${view.interviewsThisWeek() >= view.interviewCapacity()} ? 'disabled' : null"
 						        hx-target="#hiring-regions"
 						        hx-swap="outerHTML"
 						        th:classappend="${view.interviewsThisWeek() >= view.interviewCapacity()} ? ' opacity-50 cursor-not-allowed' : ' cursor-pointer'"
 						        class="px-2 py-1 text-xs rounded bg-indigo-600 text-white hover:bg-indigo-500">
-							<span th:if="${row.interviewCount() == 0}">Interview</span>
-							<span th:if="${row.interviewCount() > 0}"
-							      th:text="'Re-interview (' + ${row.interviewCount()} + ')'">Re-interview</span>
+							Interview
 						</button>
 					</td>
 				</tr>
@@ -101,7 +110,7 @@
 				<div class="min-w-0">
 					<div class="text-sm font-medium text-slate-900" th:text="${row.name()}"></div>
 					<div class="text-xs text-slate-500"
-					     th:text="${row.archetype()} + ' · ' + ${row.specialty()} + ' · age ' + ${row.age()} + ' · scouted ' + ${row.scoutedOverall()}"></div>
+					     th:text="${row.archetype().displayName()} + ' · ' + ${row.specialty()} + ' · age ' + ${row.age()}"></div>
 				</div>
 				<button type="button"
 				        th:attr="hx-delete=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/head-coach/shortlist/' + ${row.id()}}"
@@ -118,11 +127,11 @@
 	       id="hc-interviews"
 	       class="bg-white border border-slate-200 rounded p-4 shadow-sm">
 		<div class="flex items-center justify-between mb-2">
-			<h2 class="text-lg font-semibold text-slate-900">Active interviews</h2>
+			<h2 class="text-lg font-semibold text-slate-900">Interviews</h2>
 			<span class="text-xs text-slate-500"
 			      th:text="${view.interviewsThisWeek()} + ' / ' + ${view.interviewCapacity()} + ' this week'"></span>
 		</div>
-		<p class="text-sm text-slate-500 mb-3">Each interview tightens the scouted signal; true rating is never revealed.</p>
+		<p class="text-sm text-slate-500 mb-3">One interview per candidate. Interest is deterministic — it reflects how well your team fits their preferences.</p>
 		<div th:if="${view.activeInterviews().isEmpty()}" class="text-slate-500 italic text-sm">
 			No interviews conducted yet.
 		</div>
@@ -132,8 +141,14 @@
 				<div class="min-w-0">
 					<div class="text-sm font-medium text-slate-900" th:text="${row.name()}"></div>
 					<div class="text-xs text-slate-500"
-					     th:text="${row.archetype()} + ' · ' + ${row.specialty()} + ' · ' + ${row.interviewCount()} + ' interview(s) · scouted ' + ${row.scoutedOverall()}"></div>
+					     th:text="${row.archetype().displayName()} + ' · ' + ${row.specialty()}"></div>
 				</div>
+				<span th:with="level=${row.interest().get().name()}"
+				      th:classappend="${level == 'INTERESTED'} ? ' bg-emerald-100 text-emerald-800'
+				                    : (${level == 'LUKEWARM'} ? ' bg-amber-100 text-amber-800'
+				                    : ' bg-rose-100 text-rose-800')"
+				      class="inline-block px-2 py-0.5 rounded text-xs font-medium"
+				      th:text="${row.interest().get().displayName()}">Interested</span>
 			</li>
 		</ul>
 	</aside>

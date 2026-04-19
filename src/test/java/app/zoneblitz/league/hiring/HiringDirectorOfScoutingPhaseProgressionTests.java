@@ -14,7 +14,7 @@ import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.franchise.JooqFranchiseRepository;
 import app.zoneblitz.league.phase.AdvancePhase;
 import app.zoneblitz.league.phase.AdvancePhaseUseCase;
-import app.zoneblitz.league.phase.BestScoutedHiringAutofill;
+import app.zoneblitz.league.phase.BestFitHiringAutofill;
 import app.zoneblitz.league.phase.HiringDirectorOfScoutingTransitionHandler;
 import app.zoneblitz.league.phase.HiringHeadCoachTransitionHandler;
 import app.zoneblitz.league.phase.HiringStep;
@@ -100,8 +100,16 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
     advancePhase = new AdvancePhaseUseCase(leagues, List.of(hcHandler, dosHandler));
 
     var autofill =
-        new BestScoutedHiringAutofill(
-            pools, candidates, preferences, offers, hiringStates, staff, teamLookup, rngs);
+        new BestFitHiringAutofill(
+            pools,
+            candidates,
+            preferences,
+            offers,
+            hiringStates,
+            staff,
+            teamLookup,
+            profiles,
+            rngs);
     var resolver =
         new PreferenceScoringOfferResolver(
             offers, candidates, pools, preferences, profiles, hiringStates, staff, rngs);
@@ -115,7 +123,7 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
             offers,
             hiringStates,
             interviews,
-            rngs);
+            profiles);
     var dosCpu =
         new CpuHiringStrategy(
             LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING,
@@ -126,7 +134,7 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
             offers,
             hiringStates,
             interviews,
-            rngs);
+            profiles);
 
     advanceWeek =
         new AdvanceWeekUseCase(

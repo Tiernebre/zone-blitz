@@ -1,7 +1,6 @@
 package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.league.phase.LeaguePhase;
-import java.math.BigDecimal;
 import java.util.Objects;
 
 /** Insert payload for {@link TeamInterviewRepository#insert}. */
@@ -11,10 +10,10 @@ public record NewTeamInterview(
     LeaguePhase phase,
     int phaseWeek,
     int interviewIndex,
-    BigDecimal scoutedOverall) {
+    InterviewInterest interestLevel) {
 
   public NewTeamInterview {
     Objects.requireNonNull(phase, "phase");
-    Objects.requireNonNull(scoutedOverall, "scoutedOverall");
+    Objects.requireNonNull(interestLevel, "interestLevel");
   }
 }

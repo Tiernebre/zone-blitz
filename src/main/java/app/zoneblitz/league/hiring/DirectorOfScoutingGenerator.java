@@ -30,7 +30,6 @@ public final class DirectorOfScoutingGenerator implements CandidateGenerator {
 
   private static final double TRUE_RATING_MEAN = 62.0;
   private static final double TRUE_RATING_STD = 11.0;
-  private static final double SCOUTED_NOISE_STD = 9.0;
   private static final double GUARANTEED_MONEY_FLOOR = 0.55;
   private static final double GUARANTEED_MONEY_CEIL = 0.85;
 
@@ -69,9 +68,7 @@ public final class DirectorOfScoutingGenerator implements CandidateGenerator {
             .formatted(priorDosYears, scoutYears, areaScoutYears);
 
     var trueRating = clamp(TRUE_RATING_MEAN + TRUE_RATING_STD * rng.nextGaussian(), 20.0, 99.0);
-    var scoutedRating = clamp(trueRating + SCOUTED_NOISE_STD * rng.nextGaussian(), 20.0, 99.0);
     var hiddenAttrs = attrsJson(trueRating);
-    var scoutedAttrs = attrsJson(scoutedRating);
 
     var compensation = perceivedCompensation(age, totalExperience, priorDosYears, archetype, rng);
     var contractLength = perceivedContractLength(priorDosYears, rng);
@@ -90,7 +87,6 @@ public final class DirectorOfScoutingGenerator implements CandidateGenerator {
             totalExperience,
             experienceByRole,
             hiddenAttrs,
-            scoutedAttrs,
             Optional.empty());
     var preferences = buildPreferences(compensation, contractLength, guaranteedMoney, rng);
     return new GeneratedCandidate(candidate, preferences);

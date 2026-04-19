@@ -5,6 +5,7 @@ import static app.zoneblitz.jooq.Tables.TEAM_INTERVIEWS;
 import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
@@ -27,7 +28,7 @@ public class JooqTeamInterviewRepository implements TeamInterviewRepository {
             .set(TEAM_INTERVIEWS.PHASE, interview.phase().name())
             .set(TEAM_INTERVIEWS.PHASE_WEEK, interview.phaseWeek())
             .set(TEAM_INTERVIEWS.INTERVIEW_INDEX, interview.interviewIndex())
-            .set(TEAM_INTERVIEWS.SCOUTED_OVERALL, interview.scoutedOverall())
+            .set(TEAM_INTERVIEWS.INTEREST_LEVEL, interview.interestLevel().name())
             .returning(TEAM_INTERVIEWS.fields())
             .fetchOne();
     return map(record);
@@ -56,6 +57,15 @@ public class JooqTeamInterviewRepository implements TeamInterviewRepository {
   }
 
   @Override
+  public Optional<TeamInterview> find(long teamId, long candidateId, LeaguePhase phase) {
+    return dsl.selectFrom(TEAM_INTERVIEWS)
+        .where(TEAM_INTERVIEWS.TEAM_ID.eq(teamId))
+        .and(TEAM_INTERVIEWS.CANDIDATE_ID.eq(candidateId))
+        .and(TEAM_INTERVIEWS.PHASE.eq(phase.name()))
+        .fetchOptional(this::map);
+  }
+
+  @Override
   public List<TeamInterview> findAllFor(long teamId, LeaguePhase phase) {
     return dsl.selectFrom(TEAM_INTERVIEWS)
         .where(TEAM_INTERVIEWS.TEAM_ID.eq(teamId))
@@ -72,6 +82,6 @@ public class JooqTeamInterviewRepository implements TeamInterviewRepository {
         LeaguePhase.valueOf(r.get(TEAM_INTERVIEWS.PHASE)),
         r.get(TEAM_INTERVIEWS.PHASE_WEEK),
         r.get(TEAM_INTERVIEWS.INTERVIEW_INDEX),
-        r.get(TEAM_INTERVIEWS.SCOUTED_OVERALL));
+        InterviewInterest.valueOf(r.get(TEAM_INTERVIEWS.INTEREST_LEVEL)));
   }
 }

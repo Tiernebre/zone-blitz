@@ -26,7 +26,6 @@ public final class CandidateTestData {
         18,
         "{\"OC\":10,\"QB_COACH\":4,\"HC\":0}",
         "{\"true_rating\":78}",
-        "{\"scouted_rating\":76}",
         Optional.empty());
   }
 
@@ -42,7 +41,6 @@ public final class CandidateTestData {
         12,
         "{\"SCOUT\":12,\"AREA_SCOUT\":8}",
         "{\"true_rating\":70}",
-        "{\"scouted_rating\":68}",
         Optional.of(branch));
   }
 

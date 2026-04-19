@@ -1,14 +1,13 @@
 package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.league.phase.LeaguePhase;
-import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
- * A single completed interview a team conducted against a candidate. {@code interviewIndex} is the
- * 1-based count for that (team, candidate) pair. {@code scoutedOverall} is the noise-reduced
- * scouted estimate produced at the moment of the interview; stored so it is stable across
- * subsequent views.
+ * A single completed interview a team conducted against a candidate. Interviews are one-shot per
+ * (team, candidate) — {@code interviewIndex} is retained for audit and will always be {@code 1}
+ * today. {@code interestLevel} is computed deterministically from the candidate's preferences
+ * against the team's profile and is the sole signal an interview produces.
  */
 public record TeamInterview(
     long id,
@@ -17,10 +16,10 @@ public record TeamInterview(
     LeaguePhase phase,
     int phaseWeek,
     int interviewIndex,
-    BigDecimal scoutedOverall) {
+    InterviewInterest interestLevel) {
 
   public TeamInterview {
     Objects.requireNonNull(phase, "phase");
-    Objects.requireNonNull(scoutedOverall, "scoutedOverall");
+    Objects.requireNonNull(interestLevel, "interestLevel");
   }
 }

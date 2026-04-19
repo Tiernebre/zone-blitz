@@ -25,7 +25,6 @@ public final class CoordinatorGenerator {
   private static final double COORDINATOR_SALARY_FRACTION = 0.30;
   private static final double TRUE_RATING_MEAN = 60.0;
   private static final double TRUE_RATING_STD = 10.0;
-  private static final double SCOUTED_NOISE_STD = 8.0;
   private static final double GUARANTEED_MONEY_FLOOR = 0.60;
   private static final double GUARANTEED_MONEY_CEIL = 0.90;
 
@@ -69,7 +68,6 @@ public final class CoordinatorGenerator {
             .formatted(kind.name(), Math.min(totalExperience, 10));
 
     var trueRating = clamp(TRUE_RATING_MEAN + TRUE_RATING_STD * rng.nextGaussian(), 20.0, 99.0);
-    var scoutedRating = clamp(trueRating + SCOUTED_NOISE_STD * rng.nextGaussian(), 20.0, 99.0);
 
     var compensation = perceivedCompensation(age, totalExperience, rng);
     var contractLength = 2 + (int) Math.round(rng.nextDouble() * 2);
@@ -92,7 +90,6 @@ public final class CoordinatorGenerator {
             totalExperience,
             experienceByRole,
             "{\"overall\": %.2f}".formatted(trueRating),
-            "{\"overall\": %.2f}".formatted(scoutedRating),
             Optional.empty());
     var preferences =
         StaffPreferencesFactory.uniform(compensation, contractLength, guaranteedMoney, rng);

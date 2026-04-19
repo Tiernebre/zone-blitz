@@ -2,6 +2,7 @@ package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.List;
+import java.util.Optional;
 
 /** Feature-internal persistence seam for {@link TeamInterview}. */
 public interface TeamInterviewRepository {
@@ -11,7 +12,7 @@ public interface TeamInterviewRepository {
 
   /**
    * Count interviews this team has completed against a given candidate in the given phase. Used to
-   * drive the noise-reduction function's exponent.
+   * enforce the one-interview-per-candidate rule.
    */
   int countForCandidate(long teamId, long candidateId, LeaguePhase phase);
 
@@ -20,6 +21,9 @@ public interface TeamInterviewRepository {
    * weekly capacity cap.
    */
   int countForWeek(long teamId, LeaguePhase phase, int phaseWeek);
+
+  /** The single interview this team has with the given candidate in the given phase, if any. */
+  Optional<TeamInterview> find(long teamId, long candidateId, LeaguePhase phase);
 
   /** All interviews this team has completed in the given phase, ordered by id ascending. */
   List<TeamInterview> findAllFor(long teamId, LeaguePhase phase);

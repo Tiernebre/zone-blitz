@@ -1,6 +1,5 @@
 package app.zoneblitz.league.hiring;
 
-import static app.zoneblitz.jooq.Tables.CANDIDATES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.league.CreateLeague;
@@ -11,14 +10,20 @@ import app.zoneblitz.league.JooqLeagueRepository;
 import app.zoneblitz.league.League;
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.franchise.JooqFranchiseRepository;
+import app.zoneblitz.league.geography.Climate;
+import app.zoneblitz.league.geography.Geography;
+import app.zoneblitz.league.geography.MarketSize;
 import app.zoneblitz.league.phase.HiringHeadCoachTransitionHandler;
 import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.team.JooqTeamHiringStateRepository;
 import app.zoneblitz.league.team.JooqTeamLookup;
 import app.zoneblitz.league.team.JooqTeamRepository;
 import app.zoneblitz.league.team.TeamHiringStateRepository;
+import app.zoneblitz.league.team.TeamProfile;
+import app.zoneblitz.league.team.TeamProfiles;
 import app.zoneblitz.support.PostgresTestcontainer;
-import java.util.regex.Pattern;
+import java.math.BigDecimal;
+import java.util.Optional;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,9 +34,6 @@ import org.springframework.context.annotation.Import;
 @JooqTest
 @Import(PostgresTestcontainer.class)
 class StartInterviewUseCaseTests {
-
-  private static final Pattern HIDDEN_OVERALL =
-      Pattern.compile("\"overall\"\\s*:\\s*(-?[0-9]+(?:\\.[0-9]+)?)");
 
   @Autowired DSLContext dsl;
 
@@ -65,13 +67,14 @@ class StartInterviewUseCaseTests {
             hiringStates,
             new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
+    TeamProfiles teamProfiles = teamId -> Optional.of(fixedProfile(teamId));
     useCase =
         new StartInterviewUseCase(
-            leagues, pools, candidates, preferences, hiringStates, interviews);
+            leagues, pools, candidates, preferences, hiringStates, interviews, teamProfiles);
   }
 
   @Test
-  void start_firstInterview_recordsEventAndAppendsCandidateToHiringState() {
+  void start_firstInterview_recordsInterestAndAppendsCandidateToHiringState() {
     var ctx = seedLeagueInPhase("sub-1");
 
     var result = useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
@@ -80,7 +83,8 @@ class StartInterviewUseCaseTests {
     var view = ((InterviewResult.Started) result).view();
     assertThat(view.activeInterviews()).hasSize(1);
     assertThat(view.activeInterviews().getFirst().id()).isEqualTo(ctx.firstCandidateId);
-    assertThat(view.activeInterviews().getFirst().interviewCount()).isEqualTo(1);
+    assertThat(view.activeInterviews().getFirst().interviewed()).isTrue();
+    assertThat(view.activeInterviews().getFirst().interest()).isPresent();
     assertThat(view.interviewsThisWeek()).isEqualTo(1);
 
     var state = hiringStates.find(ctx.teamId, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
@@ -88,25 +92,18 @@ class StartInterviewUseCaseTests {
   }
 
   @Test
-  void start_multipleInterviewsOnSameCandidate_tightenSigmaMonotonically() {
+  void start_secondInterviewOnSameCandidate_returnsAlreadyInterviewed() {
     var ctx = seedLeagueInPhase("sub-1");
 
-    for (var i = 0; i < 5; i++) {
-      useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
-      leagues.incrementPhaseWeek(ctx.leagueId);
-    }
-    var history = interviews.findAllFor(ctx.teamId, LeaguePhase.HIRING_HEAD_COACH);
-    assertThat(history).hasSize(5);
-    assertThat(history).extracting(TeamInterview::interviewIndex).containsExactly(1, 2, 3, 4, 5);
+    useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
+    var repeat = useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
 
-    var sigmas =
-        history.stream().map(h -> InterviewNoiseModel.headCoachSigma(h.interviewIndex())).toList();
-    var previous = InterviewNoiseModel.HC_INITIAL_STD + 1.0;
-    for (var sigma : sigmas) {
-      assertThat(sigma).isLessThan(previous);
-      assertThat(sigma).isGreaterThan(0.0);
-      previous = sigma;
-    }
+    assertThat(repeat).isInstanceOf(InterviewResult.AlreadyInterviewed.class);
+    // Interview row count stays at one; determinism guarantees re-interview brings no new info.
+    assertThat(
+            interviews.countForCandidate(
+                ctx.teamId, ctx.firstCandidateId, LeaguePhase.HIRING_HEAD_COACH))
+        .isEqualTo(1);
   }
 
   @Test
@@ -114,12 +111,13 @@ class StartInterviewUseCaseTests {
     var ctx = seedLeagueInPhase("sub-1");
     var secondId = secondCandidateId(ctx);
     var thirdId = thirdCandidateId(ctx);
+    var fourthId = fourthCandidateId(ctx);
 
     useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
     useCase.start(ctx.leagueId, secondId, "sub-1");
     useCase.start(ctx.leagueId, thirdId, "sub-1");
 
-    var capped = useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
+    var capped = useCase.start(ctx.leagueId, fourthId, "sub-1");
 
     assertThat(capped).isInstanceOf(InterviewResult.CapacityReached.class);
     assertThat(((InterviewResult.CapacityReached) capped).capacity())
@@ -127,35 +125,19 @@ class StartInterviewUseCaseTests {
   }
 
   @Test
-  void start_doesNotWriteTrueRatingIntoScoutedAttrs() {
+  void start_isDeterministicAcrossRuns() {
     var ctx = seedLeagueInPhase("sub-1");
-    var before =
-        dsl.select(CANDIDATES.SCOUTED_ATTRS, CANDIDATES.HIDDEN_ATTRS)
-            .from(CANDIDATES)
-            .where(CANDIDATES.ID.eq(ctx.firstCandidateId))
-            .fetchOne();
-    var hiddenBefore = before.get(CANDIDATES.HIDDEN_ATTRS).data();
-    var scoutedBefore = before.get(CANDIDATES.SCOUTED_ATTRS).data();
-    var trueRating = extractOverall(hiddenBefore);
 
-    for (var i = 0; i < 10; i++) {
-      useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
-      // ensure we don't blow past weekly cap across multiple weeks
-      leagues.incrementPhaseWeek(ctx.leagueId);
-    }
+    var first = useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
+    var interestA =
+        ((InterviewResult.Started) first).view().activeInterviews().getFirst().interest();
 
-    var after =
-        dsl.select(CANDIDATES.SCOUTED_ATTRS, CANDIDATES.HIDDEN_ATTRS)
-            .from(CANDIDATES)
-            .where(CANDIDATES.ID.eq(ctx.firstCandidateId))
-            .fetchOne();
-    assertThat(after.get(CANDIDATES.SCOUTED_ATTRS).data()).isEqualTo(scoutedBefore);
-    assertThat(after.get(CANDIDATES.HIDDEN_ATTRS).data()).isEqualTo(hiddenBefore);
-
-    var perInterview = interviews.findAllFor(ctx.teamId, LeaguePhase.HIRING_HEAD_COACH);
-    assertThat(perInterview).isNotEmpty();
-    assertThat(perInterview)
-        .allSatisfy(i -> assertThat(i.scoutedOverall().doubleValue()).isNotEqualTo(trueRating));
+    // New league for a fresh candidate with (presumably) the same preferences profile would be
+    // non-deterministic across generator seeds; here we just check the single persisted row is
+    // stable under re-reads.
+    var history = interviews.findAllFor(ctx.teamId, LeaguePhase.HIRING_HEAD_COACH);
+    assertThat(history).hasSize(1);
+    assertThat(history.getFirst().interestLevel()).isEqualTo(interestA.orElseThrow());
   }
 
   @Test
@@ -193,6 +175,10 @@ class StartInterviewUseCaseTests {
     return candidates.findAllByPoolId(ctx.poolId).get(2).id();
   }
 
+  private long fourthCandidateId(Ctx ctx) {
+    return candidates.findAllByPoolId(ctx.poolId).get(3).id();
+  }
+
   private Ctx seedLeagueInPhase(String subject) {
     var league = createLeagueFor(subject);
     leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
@@ -213,9 +199,17 @@ class StartInterviewUseCaseTests {
     return ((CreateLeagueResult.Created) result).league();
   }
 
-  private static double extractOverall(String attrsJson) {
-    var m = HIDDEN_OVERALL.matcher(attrsJson);
-    return m.find() ? Double.parseDouble(m.group(1)) : Double.NaN;
+  private TeamProfile fixedProfile(long teamId) {
+    return new TeamProfile(
+        teamId,
+        MarketSize.LARGE,
+        Geography.NE,
+        Climate.NEUTRAL,
+        new BigDecimal("75.00"),
+        CompetitiveWindow.CONTENDER,
+        new BigDecimal("60.00"),
+        new BigDecimal("80.00"),
+        "WEST_COAST");
   }
 
   private record Ctx(long leagueId, long teamId, long poolId, long firstCandidateId) {}

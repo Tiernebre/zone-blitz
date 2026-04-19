@@ -21,7 +21,6 @@ public final class ScoutCandidateGenerator {
   private static final double SCOUT_SALARY_FRACTION = 0.18;
   private static final double TRUE_RATING_MEAN = 55.0;
   private static final double TRUE_RATING_STD = 10.0;
-  private static final double SCOUTED_NOISE_STD = 9.0;
   private static final double GUARANTEED_MONEY_FLOOR = 0.30;
   private static final double GUARANTEED_MONEY_CEIL = 0.70;
 
@@ -62,7 +61,6 @@ public final class ScoutCandidateGenerator {
             .formatted(totalExperience, Math.max(0, totalExperience - 2));
 
     var trueRating = clamp(TRUE_RATING_MEAN + TRUE_RATING_STD * rng.nextGaussian(), 20.0, 99.0);
-    var scoutedRating = clamp(trueRating + SCOUTED_NOISE_STD * rng.nextGaussian(), 20.0, 99.0);
 
     var dosBase = bands.salaryP10() + rng.nextDouble() * (bands.salaryP50() - bands.salaryP10());
     var compensation =
@@ -89,7 +87,6 @@ public final class ScoutCandidateGenerator {
             totalExperience,
             experienceByRole,
             "{\"overall\": %.2f}".formatted(trueRating),
-            "{\"overall\": %.2f}".formatted(scoutedRating),
             Optional.of(branch));
     var preferences =
         StaffPreferencesFactory.uniform(compensation, contractLength, guaranteedMoney, rng);

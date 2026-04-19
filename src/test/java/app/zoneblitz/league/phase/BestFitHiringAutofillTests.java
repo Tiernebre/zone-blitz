@@ -10,6 +10,9 @@ import app.zoneblitz.league.JooqLeagueRepository;
 import app.zoneblitz.league.League;
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.franchise.JooqFranchiseRepository;
+import app.zoneblitz.league.geography.Climate;
+import app.zoneblitz.league.geography.Geography;
+import app.zoneblitz.league.geography.MarketSize;
 import app.zoneblitz.league.hiring.Candidate;
 import app.zoneblitz.league.hiring.CandidateArchetype;
 import app.zoneblitz.league.hiring.CandidateKind;
@@ -17,6 +20,7 @@ import app.zoneblitz.league.hiring.CandidateOffer;
 import app.zoneblitz.league.hiring.CandidatePoolType;
 import app.zoneblitz.league.hiring.CandidateRandomSources;
 import app.zoneblitz.league.hiring.CandidateTestData;
+import app.zoneblitz.league.hiring.CompetitiveWindow;
 import app.zoneblitz.league.hiring.JooqCandidateOfferRepository;
 import app.zoneblitz.league.hiring.JooqCandidatePoolRepository;
 import app.zoneblitz.league.hiring.JooqCandidatePreferencesRepository;
@@ -31,7 +35,10 @@ import app.zoneblitz.league.team.JooqTeamHiringStateRepository;
 import app.zoneblitz.league.team.JooqTeamLookup;
 import app.zoneblitz.league.team.JooqTeamRepository;
 import app.zoneblitz.league.team.TeamHiringState;
+import app.zoneblitz.league.team.TeamProfile;
+import app.zoneblitz.league.team.TeamProfiles;
 import app.zoneblitz.support.PostgresTestcontainer;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import org.jooq.DSLContext;
@@ -43,7 +50,7 @@ import org.springframework.context.annotation.Import;
 
 @JooqTest
 @Import(PostgresTestcontainer.class)
-class BestScoutedHiringAutofillTests {
+class BestFitHiringAutofillTests {
 
   @Autowired DSLContext dsl;
 
@@ -58,6 +65,7 @@ class BestScoutedHiringAutofillTests {
   private CreateLeague createLeague;
   private HiringPhaseAutofill autofill;
   private CandidateRandomSources rngs;
+  private TeamProfiles teamProfiles;
 
   @BeforeEach
   void setUp() {
@@ -72,10 +80,19 @@ class BestScoutedHiringAutofillTests {
     staff = new JooqTeamStaffRepository(dsl);
     teamLookup = new JooqTeamLookup(dsl);
     rngs = (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal());
+    teamProfiles = teamId -> Optional.of(fixedProfile(teamId));
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
     autofill =
-        new BestScoutedHiringAutofill(
-            pools, candidates, preferences, offers, hiringStates, staff, teamLookup, rngs);
+        new BestFitHiringAutofill(
+            pools,
+            candidates,
+            preferences,
+            offers,
+            hiringStates,
+            staff,
+            teamLookup,
+            teamProfiles,
+            rngs);
   }
 
   @Test
@@ -89,54 +106,45 @@ class BestScoutedHiringAutofillTests {
   }
 
   @Test
-  void autofill_assignsUnresolvedFranchise_withBestScoutedCandidate() {
+  void autofill_assignsUnresolvedTeam_withBestFitCandidate() {
     var league = createLeagueFor("sub-1");
     leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     var pool =
         pools.insert(league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH);
-    // Top candidate: highest scouted overall; ranking should pick this regardless of hidden rating.
-    var topScouted = insertCandidate(pool.id(), "{\"overall\": 55.00}", "{\"overall\": 95.00}");
-    var strongHidden = insertCandidate(pool.id(), "{\"overall\": 80.00}", "{\"overall\": 60.00}");
-    // Fill out enough candidates so every franchise gets hired without running out.
-    seedFillerCandidates(pool.id(), 20, 40.00);
+    insertCandidate(pool.id());
+    insertCandidate(pool.id());
+    // Fill out enough candidates so every team gets hired without running out.
+    seedFillerCandidates(pool.id(), 20);
 
-    var franchiseIds = teamLookup.teamIdsForLeague(league.id());
-    var targetFranchise = franchiseIds.getFirst();
-    markSearching(league.id(), targetFranchise, LeaguePhase.HIRING_HEAD_COACH);
+    var teamIds = teamLookup.teamIdsForLeague(league.id());
+    var targetTeam = teamIds.getFirst();
+    markSearching(league.id(), targetTeam, LeaguePhase.HIRING_HEAD_COACH);
 
     autofill.autofill(league.id(), LeaguePhase.HIRING_HEAD_COACH, 3);
 
-    // The first-iterated franchise gets the highest scouted pick. Ranking is by SCOUTED only.
-    assertThat(candidates.findById(topScouted.id()).orElseThrow().hiredByTeamId())
-        .contains(targetFranchise);
-    assertThat(candidates.findById(strongHidden.id()).orElseThrow().hiredByTeamId())
-        .isPresent()
-        .hasValueSatisfying(id -> assertThat(id).isNotEqualTo(targetFranchise));
-    var state = hiringStates.find(targetFranchise, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
+    var state = hiringStates.find(targetTeam, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
     assertThat(state.step()).isEqualTo(HiringStep.HIRED);
-    assertThat(staff.findAllForTeam(targetFranchise))
-        .extracting(TeamStaffMember::role, TeamStaffMember::candidateId)
-        .containsExactly(
-            org.assertj.core.api.Assertions.tuple(StaffRole.HEAD_COACH, topScouted.id()));
-    assertThat(offers.findAllForCandidate(topScouted.id()))
+    assertThat(staff.findAllForTeam(targetTeam))
+        .extracting(TeamStaffMember::role)
+        .containsExactly(StaffRole.HEAD_COACH);
+    var hiredCandidateId = staff.findAllForTeam(targetTeam).getFirst().candidateId();
+    assertThat(offers.findAllForCandidate(hiredCandidateId))
         .extracting(CandidateOffer::status)
         .containsExactly(OfferStatus.ACCEPTED);
   }
 
   @Test
-  void autofill_skipsFranchisesAlreadyHired() {
+  void autofill_skipsTeamsAlreadyHired() {
     var league = createLeagueFor("sub-1");
     leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     var pool =
         pools.insert(league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH);
-    insertCandidate(pool.id(), "{\"overall\": 70.00}", "{\"overall\": 70.00}");
+    insertCandidate(pool.id());
+    seedFillerCandidates(pool.id(), 20);
 
-    // Seed additional candidates so every pending franchise in the league gets filled.
-    seedFillerCandidates(pool.id(), 20, 60.00);
-
-    var franchiseIds = teamLookup.teamIdsForLeague(league.id());
-    var alreadyHired = franchiseIds.get(0);
-    var pending = franchiseIds.get(1);
+    var teamIds = teamLookup.teamIdsForLeague(league.id());
+    var alreadyHired = teamIds.get(0);
+    var pending = teamIds.get(1);
     hiringStates.upsert(
         new TeamHiringState(
             0L,
@@ -156,69 +164,38 @@ class BestScoutedHiringAutofillTests {
   }
 
   @Test
-  void autofill_neverReadsHiddenAttrs_picksByScoutedOnly() {
-    // Regression guard: two candidates with inverted hidden vs scouted ratings — autofill must
-    // pick the one with the higher scouted rating, proving hidden attrs never leak into the
-    // decision. Aligns with the hidden-info guarantee in docs/technical/league-phases.md.
+  void autofill_multipleTeams_getDistinctCandidates() {
     var league = createLeagueFor("sub-1");
     leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     var pool =
         pools.insert(league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH);
-    var hiddenGem = insertCandidate(pool.id(), "{\"overall\": 95.00}", "{\"overall\": 40.00}");
-    var publicFavorite = insertCandidate(pool.id(), "{\"overall\": 55.00}", "{\"overall\": 85.00}");
-    // Fillers keep the hidden gem out of the top-1 by-scouted pick across other franchises so the
-    // first-iterated franchise is the only one that could conceivably pick it up.
-    seedFillerCandidates(pool.id(), 20, 70.00);
+    insertCandidate(pool.id());
+    insertCandidate(pool.id());
+    seedFillerCandidates(pool.id(), 20);
 
-    var franchiseIds = teamLookup.teamIdsForLeague(league.id());
-    var targetFranchise = franchiseIds.getFirst();
-    markSearching(league.id(), targetFranchise, LeaguePhase.HIRING_HEAD_COACH);
-
-    autofill.autofill(league.id(), LeaguePhase.HIRING_HEAD_COACH, 3);
-
-    assertThat(candidates.findById(publicFavorite.id()).orElseThrow().hiredByTeamId())
-        .contains(targetFranchise);
-    // Hidden gem's scouted is below the filler band, so it stays unhired for this run — the
-    // key invariant is that the target (highest scouted) franchise never received it.
-    var hiddenGemOwner = candidates.findById(hiddenGem.id()).orElseThrow().hiredByTeamId();
-    assertThat(hiddenGemOwner).isNotEqualTo(Optional.of(targetFranchise));
-  }
-
-  @Test
-  void autofill_multipleFranchises_getsDistinctCandidates() {
-    var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
-    var pool =
-        pools.insert(league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH);
-    var topCandidate = insertCandidate(pool.id(), "{\"overall\": 80.00}", "{\"overall\": 85.00}");
-    var secondCandidate =
-        insertCandidate(pool.id(), "{\"overall\": 70.00}", "{\"overall\": 75.00}");
-    seedFillerCandidates(pool.id(), 20, 50.00);
-
-    var franchiseIds = teamLookup.teamIdsForLeague(league.id());
-    for (var franchiseId : franchiseIds) {
-      markSearching(league.id(), franchiseId, LeaguePhase.HIRING_HEAD_COACH);
+    var teamIds = teamLookup.teamIdsForLeague(league.id());
+    for (var teamId : teamIds) {
+      markSearching(league.id(), teamId, LeaguePhase.HIRING_HEAD_COACH);
     }
 
     autofill.autofill(league.id(), LeaguePhase.HIRING_HEAD_COACH, 3);
 
-    var firstHire = candidates.findById(topCandidate.id()).orElseThrow().hiredByTeamId();
-    var secondHire = candidates.findById(secondCandidate.id()).orElseThrow().hiredByTeamId();
-    assertThat(firstHire).isPresent();
-    assertThat(secondHire).isPresent();
-    assertThat(firstHire.get()).isNotEqualTo(secondHire.get());
+    var hires =
+        teamIds.stream()
+            .map(staff::findAllForTeam)
+            .flatMap(List::stream)
+            .map(TeamStaffMember::candidateId)
+            .toList();
+    assertThat(hires).hasSize(teamIds.size()).doesNotHaveDuplicates();
   }
 
-  private void seedFillerCandidates(long poolId, int count, double scoutedOverall) {
+  private void seedFillerCandidates(long poolId, int count) {
     for (int i = 0; i < count; i++) {
-      insertCandidate(
-          poolId,
-          "{\"overall\": 50.00}",
-          "{\"overall\": " + String.format(java.util.Locale.ROOT, "%.2f", scoutedOverall) + "}");
+      insertCandidate(poolId);
     }
   }
 
-  private Candidate insertCandidate(long poolId, String hiddenAttrs, String scoutedAttrs) {
+  private Candidate insertCandidate(long poolId) {
     var saved =
         candidates.insert(
             new NewCandidate(
@@ -231,21 +208,33 @@ class BestScoutedHiringAutofillTests {
                 43,
                 18,
                 "{\"HC\":0}",
-                hiddenAttrs,
-                scoutedAttrs,
+                "{\"overall\": 70.00}",
                 Optional.empty()));
     preferences.insert(CandidateTestData.preferencesFor(saved.id()));
     return saved;
   }
 
-  private void markSearching(long leagueId, long franchiseId, LeaguePhase phase) {
+  private void markSearching(long leagueId, long teamId, LeaguePhase phase) {
     hiringStates.upsert(
-        new TeamHiringState(0L, franchiseId, phase, HiringStep.SEARCHING, List.of(), List.of()));
+        new TeamHiringState(0L, teamId, phase, HiringStep.SEARCHING, List.of(), List.of()));
   }
 
   private League createLeagueFor(String ownerSubject) {
     var franchiseId = new JooqFranchiseRepository(dsl).listAll().getFirst().id();
     var result = createLeague.create(ownerSubject, "Dynasty-" + ownerSubject, franchiseId);
     return ((CreateLeagueResult.Created) result).league();
+  }
+
+  private TeamProfile fixedProfile(long teamId) {
+    return new TeamProfile(
+        teamId,
+        MarketSize.LARGE,
+        Geography.NE,
+        Climate.NEUTRAL,
+        new BigDecimal("75.00"),
+        CompetitiveWindow.CONTENDER,
+        new BigDecimal("60.00"),
+        new BigDecimal("80.00"),
+        "WEST_COAST");
   }
 }

@@ -19,7 +19,6 @@ public record NewCandidate(
     int totalExperienceYears,
     String experienceByRole,
     String hiddenAttrs,
-    String scoutedAttrs,
     Optional<ScoutBranch> scoutBranch) {
 
   public NewCandidate {
@@ -30,7 +29,6 @@ public record NewCandidate(
     Objects.requireNonNull(lastName, "lastName");
     Objects.requireNonNull(experienceByRole, "experienceByRole");
     Objects.requireNonNull(hiddenAttrs, "hiddenAttrs");
-    Objects.requireNonNull(scoutedAttrs, "scoutedAttrs");
     Objects.requireNonNull(scoutBranch, "scoutBranch");
   }
 }

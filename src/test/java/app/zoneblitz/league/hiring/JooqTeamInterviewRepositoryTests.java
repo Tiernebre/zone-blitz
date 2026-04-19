@@ -10,7 +10,6 @@ import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.team.JooqTeamRepository;
 import app.zoneblitz.league.team.TeamDraft;
 import app.zoneblitz.support.PostgresTestcontainer;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import org.jooq.DSLContext;
@@ -65,7 +64,12 @@ class JooqTeamInterviewRepositoryTests {
     var inserted =
         interviews.insert(
             new NewTeamInterview(
-                teamId, candidateId, LeaguePhase.HIRING_HEAD_COACH, 1, 1, new BigDecimal("76.50")));
+                teamId,
+                candidateId,
+                LeaguePhase.HIRING_HEAD_COACH,
+                1,
+                1,
+                InterviewInterest.INTERESTED));
 
     assertThat(inserted.id()).isPositive();
     assertThat(inserted.teamId()).isEqualTo(teamId);
@@ -73,7 +77,7 @@ class JooqTeamInterviewRepositoryTests {
     assertThat(inserted.phase()).isEqualTo(LeaguePhase.HIRING_HEAD_COACH);
     assertThat(inserted.phaseWeek()).isEqualTo(1);
     assertThat(inserted.interviewIndex()).isEqualTo(1);
-    assertThat(inserted.scoutedOverall()).isEqualByComparingTo("76.50");
+    assertThat(inserted.interestLevel()).isEqualTo(InterviewInterest.INTERESTED);
   }
 
   @Test
@@ -113,6 +117,6 @@ class JooqTeamInterviewRepositoryTests {
 
   private NewTeamInterview interview(long team, long candidate, int week, int index) {
     return new NewTeamInterview(
-        team, candidate, LeaguePhase.HIRING_HEAD_COACH, week, index, new BigDecimal("70.00"));
+        team, candidate, LeaguePhase.HIRING_HEAD_COACH, week, index, InterviewInterest.LUKEWARM);
   }
 }

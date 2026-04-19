@@ -4,7 +4,6 @@ import app.zoneblitz.league.hiring.CandidateOfferRepository;
 import app.zoneblitz.league.hiring.CandidatePoolRepository;
 import app.zoneblitz.league.hiring.CandidatePoolType;
 import app.zoneblitz.league.hiring.CandidatePreferencesRepository;
-import app.zoneblitz.league.hiring.CandidateRandomSources;
 import app.zoneblitz.league.hiring.CandidateRepository;
 import app.zoneblitz.league.hiring.CoordinatorGenerator;
 import app.zoneblitz.league.hiring.CpuHiringStrategy;
@@ -63,7 +62,7 @@ public class LeagueBeans {
       CandidateOfferRepository offers,
       TeamHiringStateRepository hiringStates,
       TeamInterviewRepository interviews,
-      CandidateRandomSources rngs) {
+      app.zoneblitz.league.team.TeamProfiles teamProfiles) {
     return new CpuHiringStrategy(
         LeaguePhase.HIRING_HEAD_COACH,
         CandidatePoolType.HEAD_COACH,
@@ -73,7 +72,7 @@ public class LeagueBeans {
         offers,
         hiringStates,
         interviews,
-        rngs);
+        teamProfiles);
   }
 
   @Bean
@@ -84,7 +83,7 @@ public class LeagueBeans {
       CandidateOfferRepository offers,
       TeamHiringStateRepository hiringStates,
       TeamInterviewRepository interviews,
-      CandidateRandomSources rngs) {
+      app.zoneblitz.league.team.TeamProfiles teamProfiles) {
     return new CpuHiringStrategy(
         LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING,
         CandidatePoolType.DIRECTOR_OF_SCOUTING,
@@ -94,6 +93,6 @@ public class LeagueBeans {
         offers,
         hiringStates,
         interviews,
-        rngs);
+        teamProfiles);
   }
 }

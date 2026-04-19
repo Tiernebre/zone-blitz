@@ -47,7 +47,6 @@ class DirectorOfScoutingGeneratorTests {
       assertThat(candidate.totalExperienceYears()).isGreaterThanOrEqualTo(0);
       assertThat(candidate.experienceByRole()).contains("\"DOS\"", "\"SCOUT\"", "\"AREA_SCOUT\"");
       assertThat(candidate.hiddenAttrs()).contains("overall");
-      assertThat(candidate.scoutedAttrs()).contains("overall");
       assertThat(candidate.scoutBranch()).isEmpty();
 
       var prefs = generated.preferences();

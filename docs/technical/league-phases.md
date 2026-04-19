@@ -4,6 +4,8 @@ Context handoff for future sessions. Covers the phase state machine that drives 
 
 If code and this doc disagree, read the code and update the doc. If the charter and this doc disagree, the charter wins.
 
+> **Update (2026-04):** The "scouted attribute / noise-reduction interview" mechanic described below is deprecated. Coaching ability is hidden from the user entirely (no scouted rating shown). Interviews now produce a deterministic **mutual-interest signal** (INTERESTED / LUKEWARM / NOT_INTERESTED) derived from the candidate's preferences against the team's profile — one interview per candidate, no RNG. `candidates.scouted_attrs` and `team_interviews.scouted_overall` have been removed (V9 migration); `team_interviews.interest_level` replaces the latter. CPU hiring and the best-fit autofill both rank on preference fit; hidden ratings are never consulted during hiring.
+
 ---
 
 ## Model

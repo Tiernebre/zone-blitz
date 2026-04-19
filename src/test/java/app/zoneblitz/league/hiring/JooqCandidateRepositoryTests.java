@@ -70,7 +70,6 @@ class JooqCandidateRepositoryTests {
     assertThat(candidate.totalExperienceYears()).isEqualTo(18);
     assertThat(candidate.experienceByRole()).contains("\"OC\"").contains("10");
     assertThat(candidate.hiddenAttrs()).contains("true_rating");
-    assertThat(candidate.scoutedAttrs()).contains("scouted_rating");
     assertThat(candidate.hiredByTeamId()).isEmpty();
     assertThat(candidate.scoutBranch()).isEmpty();
   }

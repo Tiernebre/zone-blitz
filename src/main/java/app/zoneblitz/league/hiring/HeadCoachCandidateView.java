@@ -3,12 +3,13 @@ package app.zoneblitz.league.hiring;
 import app.zoneblitz.league.staff.SpecialtyPosition;
 import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Row view-model for a single HC candidate in the hiring pool table. Derived from {@link Candidate}
- * + {@link CandidatePreferences}; carries only the scouted projection — never the hidden
- * true-rating payload. {@code shortlisted} reflects the requesting franchise's shortlist
- * membership.
+ * + {@link CandidatePreferences}; never carries hidden-attribute data. {@code shortlisted} reflects
+ * the requesting team's shortlist membership; {@code interest} is present iff the requesting team
+ * has interviewed this candidate.
  */
 public record HeadCoachCandidateView(
     long id,
@@ -18,21 +19,24 @@ public record HeadCoachCandidateView(
     int age,
     int totalExperienceYears,
     int hcYears,
-    int ocYears,
+    int coordinatorYears,
     int positionCoachYears,
-    String scoutedOverall,
     BigDecimal compensationTarget,
     int contractLengthTarget,
     BigDecimal guaranteedMoneyTarget,
     boolean shortlisted,
-    int interviewCount) {
+    Optional<InterviewInterest> interest) {
 
   public HeadCoachCandidateView {
     Objects.requireNonNull(name, "name");
     Objects.requireNonNull(archetype, "archetype");
     Objects.requireNonNull(specialty, "specialty");
-    Objects.requireNonNull(scoutedOverall, "scoutedOverall");
     Objects.requireNonNull(compensationTarget, "compensationTarget");
     Objects.requireNonNull(guaranteedMoneyTarget, "guaranteedMoneyTarget");
+    Objects.requireNonNull(interest, "interest");
+  }
+
+  public boolean interviewed() {
+    return interest.isPresent();
   }
 }

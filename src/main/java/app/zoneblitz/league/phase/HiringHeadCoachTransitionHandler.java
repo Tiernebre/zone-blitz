@@ -112,7 +112,6 @@ public class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler 
         candidate.totalExperienceYears(),
         candidate.experienceByRole(),
         candidate.hiddenAttrs(),
-        candidate.scoutedAttrs(),
         candidate.scoutBranch());
   }
 }

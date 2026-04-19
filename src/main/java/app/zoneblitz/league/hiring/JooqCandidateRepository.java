@@ -34,7 +34,6 @@ public class JooqCandidateRepository implements CandidateRepository {
             .set(CANDIDATES.TOTAL_EXPERIENCE_YEARS, newCandidate.totalExperienceYears())
             .set(CANDIDATES.EXPERIENCE_BY_ROLE, JSONB.valueOf(newCandidate.experienceByRole()))
             .set(CANDIDATES.HIDDEN_ATTRS, JSONB.valueOf(newCandidate.hiddenAttrs()))
-            .set(CANDIDATES.SCOUTED_ATTRS, JSONB.valueOf(newCandidate.scoutedAttrs()))
             .set(CANDIDATES.SCOUT_BRANCH, newCandidate.scoutBranch().map(Enum::name).orElse(null))
             .returning(CANDIDATES.fields())
             .fetchOne();
@@ -76,7 +75,6 @@ public class JooqCandidateRepository implements CandidateRepository {
         r.get(CANDIDATES.TOTAL_EXPERIENCE_YEARS),
         r.get(CANDIDATES.EXPERIENCE_BY_ROLE).data(),
         r.get(CANDIDATES.HIDDEN_ATTRS).data(),
-        r.get(CANDIDATES.SCOUTED_ATTRS).data(),
         Optional.ofNullable(r.get(CANDIDATES.HIRED_BY_TEAM_ID)),
         Optional.ofNullable(r.get(CANDIDATES.SCOUT_BRANCH)).map(ScoutBranch::valueOf));
   }

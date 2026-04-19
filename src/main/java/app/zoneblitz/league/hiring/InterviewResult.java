@@ -12,6 +12,9 @@ public sealed interface InterviewResult {
   /** Candidate does not exist in this league's HC pool. */
   record UnknownCandidate(long candidateId) implements InterviewResult {}
 
-  /** Franchise has already hit its per-week interview cap. */
+  /** Team has already hit its per-week interview cap. */
   record CapacityReached(int capacity) implements InterviewResult {}
+
+  /** Team has already interviewed this candidate — interviews are one-shot. */
+  record AlreadyInterviewed(long candidateId) implements InterviewResult {}
 }

@@ -90,7 +90,7 @@ class CpuHiringStrategyTests {
             offers,
             hiringStates,
             interviews,
-            rngs);
+            profiles);
     resolver =
         new PreferenceScoringOfferResolver(
             offers, candidates, pools, preferences, profiles, hiringStates, staff, rngs);
@@ -200,7 +200,7 @@ class CpuHiringStrategyTests {
 
     // Precompute the candidate CPU will pick (top scouted overall) so user can pre-empt with a
     // deliberately weak offer on the same candidate.
-    var topCandidate = topCandidateByScouted(ctx.leagueId());
+    var topCandidate = topFitCandidateForTeam(ctx.leagueId(), cpuFranchiseId);
     var userFranchiseId = ctx.userTeamId();
     // Initialize user's hiring state so resolver can flip loser back to SEARCHING cleanly.
     hiringStates.upsert(
@@ -226,7 +226,7 @@ class CpuHiringStrategyTests {
   void execute_snipesShortlistedCandidateWhenUserHasNotOffered() {
     var ctx = seedLeague("sub-1");
     var cpuFranchiseId = ctx.cpuFranchises().getFirst();
-    var topCandidate = topCandidateByScouted(ctx.leagueId());
+    var topCandidate = topFitCandidateForTeam(ctx.leagueId(), cpuFranchiseId);
 
     // User shortlists the candidate but submits no offer.
     hiringStates.upsert(
@@ -245,23 +245,21 @@ class CpuHiringStrategyTests {
         .contains(cpuFranchiseId);
   }
 
-  private Candidate topCandidateByScouted(long leagueId) {
+  private Candidate topFitCandidateForTeam(long leagueId, long teamId) {
     var pool =
         pools
             .findByLeaguePhaseAndType(
                 leagueId, LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH)
             .orElseThrow();
+    var profile = profiles.forTeam(teamId).orElseThrow();
     return candidates.findAllByPoolId(pool.id()).stream()
         .filter(c -> c.hiredByTeamId().isEmpty())
-        .max(java.util.Comparator.comparingDouble(c -> extractScouted(c.scoutedAttrs())))
+        .max(
+            java.util.Comparator.comparingDouble(
+                c ->
+                    InterestScoring.normalizedScore(
+                        profile, preferences.findByCandidateId(c.id()).orElseThrow())))
         .orElseThrow();
-  }
-
-  private static double extractScouted(String json) {
-    var m =
-        java.util.regex.Pattern.compile("\"overall\"\\s*:\\s*(-?[0-9]+(?:\\.[0-9]+)?)")
-            .matcher(json);
-    return m.find() ? Double.parseDouble(m.group(1)) : 0.0;
   }
 
   private static OfferTerms weakOffer() {

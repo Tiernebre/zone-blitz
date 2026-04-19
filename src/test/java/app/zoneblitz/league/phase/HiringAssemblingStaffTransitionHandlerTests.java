@@ -255,7 +255,6 @@ class HiringAssemblingStaffTransitionHandlerTests {
                   15,
                   "{\"DOS\":2,\"SCOUT\":10}",
                   "{\"overall\": 70.0}",
-                  "{\"overall\": 68.0}",
                   Optional.empty()));
       preferences.insert(CandidateTestData.preferencesFor(dos.id()));
       candidates.markHired(dos.id(), franchiseId);

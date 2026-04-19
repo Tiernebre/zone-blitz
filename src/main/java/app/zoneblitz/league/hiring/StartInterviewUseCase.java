@@ -1,17 +1,14 @@
 package app.zoneblitz.league.hiring;
 
-import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.phase.HiringPhases;
 import app.zoneblitz.league.phase.HiringStep;
 import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.team.TeamHiringState;
 import app.zoneblitz.league.team.TeamHiringStateRepository;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import app.zoneblitz.league.team.TeamProfiles;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,10 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class StartInterviewUseCase implements StartInterview {
 
   private static final Logger log = LoggerFactory.getLogger(StartInterviewUseCase.class);
-  private static final Pattern HIDDEN_OVERALL =
-      Pattern.compile("\"overall\"\\s*:\\s*(-?[0-9]+(?:\\.[0-9]+)?)");
-  private static final double SCOUTED_LOWER = 20.0;
-  private static final double SCOUTED_UPPER = 99.0;
 
   private final LeagueRepository leagues;
   private final CandidatePoolRepository pools;
@@ -32,6 +25,7 @@ public class StartInterviewUseCase implements StartInterview {
   private final CandidatePreferencesRepository preferences;
   private final TeamHiringStateRepository hiringStates;
   private final TeamInterviewRepository interviews;
+  private final TeamProfiles teamProfiles;
 
   public StartInterviewUseCase(
       LeagueRepository leagues,
@@ -39,13 +33,15 @@ public class StartInterviewUseCase implements StartInterview {
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
       TeamHiringStateRepository hiringStates,
-      TeamInterviewRepository interviews) {
+      TeamInterviewRepository interviews,
+      TeamProfiles teamProfiles) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
     this.preferences = preferences;
     this.hiringStates = hiringStates;
     this.interviews = interviews;
+    this.teamProfiles = teamProfiles;
   }
 
   @Override
@@ -72,23 +68,27 @@ public class StartInterviewUseCase implements StartInterview {
     }
     var teamId = league.userTeamId();
     var phaseWeek = league.phaseWeek();
+
+    if (interviews.countForCandidate(teamId, candidateId, phase) > 0) {
+      return new InterviewResult.AlreadyInterviewed(candidateId);
+    }
+
     var weekCount = interviews.countForWeek(teamId, phase, phaseWeek);
     if (weekCount >= DEFAULT_WEEKLY_CAPACITY) {
       return new InterviewResult.CapacityReached(DEFAULT_WEEKLY_CAPACITY);
     }
 
-    var candidate = maybeCandidate.get();
-    var priorCount = interviews.countForCandidate(teamId, candidateId, phase);
-    var newIndex = priorCount + 1;
-    var trueRating = extractOverall(candidate.hiddenAttrs());
-    var sigma = InterviewNoiseModel.headCoachSigma(newIndex);
-    var rng = new SplittableRandomSource(seedFor(leagueId, teamId, candidateId, newIndex));
-    var sample = trueRating + sigma * rng.nextGaussian();
-    var clamped = Math.max(SCOUTED_LOWER, Math.min(SCOUTED_UPPER, sample));
-    var scoutedOverall = BigDecimal.valueOf(clamped).setScale(2, RoundingMode.HALF_UP);
+    var maybePrefs = preferences.findByCandidateId(candidateId);
+    if (maybePrefs.isEmpty()) {
+      return new InterviewResult.UnknownCandidate(candidateId);
+    }
+    var maybeProfile = teamProfiles.forTeam(teamId);
+    if (maybeProfile.isEmpty()) {
+      return new InterviewResult.NotFound(leagueId);
+    }
+    var interest = InterestScoring.score(maybeProfile.get(), maybePrefs.get());
 
-    interviews.insert(
-        new NewTeamInterview(teamId, candidateId, phase, phaseWeek, newIndex, scoutedOverall));
+    interviews.insert(new NewTeamInterview(teamId, candidateId, phase, phaseWeek, 1, interest));
     appendToHiringState(teamId, candidateId, phase);
 
     var pool = candidates.findAllByPoolId(maybePool.get().id());
@@ -104,12 +104,11 @@ public class StartInterviewUseCase implements StartInterview {
         HeadCoachHiringViewModel.assemble(
             league, pool, prefs, shortlistIds, history, DEFAULT_WEEKLY_CAPACITY);
     log.info(
-        "interview recorded leagueId={} teamId={} candidateId={} index={} sigma={}",
+        "interview recorded leagueId={} teamId={} candidateId={} interest={}",
         leagueId,
         teamId,
         candidateId,
-        newIndex,
-        sigma);
+        interest);
     return new InterviewResult.Started(view);
   }
 
@@ -129,25 +128,5 @@ public class StartInterviewUseCase implements StartInterview {
             HiringStep.SEARCHING,
             shortlistIds,
             java.util.List.copyOf(updated)));
-  }
-
-  private static double extractOverall(String hiddenAttrsJson) {
-    var m = HIDDEN_OVERALL.matcher(hiddenAttrsJson);
-    if (m.find()) {
-      try {
-        return Double.parseDouble(m.group(1));
-      } catch (NumberFormatException ignored) {
-        return 50.0;
-      }
-    }
-    return 50.0;
-  }
-
-  private static long seedFor(long leagueId, long teamId, long candidateId, int index) {
-    var seed = leagueId * 0x9E3779B97F4A7C15L;
-    seed ^= Long.rotateLeft(teamId, 17) * 0xBF58476D1CE4E5B9L;
-    seed ^= Long.rotateLeft(candidateId, 31) * 0x94D049BB133111EBL;
-    seed ^= (long) index * 0xD1B54A32D192ED03L;
-    return seed;
   }
 }

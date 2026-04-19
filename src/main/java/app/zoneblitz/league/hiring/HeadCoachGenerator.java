@@ -27,7 +27,6 @@ public final class HeadCoachGenerator implements CandidateGenerator {
   private static final double GUARANTEED_MONEY_CEIL = 1.00;
   private static final double TRUE_RATING_MEAN = 65.0;
   private static final double TRUE_RATING_STD = 12.0;
-  private static final double SCOUTED_NOISE_STD = 8.0;
 
   private final HeadCoachMarketBands bands;
   private final NameGenerator names;
@@ -65,9 +64,7 @@ public final class HeadCoachGenerator implements CandidateGenerator {
             .formatted(priorHcYears, ocYears, positionCoachYears);
 
     var trueRating = clamp(TRUE_RATING_MEAN + TRUE_RATING_STD * rng.nextGaussian(), 20.0, 99.0);
-    var scoutedRating = clamp(trueRating + SCOUTED_NOISE_STD * rng.nextGaussian(), 20.0, 99.0);
     var hiddenAttrs = attrsJson(trueRating);
-    var scoutedAttrs = attrsJson(scoutedRating);
 
     var compensation = perceivedCompensation(age, totalExperience, priorHcYears, archetype, rng);
     var contractLength = perceivedContractLength(priorHcYears, rng);
@@ -86,7 +83,6 @@ public final class HeadCoachGenerator implements CandidateGenerator {
             totalExperience,
             experienceByRole,
             hiddenAttrs,
-            scoutedAttrs,
             Optional.empty());
     var preferences = buildPreferences(compensation, contractLength, guaranteedMoney, rng);
     return new GeneratedCandidate(candidate, preferences);

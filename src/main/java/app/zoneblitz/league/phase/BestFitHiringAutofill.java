@@ -8,6 +8,7 @@ import app.zoneblitz.league.hiring.CandidatePreferences;
 import app.zoneblitz.league.hiring.CandidatePreferencesRepository;
 import app.zoneblitz.league.hiring.CandidateRandomSources;
 import app.zoneblitz.league.hiring.CandidateRepository;
+import app.zoneblitz.league.hiring.InterestScoring;
 import app.zoneblitz.league.hiring.OfferStatus;
 import app.zoneblitz.league.hiring.OfferTerms;
 import app.zoneblitz.league.hiring.OfferTermsJson;
@@ -19,20 +20,21 @@ import app.zoneblitz.league.staff.TeamStaffRepository;
 import app.zoneblitz.league.team.TeamHiringState;
 import app.zoneblitz.league.team.TeamHiringStateRepository;
 import app.zoneblitz.league.team.TeamLookup;
+import app.zoneblitz.league.team.TeamProfile;
+import app.zoneblitz.league.team.TeamProfiles;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Default {@link HiringPhaseAutofill}: ranks remaining candidates by scouted overall (never true
- * rating) and assigns the top one to each unresolved team. Ties are broken first by candidate id,
- * then — if still tied — by a deterministic seeded RNG split per-team, so reruns with the same
- * league seed produce identical hires.
+ * Default {@link HiringPhaseAutofill}: ranks remaining candidates per-team by preference-fit score
+ * and assigns the top fit to each unresolved team. Hidden ratings are never consulted — same rule
+ * as {@link app.zoneblitz.league.hiring.CpuHiringStrategy}. Ties are broken first by candidate id,
+ * then — if still tied — by a deterministic seeded RNG split per-team.
  *
  * <p>Default terms mirror the candidate's preference targets so the synthetic offer scores a
  * perfect fit. The hire wiring (mark candidate hired, upsert hiring state to {@link
@@ -40,12 +42,9 @@ import org.springframework.stereotype.Component;
  * row) matches the flow in {@link PreferenceScoringOfferResolver}.
  */
 @Component
-public class BestScoutedHiringAutofill implements HiringPhaseAutofill {
+public class BestFitHiringAutofill implements HiringPhaseAutofill {
 
-  private static final Logger log = LoggerFactory.getLogger(BestScoutedHiringAutofill.class);
-
-  private static final Pattern OVERALL_PATTERN =
-      Pattern.compile("\"overall\"\\s*:\\s*(-?[0-9]+(?:\\.[0-9]+)?)");
+  private static final Logger log = LoggerFactory.getLogger(BestFitHiringAutofill.class);
 
   private final CandidatePoolRepository pools;
   private final CandidateRepository candidates;
@@ -54,9 +53,10 @@ public class BestScoutedHiringAutofill implements HiringPhaseAutofill {
   private final TeamHiringStateRepository hiringStates;
   private final TeamStaffRepository staff;
   private final TeamLookup teams;
+  private final TeamProfiles teamProfiles;
   private final CandidateRandomSources rngs;
 
-  public BestScoutedHiringAutofill(
+  public BestFitHiringAutofill(
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
@@ -64,6 +64,7 @@ public class BestScoutedHiringAutofill implements HiringPhaseAutofill {
       TeamHiringStateRepository hiringStates,
       TeamStaffRepository staff,
       TeamLookup teams,
+      TeamProfiles teamProfiles,
       CandidateRandomSources rngs) {
     this.pools = pools;
     this.candidates = candidates;
@@ -72,6 +73,7 @@ public class BestScoutedHiringAutofill implements HiringPhaseAutofill {
     this.hiringStates = hiringStates;
     this.staff = staff;
     this.teams = teams;
+    this.teamProfiles = teamProfiles;
     this.rngs = rngs;
   }
 
@@ -105,9 +107,17 @@ public class BestScoutedHiringAutofill implements HiringPhaseAutofill {
             teamId);
         return;
       }
-      var pick = pickBest(leagueId, phase, teamId, remaining);
-      remaining.remove(pick);
-      assign(leagueId, phase, phaseWeek, teamId, pick, role);
+      var maybeProfile = teamProfiles.forTeam(teamId);
+      if (maybeProfile.isEmpty()) {
+        log.warn("autofill skipped — missing team profile leagueId={} teamId={}", leagueId, teamId);
+        continue;
+      }
+      var pick = pickBestFit(leagueId, phase, teamId, remaining, maybeProfile.get());
+      if (pick.isEmpty()) {
+        continue;
+      }
+      remaining.remove(pick.get());
+      assign(leagueId, phase, phaseWeek, teamId, pick.get(), role);
     }
   }
 
@@ -115,23 +125,36 @@ public class BestScoutedHiringAutofill implements HiringPhaseAutofill {
     return hiringStates.find(teamId, phase).map(s -> s.step() == HiringStep.HIRED).orElse(false);
   }
 
-  private Candidate pickBest(
-      long leagueId, LeaguePhase phase, long teamId, List<Candidate> remaining) {
-    remaining.sort(
-        Comparator.comparingDouble((Candidate c) -> scoutedOverall(c.scoutedAttrs()))
-            .reversed()
-            .thenComparingLong(Candidate::id));
-    var topScore = scoutedOverall(remaining.getFirst().scoutedAttrs());
-    var tied =
-        remaining.stream().filter(c -> scoutedOverall(c.scoutedAttrs()) == topScore).toList();
-    if (tied.size() == 1) {
-      return tied.getFirst();
+  private Optional<Candidate> pickBestFit(
+      long leagueId,
+      LeaguePhase phase,
+      long teamId,
+      List<Candidate> remaining,
+      TeamProfile profile) {
+    record Scored(Candidate candidate, double fit) {}
+    var scored = new ArrayList<Scored>();
+    for (var c : remaining) {
+      var prefs = preferences.findByCandidateId(c.id());
+      if (prefs.isEmpty()) {
+        continue;
+      }
+      scored.add(new Scored(c, InterestScoring.normalizedScore(profile, prefs.get())));
     }
-    // Secondary tie-break: deterministic seeded RNG split per-team. `thenComparingLong(id)` already
-    // gave a stable order; RNG breaks cohort ties across teams without biasing by id.
+    if (scored.isEmpty()) {
+      return Optional.empty();
+    }
+    scored.sort(
+        Comparator.comparingDouble(Scored::fit)
+            .reversed()
+            .thenComparingLong(s -> s.candidate().id()));
+    var topFit = scored.getFirst().fit();
+    var tied = scored.stream().filter(s -> s.fit() == topFit).toList();
+    if (tied.size() == 1) {
+      return Optional.of(tied.getFirst().candidate());
+    }
     var rng = rngs.forLeaguePhase(leagueId, phase).split(teamId);
     var pickIndex = (int) Math.floorMod(rng.nextLong(), (long) tied.size());
-    return tied.get(pickIndex);
+    return Optional.of(tied.get(pickIndex).candidate());
   }
 
   private void assign(
@@ -185,18 +208,6 @@ public class BestScoutedHiringAutofill implements HiringPhaseAutofill {
         prefs.guaranteedMoneyTarget(),
         prefs.roleScopeTarget(),
         prefs.staffContinuityTarget());
-  }
-
-  private static double scoutedOverall(String scoutedAttrsJson) {
-    var m = OVERALL_PATTERN.matcher(scoutedAttrsJson);
-    if (m.find()) {
-      try {
-        return Double.parseDouble(m.group(1));
-      } catch (NumberFormatException ignored) {
-        return 0.0;
-      }
-    }
-    return 0.0;
   }
 
   private static Optional<CandidatePoolType> poolTypeFor(LeaguePhase phase) {

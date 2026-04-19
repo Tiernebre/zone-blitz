@@ -5,14 +5,24 @@ package app.zoneblitz.league.hiring;
  * per the design doc and will expand as band files author them.
  */
 public enum CandidateArchetype {
-  CEO,
-  OFFENSIVE_PLAY_CALLER,
-  DEFENSIVE_PLAY_CALLER,
-  OFFENSIVE_GURU,
-  DEFENSIVE_GURU,
-  TEACHER,
-  TACTICIAN,
-  COLLEGE_EVALUATOR,
-  PRO_EVALUATOR,
-  GENERALIST
+  CEO("CEO"),
+  OFFENSIVE_PLAY_CALLER("Offensive Play-Caller"),
+  DEFENSIVE_PLAY_CALLER("Defensive Play-Caller"),
+  OFFENSIVE_GURU("Offensive Guru"),
+  DEFENSIVE_GURU("Defensive Guru"),
+  TEACHER("Teacher"),
+  TACTICIAN("Tactician"),
+  COLLEGE_EVALUATOR("College Evaluator"),
+  PRO_EVALUATOR("Pro Evaluator"),
+  GENERALIST("Generalist");
+
+  private final String displayName;
+
+  CandidateArchetype(String displayName) {
+    this.displayName = displayName;
+  }
+
+  public String displayName() {
+    return displayName;
+  }
 }

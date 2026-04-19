@@ -113,7 +113,6 @@ public class HiringDirectorOfScoutingTransitionHandler implements PhaseTransitio
         candidate.totalExperienceYears(),
         candidate.experienceByRole(),
         candidate.hiddenAttrs(),
-        candidate.scoutedAttrs(),
         candidate.scoutBranch());
   }
 }

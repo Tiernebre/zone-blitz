@@ -21,7 +21,6 @@ public final class PositionCoachGenerator {
   private static final double POSITION_COACH_SALARY_FRACTION = 0.10;
   private static final double TRUE_RATING_MEAN = 58.0;
   private static final double TRUE_RATING_STD = 10.0;
-  private static final double SCOUTED_NOISE_STD = 8.0;
   private static final double GUARANTEED_MONEY_FLOOR = 0.50;
   private static final double GUARANTEED_MONEY_CEIL = 0.85;
 
@@ -62,7 +61,6 @@ public final class PositionCoachGenerator {
             .formatted(totalExperience);
 
     var trueRating = clamp(TRUE_RATING_MEAN + TRUE_RATING_STD * rng.nextGaussian(), 20.0, 99.0);
-    var scoutedRating = clamp(trueRating + SCOUTED_NOISE_STD * rng.nextGaussian(), 20.0, 99.0);
 
     var hcBase = bands.salaryP10() + rng.nextDouble() * (bands.salaryP50() - bands.salaryP10());
     var compensation =
@@ -91,7 +89,6 @@ public final class PositionCoachGenerator {
             totalExperience,
             experienceByRole,
             "{\"overall\": %.2f}".formatted(trueRating),
-            "{\"overall\": %.2f}".formatted(scoutedRating),
             Optional.empty());
     var preferences =
         StaffPreferencesFactory.uniform(compensation, contractLength, guaranteedMoney, rng);
