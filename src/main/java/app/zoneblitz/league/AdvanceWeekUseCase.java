@@ -13,9 +13,11 @@ class AdvanceWeekUseCase implements AdvanceWeek {
   private static final Logger log = LoggerFactory.getLogger(AdvanceWeekUseCase.class);
 
   private final LeagueRepository leagues;
+  private final OfferResolver offerResolver;
 
-  AdvanceWeekUseCase(LeagueRepository leagues) {
+  AdvanceWeekUseCase(LeagueRepository leagues, OfferResolver offerResolver) {
     this.leagues = leagues;
+    this.offerResolver = offerResolver;
   }
 
   @Override
@@ -27,7 +29,12 @@ class AdvanceWeekUseCase implements AdvanceWeek {
     if (maybeLeague.isEmpty()) {
       return new AdvanceWeekResult.NotFound(leagueId);
     }
-    var phase = maybeLeague.get().phase();
+    var league = maybeLeague.get();
+    var phase = league.phase();
+
+    // Offer resolution runs BEFORE phase_week increments so hires are recorded on the week the
+    // offers were made. See docs/technical/league-phases.md (Ticks, OfferResolver).
+    offerResolver.resolve(leagueId, phase, league.phaseWeek());
 
     // CPU franchise strategies are a future seam (see docs/technical/league-phases.md). No
     // phase defines a completion rule yet, so the tick is currently just "increment the counter".

@@ -1,5 +1,7 @@
 package app.zoneblitz.league;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -38,6 +40,7 @@ class HiringHeadCoachControllerTests {
   @MockitoBean ViewHeadCoachHiring viewHiring;
   @MockitoBean ManageHeadCoachShortlist shortlist;
   @MockitoBean StartInterview startInterview;
+  @MockitoBean MakeOffer makeOffer;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
@@ -200,6 +203,74 @@ class HiringHeadCoachControllerTests {
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
         .andExpect(status().isOk())
         .andExpect(view().name("league/hiring/head-coach-fragments :: interviews"));
+  }
+
+  @Test
+  void submitOffer_whenCreated_rendersCombinedFragment() throws Exception {
+    given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
+    given(makeOffer.offer(eq(42L), eq(7L), eq("sub-1"), any()))
+        .willReturn(
+            new MakeOfferResult.Created(
+                new CandidateOffer(1L, 7L, 99L, "{}", 1, OfferStatus.ACTIVE)));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/offer/7")
+                .param("compensation", "8500000")
+                .param("contractLengthYears", "5")
+                .param("guaranteedMoneyPct", "0.85")
+                .param("roleScope", "HIGH")
+                .param("staffContinuity", "BRING_OWN")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(view().name("league/hiring/head-coach-fragments :: combined"));
+  }
+
+  @Test
+  void submitOffer_whenActiveOfferExists_returns409() throws Exception {
+    given(makeOffer.offer(eq(42L), eq(7L), eq("sub-1"), any()))
+        .willReturn(new MakeOfferResult.ActiveOfferExists(7L, 1L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/offer/7")
+                .param("compensation", "8500000")
+                .param("contractLengthYears", "5")
+                .param("guaranteedMoneyPct", "0.85")
+                .param("roleScope", "HIGH")
+                .param("staffContinuity", "BRING_OWN")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void submitOffer_whenUnknownCandidate_returns404() throws Exception {
+    given(makeOffer.offer(eq(42L), eq(7L), eq("sub-1"), any()))
+        .willReturn(new MakeOfferResult.UnknownCandidate(7L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/offer/7")
+                .param("compensation", "8500000")
+                .param("contractLengthYears", "5")
+                .param("guaranteedMoneyPct", "0.85")
+                .param("roleScope", "HIGH")
+                .param("staffContinuity", "BRING_OWN")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void submitOffer_requiresCsrf() throws Exception {
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/offer/7")
+                .param("compensation", "8500000")
+                .param("contractLengthYears", "5")
+                .param("guaranteedMoneyPct", "0.85")
+                .param("roleScope", "HIGH")
+                .param("staffContinuity", "BRING_OWN")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isForbidden());
   }
 
   @Test

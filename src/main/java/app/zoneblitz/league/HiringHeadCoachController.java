@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.server.ResponseStatusException;
@@ -26,14 +27,17 @@ class HiringHeadCoachController {
   private final ViewHeadCoachHiring viewHiring;
   private final ManageHeadCoachShortlist shortlist;
   private final StartInterview startInterview;
+  private final MakeOffer makeOffer;
 
   HiringHeadCoachController(
       ViewHeadCoachHiring viewHiring,
       ManageHeadCoachShortlist shortlist,
-      StartInterview startInterview) {
+      StartInterview startInterview,
+      MakeOffer makeOffer) {
     this.viewHiring = viewHiring;
     this.shortlist = shortlist;
     this.startInterview = startInterview;
+    this.makeOffer = makeOffer;
   }
 
   @GetMapping("/leagues/{id}/hiring/head-coach")
@@ -92,6 +96,35 @@ class HiringHeadCoachController {
       Model model) {
     var result = shortlist.remove(id, candidateId, principal.getAttribute("sub"));
     return renderMutation(result, model);
+  }
+
+  @PostMapping("/leagues/{id}/hiring/head-coach/offer/{candidateId}")
+  String submitOffer(
+      @AuthenticationPrincipal OAuth2User principal,
+      @PathVariable long id,
+      @PathVariable long candidateId,
+      @ModelAttribute MakeOfferForm form,
+      Model model) {
+    var result = makeOffer.offer(id, candidateId, principal.getAttribute("sub"), form.toTerms());
+    return switch (result) {
+      case MakeOfferResult.Created created -> {
+        log.info(
+            "offer submitted leagueId={} candidateId={} offerId={}",
+            id,
+            candidateId,
+            created.offer().id());
+        model.addAttribute("view", resolveView(principal, id));
+        yield "league/hiring/head-coach-fragments :: combined";
+      }
+      case MakeOfferResult.NotFound ignored ->
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      case MakeOfferResult.UnknownCandidate ignored ->
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      case MakeOfferResult.AlreadyHired ignored ->
+          throw new ResponseStatusException(HttpStatus.CONFLICT);
+      case MakeOfferResult.ActiveOfferExists ignored ->
+          throw new ResponseStatusException(HttpStatus.CONFLICT);
+    };
   }
 
   private HeadCoachHiringView resolveView(OAuth2User principal, long id) {

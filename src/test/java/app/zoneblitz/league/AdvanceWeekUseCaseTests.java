@@ -27,7 +27,8 @@ class AdvanceWeekUseCaseTests {
     var franchises = new JooqFranchiseRepository(dsl);
     var teams = new JooqTeamRepository(dsl);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teams);
-    advanceWeek = new AdvanceWeekUseCase(leagues);
+    OfferResolver noopResolver = (leagueId, phase, week) -> {};
+    advanceWeek = new AdvanceWeekUseCase(leagues, noopResolver);
   }
 
   @Test
@@ -59,6 +60,19 @@ class AdvanceWeekUseCaseTests {
     var result = advanceWeek.advance(999_999L, "sub-1");
 
     assertThat(result).isEqualTo(new AdvanceWeekResult.NotFound(999_999L));
+  }
+
+  @Test
+  void advance_invokesOfferResolverBeforeIncrementingWeek() {
+    var league = createLeagueFor("sub-1");
+    var seen = new java.util.concurrent.atomic.AtomicInteger(-1);
+    OfferResolver capturingResolver = (leagueId, phase, weekAtResolve) -> seen.set(weekAtResolve);
+    var useCase = new AdvanceWeekUseCase(leagues, capturingResolver);
+
+    useCase.advance(league.id(), "sub-1");
+
+    assertThat(seen.get()).isEqualTo(1);
+    assertThat(leagues.findById(league.id()).orElseThrow().phaseWeek()).isEqualTo(2);
   }
 
   @Test
