@@ -58,6 +58,9 @@ class LeagueController {
         getLeague
             .get(id, principal.getAttribute("sub"))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    if (league.phase() == LeaguePhase.HIRING_HEAD_COACH) {
+      return "redirect:/leagues/" + id + "/hiring/head-coach";
+    }
     model.addAttribute("league", league);
     return "league/dashboard";
   }

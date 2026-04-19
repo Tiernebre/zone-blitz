@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+	<!-- Combined swap target: pool + shortlist updated together after mutations. -->
+	<div th:fragment="combined" id="hiring-regions" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+		<div class="lg:col-span-2">
+			<div th:insert="~{league/hiring/head-coach-fragments :: pool}"></div>
+		</div>
+		<div>
+			<div th:insert="~{league/hiring/head-coach-fragments :: shortlist}"></div>
+		</div>
+	</div>
+
+	<section th:fragment="pool"
+	         id="hc-pool"
+	         class="bg-white border border-slate-200 rounded p-4 shadow-sm">
+		<h2 class="text-lg font-semibold text-slate-900">Head Coach candidate pool</h2>
+		<p class="text-sm text-slate-500 mb-3">Scouted attributes only. True ratings are hidden.</p>
+		<div th:if="${view.pool().isEmpty()}" class="text-slate-500 italic text-sm">
+			No candidates available yet.
+		</div>
+		<table th:unless="${view.pool().isEmpty()}"
+		       class="w-full text-sm border-collapse">
+			<thead>
+				<tr class="text-left text-slate-600 border-b border-slate-200">
+					<th class="py-2 pr-2">Archetype</th>
+					<th class="py-2 pr-2">Specialty</th>
+					<th class="py-2 pr-2">Age</th>
+					<th class="py-2 pr-2">Exp (HC / OC / PC)</th>
+					<th class="py-2 pr-2">Scouted</th>
+					<th class="py-2 pr-2">Comp target</th>
+					<th class="py-2 pr-2">Length</th>
+					<th class="py-2 pr-2">Guaranteed</th>
+					<th class="py-2 pr-2"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="row : ${view.pool()}"
+				    th:attr="data-candidate-id=${row.id()}"
+				    class="border-b border-slate-100">
+					<td class="py-2 pr-2" th:text="${row.archetype()}"></td>
+					<td class="py-2 pr-2" th:text="${row.specialty()}"></td>
+					<td class="py-2 pr-2" th:text="${row.age()}"></td>
+					<td class="py-2 pr-2">
+						<span th:text="${row.hcYears()} + ' / ' + ${row.ocYears()} + ' / ' + ${row.positionCoachYears()}"></span>
+						<span class="text-slate-400 text-xs" th:text="'(' + ${row.totalExperienceYears()} + ' yrs total)'"></span>
+					</td>
+					<td class="py-2 pr-2" th:text="${row.scoutedOverall()}"></td>
+					<td class="py-2 pr-2" th:text="'$' + ${#numbers.formatDecimal(row.compensationTarget(), 0, 'COMMA', 0, 'POINT')}"></td>
+					<td class="py-2 pr-2" th:text="${row.contractLengthTarget()} + ' yr'"></td>
+					<td class="py-2 pr-2" th:text="${#numbers.formatPercent(row.guaranteedMoneyTarget(), 1, 0)}"></td>
+					<td class="py-2 pr-2">
+						<button type="button"
+						        th:unless="${row.shortlisted()}"
+						        th:attr="hx-post=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/head-coach/shortlist/' + ${row.id()}}"
+						        hx-target="#hiring-regions"
+						        hx-swap="outerHTML"
+						        class="px-2 py-1 text-xs rounded bg-slate-900 text-white hover:bg-slate-800 cursor-pointer">
+							Shortlist
+						</button>
+						<button type="button"
+						        th:if="${row.shortlisted()}"
+						        th:attr="hx-delete=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/head-coach/shortlist/' + ${row.id()}}"
+						        hx-target="#hiring-regions"
+						        hx-swap="outerHTML"
+						        class="px-2 py-1 text-xs rounded bg-slate-200 text-slate-700 hover:bg-slate-300 cursor-pointer">
+							Shortlisted
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</section>
+
+	<aside th:fragment="shortlist"
+	       id="hc-shortlist"
+	       class="bg-white border border-slate-200 rounded p-4 shadow-sm">
+		<h2 class="text-lg font-semibold text-slate-900">Your shortlist</h2>
+		<p class="text-sm text-slate-500 mb-3"
+		   th:text="'(' + ${view.shortlist().size()} + ' candidates)'"></p>
+		<div th:if="${view.shortlist().isEmpty()}" class="text-slate-500 italic text-sm">
+			No candidates shortlisted yet.
+		</div>
+		<ul th:unless="${view.shortlist().isEmpty()}" class="space-y-2">
+			<li th:each="row : ${view.shortlist()}"
+			    class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+				<div class="min-w-0">
+					<div class="text-sm font-medium text-slate-900"
+					     th:text="${row.archetype()} + ' · ' + ${row.specialty()}"></div>
+					<div class="text-xs text-slate-500"
+					     th:text="'age ' + ${row.age()} + ' · scouted ' + ${row.scoutedOverall()}"></div>
+				</div>
+				<button type="button"
+				        th:attr="hx-delete=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/head-coach/shortlist/' + ${row.id()}}"
+				        hx-target="#hiring-regions"
+				        hx-swap="outerHTML"
+				        class="px-2 py-1 text-xs rounded border border-slate-300 text-slate-600 hover:bg-slate-100 cursor-pointer">
+					Remove
+				</button>
+			</li>
+		</ul>
+	</aside>
+</body>
+</html>
