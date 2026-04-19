@@ -7,5 +7,6 @@ public record League(
     String name,
     String ownerSubject,
     LeaguePhase phase,
+    int phaseWeek,
     LeagueSettings settings,
     Instant createdAt) {}

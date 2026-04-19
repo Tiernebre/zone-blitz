@@ -7,5 +7,6 @@ public record LeagueSummary(
     long leagueId,
     String leagueName,
     LeaguePhase phase,
+    int phaseWeek,
     Instant createdAt,
     Franchise userFranchise) {}

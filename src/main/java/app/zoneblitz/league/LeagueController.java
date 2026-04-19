@@ -26,18 +26,21 @@ class LeagueController {
   private final CreateLeague createLeague;
   private final GetLeague getLeague;
   private final DeleteLeague deleteLeague;
+  private final AdvancePhase advancePhase;
 
   LeagueController(
       ListLeaguesForUser listLeagues,
       ListFranchises listFranchises,
       CreateLeague createLeague,
       GetLeague getLeague,
-      DeleteLeague deleteLeague) {
+      DeleteLeague deleteLeague,
+      AdvancePhase advancePhase) {
     this.listLeagues = listLeagues;
     this.listFranchises = listFranchises;
     this.createLeague = createLeague;
     this.getLeague = getLeague;
     this.deleteLeague = deleteLeague;
+    this.advancePhase = advancePhase;
   }
 
   @GetMapping("/")
@@ -68,6 +71,26 @@ class LeagueController {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     model.addAttribute("league", league);
     return "league/settings";
+  }
+
+  @PostMapping("/leagues/{id}/phase/advance")
+  String advancePhase(@AuthenticationPrincipal OAuth2User principal, @PathVariable long id) {
+    var ownerSubject = principal.<String>getAttribute("sub");
+    var result = advancePhase.advance(id, ownerSubject);
+    return switch (result) {
+      case AdvancePhaseResult.Advanced advanced -> {
+        log.info(
+            "league phase advanced id={} from={} to={}",
+            advanced.leagueId(),
+            advanced.from(),
+            advanced.to());
+        yield "redirect:/leagues/" + id;
+      }
+      case AdvancePhaseResult.NotFound ignored ->
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      case AdvancePhaseResult.NoNextPhase ignored ->
+          throw new ResponseStatusException(HttpStatus.CONFLICT);
+    };
   }
 
   @PostMapping("/leagues/{id}/delete")

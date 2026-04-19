@@ -36,6 +36,7 @@ class JooqLeagueRepository implements LeagueRepository {
                 LEAGUES.NAME,
                 LEAGUES.OWNER_SUBJECT,
                 LEAGUES.PHASE,
+                LEAGUES.PHASE_WEEK,
                 LEAGUES.TEAM_COUNT,
                 LEAGUES.SEASON_GAMES,
                 LEAGUES.CREATED_AT)
@@ -45,6 +46,7 @@ class JooqLeagueRepository implements LeagueRepository {
         record.getName(),
         record.getOwnerSubject(),
         LeaguePhase.valueOf(record.getPhase()),
+        record.getPhaseWeek(),
         new LeagueSettings(record.getTeamCount(), record.getSeasonGames()),
         record.getCreatedAt().toInstant());
   }
@@ -64,6 +66,7 @@ class JooqLeagueRepository implements LeagueRepository {
             LEAGUES.ID,
             LEAGUES.NAME,
             LEAGUES.PHASE,
+            LEAGUES.PHASE_WEEK,
             LEAGUES.CREATED_AT,
             FRANCHISES.ID,
             FRANCHISES.NAME,
@@ -92,6 +95,7 @@ class JooqLeagueRepository implements LeagueRepository {
                     r.get(LEAGUES.ID),
                     r.get(LEAGUES.NAME),
                     LeaguePhase.valueOf(r.get(LEAGUES.PHASE)),
+                    r.get(LEAGUES.PHASE_WEEK),
                     r.get(LEAGUES.CREATED_AT).toInstant(),
                     JooqFranchiseRepository.mapFranchise(r)));
   }
@@ -102,6 +106,7 @@ class JooqLeagueRepository implements LeagueRepository {
             LEAGUES.ID,
             LEAGUES.NAME,
             LEAGUES.PHASE,
+            LEAGUES.PHASE_WEEK,
             LEAGUES.CREATED_AT,
             FRANCHISES.ID,
             FRANCHISES.NAME,
@@ -130,8 +135,54 @@ class JooqLeagueRepository implements LeagueRepository {
                     r.get(LEAGUES.ID),
                     r.get(LEAGUES.NAME),
                     LeaguePhase.valueOf(r.get(LEAGUES.PHASE)),
+                    r.get(LEAGUES.PHASE_WEEK),
                     r.get(LEAGUES.CREATED_AT).toInstant(),
                     JooqFranchiseRepository.mapFranchise(r)));
+  }
+
+  @Override
+  public Optional<League> findById(long id) {
+    return dsl.select(
+            LEAGUES.ID,
+            LEAGUES.NAME,
+            LEAGUES.OWNER_SUBJECT,
+            LEAGUES.PHASE,
+            LEAGUES.PHASE_WEEK,
+            LEAGUES.TEAM_COUNT,
+            LEAGUES.SEASON_GAMES,
+            LEAGUES.CREATED_AT)
+        .from(LEAGUES)
+        .where(LEAGUES.ID.eq(id))
+        .fetchOptional(
+            r ->
+                new League(
+                    r.get(LEAGUES.ID),
+                    r.get(LEAGUES.NAME),
+                    r.get(LEAGUES.OWNER_SUBJECT),
+                    LeaguePhase.valueOf(r.get(LEAGUES.PHASE)),
+                    r.get(LEAGUES.PHASE_WEEK),
+                    new LeagueSettings(r.get(LEAGUES.TEAM_COUNT), r.get(LEAGUES.SEASON_GAMES)),
+                    r.get(LEAGUES.CREATED_AT).toInstant()));
+  }
+
+  @Override
+  public boolean updatePhaseAndResetWeek(long id, LeaguePhase phase) {
+    return dsl.update(LEAGUES)
+            .set(LEAGUES.PHASE, phase.name())
+            .set(LEAGUES.PHASE_WEEK, 1)
+            .where(LEAGUES.ID.eq(id))
+            .execute()
+        > 0;
+  }
+
+  @Override
+  public Optional<Integer> incrementPhaseWeek(long id) {
+    return dsl.update(LEAGUES)
+        .set(LEAGUES.PHASE_WEEK, LEAGUES.PHASE_WEEK.plus(1))
+        .where(LEAGUES.ID.eq(id))
+        .returning(LEAGUES.PHASE_WEEK)
+        .fetchOptional()
+        .map(r -> r.get(LEAGUES.PHASE_WEEK));
   }
 
   @Override
