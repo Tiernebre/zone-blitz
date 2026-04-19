@@ -124,7 +124,19 @@ jooq {
     }
 }
 
+tasks.named("generateJooq") {
+    dependsOn("flywayMigrate")
+}
+
 tasks.named("compileJava") {
+    dependsOn("generateJooq")
+}
+
+tasks.named("compileTestJava") {
+    dependsOn("generateJooq")
+}
+
+tasks.test {
     dependsOn("generateJooq")
 }
 
