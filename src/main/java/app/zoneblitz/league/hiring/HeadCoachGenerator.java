@@ -7,6 +7,7 @@ import app.zoneblitz.league.geography.MarketSize;
 import app.zoneblitz.league.staff.RoleScope;
 import app.zoneblitz.league.staff.SpecialtyPosition;
 import app.zoneblitz.league.staff.StaffContinuity;
+import app.zoneblitz.names.NameGenerator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -29,13 +30,15 @@ public final class HeadCoachGenerator implements CandidateGenerator {
   private static final double SCOUTED_NOISE_STD = 8.0;
 
   private final HeadCoachMarketBands bands;
+  private final NameGenerator names;
 
-  public HeadCoachGenerator() {
-    this(HeadCoachMarketBands.loadFromClasspath());
+  public HeadCoachGenerator(NameGenerator names) {
+    this(HeadCoachMarketBands.loadFromClasspath(), names);
   }
 
-  public HeadCoachGenerator(HeadCoachMarketBands bands) {
+  public HeadCoachGenerator(HeadCoachMarketBands bands, NameGenerator names) {
     this.bands = Objects.requireNonNull(bands, "bands");
+    this.names = Objects.requireNonNull(names, "names");
   }
 
   @Override
@@ -70,12 +73,15 @@ public final class HeadCoachGenerator implements CandidateGenerator {
     var contractLength = perceivedContractLength(priorHcYears, rng);
     var guaranteedMoney = perceivedGuaranteedMoney(priorHcYears, rng);
 
+    var name = names.generate(rng);
     var candidate =
         new NewCandidate(
             /* poolId= */ 0L,
             CandidateKind.HEAD_COACH,
             specialty,
             archetype,
+            name.first(),
+            name.last(),
             age,
             totalExperience,
             experienceByRole,

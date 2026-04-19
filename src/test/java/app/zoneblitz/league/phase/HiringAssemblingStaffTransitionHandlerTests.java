@@ -78,9 +78,9 @@ class HiringAssemblingStaffTransitionHandlerTests {
             candidates,
             preferences,
             staffRepo,
-            new CoordinatorGenerator(),
-            new PositionCoachGenerator(),
-            new ScoutCandidateGenerator(),
+            new CoordinatorGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
+            new PositionCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
+            new ScoutCandidateGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             new SeededRandomSources());
   }
 
@@ -249,6 +249,8 @@ class HiringAssemblingStaffTransitionHandlerTests {
                   CandidateKind.DIRECTOR_OF_SCOUTING,
                   SpecialtyPosition.CB,
                   CandidateArchetype.GENERALIST,
+                  "Jordan",
+                  "Okafor",
                   45,
                   15,
                   "{\"DOS\":2,\"SCOUT\":10}",

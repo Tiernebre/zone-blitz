@@ -3,6 +3,7 @@ package app.zoneblitz.league.hiring;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.staff.SpecialtyPosition;
+import app.zoneblitz.names.NameGenerator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -29,13 +30,15 @@ public final class CoordinatorGenerator {
   private static final double GUARANTEED_MONEY_CEIL = 0.90;
 
   private final HeadCoachMarketBands bands;
+  private final NameGenerator names;
 
-  public CoordinatorGenerator() {
-    this(HeadCoachMarketBands.loadFromClasspath());
+  public CoordinatorGenerator(NameGenerator names) {
+    this(HeadCoachMarketBands.loadFromClasspath(), names);
   }
 
-  public CoordinatorGenerator(HeadCoachMarketBands bands) {
+  public CoordinatorGenerator(HeadCoachMarketBands bands, NameGenerator names) {
     this.bands = Objects.requireNonNull(bands, "bands");
+    this.names = Objects.requireNonNull(names, "names");
   }
 
   /**
@@ -76,12 +79,15 @@ public final class CoordinatorGenerator {
                     + rng.nextDouble() * (GUARANTEED_MONEY_CEIL - GUARANTEED_MONEY_FLOOR))
             .setScale(3, RoundingMode.HALF_UP);
 
+    var name = names.generate(rng);
     var candidate =
         new NewCandidate(
             /* poolId= */ 0L,
             kind,
             specialty,
             archetype,
+            name.first(),
+            name.last(),
             age,
             totalExperience,
             experienceByRole,

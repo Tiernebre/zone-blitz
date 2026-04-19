@@ -82,6 +82,7 @@ public final class DirectorOfScoutingHiringViewModel {
             : extractOverall(candidate.scoutedAttrs());
     return new DirectorOfScoutingCandidateView(
         candidate.id(),
+        candidate.fullName(),
         candidate.archetype(),
         candidate.specialtyPosition(),
         candidate.age(),

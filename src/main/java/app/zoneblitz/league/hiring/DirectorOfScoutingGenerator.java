@@ -7,6 +7,7 @@ import app.zoneblitz.league.geography.MarketSize;
 import app.zoneblitz.league.staff.RoleScope;
 import app.zoneblitz.league.staff.SpecialtyPosition;
 import app.zoneblitz.league.staff.StaffContinuity;
+import app.zoneblitz.names.NameGenerator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -34,13 +35,15 @@ public final class DirectorOfScoutingGenerator implements CandidateGenerator {
   private static final double GUARANTEED_MONEY_CEIL = 0.85;
 
   private final ScoutMarketBands bands;
+  private final NameGenerator names;
 
-  public DirectorOfScoutingGenerator() {
-    this(ScoutMarketBands.loadFromClasspath());
+  public DirectorOfScoutingGenerator(NameGenerator names) {
+    this(ScoutMarketBands.loadFromClasspath(), names);
   }
 
-  public DirectorOfScoutingGenerator(ScoutMarketBands bands) {
+  public DirectorOfScoutingGenerator(ScoutMarketBands bands, NameGenerator names) {
     this.bands = Objects.requireNonNull(bands, "bands");
+    this.names = Objects.requireNonNull(names, "names");
   }
 
   @Override
@@ -74,12 +77,15 @@ public final class DirectorOfScoutingGenerator implements CandidateGenerator {
     var contractLength = perceivedContractLength(priorDosYears, rng);
     var guaranteedMoney = perceivedGuaranteedMoney(priorDosYears, rng);
 
+    var name = names.generate(rng);
     var candidate =
         new NewCandidate(
             /* poolId= */ 0L,
             CandidateKind.DIRECTOR_OF_SCOUTING,
             specialty,
             archetype,
+            name.first(),
+            name.last(),
             age,
             totalExperience,
             experienceByRole,

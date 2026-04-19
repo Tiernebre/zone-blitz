@@ -68,7 +68,8 @@ class HiringDirectorOfScoutingTransitionHandlerTests {
             candidates,
             preferences,
             hiringStates,
-            new DirectorOfScoutingGenerator(),
+            new DirectorOfScoutingGenerator(
+                app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             new SeededRandomSources());
   }
 

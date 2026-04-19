@@ -226,6 +226,8 @@ class BestScoutedHiringAutofillTests {
                 CandidateKind.HEAD_COACH,
                 SpecialtyPosition.QB,
                 CandidateArchetype.OFFENSIVE_PLAY_CALLER,
+                "Marcus",
+                "Hale",
                 43,
                 18,
                 "{\"HC\":0}",

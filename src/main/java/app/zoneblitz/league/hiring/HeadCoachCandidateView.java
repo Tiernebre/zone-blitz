@@ -12,6 +12,7 @@ import java.util.Objects;
  */
 public record HeadCoachCandidateView(
     long id,
+    String name,
     CandidateArchetype archetype,
     SpecialtyPosition specialty,
     int age,
@@ -27,6 +28,7 @@ public record HeadCoachCandidateView(
     int interviewCount) {
 
   public HeadCoachCandidateView {
+    Objects.requireNonNull(name, "name");
     Objects.requireNonNull(archetype, "archetype");
     Objects.requireNonNull(specialty, "specialty");
     Objects.requireNonNull(scoutedOverall, "scoutedOverall");

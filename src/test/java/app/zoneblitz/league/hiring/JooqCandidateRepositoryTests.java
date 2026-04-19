@@ -63,6 +63,9 @@ class JooqCandidateRepositoryTests {
     assertThat(candidate.kind()).isEqualTo(CandidateKind.HEAD_COACH);
     assertThat(candidate.specialtyPosition()).isEqualTo(SpecialtyPosition.QB);
     assertThat(candidate.archetype()).isEqualTo(CandidateArchetype.OFFENSIVE_PLAY_CALLER);
+    assertThat(candidate.firstName()).isEqualTo("Marcus");
+    assertThat(candidate.lastName()).isEqualTo("Hale");
+    assertThat(candidate.fullName()).isEqualTo("Marcus Hale");
     assertThat(candidate.age()).isEqualTo(43);
     assertThat(candidate.totalExperienceYears()).isEqualTo(18);
     assertThat(candidate.experienceByRole()).contains("\"OC\"").contains("10");

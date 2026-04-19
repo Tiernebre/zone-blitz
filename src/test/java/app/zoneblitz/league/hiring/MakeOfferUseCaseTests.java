@@ -63,7 +63,7 @@ class MakeOfferUseCaseTests {
             candidates,
             preferences,
             hiringStates,
-            new HeadCoachGenerator(),
+            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
     makeOffer = new MakeOfferUseCase(leagues, pools, candidates, offers, hiringStates);
   }

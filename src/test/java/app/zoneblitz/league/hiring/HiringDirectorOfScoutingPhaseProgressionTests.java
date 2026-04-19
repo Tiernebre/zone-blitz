@@ -83,7 +83,7 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
             candidates,
             preferences,
             hiringStates,
-            new HeadCoachGenerator(),
+            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             rngs);
     var dosHandler =
         new HiringDirectorOfScoutingTransitionHandler(
@@ -93,7 +93,8 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
             candidates,
             preferences,
             hiringStates,
-            new DirectorOfScoutingGenerator(),
+            new DirectorOfScoutingGenerator(
+                app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             rngs);
 
     advancePhase = new AdvancePhaseUseCase(leagues, List.of(hcHandler, dosHandler));

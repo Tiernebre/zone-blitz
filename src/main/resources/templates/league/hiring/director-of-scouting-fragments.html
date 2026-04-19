@@ -24,6 +24,7 @@
 		       class="w-full text-sm border-collapse">
 			<thead>
 				<tr class="text-left text-slate-600 border-b border-slate-200">
+					<th class="py-2 pr-2">Name</th>
 					<th class="py-2 pr-2">Archetype</th>
 					<th class="py-2 pr-2">Specialty</th>
 					<th class="py-2 pr-2">Age</th>
@@ -39,6 +40,7 @@
 				<tr th:each="row : ${view.pool()}"
 				    th:attr="data-candidate-id=${row.id()}"
 				    class="border-b border-slate-100">
+					<td class="py-2 pr-2 font-medium text-slate-900" th:text="${row.name()}"></td>
 					<td class="py-2 pr-2" th:text="${row.archetype()}"></td>
 					<td class="py-2 pr-2" th:text="${row.specialty()}"></td>
 					<td class="py-2 pr-2" th:text="${row.age()}"></td>
@@ -97,10 +99,9 @@
 			<li th:each="row : ${view.shortlist()}"
 			    class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
 				<div class="min-w-0">
-					<div class="text-sm font-medium text-slate-900"
-					     th:text="${row.archetype()} + ' · ' + ${row.specialty()}"></div>
+					<div class="text-sm font-medium text-slate-900" th:text="${row.name()}"></div>
 					<div class="text-xs text-slate-500"
-					     th:text="'age ' + ${row.age()} + ' · scouted ' + ${row.scoutedOverall()}"></div>
+					     th:text="${row.archetype()} + ' · ' + ${row.specialty()} + ' · age ' + ${row.age()} + ' · scouted ' + ${row.scoutedOverall()}"></div>
 				</div>
 				<button type="button"
 				        th:attr="hx-delete=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/director-of-scouting/shortlist/' + ${row.id()}}"
@@ -129,10 +130,9 @@
 			<li th:each="row : ${view.activeInterviews()}"
 			    class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
 				<div class="min-w-0">
-					<div class="text-sm font-medium text-slate-900"
-					     th:text="${row.archetype()} + ' · ' + ${row.specialty()}"></div>
+					<div class="text-sm font-medium text-slate-900" th:text="${row.name()}"></div>
 					<div class="text-xs text-slate-500"
-					     th:text="${row.interviewCount()} + ' interview(s) · scouted ' + ${row.scoutedOverall()}"></div>
+					     th:text="${row.archetype()} + ' · ' + ${row.specialty()} + ' · ' + ${row.interviewCount()} + ' interview(s) · scouted ' + ${row.scoutedOverall()}"></div>
 				</div>
 			</li>
 		</ul>

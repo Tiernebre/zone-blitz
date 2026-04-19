@@ -68,7 +68,7 @@ class HiringHeadCoachTransitionHandlerTests {
             candidates,
             preferences,
             hiringStates,
-            new HeadCoachGenerator(),
+            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             new SeededRandomSources());
   }
 

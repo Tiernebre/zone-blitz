@@ -15,7 +15,7 @@ class HeadCoachGeneratorTests {
 
   @BeforeEach
   void setUp() {
-    generator = new HeadCoachGenerator();
+    generator = new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults());
   }
 
   @Test

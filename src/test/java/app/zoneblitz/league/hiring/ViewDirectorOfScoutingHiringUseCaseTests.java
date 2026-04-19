@@ -53,7 +53,8 @@ class ViewDirectorOfScoutingHiringUseCaseTests {
             candidates,
             preferences,
             hiringStates,
-            new DirectorOfScoutingGenerator(),
+            new DirectorOfScoutingGenerator(
+                app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
     var interviews = new JooqTeamInterviewRepository(dsl);
     useCase =

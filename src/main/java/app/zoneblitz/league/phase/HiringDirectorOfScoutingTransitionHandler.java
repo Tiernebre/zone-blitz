@@ -107,6 +107,8 @@ public class HiringDirectorOfScoutingTransitionHandler implements PhaseTransitio
         candidate.kind(),
         candidate.specialtyPosition(),
         candidate.archetype(),
+        candidate.firstName(),
+        candidate.lastName(),
         candidate.age(),
         candidate.totalExperienceYears(),
         candidate.experienceByRole(),

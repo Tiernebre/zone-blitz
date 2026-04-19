@@ -79,16 +79,57 @@ cleanup() {
 }
 trap cleanup INT TERM EXIT
 
+tag_pids=()
+tag_names=()
+
+launch() {
+	local tag=$1 color=$2
+	shift 2
+	"$@" 2>&1 | prefix "$tag" "$color" &
+	local pid=$!
+	pids+=("$pid")
+	tag_pids+=("$pid")
+	tag_names+=("$tag")
+}
+
+tag_for() {
+	local pid=$1 i
+	for i in "${!tag_pids[@]}"; do
+		if [[ "${tag_pids[$i]}" == "$pid" ]]; then
+			printf '%s' "${tag_names[$i]}"
+			return
+		fi
+	done
+	printf 'unknown'
+}
+
 log "starting tailwind watch…"
-./gradlew --console=plain -t tailwindBuild 2>&1 | prefix "tailwind" "$CYAN" &
-pids+=($!)
+launch "tailwind" "$CYAN" ./gradlew --console=rich -t tailwindBuild
 
 log "starting bootRun…"
-./gradlew --console=plain bootRun 2>&1 | prefix "boot    " "$GREEN" &
-pids+=($!)
+launch "boot    " "$GREEN" ./gradlew --console=rich bootRun
 
 log "starting classes --continuous…"
-./gradlew --console=plain -t classes -x generateJooq 2>&1 | prefix "compile " "$YELLOW" &
-pids+=($!)
+launch "compile " "$YELLOW" ./gradlew --console=rich -t classes -x generateJooq
 
-wait
+# All three are long-running (bootRun, -t tailwindBuild, -t classes). If any
+# exits — success or failure — something is wrong; report it and shut down.
+# bash 3.2 lacks `wait -n`, so poll with `kill -0`.
+while :; do
+	for pid in "${tag_pids[@]}"; do
+		if ! kill -0 "$pid" 2>/dev/null; then
+			set +e
+			wait "$pid"
+			status=$?
+			set -e
+			exited_tag=$(tag_for "$pid")
+			if [[ $status -eq 0 ]]; then
+				log "${YELLOW}[$exited_tag] exited unexpectedly (status 0) — shutting down${RESET}"
+			else
+				log "${YELLOW}[$exited_tag] failed with status $status — shutting down${RESET}"
+			fi
+			exit $status
+		fi
+	done
+	sleep 1
+done

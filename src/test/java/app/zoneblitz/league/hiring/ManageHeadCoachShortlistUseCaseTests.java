@@ -54,7 +54,7 @@ class ManageHeadCoachShortlistUseCaseTests {
             candidates,
             preferences,
             hiringStates,
-            new HeadCoachGenerator(),
+            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
     var interviews = new JooqTeamInterviewRepository(dsl);
     useCase =

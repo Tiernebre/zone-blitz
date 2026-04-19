@@ -82,6 +82,7 @@ public final class HeadCoachHiringViewModel {
             : extractOverall(candidate.scoutedAttrs());
     return new HeadCoachCandidateView(
         candidate.id(),
+        candidate.fullName(),
         candidate.archetype(),
         candidate.specialtyPosition(),
         candidate.age(),

@@ -28,6 +28,8 @@ public class JooqCandidateRepository implements CandidateRepository {
             .set(CANDIDATES.KIND, newCandidate.kind().name())
             .set(CANDIDATES.SPECIALTY_POSITION, newCandidate.specialtyPosition().name())
             .set(CANDIDATES.ARCHETYPE, newCandidate.archetype().name())
+            .set(CANDIDATES.FIRST_NAME, newCandidate.firstName())
+            .set(CANDIDATES.LAST_NAME, newCandidate.lastName())
             .set(CANDIDATES.AGE, newCandidate.age())
             .set(CANDIDATES.TOTAL_EXPERIENCE_YEARS, newCandidate.totalExperienceYears())
             .set(CANDIDATES.EXPERIENCE_BY_ROLE, JSONB.valueOf(newCandidate.experienceByRole()))
@@ -68,6 +70,8 @@ public class JooqCandidateRepository implements CandidateRepository {
         CandidateKind.valueOf(r.get(CANDIDATES.KIND)),
         SpecialtyPosition.valueOf(r.get(CANDIDATES.SPECIALTY_POSITION)),
         CandidateArchetype.valueOf(r.get(CANDIDATES.ARCHETYPE)),
+        r.get(CANDIDATES.FIRST_NAME),
+        r.get(CANDIDATES.LAST_NAME),
         r.get(CANDIDATES.AGE),
         r.get(CANDIDATES.TOTAL_EXPERIENCE_YEARS),
         r.get(CANDIDATES.EXPERIENCE_BY_ROLE).data(),

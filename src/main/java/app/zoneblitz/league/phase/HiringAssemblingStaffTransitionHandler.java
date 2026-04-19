@@ -323,6 +323,8 @@ public class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHa
             pick.candidate().kind(),
             pick.candidate().specialtyPosition(),
             pick.candidate().archetype(),
+            pick.candidate().firstName(),
+            pick.candidate().lastName(),
             pick.candidate().age(),
             pick.candidate().totalExperienceYears(),
             pick.candidate().experienceByRole(),

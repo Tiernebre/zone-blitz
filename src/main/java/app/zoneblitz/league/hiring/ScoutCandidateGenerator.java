@@ -2,6 +2,7 @@ package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.league.staff.SpecialtyPosition;
+import app.zoneblitz.names.NameGenerator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -25,13 +26,15 @@ public final class ScoutCandidateGenerator {
   private static final double GUARANTEED_MONEY_CEIL = 0.70;
 
   private final ScoutMarketBands bands;
+  private final NameGenerator names;
 
-  public ScoutCandidateGenerator() {
-    this(ScoutMarketBands.loadFromClasspath());
+  public ScoutCandidateGenerator(NameGenerator names) {
+    this(ScoutMarketBands.loadFromClasspath(), names);
   }
 
-  public ScoutCandidateGenerator(ScoutMarketBands bands) {
+  public ScoutCandidateGenerator(ScoutMarketBands bands, NameGenerator names) {
     this.bands = Objects.requireNonNull(bands, "bands");
+    this.names = Objects.requireNonNull(names, "names");
   }
 
   /** Generate {@code poolSize} subordinate scouts operating in the given {@code branch}. */
@@ -73,12 +76,15 @@ public final class ScoutCandidateGenerator {
                     + rng.nextDouble() * (GUARANTEED_MONEY_CEIL - GUARANTEED_MONEY_FLOOR))
             .setScale(3, RoundingMode.HALF_UP);
 
+    var name = names.generate(rng);
     var candidate =
         new NewCandidate(
             /* poolId= */ 0L,
             CandidateKind.SCOUT,
             specialty,
             archetype,
+            name.first(),
+            name.last(),
             age,
             totalExperience,
             experienceByRole,

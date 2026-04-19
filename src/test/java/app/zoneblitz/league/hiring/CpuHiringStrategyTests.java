@@ -78,7 +78,7 @@ class CpuHiringStrategyTests {
             candidates,
             preferences,
             hiringStates,
-            new HeadCoachGenerator(),
+            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             rngs);
     strategy =
         new CpuHiringStrategy(

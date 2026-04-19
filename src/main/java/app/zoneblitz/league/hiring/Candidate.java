@@ -22,6 +22,8 @@ public record Candidate(
     CandidateKind kind,
     SpecialtyPosition specialtyPosition,
     CandidateArchetype archetype,
+    String firstName,
+    String lastName,
     int age,
     int totalExperienceYears,
     String experienceByRole,
@@ -34,10 +36,17 @@ public record Candidate(
     Objects.requireNonNull(kind, "kind");
     Objects.requireNonNull(specialtyPosition, "specialtyPosition");
     Objects.requireNonNull(archetype, "archetype");
+    Objects.requireNonNull(firstName, "firstName");
+    Objects.requireNonNull(lastName, "lastName");
     Objects.requireNonNull(experienceByRole, "experienceByRole");
     Objects.requireNonNull(hiddenAttrs, "hiddenAttrs");
     Objects.requireNonNull(scoutedAttrs, "scoutedAttrs");
     Objects.requireNonNull(hiredByTeamId, "hiredByTeamId");
     Objects.requireNonNull(scoutBranch, "scoutBranch");
+  }
+
+  /** Convenience "First Last" display form. */
+  public String fullName() {
+    return firstName + " " + lastName;
   }
 }

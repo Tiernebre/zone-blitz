@@ -15,7 +15,8 @@ class DirectorOfScoutingGeneratorTests {
 
   @BeforeEach
   void setUp() {
-    generator = new DirectorOfScoutingGenerator();
+    generator =
+        new DirectorOfScoutingGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults());
   }
 
   @Test

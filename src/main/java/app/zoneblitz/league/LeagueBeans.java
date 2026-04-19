@@ -16,6 +16,8 @@ import app.zoneblitz.league.hiring.TeamInterviewRepository;
 import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.team.CpuTeamStrategy;
 import app.zoneblitz.league.team.TeamHiringStateRepository;
+import app.zoneblitz.names.CuratedNameGenerator;
+import app.zoneblitz.names.NameGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,28 +26,33 @@ import org.springframework.context.annotation.Configuration;
 public class LeagueBeans {
 
   @Bean
-  HeadCoachGenerator headCoachGenerator() {
-    return new HeadCoachGenerator();
+  NameGenerator candidateNameGenerator() {
+    return CuratedNameGenerator.maleDefaults();
   }
 
   @Bean
-  DirectorOfScoutingGenerator directorOfScoutingGenerator() {
-    return new DirectorOfScoutingGenerator();
+  HeadCoachGenerator headCoachGenerator(NameGenerator names) {
+    return new HeadCoachGenerator(names);
   }
 
   @Bean
-  CoordinatorGenerator coordinatorGenerator() {
-    return new CoordinatorGenerator();
+  DirectorOfScoutingGenerator directorOfScoutingGenerator(NameGenerator names) {
+    return new DirectorOfScoutingGenerator(names);
   }
 
   @Bean
-  PositionCoachGenerator positionCoachGenerator() {
-    return new PositionCoachGenerator();
+  CoordinatorGenerator coordinatorGenerator(NameGenerator names) {
+    return new CoordinatorGenerator(names);
   }
 
   @Bean
-  ScoutCandidateGenerator scoutCandidateGenerator() {
-    return new ScoutCandidateGenerator();
+  PositionCoachGenerator positionCoachGenerator(NameGenerator names) {
+    return new PositionCoachGenerator(names);
+  }
+
+  @Bean
+  ScoutCandidateGenerator scoutCandidateGenerator(NameGenerator names) {
+    return new ScoutCandidateGenerator(names);
   }
 
   @Bean
