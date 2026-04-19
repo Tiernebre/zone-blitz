@@ -172,6 +172,12 @@ class PreferenceScoringOfferResolverTests {
   @Test
   void resolve_losingFranchise_remainsSearchingAndCanRebid() {
     var ctx = seedLeague();
+    // Force the candidate's compensation to dominate the composite score so the good-offer
+    // franchise always wins regardless of the random preferences the generator produced for this
+    // specific seed. Without this the test is seed-sensitive — at some leagueId values the
+    // candidate's random dimension weights make a low-comp offer competitive with good terms, and
+    // the outcome flips.
+    overwritePreferencesToDominateComp(ctx.candidateId);
     // Winner franchise has high offer; loser has low offer on same candidate.
     offers.insertActive(ctx.candidateId, ctx.franchiseId, OfferTermsJson.toJson(goodTerms()), 1);
     offers.insertActive(
@@ -192,6 +198,55 @@ class PreferenceScoringOfferResolverTests {
         offers.insertActive(
             otherCandidate.id(), ctx.otherFranchiseId, OfferTermsJson.toJson(goodTerms()), 2);
     assertThat(rebid.status()).isEqualTo(OfferStatus.ACTIVE);
+  }
+
+  private void overwritePreferencesToDominateComp(long candidateId) {
+    // Zero all non-comp weights, saturate the comp weight. Composite score then reduces to
+    // numericFloorFit on compensation — good terms ($20M vs any target) = 1.0, low ($500k) = 0.0.
+    dsl.update(app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES)
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.COMPENSATION_WEIGHT,
+            new BigDecimal("1.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.CONTRACT_LENGTH_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.GUARANTEED_MONEY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.MARKET_SIZE_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.GEOGRAPHY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.CLIMATE_WEIGHT, new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.FRANCHISE_PRESTIGE_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.COMPETITIVE_WINDOW_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.ROLE_SCOPE_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.STAFF_CONTINUITY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.SCHEME_ALIGNMENT_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.OWNER_STABILITY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.FACILITY_QUALITY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.COMPENSATION_TARGET,
+            new BigDecimal("10000000.00"))
+        .where(app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.CANDIDATE_ID.eq(candidateId))
+        .execute();
   }
 
   private long poolIdFor(long leagueId) {

@@ -1,7 +1,10 @@
 package app.zoneblitz.league;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -14,10 +17,20 @@ class AdvanceWeekUseCase implements AdvanceWeek {
 
   private final LeagueRepository leagues;
   private final OfferResolver offerResolver;
+  private final TeamLookup teams;
+  private final Map<LeaguePhase, CpuFranchiseStrategy> cpuStrategies;
 
-  AdvanceWeekUseCase(LeagueRepository leagues, OfferResolver offerResolver) {
+  AdvanceWeekUseCase(
+      LeagueRepository leagues,
+      OfferResolver offerResolver,
+      TeamLookup teams,
+      List<CpuFranchiseStrategy> cpuStrategies) {
     this.leagues = leagues;
     this.offerResolver = offerResolver;
+    this.teams = teams;
+    this.cpuStrategies =
+        cpuStrategies.stream()
+            .collect(Collectors.toUnmodifiableMap(CpuFranchiseStrategy::phase, s -> s));
   }
 
   @Override
@@ -31,13 +44,14 @@ class AdvanceWeekUseCase implements AdvanceWeek {
     }
     var league = maybeLeague.get();
     var phase = league.phase();
+    var phaseWeek = league.phaseWeek();
+
+    runCpuStrategies(leagueId, phase, phaseWeek);
 
     // Offer resolution runs BEFORE phase_week increments so hires are recorded on the week the
     // offers were made. See docs/technical/league-phases.md (Ticks, OfferResolver).
-    offerResolver.resolve(leagueId, phase, league.phaseWeek());
+    offerResolver.resolve(leagueId, phase, phaseWeek);
 
-    // CPU franchise strategies are a future seam (see docs/technical/league-phases.md). No
-    // phase defines a completion rule yet, so the tick is currently just "increment the counter".
     var newWeek =
         leagues
             .incrementPhaseWeek(leagueId)
@@ -45,5 +59,15 @@ class AdvanceWeekUseCase implements AdvanceWeek {
 
     log.info("league week advanced id={} phase={} week={}", leagueId, phase, newWeek);
     return new AdvanceWeekResult.Ticked(leagueId, phase, newWeek, Optional.empty());
+  }
+
+  private void runCpuStrategies(long leagueId, LeaguePhase phase, int phaseWeek) {
+    var strategy = cpuStrategies.get(phase);
+    if (strategy == null) {
+      return;
+    }
+    for (var franchiseId : teams.cpuFranchiseIdsForLeague(leagueId)) {
+      strategy.execute(leagueId, franchiseId, phaseWeek);
+    }
   }
 }

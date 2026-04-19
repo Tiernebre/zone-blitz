@@ -23,4 +23,14 @@ class JooqTeamLookup implements TeamLookup {
         .orderBy(TEAMS.FRANCHISE_ID.asc())
         .fetch(TEAMS.FRANCHISE_ID);
   }
+
+  @Override
+  public List<Long> cpuFranchiseIdsForLeague(long leagueId) {
+    return dsl.select(TEAMS.FRANCHISE_ID)
+        .from(TEAMS)
+        .where(TEAMS.LEAGUE_ID.eq(leagueId))
+        .and(TEAMS.OWNER_SUBJECT.isNull())
+        .orderBy(TEAMS.FRANCHISE_ID.asc())
+        .fetch(TEAMS.FRANCHISE_ID);
+  }
 }
