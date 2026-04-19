@@ -51,7 +51,7 @@ class StaffAssemblyE2ETest {
   @LocalServerPort int port;
   @Autowired AdvanceWeek advanceWeek;
   @Autowired LeagueRepository leagues;
-  @Autowired FranchiseStaffRepository staff;
+  @Autowired TeamStaffRepository staff;
   @Autowired TeamLookup teams;
 
   private BrowserContext context;
@@ -151,8 +151,8 @@ class StaffAssemblyE2ETest {
         .hasCount(0);
 
     // Assert franchise staff is fully populated for every franchise in the league.
-    for (var franchiseId : teams.franchiseIdsForLeague(leagueId)) {
-      org.assertj.core.api.Assertions.assertThat(staff.findAllForFranchise(leagueId, franchiseId))
+    for (var franchiseId : teams.teamIdsForLeague(leagueId)) {
+      org.assertj.core.api.Assertions.assertThat(staff.findAllForTeam(franchiseId))
           .as(
               "franchise %d in league %d should have all %d seats filled",
               franchiseId, leagueId, EXPECTED_SEATS_PER_FRANCHISE)

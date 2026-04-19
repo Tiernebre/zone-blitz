@@ -23,10 +23,10 @@ class CpuHiringStrategyTests {
   private JooqCandidateRepository candidates;
   private JooqCandidatePreferencesRepository preferences;
   private JooqCandidateOfferRepository offers;
-  private JooqFranchiseHiringStateRepository hiringStates;
-  private JooqFranchiseInterviewRepository interviews;
-  private JooqFranchiseStaffRepository staff;
-  private FranchiseProfiles profiles;
+  private JooqTeamHiringStateRepository hiringStates;
+  private JooqTeamInterviewRepository interviews;
+  private JooqTeamStaffRepository staff;
+  private TeamProfiles profiles;
   private TeamLookup teamLookup;
   private CreateLeague createLeague;
   private HiringHeadCoachTransitionHandler entryHandler;
@@ -44,10 +44,10 @@ class CpuHiringStrategyTests {
     candidates = new JooqCandidateRepository(dsl);
     preferences = new JooqCandidatePreferencesRepository(dsl);
     offers = new JooqCandidateOfferRepository(dsl);
-    hiringStates = new JooqFranchiseHiringStateRepository(dsl);
-    interviews = new JooqFranchiseInterviewRepository(dsl);
-    staff = new JooqFranchiseStaffRepository(dsl);
-    profiles = new CityFranchiseProfiles(franchiseRepo);
+    hiringStates = new JooqTeamHiringStateRepository(dsl);
+    interviews = new JooqTeamInterviewRepository(dsl);
+    staff = new JooqTeamStaffRepository(dsl);
+    profiles = new CityTeamProfiles(dsl, franchiseRepo);
     rngs = (leagueId, phase) -> new FakeRandomSource(leagueId * 31 + phase.ordinal());
     createLeague = new CreateLeagueUseCase(leagues, franchiseRepo, teamRepo);
     entryHandler =
@@ -83,15 +83,11 @@ class CpuHiringStrategyTests {
 
     strategy.execute(ctx.leagueId(), cpuFranchiseId, 1);
 
-    var state =
-        hiringStates
-            .find(ctx.leagueId(), cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH)
-            .orElseThrow();
+    var state = hiringStates.find(cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
     assertThat(state.shortlist()).hasSize(CpuHiringStrategy.SHORTLIST_SIZE);
     assertThat(state.step()).isEqualTo(HiringStep.SEARCHING);
 
-    var history =
-        interviews.findAllFor(ctx.leagueId(), cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH);
+    var history = interviews.findAllFor(cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH);
     assertThat(history).hasSize(StartInterview.DEFAULT_WEEKLY_CAPACITY);
     assertThat(history).allSatisfy(h -> assertThat(state.shortlist()).contains(h.candidateId()));
   }
@@ -103,12 +99,9 @@ class CpuHiringStrategyTests {
 
     strategy.execute(ctx.leagueId(), cpuFranchiseId, 1);
 
-    var active = offers.findActiveForFranchise(cpuFranchiseId);
+    var active = offers.findActiveForTeam(cpuFranchiseId);
     assertThat(active).hasSize(1);
-    var state =
-        hiringStates
-            .find(ctx.leagueId(), cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH)
-            .orElseThrow();
+    var state = hiringStates.find(cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
     assertThat(state.shortlist()).contains(active.getFirst().candidateId());
   }
 
@@ -117,11 +110,11 @@ class CpuHiringStrategyTests {
     var ctx = seedLeague("sub-1");
     var cpuFranchiseId = ctx.cpuFranchises().getFirst();
     strategy.execute(ctx.leagueId(), cpuFranchiseId, 1);
-    var week1Offers = offers.findActiveForFranchise(cpuFranchiseId);
+    var week1Offers = offers.findActiveForTeam(cpuFranchiseId);
 
     strategy.execute(ctx.leagueId(), cpuFranchiseId, 2);
 
-    var week2Offers = offers.findActiveForFranchise(cpuFranchiseId);
+    var week2Offers = offers.findActiveForTeam(cpuFranchiseId);
     assertThat(week2Offers)
         .describedAs("still one active offer; no duplicate submitted")
         .hasSize(1)
@@ -135,11 +128,9 @@ class CpuHiringStrategyTests {
     var cpuFranchiseId = ctx.cpuFranchises().getFirst();
 
     strategy.execute(ctx.leagueId(), cpuFranchiseId, 1);
-    var week1Count =
-        interviews.findAllFor(ctx.leagueId(), cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH).size();
+    var week1Count = interviews.findAllFor(cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH).size();
     strategy.execute(ctx.leagueId(), cpuFranchiseId, 2);
-    var week2Count =
-        interviews.findAllFor(ctx.leagueId(), cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH).size();
+    var week2Count = interviews.findAllFor(cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH).size();
 
     assertThat(week1Count).isEqualTo(StartInterview.DEFAULT_WEEKLY_CAPACITY);
     assertThat(week2Count).isGreaterThan(week1Count);
@@ -150,9 +141,8 @@ class CpuHiringStrategyTests {
     var ctx = seedLeague("sub-1");
     var cpuFranchiseId = ctx.cpuFranchises().getFirst();
     hiringStates.upsert(
-        new FranchiseHiringState(
+        new TeamHiringState(
             0L,
-            ctx.leagueId(),
             cpuFranchiseId,
             LeaguePhase.HIRING_HEAD_COACH,
             HiringStep.HIRED,
@@ -161,9 +151,8 @@ class CpuHiringStrategyTests {
 
     strategy.execute(ctx.leagueId(), cpuFranchiseId, 1);
 
-    assertThat(offers.findActiveForFranchise(cpuFranchiseId)).isEmpty();
-    assertThat(interviews.findAllFor(ctx.leagueId(), cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH))
-        .isEmpty();
+    assertThat(offers.findActiveForTeam(cpuFranchiseId)).isEmpty();
+    assertThat(interviews.findAllFor(cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH)).isEmpty();
   }
 
   @Test
@@ -171,16 +160,14 @@ class CpuHiringStrategyTests {
     var ctxA = seedLeague("sub-A");
     var cpuA = ctxA.cpuFranchises().getFirst();
     strategy.execute(ctxA.leagueId(), cpuA, 1);
-    var stateA =
-        hiringStates.find(ctxA.leagueId(), cpuA, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
-    var offersA = offers.findActiveForFranchise(cpuA);
+    var stateA = hiringStates.find(cpuA, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
+    var offersA = offers.findActiveForTeam(cpuA);
 
     var ctxB = seedLeague("sub-B");
     var cpuB = ctxB.cpuFranchises().getFirst();
     strategy.execute(ctxB.leagueId(), cpuB, 1);
-    var stateB =
-        hiringStates.find(ctxB.leagueId(), cpuB, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
-    var offersB = offers.findActiveForFranchise(cpuB);
+    var stateB = hiringStates.find(cpuB, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
+    var offersB = offers.findActiveForTeam(cpuB);
 
     assertThat(stateB.shortlist().size()).isEqualTo(stateA.shortlist().size());
     assertThat(offersB).hasSameSizeAs(offersA);
@@ -194,12 +181,11 @@ class CpuHiringStrategyTests {
     // Precompute the candidate CPU will pick (top scouted overall) so user can pre-empt with a
     // deliberately weak offer on the same candidate.
     var topCandidate = topCandidateByScouted(ctx.leagueId());
-    var userFranchiseId = ctx.userFranchiseId();
+    var userFranchiseId = ctx.userTeamId();
     // Initialize user's hiring state so resolver can flip loser back to SEARCHING cleanly.
     hiringStates.upsert(
-        new FranchiseHiringState(
+        new TeamHiringState(
             0L,
-            ctx.leagueId(),
             userFranchiseId,
             LeaguePhase.HIRING_HEAD_COACH,
             HiringStep.SEARCHING,
@@ -210,12 +196,9 @@ class CpuHiringStrategyTests {
     strategy.execute(ctx.leagueId(), cpuFranchiseId, 1);
     resolver.resolve(ctx.leagueId(), LeaguePhase.HIRING_HEAD_COACH, 1);
 
-    assertThat(candidates.findById(topCandidate.id()).orElseThrow().hiredByFranchiseId())
+    assertThat(candidates.findById(topCandidate.id()).orElseThrow().hiredByTeamId())
         .contains(cpuFranchiseId);
-    var cpuState =
-        hiringStates
-            .find(ctx.leagueId(), cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH)
-            .orElseThrow();
+    var cpuState = hiringStates.find(cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
     assertThat(cpuState.step()).isEqualTo(HiringStep.HIRED);
   }
 
@@ -227,10 +210,9 @@ class CpuHiringStrategyTests {
 
     // User shortlists the candidate but submits no offer.
     hiringStates.upsert(
-        new FranchiseHiringState(
+        new TeamHiringState(
             0L,
-            ctx.leagueId(),
-            ctx.userFranchiseId(),
+            ctx.userTeamId(),
             LeaguePhase.HIRING_HEAD_COACH,
             HiringStep.SEARCHING,
             List.of(topCandidate.id()),
@@ -239,7 +221,7 @@ class CpuHiringStrategyTests {
     strategy.execute(ctx.leagueId(), cpuFranchiseId, 1);
     resolver.resolve(ctx.leagueId(), LeaguePhase.HIRING_HEAD_COACH, 1);
 
-    assertThat(candidates.findById(topCandidate.id()).orElseThrow().hiredByFranchiseId())
+    assertThat(candidates.findById(topCandidate.id()).orElseThrow().hiredByTeamId())
         .contains(cpuFranchiseId);
   }
 
@@ -250,7 +232,7 @@ class CpuHiringStrategyTests {
                 leagueId, LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH)
             .orElseThrow();
     return candidates.findAllByPoolId(pool.id()).stream()
-        .filter(c -> c.hiredByFranchiseId().isEmpty())
+        .filter(c -> c.hiredByTeamId().isEmpty())
         .max(java.util.Comparator.comparingDouble(c -> extractScouted(c.scoutedAttrs())))
         .orElseThrow();
   }
@@ -278,9 +260,11 @@ class CpuHiringStrategyTests {
     var league = ((CreateLeagueResult.Created) result).league();
     leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     entryHandler.onEntry(league.id());
-    var cpuFranchises = teamLookup.cpuFranchiseIdsForLeague(league.id());
-    return new Ctx(league.id(), userFranchiseId, cpuFranchises);
+    var cpuTeams = teamLookup.cpuTeamIdsForLeague(league.id());
+    var userTeamId =
+        leagues.findSummaryByIdAndOwner(league.id(), subject).orElseThrow().userTeamId();
+    return new Ctx(league.id(), userTeamId, cpuTeams);
   }
 
-  private record Ctx(long leagueId, long userFranchiseId, List<Long> cpuFranchises) {}
+  private record Ctx(long leagueId, long userTeamId, List<Long> cpuFranchises) {}
 }

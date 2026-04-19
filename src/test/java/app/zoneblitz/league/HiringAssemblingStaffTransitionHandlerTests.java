@@ -23,7 +23,7 @@ class HiringAssemblingStaffTransitionHandlerTests {
   private CandidatePoolRepository pools;
   private CandidateRepository candidates;
   private CandidatePreferencesRepository preferences;
-  private FranchiseStaffRepository staffRepo;
+  private TeamStaffRepository staffRepo;
   private TeamLookup teams;
   private HiringAssemblingStaffTransitionHandler handler;
 
@@ -36,7 +36,7 @@ class HiringAssemblingStaffTransitionHandlerTests {
     pools = new JooqCandidatePoolRepository(dsl);
     candidates = new JooqCandidateRepository(dsl);
     preferences = new JooqCandidatePreferencesRepository(dsl);
-    staffRepo = new JooqFranchiseStaffRepository(dsl);
+    staffRepo = new JooqTeamStaffRepository(dsl);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
     handler =
         new HiringAssemblingStaffTransitionHandler(
@@ -63,8 +63,8 @@ class HiringAssemblingStaffTransitionHandlerTests {
 
     handler.onEntry(league.id());
 
-    for (var franchiseId : teams.franchiseIdsForLeague(league.id())) {
-      var hires = staffRepo.findAllForFranchise(league.id(), franchiseId);
+    for (var franchiseId : teams.teamIdsForLeague(league.id())) {
+      var hires = staffRepo.findAllForTeam(franchiseId);
       var coachCount =
           hires.stream()
               .filter(
@@ -90,11 +90,9 @@ class HiringAssemblingStaffTransitionHandlerTests {
 
     handler.onEntry(league.id());
 
-    for (var franchiseId : teams.franchiseIdsForLeague(league.id())) {
+    for (var franchiseId : teams.teamIdsForLeague(league.id())) {
       var roles =
-          staffRepo.findAllForFranchise(league.id(), franchiseId).stream()
-              .map(FranchiseStaffMember::role)
-              .toList();
+          staffRepo.findAllForTeam(franchiseId).stream().map(TeamStaffMember::role).toList();
       assertThat(roles)
           .contains(
               StaffRole.HEAD_COACH,
@@ -121,8 +119,8 @@ class HiringAssemblingStaffTransitionHandlerTests {
 
     handler.onEntry(league.id());
 
-    var franchiseId = teams.franchiseIdsForLeague(league.id()).getFirst();
-    var hires = staffRepo.findAllForFranchise(league.id(), franchiseId);
+    var franchiseId = teams.teamIdsForLeague(league.id()).getFirst();
+    var hires = staffRepo.findAllForTeam(franchiseId);
 
     var collegeScouts = hires.stream().filter(h -> h.role() == StaffRole.COLLEGE_SCOUT).toList();
     var proScouts = hires.stream().filter(h -> h.role() == StaffRole.PRO_SCOUT).toList();
@@ -161,13 +159,13 @@ class HiringAssemblingStaffTransitionHandlerTests {
                 league.id(), LeaguePhase.ASSEMBLING_STAFF, CandidatePoolType.SCOUT)
             .orElseThrow();
 
-    var franchiseCount = teams.franchiseIdsForLeague(league.id()).size();
+    var franchiseCount = teams.teamIdsForLeague(league.id()).size();
     assertThat(candidates.findAllByPoolId(coordinatorPool.id())).hasSize(franchiseCount * 3);
     assertThat(candidates.findAllByPoolId(positionCoachPool.id())).hasSize(franchiseCount * 9);
     assertThat(candidates.findAllByPoolId(scoutPool.id())).hasSize(franchiseCount * 8);
 
     assertThat(candidates.findAllByPoolId(coordinatorPool.id()))
-        .allSatisfy(c -> assertThat(c.hiredByFranchiseId()).isPresent());
+        .allSatisfy(c -> assertThat(c.hiredByTeamId()).isPresent());
   }
 
   @Test
@@ -176,12 +174,12 @@ class HiringAssemblingStaffTransitionHandlerTests {
     seedHcAndDosForEveryFranchise(league.id());
 
     handler.onEntry(league.id());
-    var firstFranchiseId = teams.franchiseIdsForLeague(league.id()).getFirst();
-    var firstRunSize = staffRepo.findAllForFranchise(league.id(), firstFranchiseId).size();
+    var firstFranchiseId = teams.teamIdsForLeague(league.id()).getFirst();
+    var firstRunSize = staffRepo.findAllForTeam(firstFranchiseId).size();
 
     handler.onEntry(league.id());
 
-    var secondRunSize = staffRepo.findAllForFranchise(league.id(), firstFranchiseId).size();
+    var secondRunSize = staffRepo.findAllForTeam(firstFranchiseId).size();
     assertThat(secondRunSize).isEqualTo(firstRunSize);
   }
 
@@ -199,13 +197,12 @@ class HiringAssemblingStaffTransitionHandlerTests {
             leagueId,
             LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING,
             CandidatePoolType.DIRECTOR_OF_SCOUTING);
-    for (var franchiseId : teams.franchiseIdsForLeague(leagueId)) {
+    for (var franchiseId : teams.teamIdsForLeague(leagueId)) {
       var hc = candidates.insert(CandidateTestData.newHeadCoach(hcPool.id()));
       preferences.insert(CandidateTestData.preferencesFor(hc.id()));
       candidates.markHired(hc.id(), franchiseId);
       staffRepo.insert(
-          new NewFranchiseStaffMember(
-              leagueId,
+          new NewTeamStaffMember(
               franchiseId,
               hc.id(),
               StaffRole.HEAD_COACH,
@@ -228,8 +225,7 @@ class HiringAssemblingStaffTransitionHandlerTests {
       preferences.insert(CandidateTestData.preferencesFor(dos.id()));
       candidates.markHired(dos.id(), franchiseId);
       staffRepo.insert(
-          new NewFranchiseStaffMember(
-              leagueId,
+          new NewTeamStaffMember(
               franchiseId,
               dos.id(),
               StaffRole.DIRECTOR_OF_SCOUTING,

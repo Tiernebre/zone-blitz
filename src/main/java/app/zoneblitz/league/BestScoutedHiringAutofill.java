@@ -11,14 +11,14 @@ import org.springframework.stereotype.Component;
 
 /**
  * Default {@link HiringPhaseAutofill}: ranks remaining candidates by scouted overall (never true
- * rating) and assigns the top one to each unresolved franchise. Ties are broken first by candidate
- * id, then — if still tied — by a deterministic seeded RNG split per-franchise, so reruns with the
- * same league seed produce identical hires.
+ * rating) and assigns the top one to each unresolved team. Ties are broken first by candidate id,
+ * then — if still tied — by a deterministic seeded RNG split per-team, so reruns with the same
+ * league seed produce identical hires.
  *
  * <p>Default terms mirror the candidate's preference targets so the synthetic offer scores a
  * perfect fit. The hire wiring (mark candidate hired, upsert hiring state to {@link
- * HiringStep#HIRED}, insert {@link FranchiseStaffMember}, create an {@link OfferStatus#ACCEPTED}
- * offer row) matches the flow in {@link PreferenceScoringOfferResolver}.
+ * HiringStep#HIRED}, insert {@link TeamStaffMember}, create an {@link OfferStatus#ACCEPTED} offer
+ * row) matches the flow in {@link PreferenceScoringOfferResolver}.
  */
 @Component
 class BestScoutedHiringAutofill implements HiringPhaseAutofill {
@@ -32,8 +32,8 @@ class BestScoutedHiringAutofill implements HiringPhaseAutofill {
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
   private final CandidateOfferRepository offers;
-  private final FranchiseHiringStateRepository hiringStates;
-  private final FranchiseStaffRepository staff;
+  private final TeamHiringStateRepository hiringStates;
+  private final TeamStaffRepository staff;
   private final TeamLookup teams;
   private final CandidateRandomSources rngs;
 
@@ -42,8 +42,8 @@ class BestScoutedHiringAutofill implements HiringPhaseAutofill {
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
       CandidateOfferRepository offers,
-      FranchiseHiringStateRepository hiringStates,
-      FranchiseStaffRepository staff,
+      TeamHiringStateRepository hiringStates,
+      TeamStaffRepository staff,
       TeamLookup teams,
       CandidateRandomSources rngs) {
     this.pools = pools;
@@ -71,36 +71,33 @@ class BestScoutedHiringAutofill implements HiringPhaseAutofill {
     var remaining =
         new ArrayList<>(
             candidates.findAllByPoolId(maybePool.get().id()).stream()
-                .filter(c -> c.hiredByFranchiseId().isEmpty())
+                .filter(c -> c.hiredByTeamId().isEmpty())
                 .toList());
 
-    for (var franchiseId : teams.franchiseIdsForLeague(leagueId)) {
-      if (isAlreadyHired(leagueId, franchiseId, phase)) {
+    for (var teamId : teams.teamIdsForLeague(leagueId)) {
+      if (isAlreadyHired(teamId, phase)) {
         continue;
       }
       if (remaining.isEmpty()) {
         log.warn(
-            "autofill ran out of candidates leagueId={} phase={} franchiseId={}",
+            "autofill ran out of candidates leagueId={} phase={} teamId={}",
             leagueId,
             phase,
-            franchiseId);
+            teamId);
         return;
       }
-      var pick = pickBest(leagueId, phase, franchiseId, remaining);
+      var pick = pickBest(leagueId, phase, teamId, remaining);
       remaining.remove(pick);
-      assign(leagueId, phase, phaseWeek, franchiseId, pick, role);
+      assign(leagueId, phase, phaseWeek, teamId, pick, role);
     }
   }
 
-  private boolean isAlreadyHired(long leagueId, long franchiseId, LeaguePhase phase) {
-    return hiringStates
-        .find(leagueId, franchiseId, phase)
-        .map(s -> s.step() == HiringStep.HIRED)
-        .orElse(false);
+  private boolean isAlreadyHired(long teamId, LeaguePhase phase) {
+    return hiringStates.find(teamId, phase).map(s -> s.step() == HiringStep.HIRED).orElse(false);
   }
 
   private Candidate pickBest(
-      long leagueId, LeaguePhase phase, long franchiseId, List<Candidate> remaining) {
+      long leagueId, LeaguePhase phase, long teamId, List<Candidate> remaining) {
     remaining.sort(
         Comparator.comparingDouble((Candidate c) -> scoutedOverall(c.scoutedAttrs()))
             .reversed()
@@ -111,9 +108,9 @@ class BestScoutedHiringAutofill implements HiringPhaseAutofill {
     if (tied.size() == 1) {
       return tied.getFirst();
     }
-    // Secondary tie-break: deterministic seeded RNG split per-franchise. `thenComparingLong(id)`
-    // already gave a stable order; RNG breaks cohort ties across franchises without biasing by id.
-    var rng = rngs.forLeaguePhase(leagueId, phase).split(franchiseId);
+    // Secondary tie-break: deterministic seeded RNG split per-team. `thenComparingLong(id)` already
+    // gave a stable order; RNG breaks cohort ties across teams without biasing by id.
+    var rng = rngs.forLeaguePhase(leagueId, phase).split(teamId);
     var pickIndex = (int) Math.floorMod(rng.nextLong(), (long) tied.size());
     return tied.get(pickIndex);
   }
@@ -122,7 +119,7 @@ class BestScoutedHiringAutofill implements HiringPhaseAutofill {
       long leagueId,
       LeaguePhase phase,
       int phaseWeek,
-      long franchiseId,
+      long teamId,
       Candidate candidate,
       StaffRole role) {
     var maybePrefs = preferences.findByCandidateId(candidate.id());
@@ -135,33 +132,31 @@ class BestScoutedHiringAutofill implements HiringPhaseAutofill {
     }
     var terms = defaultTerms(maybePrefs.get());
     var offer =
-        offers.insertActive(candidate.id(), franchiseId, OfferTermsJson.toJson(terms), phaseWeek);
+        offers.insertActive(candidate.id(), teamId, OfferTermsJson.toJson(terms), phaseWeek);
     offers.resolve(offer.id(), OfferStatus.ACCEPTED);
-    candidates.markHired(candidate.id(), franchiseId);
-    upsertHired(leagueId, phase, franchiseId);
+    candidates.markHired(candidate.id(), teamId);
+    upsertHired(teamId, phase);
     staff.insert(
-        new NewFranchiseStaffMember(
-            leagueId, franchiseId, candidate.id(), role, Optional.empty(), phase, phaseWeek));
+        new NewTeamStaffMember(teamId, candidate.id(), role, Optional.empty(), phase, phaseWeek));
     log.info(
-        "autofill hire leagueId={} phase={} franchiseId={} candidateId={} week={}",
+        "autofill hire leagueId={} phase={} teamId={} candidateId={} week={}",
         leagueId,
         phase,
-        franchiseId,
+        teamId,
         candidate.id(),
         phaseWeek);
   }
 
-  private void upsertHired(long leagueId, LeaguePhase phase, long franchiseId) {
-    var existing = hiringStates.find(leagueId, franchiseId, phase);
+  private void upsertHired(long teamId, LeaguePhase phase) {
+    var existing = hiringStates.find(teamId, phase);
     hiringStates.upsert(
-        new FranchiseHiringState(
-            existing.map(FranchiseHiringState::id).orElse(0L),
-            leagueId,
-            franchiseId,
+        new TeamHiringState(
+            existing.map(TeamHiringState::id).orElse(0L),
+            teamId,
             phase,
             HiringStep.HIRED,
-            existing.map(FranchiseHiringState::shortlist).orElse(List.of()),
-            existing.map(FranchiseHiringState::interviewingCandidateIds).orElse(List.of())));
+            existing.map(TeamHiringState::shortlist).orElse(List.of()),
+            existing.map(TeamHiringState::interviewingCandidateIds).orElse(List.of())));
   }
 
   private static OfferTerms defaultTerms(CandidatePreferences prefs) {

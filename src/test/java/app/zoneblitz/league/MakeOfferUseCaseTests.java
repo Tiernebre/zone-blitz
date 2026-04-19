@@ -21,7 +21,7 @@ class MakeOfferUseCaseTests {
   private LeagueRepository leagues;
   private JooqCandidateRepository candidates;
   private JooqCandidateOfferRepository offers;
-  private JooqFranchiseHiringStateRepository hiringStates;
+  private JooqTeamHiringStateRepository hiringStates;
   private CreateLeague createLeague;
   private HiringHeadCoachTransitionHandler entryHandler;
   private MakeOffer makeOffer;
@@ -35,7 +35,7 @@ class MakeOfferUseCaseTests {
     var pools = new JooqCandidatePoolRepository(dsl);
     candidates = new JooqCandidateRepository(dsl);
     var preferences = new JooqCandidatePreferencesRepository(dsl);
-    hiringStates = new JooqFranchiseHiringStateRepository(dsl);
+    hiringStates = new JooqTeamHiringStateRepository(dsl);
     offers = new JooqCandidateOfferRepository(dsl);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
     entryHandler =
@@ -86,7 +86,7 @@ class MakeOfferUseCaseTests {
   @Test
   void offer_whenCandidateAlreadyHired_returnsUnknownCandidate() {
     var ctx = seedLeagueInPhase("sub-1");
-    candidates.markHired(ctx.firstCandidateId, ctx.otherFranchiseId);
+    candidates.markHired(ctx.firstCandidateId, ctx.otherTeamId);
 
     var result = makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms());
 
@@ -94,13 +94,12 @@ class MakeOfferUseCaseTests {
   }
 
   @Test
-  void offer_whenFranchiseAlreadyHired_returnsAlreadyHired() {
+  void offer_whenTeamAlreadyHired_returnsAlreadyHired() {
     var ctx = seedLeagueInPhase("sub-1");
     hiringStates.upsert(
-        new FranchiseHiringState(
+        new TeamHiringState(
             0L,
-            ctx.leagueId,
-            ctx.franchiseId,
+            ctx.userTeamId,
             LeaguePhase.HIRING_HEAD_COACH,
             HiringStep.HIRED,
             List.of(),
@@ -140,16 +139,17 @@ class MakeOfferUseCaseTests {
                 league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH)
             .orElseThrow();
     var first = candidates.findAllByPoolId(pool.id()).getFirst();
-    var franchises = new JooqFranchiseRepository(dsl).listAll();
-    var userFranchiseId =
-        leagues.findSummaryByIdAndOwner(league.id(), subject).orElseThrow().userFranchise().id();
-    var otherFranchiseId =
-        franchises.stream()
-            .mapToLong(Franchise::id)
-            .filter(id -> id != userFranchiseId)
+    var userTeamId =
+        leagues.findSummaryByIdAndOwner(league.id(), subject).orElseThrow().userTeamId();
+    // Create a CPU team so there's another team id in the league.
+    var teamIds = new JooqTeamLookup(dsl).teamIdsForLeague(league.id());
+    var otherTeamId =
+        teamIds.stream()
+            .mapToLong(Long::longValue)
+            .filter(id -> id != userTeamId)
             .findFirst()
-            .orElseThrow();
-    return new Ctx(league.id(), first.id(), userFranchiseId, otherFranchiseId);
+            .orElse(userTeamId + 1);
+    return new Ctx(league.id(), first.id(), userTeamId, otherTeamId);
   }
 
   private League createLeagueFor(String ownerSubject) {
@@ -167,6 +167,5 @@ class MakeOfferUseCaseTests {
         StaffContinuity.BRING_OWN);
   }
 
-  private record Ctx(
-      long leagueId, long firstCandidateId, long franchiseId, long otherFranchiseId) {}
+  private record Ctx(long leagueId, long firstCandidateId, long userTeamId, long otherTeamId) {}
 }

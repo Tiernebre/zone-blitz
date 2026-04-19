@@ -1,9 +1,11 @@
 package app.zoneblitz.league;
 
+import static app.zoneblitz.jooq.Tables.TEAMS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.zoneblitz.support.PostgresTestcontainer;
+import java.util.List;
 import java.util.Optional;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,28 +17,31 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 @JooqTest
 @Import(PostgresTestcontainer.class)
-class JooqFranchiseStaffRepositoryTests {
+class JooqTeamStaffRepositoryTests {
 
   @Autowired DSLContext dsl;
 
-  private FranchiseStaffRepository staff;
+  private TeamStaffRepository staff;
   private CandidateRepository candidates;
-  private long leagueId;
-  private long franchiseId;
+  private long teamId;
   private long poolId;
 
   @BeforeEach
   void setUp() {
-    staff = new JooqFranchiseStaffRepository(dsl);
+    staff = new JooqTeamStaffRepository(dsl);
     candidates = new JooqCandidateRepository(dsl);
     var leagues = new JooqLeagueRepository(dsl);
     var pools = new JooqCandidatePoolRepository(dsl);
     var franchises = new JooqFranchiseRepository(dsl);
-    leagueId =
+    var teamRepo = new JooqTeamRepository(dsl);
+    var leagueId =
         leagues
             .insert("sub-1", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults())
             .id();
-    franchiseId = franchises.listAll().getFirst().id();
+    var franchiseId = franchises.listAll().getFirst().id();
+    teamRepo.insertAll(leagueId, List.of(new TeamDraft(franchiseId, Optional.of("sub-1"))));
+    teamId =
+        dsl.select(TEAMS.ID).from(TEAMS).where(TEAMS.LEAGUE_ID.eq(leagueId)).fetchOne(TEAMS.ID);
     poolId =
         pools.insert(leagueId, LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH).id();
   }
@@ -46,9 +51,8 @@ class JooqFranchiseStaffRepositoryTests {
     var candidate = candidates.insert(CandidateTestData.newHeadCoach(poolId));
     var hire =
         staff.insert(
-            new NewFranchiseStaffMember(
-                leagueId,
-                franchiseId,
+            new NewTeamStaffMember(
+                teamId,
                 candidate.id(),
                 StaffRole.HEAD_COACH,
                 Optional.empty(),
@@ -68,9 +72,8 @@ class JooqFranchiseStaffRepositoryTests {
     var candidate = candidates.insert(CandidateTestData.newScout(poolId, ScoutBranch.COLLEGE));
     var hire =
         staff.insert(
-            new NewFranchiseStaffMember(
-                leagueId,
-                franchiseId,
+            new NewTeamStaffMember(
+                teamId,
                 candidate.id(),
                 StaffRole.COLLEGE_SCOUT,
                 Optional.of(ScoutBranch.COLLEGE),
@@ -81,13 +84,12 @@ class JooqFranchiseStaffRepositoryTests {
   }
 
   @Test
-  void insert_duplicateUniqueRoleForFranchise_throws() {
+  void insert_duplicateUniqueRoleForTeam_throws() {
     var first = candidates.insert(CandidateTestData.newHeadCoach(poolId));
     var second = candidates.insert(CandidateTestData.newHeadCoach(poolId));
     staff.insert(
-        new NewFranchiseStaffMember(
-            leagueId,
-            franchiseId,
+        new NewTeamStaffMember(
+            teamId,
             first.id(),
             StaffRole.HEAD_COACH,
             Optional.empty(),
@@ -97,9 +99,8 @@ class JooqFranchiseStaffRepositoryTests {
     assertThatThrownBy(
             () ->
                 staff.insert(
-                    new NewFranchiseStaffMember(
-                        leagueId,
-                        franchiseId,
+                    new NewTeamStaffMember(
+                        teamId,
                         second.id(),
                         StaffRole.HEAD_COACH,
                         Optional.empty(),
@@ -109,29 +110,27 @@ class JooqFranchiseStaffRepositoryTests {
   }
 
   @Test
-  void insert_multipleScoutsForSameFranchise_allowed() {
+  void insert_multipleScoutsForSameTeam_allowed() {
     var a = candidates.insert(CandidateTestData.newScout(poolId, ScoutBranch.COLLEGE));
     var b = candidates.insert(CandidateTestData.newScout(poolId, ScoutBranch.COLLEGE));
     staff.insert(
-        new NewFranchiseStaffMember(
-            leagueId,
-            franchiseId,
+        new NewTeamStaffMember(
+            teamId,
             a.id(),
             StaffRole.COLLEGE_SCOUT,
             Optional.of(ScoutBranch.COLLEGE),
             LeaguePhase.ASSEMBLING_STAFF,
             1));
     staff.insert(
-        new NewFranchiseStaffMember(
-            leagueId,
-            franchiseId,
+        new NewTeamStaffMember(
+            teamId,
             b.id(),
             StaffRole.COLLEGE_SCOUT,
             Optional.of(ScoutBranch.COLLEGE),
             LeaguePhase.ASSEMBLING_STAFF,
             1));
 
-    assertThat(staff.findAllForFranchise(leagueId, franchiseId)).hasSize(2);
+    assertThat(staff.findAllForTeam(teamId)).hasSize(2);
   }
 
   @Test

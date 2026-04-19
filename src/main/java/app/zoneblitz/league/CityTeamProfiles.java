@@ -1,18 +1,21 @@
 package app.zoneblitz.league;
 
+import static app.zoneblitz.jooq.Tables.TEAMS;
+
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
+import org.jooq.DSLContext;
 import org.springframework.stereotype.Component;
 
 /**
- * v1 {@link FranchiseProfiles}: maps each seeded franchise city to static market-size, geography,
- * and climate constants. Dynamic preference dimensions resolve to equal-footing constants so they
- * do not discriminate between franchises until a franchise-ratings layer lands (see {@code
+ * v1 {@link TeamProfiles}: maps each seeded franchise city to static market-size, geography, and
+ * climate constants. Dynamic preference dimensions resolve to equal-footing constants so they do
+ * not discriminate between teams until a team-ratings layer lands (see {@code
  * docs/technical/league-phases.md} "v1 equal-footing note").
  */
 @Component
-class CityFranchiseProfiles implements FranchiseProfiles {
+class CityTeamProfiles implements TeamProfiles {
 
   private static final BigDecimal EQUAL_FOOTING_PRESTIGE = new BigDecimal("50.00");
   private static final BigDecimal EQUAL_FOOTING_OWNER_STABILITY = new BigDecimal("50.00");
@@ -36,21 +39,28 @@ class CityFranchiseProfiles implements FranchiseProfiles {
   private static final CityAttrs FALLBACK =
       new CityAttrs(MarketSize.MEDIUM, Geography.MW, Climate.NEUTRAL);
 
+  private final DSLContext dsl;
   private final FranchiseRepository franchises;
 
-  CityFranchiseProfiles(FranchiseRepository franchises) {
+  CityTeamProfiles(DSLContext dsl, FranchiseRepository franchises) {
+    this.dsl = dsl;
     this.franchises = franchises;
   }
 
   @Override
-  public Optional<FranchiseProfile> forFranchise(long franchiseId) {
-    return franchises
-        .findById(franchiseId)
+  public Optional<TeamProfile> forTeam(long teamId) {
+    var franchiseId =
+        dsl.select(TEAMS.FRANCHISE_ID)
+            .from(TEAMS)
+            .where(TEAMS.ID.eq(teamId))
+            .fetchOptional(TEAMS.FRANCHISE_ID);
+    return franchiseId
+        .flatMap(franchises::findById)
         .map(
             f -> {
               var attrs = CITY_ATTRS.getOrDefault(f.city().name(), FALLBACK);
-              return new FranchiseProfile(
-                  f.id(),
+              return new TeamProfile(
+                  teamId,
                   attrs.marketSize(),
                   attrs.geography(),
                   attrs.climate(),

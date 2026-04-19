@@ -5,13 +5,12 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Terminal staff-seat hire for a franchise. {@code scoutBranch} is only populated when {@link
- * #role()} is {@code COLLEGE_SCOUT} or {@code PRO_SCOUT}.
+ * Terminal staff-seat hire for a team. {@code scoutBranch} is only populated when {@link #role()}
+ * is {@code COLLEGE_SCOUT} or {@code PRO_SCOUT}.
  */
-public record FranchiseStaffMember(
+public record TeamStaffMember(
     long id,
-    long leagueId,
-    long franchiseId,
+    long teamId,
     long candidateId,
     StaffRole role,
     Optional<ScoutBranch> scoutBranch,
@@ -19,7 +18,7 @@ public record FranchiseStaffMember(
     int hiredAtWeek,
     Instant hiredAt) {
 
-  public FranchiseStaffMember {
+  public TeamStaffMember {
     Objects.requireNonNull(role, "role");
     Objects.requireNonNull(scoutBranch, "scoutBranch");
     Objects.requireNonNull(hiredAtPhase, "hiredAtPhase");

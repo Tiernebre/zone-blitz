@@ -24,8 +24,8 @@ class StartInterviewUseCaseTests {
   private LeagueRepository leagues;
   private CreateLeague createLeague;
   private JooqCandidateRepository candidates;
-  private FranchiseInterviewRepository interviews;
-  private FranchiseHiringStateRepository hiringStates;
+  private TeamInterviewRepository interviews;
+  private TeamHiringStateRepository hiringStates;
   private HiringHeadCoachTransitionHandler entryHandler;
   private StartInterview useCase;
 
@@ -38,8 +38,8 @@ class StartInterviewUseCaseTests {
     var pools = new JooqCandidatePoolRepository(dsl);
     candidates = new JooqCandidateRepository(dsl);
     var preferences = new JooqCandidatePreferencesRepository(dsl);
-    hiringStates = new JooqFranchiseHiringStateRepository(dsl);
-    interviews = new JooqFranchiseInterviewRepository(dsl);
+    hiringStates = new JooqTeamHiringStateRepository(dsl);
+    interviews = new JooqTeamInterviewRepository(dsl);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
     entryHandler =
         new HiringHeadCoachTransitionHandler(
@@ -69,10 +69,7 @@ class StartInterviewUseCaseTests {
     assertThat(view.activeInterviews().getFirst().interviewCount()).isEqualTo(1);
     assertThat(view.interviewsThisWeek()).isEqualTo(1);
 
-    var state =
-        hiringStates
-            .find(ctx.leagueId, ctx.franchiseId, LeaguePhase.HIRING_HEAD_COACH)
-            .orElseThrow();
+    var state = hiringStates.find(ctx.teamId, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
     assertThat(state.interviewingCandidateIds()).containsExactly(ctx.firstCandidateId);
   }
 
@@ -84,12 +81,9 @@ class StartInterviewUseCaseTests {
       useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
       leagues.incrementPhaseWeek(ctx.leagueId);
     }
-    var history =
-        interviews.findAllFor(ctx.leagueId, ctx.franchiseId, LeaguePhase.HIRING_HEAD_COACH);
+    var history = interviews.findAllFor(ctx.teamId, LeaguePhase.HIRING_HEAD_COACH);
     assertThat(history).hasSize(5);
-    assertThat(history)
-        .extracting(FranchiseInterview::interviewIndex)
-        .containsExactly(1, 2, 3, 4, 5);
+    assertThat(history).extracting(TeamInterview::interviewIndex).containsExactly(1, 2, 3, 4, 5);
 
     var sigmas =
         history.stream().map(h -> InterviewNoiseModel.headCoachSigma(h.interviewIndex())).toList();
@@ -144,8 +138,7 @@ class StartInterviewUseCaseTests {
     assertThat(after.get(CANDIDATES.SCOUTED_ATTRS).data()).isEqualTo(scoutedBefore);
     assertThat(after.get(CANDIDATES.HIDDEN_ATTRS).data()).isEqualTo(hiddenBefore);
 
-    var perInterview =
-        interviews.findAllFor(ctx.leagueId, ctx.franchiseId, LeaguePhase.HIRING_HEAD_COACH);
+    var perInterview = interviews.findAllFor(ctx.teamId, LeaguePhase.HIRING_HEAD_COACH);
     assertThat(perInterview).isNotEmpty();
     assertThat(perInterview)
         .allSatisfy(i -> assertThat(i.scoutedOverall().doubleValue()).isNotEqualTo(trueRating));
@@ -197,7 +190,7 @@ class StartInterviewUseCaseTests {
             .orElseThrow();
     var summary = leagues.findSummaryByIdAndOwner(league.id(), subject).orElseThrow();
     var firstCandidate = candidates.findAllByPoolId(pool.id()).getFirst();
-    return new Ctx(league.id(), summary.userFranchise().id(), pool.id(), firstCandidate.id());
+    return new Ctx(league.id(), summary.userTeamId(), pool.id(), firstCandidate.id());
   }
 
   private League createLeagueFor(String ownerSubject) {
@@ -211,5 +204,5 @@ class StartInterviewUseCaseTests {
     return m.find() ? Double.parseDouble(m.group(1)) : Double.NaN;
   }
 
-  private record Ctx(long leagueId, long franchiseId, long poolId, long firstCandidateId) {}
+  private record Ctx(long leagueId, long teamId, long poolId, long firstCandidateId) {}
 }

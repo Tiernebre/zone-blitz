@@ -90,7 +90,13 @@ class HiringDirectorOfScoutingControllerTests {
             "#ffffff");
     var league =
         new LeagueSummary(
-            42L, "Dynasty", LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING, 1, Instant.now(), franchise);
+            42L,
+            "Dynasty",
+            LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING,
+            1,
+            Instant.now(),
+            100L,
+            franchise);
     return new DirectorOfScoutingHiringView(league, List.of(), List.of(), List.of(), 0, 3);
   }
 }

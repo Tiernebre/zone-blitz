@@ -19,12 +19,12 @@ class AdvanceWeekUseCaseTests {
   @Autowired DSLContext dsl;
 
   private LeagueRepository leagues;
-  private JooqFranchiseHiringStateRepository hiringStates;
+  private JooqTeamHiringStateRepository hiringStates;
   private JooqCandidatePoolRepository pools;
   private JooqCandidateRepository candidates;
   private JooqCandidatePreferencesRepository preferences;
   private JooqCandidateOfferRepository offers;
-  private JooqFranchiseStaffRepository staff;
+  private JooqTeamStaffRepository staff;
   private JooqTeamLookup teamLookup;
   private CreateLeague createLeague;
   private AdvanceWeek advanceWeek;
@@ -39,12 +39,12 @@ class AdvanceWeekUseCaseTests {
   @BeforeEach
   void setUp() {
     leagues = new JooqLeagueRepository(dsl);
-    hiringStates = new JooqFranchiseHiringStateRepository(dsl);
+    hiringStates = new JooqTeamHiringStateRepository(dsl);
     pools = new JooqCandidatePoolRepository(dsl);
     candidates = new JooqCandidateRepository(dsl);
     preferences = new JooqCandidatePreferencesRepository(dsl);
     offers = new JooqCandidateOfferRepository(dsl);
-    staff = new JooqFranchiseStaffRepository(dsl);
+    staff = new JooqTeamStaffRepository(dsl);
     teamLookup = new JooqTeamLookup(dsl);
     var franchises = new JooqFranchiseRepository(dsl);
     var teamRepo = new JooqTeamRepository(dsl);
@@ -129,8 +129,8 @@ class AdvanceWeekUseCaseTests {
     var league = createLeagueFor("sub-1");
     leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     var calls = new java.util.ArrayList<Long>();
-    CpuFranchiseStrategy cpu =
-        new CpuFranchiseStrategy() {
+    CpuTeamStrategy cpu =
+        new CpuTeamStrategy() {
           @Override
           public LeaguePhase phase() {
             return LeaguePhase.HIRING_HEAD_COACH;
@@ -147,7 +147,7 @@ class AdvanceWeekUseCaseTests {
 
     useCase.advance(league.id(), "sub-1");
 
-    var expectedCpuIds = teamLookup.cpuFranchiseIdsForLeague(league.id());
+    var expectedCpuIds = teamLookup.cpuTeamIdsForLeague(league.id());
     assertThat(calls).containsExactlyElementsOf(expectedCpuIds);
   }
 
@@ -155,8 +155,8 @@ class AdvanceWeekUseCaseTests {
   void advance_doesNotInvokeCpuStrategy_whenPhaseDoesNotMatch() {
     var league = createLeagueFor("sub-1");
     var calls = new java.util.ArrayList<Long>();
-    CpuFranchiseStrategy cpu =
-        new CpuFranchiseStrategy() {
+    CpuTeamStrategy cpu =
+        new CpuTeamStrategy() {
           @Override
           public LeaguePhase phase() {
             return LeaguePhase.HIRING_HEAD_COACH;
@@ -258,8 +258,8 @@ class AdvanceWeekUseCaseTests {
 
     // Cap triggers the autofill branch, but with every franchise already HIRED it is a no-op —
     // no new staff rows, no new offers. Transition still happens.
-    for (var franchiseId : teamLookup.franchiseIdsForLeague(league.id())) {
-      assertThat(staff.findAllForFranchise(league.id(), franchiseId)).isEmpty();
+    for (var franchiseId : teamLookup.teamIdsForLeague(league.id())) {
+      assertThat(staff.findAllForTeam(franchiseId)).isEmpty();
     }
     assertThat(recordingAdvancePhase.calls).isEqualTo(1);
     var ticked = (AdvanceWeekResult.Ticked) result;
@@ -272,10 +272,9 @@ class AdvanceWeekUseCaseTests {
     leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     // Only initialize a handful of SEARCHING states; leave others untouched.
     hiringStates.upsert(
-        new FranchiseHiringState(
+        new TeamHiringState(
             0L,
-            league.id(),
-            teamLookup.franchiseIdsForLeague(league.id()).getFirst(),
+            teamLookup.teamIdsForLeague(league.id()).getFirst(),
             LeaguePhase.HIRING_HEAD_COACH,
             HiringStep.SEARCHING,
             List.of(),
@@ -301,10 +300,9 @@ class AdvanceWeekUseCaseTests {
   }
 
   private void markAllFranchisesHired(long leagueId, LeaguePhase phase) {
-    for (var franchiseId : teamLookup.franchiseIdsForLeague(leagueId)) {
+    for (var franchiseId : teamLookup.teamIdsForLeague(leagueId)) {
       hiringStates.upsert(
-          new FranchiseHiringState(
-              0L, leagueId, franchiseId, phase, HiringStep.HIRED, List.of(), List.of()));
+          new TeamHiringState(0L, franchiseId, phase, HiringStep.HIRED, List.of(), List.of()));
     }
   }
 

@@ -4,19 +4,18 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Per-franchise hiring sub-state for a hiring phase. {@code shortlist} and {@code
+ * Per-team hiring sub-state for a hiring phase. {@code shortlist} and {@code
  * interviewingCandidateIds} are carried as candidate-id lists.
  */
-public record FranchiseHiringState(
+public record TeamHiringState(
     long id,
-    long leagueId,
-    long franchiseId,
+    long teamId,
     LeaguePhase phase,
     HiringStep step,
     List<Long> shortlist,
     List<Long> interviewingCandidateIds) {
 
-  public FranchiseHiringState {
+  public TeamHiringState {
     Objects.requireNonNull(phase, "phase");
     Objects.requireNonNull(step, "step");
     shortlist = List.copyOf(shortlist);

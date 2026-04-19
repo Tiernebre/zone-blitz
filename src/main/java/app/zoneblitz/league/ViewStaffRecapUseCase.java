@@ -1,8 +1,11 @@
 package app.zoneblitz.league;
 
+import static app.zoneblitz.jooq.Tables.TEAMS;
+
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
+import org.jooq.DSLContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,20 +15,23 @@ class ViewStaffRecapUseCase implements ViewStaffRecap {
   private final LeagueRepository leagues;
   private final TeamLookup teams;
   private final FranchiseRepository franchises;
-  private final FranchiseStaffRepository staff;
+  private final TeamStaffRepository staff;
   private final CandidateRepository candidates;
+  private final DSLContext dsl;
 
   ViewStaffRecapUseCase(
       LeagueRepository leagues,
       TeamLookup teams,
       FranchiseRepository franchises,
-      FranchiseStaffRepository staff,
-      CandidateRepository candidates) {
+      TeamStaffRepository staff,
+      CandidateRepository candidates,
+      DSLContext dsl) {
     this.leagues = leagues;
     this.teams = teams;
     this.franchises = franchises;
     this.staff = staff;
     this.candidates = candidates;
+    this.dsl = dsl;
   }
 
   @Override
@@ -37,15 +43,23 @@ class ViewStaffRecapUseCase implements ViewStaffRecap {
       return Optional.empty();
     }
     var league = maybeLeague.get();
-    var userFranchiseId = league.userFranchise().id();
+    var userTeamId = league.userTeamId();
 
-    var trees = new ArrayList<StaffRecapView.FranchiseStaffTree>();
-    for (var franchiseId : teams.franchiseIdsForLeague(leagueId)) {
-      var franchise = franchises.findById(franchiseId);
+    var trees = new ArrayList<StaffRecapView.TeamStaffTree>();
+    for (var teamId : teams.teamIdsForLeague(leagueId)) {
+      var franchiseId =
+          dsl.select(TEAMS.FRANCHISE_ID)
+              .from(TEAMS)
+              .where(TEAMS.ID.eq(teamId))
+              .fetchOptional(TEAMS.FRANCHISE_ID);
+      if (franchiseId.isEmpty()) {
+        continue;
+      }
+      var franchise = franchises.findById(franchiseId.get());
       if (franchise.isEmpty()) {
         continue;
       }
-      var hires = staff.findAllForFranchise(leagueId, franchiseId);
+      var hires = staff.findAllForTeam(teamId);
       var seats = new ArrayList<StaffRecapView.StaffSeat>();
       for (var hire : hires) {
         candidates
@@ -53,13 +67,12 @@ class ViewStaffRecapUseCase implements ViewStaffRecap {
             .ifPresent(c -> seats.add(new StaffRecapView.StaffSeat(hire, c)));
       }
       trees.add(
-          new StaffRecapView.FranchiseStaffTree(
-              franchise.get(), franchiseId == userFranchiseId, seats));
+          new StaffRecapView.TeamStaffTree(teamId, franchise.get(), teamId == userTeamId, seats));
     }
     trees.sort(
         (a, b) -> {
-          if (a.isViewerFranchise() && !b.isViewerFranchise()) return -1;
-          if (!a.isViewerFranchise() && b.isViewerFranchise()) return 1;
+          if (a.isViewerTeam() && !b.isViewerTeam()) return -1;
+          if (!a.isViewerTeam() && b.isViewerTeam()) return 1;
           return a.franchise().name().compareToIgnoreCase(b.franchise().name());
         });
     return Optional.of(new StaffRecapView(league, trees));

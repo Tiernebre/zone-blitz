@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Phase-entry hook for {@link LeaguePhase#ASSEMBLING_STAFF}. Programmatically assembles every
- * franchise's subordinate staff tree at phase entry:
+ * team's subordinate staff tree at phase entry:
  *
  * <ul>
  *   <li>The Head Coach hires 1 OC, 1 DC, 1 ST coordinator and 9 position coaches (QB, RB, WR, TE,
@@ -22,11 +22,11 @@ import org.springframework.stereotype.Component;
  * <p>Selection is biased by the HC's archetype/specialty (coordinator archetypes weighted toward HC
  * archetype, position coaches biased when HC specialty matches) and by the DoS archetype (college
  * vs pro emphasis on the scout branches). The bias is implemented at generation time — candidates
- * are generated per franchise with kind- and branch-appropriate archetypes, then ranked by scouted
+ * are generated per team with kind- and branch-appropriate archetypes, then ranked by scouted
  * overall with a small bias bonus so the top k are selected deterministically from the seeded RNG.
  *
- * <p>Idempotent: re-entry of a phase that already has at least one assembled staff row for a
- * franchise is a no-op for that franchise.
+ * <p>Idempotent: re-entry of a phase that already has at least one assembled staff row for a team
+ * is a no-op for that team.
  */
 @Component
 class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
@@ -54,7 +54,7 @@ class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
   private final CandidatePoolRepository pools;
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
-  private final FranchiseStaffRepository staff;
+  private final TeamStaffRepository staff;
   private final CoordinatorGenerator coordinatorGenerator;
   private final PositionCoachGenerator positionCoachGenerator;
   private final ScoutCandidateGenerator scoutGenerator;
@@ -65,7 +65,7 @@ class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
-      FranchiseStaffRepository staff,
+      TeamStaffRepository staff,
       CoordinatorGenerator coordinatorGenerator,
       PositionCoachGenerator positionCoachGenerator,
       ScoutCandidateGenerator scoutGenerator,
@@ -90,9 +90,9 @@ class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
 
   @Override
   public void onEntry(long leagueId) {
-    var franchiseIds = teams.franchiseIdsForLeague(leagueId);
-    if (franchiseIds.isEmpty()) {
-      log.debug("no franchises for league={}, assembling-staff is a no-op", leagueId);
+    var teamIds = teams.teamIdsForLeague(leagueId);
+    if (teamIds.isEmpty()) {
+      log.debug("no teams for league={}, assembling-staff is a no-op", leagueId);
       return;
     }
     var coordinatorPool = findOrCreatePool(leagueId, CandidatePoolType.COORDINATOR);
@@ -101,23 +101,20 @@ class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
 
     var rng = rngs.forLeaguePhase(leagueId, phase());
     var assembledCount = 0;
-    for (var franchiseId : franchiseIds) {
-      if (alreadyAssembled(leagueId, franchiseId)) {
+    for (var teamId : teamIds) {
+      if (alreadyAssembled(teamId)) {
         log.debug(
-            "franchise already has subordinate staff leagueId={} franchiseId={}; skipping",
-            leagueId,
-            franchiseId);
+            "team already has subordinate staff leagueId={} teamId={}; skipping", leagueId, teamId);
         continue;
       }
-      assembleFor(
-          leagueId, franchiseId, coordinatorPool.id(), positionCoachPool.id(), scoutPool.id(), rng);
+      assembleFor(teamId, coordinatorPool.id(), positionCoachPool.id(), scoutPool.id(), rng);
       assembledCount++;
     }
     log.info(
-        "assembling-staff completed leagueId={} franchisesAssembled={}/{}",
+        "assembling-staff completed leagueId={} teamsAssembled={}/{}",
         leagueId,
         assembledCount,
-        franchiseIds.size());
+        teamIds.size());
   }
 
   private CandidatePool findOrCreatePool(long leagueId, CandidatePoolType type) {
@@ -126,41 +123,37 @@ class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
         .orElseGet(() -> pools.insert(leagueId, phase(), type));
   }
 
-  private boolean alreadyAssembled(long leagueId, long franchiseId) {
-    return staff.findAllForFranchise(leagueId, franchiseId).stream()
+  private boolean alreadyAssembled(long teamId) {
+    return staff.findAllForTeam(teamId).stream()
         .anyMatch(
             s -> s.role() != StaffRole.HEAD_COACH && s.role() != StaffRole.DIRECTOR_OF_SCOUTING);
   }
 
   private void assembleFor(
-      long leagueId,
-      long franchiseId,
+      long teamId,
       long coordinatorPoolId,
       long positionCoachPoolId,
       long scoutPoolId,
       app.zoneblitz.gamesimulator.rng.RandomSource rng) {
-    var hc = findHired(leagueId, franchiseId, StaffRole.HEAD_COACH);
-    var dos = findHired(leagueId, franchiseId, StaffRole.DIRECTOR_OF_SCOUTING);
+    var hc = findHired(teamId, StaffRole.HEAD_COACH);
+    var dos = findHired(teamId, StaffRole.DIRECTOR_OF_SCOUTING);
 
     hireCoordinator(
-        leagueId,
-        franchiseId,
+        teamId,
         coordinatorPoolId,
         StaffRole.OFFENSIVE_COORDINATOR,
         CandidateKind.OFFENSIVE_COORDINATOR,
         hc,
         rng);
     hireCoordinator(
-        leagueId,
-        franchiseId,
+        teamId,
         coordinatorPoolId,
         StaffRole.DEFENSIVE_COORDINATOR,
         CandidateKind.DEFENSIVE_COORDINATOR,
         hc,
         rng);
     hireCoordinator(
-        leagueId,
-        franchiseId,
+        teamId,
         coordinatorPoolId,
         StaffRole.SPECIAL_TEAMS_COORDINATOR,
         CandidateKind.SPECIAL_TEAMS_COORDINATOR,
@@ -168,27 +161,26 @@ class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
         rng);
 
     for (var specialty : POSITION_COACH_SPECIALTIES) {
-      hirePositionCoach(leagueId, franchiseId, positionCoachPoolId, specialty, hc, rng);
+      hirePositionCoach(teamId, positionCoachPoolId, specialty, hc, rng);
     }
 
     for (var i = 0; i < COLLEGE_SCOUTS; i++) {
-      hireScout(leagueId, franchiseId, scoutPoolId, ScoutBranch.COLLEGE, dos, rng);
+      hireScout(teamId, scoutPoolId, ScoutBranch.COLLEGE, dos, rng);
     }
     for (var i = 0; i < PRO_SCOUTS; i++) {
-      hireScout(leagueId, franchiseId, scoutPoolId, ScoutBranch.PRO, dos, rng);
+      hireScout(teamId, scoutPoolId, ScoutBranch.PRO, dos, rng);
     }
   }
 
-  private Optional<Candidate> findHired(long leagueId, long franchiseId, StaffRole role) {
-    return staff.findAllForFranchise(leagueId, franchiseId).stream()
+  private Optional<Candidate> findHired(long teamId, StaffRole role) {
+    return staff.findAllForTeam(teamId).stream()
         .filter(s -> s.role() == role)
         .findFirst()
         .flatMap(s -> candidates.findById(s.candidateId()));
   }
 
   private void hireCoordinator(
-      long leagueId,
-      long franchiseId,
+      long teamId,
       long poolId,
       StaffRole role,
       CandidateKind kind,
@@ -196,25 +188,22 @@ class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
       app.zoneblitz.gamesimulator.rng.RandomSource rng) {
     var generated = coordinatorGenerator.generate(GENERATION_OVERSAMPLE, kind, rng);
     var pick = pickBiased(generated, c -> coordinatorBias(c, kind, hc));
-    persistAndHire(leagueId, franchiseId, poolId, pick, role, Optional.empty());
+    persistAndHire(teamId, poolId, pick, role, Optional.empty());
   }
 
   private void hirePositionCoach(
-      long leagueId,
-      long franchiseId,
+      long teamId,
       long poolId,
       SpecialtyPosition specialty,
       Optional<Candidate> hc,
       app.zoneblitz.gamesimulator.rng.RandomSource rng) {
     var generated = positionCoachGenerator.generate(GENERATION_OVERSAMPLE, specialty, rng);
     var pick = pickBiased(generated, c -> positionCoachBias(c, specialty, hc));
-    persistAndHire(
-        leagueId, franchiseId, poolId, pick, positionCoachRoleFor(specialty), Optional.empty());
+    persistAndHire(teamId, poolId, pick, positionCoachRoleFor(specialty), Optional.empty());
   }
 
   private void hireScout(
-      long leagueId,
-      long franchiseId,
+      long teamId,
       long poolId,
       ScoutBranch branch,
       Optional<Candidate> dos,
@@ -222,7 +211,7 @@ class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
     var generated = scoutGenerator.generate(GENERATION_OVERSAMPLE, branch, rng);
     var pick = pickBiased(generated, c -> scoutBias(c, branch, dos));
     var role = branch == ScoutBranch.COLLEGE ? StaffRole.COLLEGE_SCOUT : StaffRole.PRO_SCOUT;
-    persistAndHire(leagueId, franchiseId, poolId, pick, role, Optional.of(branch));
+    persistAndHire(teamId, poolId, pick, role, Optional.of(branch));
   }
 
   private static StaffRole positionCoachRoleFor(SpecialtyPosition specialty) {
@@ -303,8 +292,7 @@ class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
   }
 
   private void persistAndHire(
-      long leagueId,
-      long franchiseId,
+      long teamId,
       long poolId,
       GeneratedCandidate pick,
       StaffRole role,
@@ -323,10 +311,8 @@ class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
             pick.candidate().scoutBranch());
     var saved = candidates.insert(insert);
     preferences.insert(pick.preferences().withCandidateId(saved.id()));
-    candidates.markHired(saved.id(), franchiseId);
-    staff.insert(
-        new NewFranchiseStaffMember(
-            leagueId, franchiseId, saved.id(), role, scoutBranch, phase(), 1));
+    candidates.markHired(saved.id(), teamId);
+    staff.insert(new NewTeamStaffMember(teamId, saved.id(), role, scoutBranch, phase(), 1));
   }
 
   private static double scoutedOverall(String scoutedAttrsJson) {

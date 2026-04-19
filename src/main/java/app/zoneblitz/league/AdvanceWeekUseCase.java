@@ -19,18 +19,18 @@ class AdvanceWeekUseCase implements AdvanceWeek {
   private final OfferResolver offerResolver;
   private final TeamLookup teams;
   private final HiringPhaseAutofill autofill;
-  private final FranchiseHiringStateRepository hiringStates;
+  private final TeamHiringStateRepository hiringStates;
   private final AdvancePhase advancePhase;
-  private final Map<LeaguePhase, CpuFranchiseStrategy> cpuStrategies;
+  private final Map<LeaguePhase, CpuTeamStrategy> cpuStrategies;
 
   AdvanceWeekUseCase(
       LeagueRepository leagues,
       OfferResolver offerResolver,
       TeamLookup teams,
       HiringPhaseAutofill autofill,
-      FranchiseHiringStateRepository hiringStates,
+      TeamHiringStateRepository hiringStates,
       AdvancePhase advancePhase,
-      List<CpuFranchiseStrategy> cpuStrategies) {
+      List<CpuTeamStrategy> cpuStrategies) {
     this.leagues = leagues;
     this.offerResolver = offerResolver;
     this.teams = teams;
@@ -39,7 +39,7 @@ class AdvanceWeekUseCase implements AdvanceWeek {
     this.advancePhase = advancePhase;
     this.cpuStrategies =
         cpuStrategies.stream()
-            .collect(Collectors.toUnmodifiableMap(CpuFranchiseStrategy::phase, s -> s));
+            .collect(Collectors.toUnmodifiableMap(CpuTeamStrategy::phase, s -> s));
   }
 
   @Override
@@ -92,18 +92,18 @@ class AdvanceWeekUseCase implements AdvanceWeek {
   }
 
   private boolean shouldComplete(long leagueId, LeaguePhase phase, int resolvedAtWeek) {
-    return allFranchisesHired(leagueId, phase) || overCap(phase, resolvedAtWeek);
+    return allTeamsHired(leagueId, phase) || overCap(phase, resolvedAtWeek);
   }
 
-  private boolean allFranchisesHired(long leagueId, LeaguePhase phase) {
+  private boolean allTeamsHired(long leagueId, LeaguePhase phase) {
     return switch (phase) {
       case HIRING_HEAD_COACH, HIRING_DIRECTOR_OF_SCOUTING -> {
-        var franchiseIds = teams.franchiseIdsForLeague(leagueId);
-        if (franchiseIds.isEmpty()) {
+        var teamIds = teams.teamIdsForLeague(leagueId);
+        if (teamIds.isEmpty()) {
           yield false;
         }
-        for (var franchiseId : franchiseIds) {
-          var state = hiringStates.find(leagueId, franchiseId, phase);
+        for (var teamId : teamIds) {
+          var state = hiringStates.find(teamId, phase);
           if (state.isEmpty() || state.get().step() != HiringStep.HIRED) {
             yield false;
           }
@@ -123,8 +123,8 @@ class AdvanceWeekUseCase implements AdvanceWeek {
     if (strategy == null) {
       return;
     }
-    for (var franchiseId : teams.cpuFranchiseIdsForLeague(leagueId)) {
-      strategy.execute(leagueId, franchiseId, phaseWeek);
+    for (var teamId : teams.cpuTeamIdsForLeague(leagueId)) {
+      strategy.execute(leagueId, teamId, phaseWeek);
     }
   }
 }

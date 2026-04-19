@@ -8,8 +8,7 @@ import org.springframework.stereotype.Component;
 /**
  * Phase-entry hook for {@link LeaguePhase#HIRING_HEAD_COACH}. On entry: generate the league-wide HC
  * candidate pool (if not already present), persist candidates + preferences, and initialize each
- * franchise's hiring sub-state to {@link HiringStep#SEARCHING} with empty shortlist/interview
- * lists.
+ * team's hiring sub-state to {@link HiringStep#SEARCHING} with empty shortlist/interview lists.
  *
  * <p>Idempotent: re-entry of a phase that already has a pool is a no-op so autofill/recovery paths
  * do not duplicate data.
@@ -19,15 +18,15 @@ class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(HiringHeadCoachTransitionHandler.class);
 
-  /** Per {@code docs/technical/league-phases.md}: pool size is 2–3× franchise count. */
-  private static final int POOL_SIZE_PER_FRANCHISE = 3;
+  /** Per {@code docs/technical/league-phases.md}: pool size is 2–3× team count. */
+  private static final int POOL_SIZE_PER_TEAM = 3;
 
   private final LeagueRepository leagues;
   private final TeamLookup teams;
   private final CandidatePoolRepository pools;
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
-  private final FranchiseHiringStateRepository hiringStates;
+  private final TeamHiringStateRepository hiringStates;
   private final HeadCoachGenerator generator;
   private final CandidateRandomSources rngs;
 
@@ -37,7 +36,7 @@ class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
-      FranchiseHiringStateRepository hiringStates,
+      TeamHiringStateRepository hiringStates,
       HeadCoachGenerator generator,
       CandidateRandomSources rngs) {
     this.leagues = leagues;
@@ -67,8 +66,8 @@ class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
         leagues
             .findById(leagueId)
             .orElseThrow(() -> new IllegalStateException("league missing: " + leagueId));
-    var franchiseIds = teams.franchiseIdsForLeague(leagueId);
-    var poolSize = Math.max(1, franchiseIds.size() * POOL_SIZE_PER_FRANCHISE);
+    var teamIds = teams.teamIdsForLeague(leagueId);
+    var poolSize = Math.max(1, teamIds.size() * POOL_SIZE_PER_TEAM);
 
     var pool = pools.insert(leagueId, phase(), CandidatePoolType.HEAD_COACH);
     var rng = rngs.forLeaguePhase(leagueId, phase());
@@ -78,17 +77,16 @@ class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
       var saved = candidates.insert(withPool);
       preferences.insert(g.preferences().withCandidateId(saved.id()));
     }
-    for (var franchiseId : franchiseIds) {
+    for (var teamId : teamIds) {
       hiringStates.upsert(
-          new FranchiseHiringState(
-              0L, leagueId, franchiseId, phase(), HiringStep.SEARCHING, List.of(), List.of()));
+          new TeamHiringState(0L, teamId, phase(), HiringStep.SEARCHING, List.of(), List.of()));
     }
     log.info(
-        "hiring head-coach pool generated leagueId={} poolId={} size={} franchises={}",
+        "hiring head-coach pool generated leagueId={} poolId={} size={} teams={}",
         league.id(),
         pool.id(),
         generated.size(),
-        franchiseIds.size());
+        teamIds.size());
   }
 
   private static NewCandidate attachPool(NewCandidate candidate, long poolId) {

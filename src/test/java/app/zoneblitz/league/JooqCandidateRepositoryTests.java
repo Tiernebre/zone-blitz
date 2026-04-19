@@ -1,8 +1,11 @@
 package app.zoneblitz.league;
 
+import static app.zoneblitz.jooq.Tables.TEAMS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.support.PostgresTestcontainer;
+import java.util.List;
+import java.util.Optional;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +25,7 @@ class JooqCandidateRepositoryTests {
   private FranchiseRepository franchises;
 
   private long poolId;
+  private long teamId;
 
   @BeforeEach
   void setUp() {
@@ -29,10 +33,16 @@ class JooqCandidateRepositoryTests {
     pools = new JooqCandidatePoolRepository(dsl);
     leagues = new JooqLeagueRepository(dsl);
     franchises = new JooqFranchiseRepository(dsl);
+    var teamRepo = new JooqTeamRepository(dsl);
     var league =
         leagues.insert("sub-1", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
     poolId =
         pools.insert(league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH).id();
+    teamRepo.insertAll(
+        league.id(),
+        List.of(new TeamDraft(franchises.listAll().getFirst().id(), Optional.of("sub-1"))));
+    teamId =
+        dsl.select(TEAMS.ID).from(TEAMS).where(TEAMS.LEAGUE_ID.eq(league.id())).fetchOne(TEAMS.ID);
   }
 
   @Test
@@ -49,7 +59,7 @@ class JooqCandidateRepositoryTests {
     assertThat(candidate.experienceByRole()).contains("\"OC\"").contains("10");
     assertThat(candidate.hiddenAttrs()).contains("true_rating");
     assertThat(candidate.scoutedAttrs()).contains("scouted_rating");
-    assertThat(candidate.hiredByFranchiseId()).isEmpty();
+    assertThat(candidate.hiredByTeamId()).isEmpty();
     assertThat(candidate.scoutBranch()).isEmpty();
   }
 
@@ -76,18 +86,17 @@ class JooqCandidateRepositoryTests {
   }
 
   @Test
-  void markHired_setsFranchiseIdAndPersists() {
+  void markHired_setsTeamIdAndPersists() {
     var candidate = candidates.insert(CandidateTestData.newHeadCoach(poolId));
-    var franchiseId = franchises.listAll().getFirst().id();
 
-    assertThat(candidates.markHired(candidate.id(), franchiseId)).isTrue();
+    assertThat(candidates.markHired(candidate.id(), teamId)).isTrue();
 
     var reloaded = candidates.findById(candidate.id()).orElseThrow();
-    assertThat(reloaded.hiredByFranchiseId()).hasValue(franchiseId);
+    assertThat(reloaded.hiredByTeamId()).hasValue(teamId);
   }
 
   @Test
   void markHired_whenMissing_returnsFalse() {
-    assertThat(candidates.markHired(999_999L, franchises.listAll().getFirst().id())).isFalse();
+    assertThat(candidates.markHired(999_999L, teamId)).isFalse();
   }
 }

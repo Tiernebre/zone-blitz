@@ -116,6 +116,7 @@ class LeagueControllerTests {
             LeaguePhase.INITIAL_SETUP,
             1,
             Instant.now(),
+            100L,
             new Franchise(
                 1L,
                 "Minutemen",
@@ -162,6 +163,7 @@ class LeagueControllerTests {
             LeaguePhase.INITIAL_SETUP,
             1,
             Instant.now(),
+            100L,
             new Franchise(
                 1L,
                 "Minutemen",

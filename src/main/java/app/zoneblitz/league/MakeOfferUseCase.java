@@ -15,14 +15,14 @@ class MakeOfferUseCase implements MakeOffer {
   private final CandidatePoolRepository pools;
   private final CandidateRepository candidates;
   private final CandidateOfferRepository offers;
-  private final FranchiseHiringStateRepository hiringStates;
+  private final TeamHiringStateRepository hiringStates;
 
   MakeOfferUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidateOfferRepository offers,
-      FranchiseHiringStateRepository hiringStates) {
+      TeamHiringStateRepository hiringStates) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
@@ -55,28 +55,27 @@ class MakeOfferUseCase implements MakeOffer {
     if (candidate.isEmpty() || candidate.get().poolId() != maybePool.get().id()) {
       return new MakeOfferResult.UnknownCandidate(candidateId);
     }
-    if (candidate.get().hiredByFranchiseId().isPresent()) {
+    if (candidate.get().hiredByTeamId().isPresent()) {
       return new MakeOfferResult.UnknownCandidate(candidateId);
     }
 
-    var franchiseId = league.userFranchise().id();
-    var hiringState = hiringStates.find(leagueId, franchiseId, phase);
+    var teamId = league.userTeamId();
+    var hiringState = hiringStates.find(teamId, phase);
     if (hiringState.isPresent() && hiringState.get().step() == HiringStep.HIRED) {
-      return new MakeOfferResult.AlreadyHired(franchiseId);
+      return new MakeOfferResult.AlreadyHired(teamId);
     }
 
-    var existing = offers.findActiveForFranchise(franchiseId);
+    var existing = offers.findActiveForTeam(teamId);
     if (existing.stream().anyMatch(o -> o.candidateId() == candidateId)) {
-      return new MakeOfferResult.ActiveOfferExists(candidateId, franchiseId);
+      return new MakeOfferResult.ActiveOfferExists(candidateId, teamId);
     }
 
     var phaseWeek = league.phaseWeek();
-    var saved =
-        offers.insertActive(candidateId, franchiseId, OfferTermsJson.toJson(terms), phaseWeek);
+    var saved = offers.insertActive(candidateId, teamId, OfferTermsJson.toJson(terms), phaseWeek);
     log.info(
-        "offer submitted leagueId={} franchiseId={} candidateId={} offerId={} week={}",
+        "offer submitted leagueId={} teamId={} candidateId={} offerId={} week={}",
         leagueId,
-        franchiseId,
+        teamId,
         candidateId,
         saved.id(),
         phaseWeek);

@@ -1,9 +1,12 @@
 package app.zoneblitz.league;
 
+import static app.zoneblitz.jooq.Tables.TEAMS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.zoneblitz.support.PostgresTestcontainer;
+import java.util.List;
+import java.util.Optional;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,8 +24,8 @@ class JooqCandidateOfferRepositoryTests {
   private CandidateOfferRepository offers;
   private long candidateId;
   private long otherCandidateId;
-  private long franchiseId;
-  private long otherFranchiseId;
+  private long teamId;
+  private long otherTeamId;
 
   @BeforeEach
   void setUp() {
@@ -31,6 +34,7 @@ class JooqCandidateOfferRepositoryTests {
     var pools = new JooqCandidatePoolRepository(dsl);
     var candidates = new JooqCandidateRepository(dsl);
     var franchises = new JooqFranchiseRepository(dsl);
+    var teamRepo = new JooqTeamRepository(dsl);
     var league =
         leagues.insert("sub-1", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
     var pool =
@@ -38,13 +42,24 @@ class JooqCandidateOfferRepositoryTests {
     candidateId = candidates.insert(CandidateTestData.newHeadCoach(pool.id())).id();
     otherCandidateId = candidates.insert(CandidateTestData.newHeadCoach(pool.id())).id();
     var listed = franchises.listAll();
-    franchiseId = listed.get(0).id();
-    otherFranchiseId = listed.get(1).id();
+    teamRepo.insertAll(
+        league.id(),
+        List.of(
+            new TeamDraft(listed.get(0).id(), Optional.of("sub-1")),
+            new TeamDraft(listed.get(1).id(), Optional.empty())));
+    var teamIds =
+        dsl.select(TEAMS.ID)
+            .from(TEAMS)
+            .where(TEAMS.LEAGUE_ID.eq(league.id()))
+            .orderBy(TEAMS.ID.asc())
+            .fetch(TEAMS.ID);
+    teamId = teamIds.get(0);
+    otherTeamId = teamIds.get(1);
   }
 
   @Test
   void insertActive_returnsActiveOffer() {
-    var offer = offers.insertActive(candidateId, franchiseId, "{\"salary\":8000000}", 1);
+    var offer = offers.insertActive(candidateId, teamId, "{\"salary\":8000000}", 1);
 
     assertThat(offer.id()).isPositive();
     assertThat(offer.status()).isEqualTo(OfferStatus.ACTIVE);
@@ -53,16 +68,16 @@ class JooqCandidateOfferRepositoryTests {
   }
 
   @Test
-  void insertActive_whenFranchiseAlreadyHasActiveOfferOnCandidate_throws() {
-    offers.insertActive(candidateId, franchiseId, "{}", 1);
+  void insertActive_whenTeamAlreadyHasActiveOfferOnCandidate_throws() {
+    offers.insertActive(candidateId, teamId, "{}", 1);
 
-    assertThatThrownBy(() -> offers.insertActive(candidateId, franchiseId, "{}", 2))
+    assertThatThrownBy(() -> offers.insertActive(candidateId, teamId, "{}", 2))
         .isInstanceOf(DataIntegrityViolationException.class);
   }
 
   @Test
   void resolve_marksOfferTerminal() {
-    var offer = offers.insertActive(candidateId, franchiseId, "{}", 1);
+    var offer = offers.insertActive(candidateId, teamId, "{}", 1);
 
     assertThat(offers.resolve(offer.id(), OfferStatus.ACCEPTED)).isTrue();
     assertThat(offers.findById(offer.id()).orElseThrow().status()).isEqualTo(OfferStatus.ACCEPTED);
@@ -70,7 +85,7 @@ class JooqCandidateOfferRepositoryTests {
 
   @Test
   void resolve_whenNotActive_returnsFalse() {
-    var offer = offers.insertActive(candidateId, franchiseId, "{}", 1);
+    var offer = offers.insertActive(candidateId, teamId, "{}", 1);
     offers.resolve(offer.id(), OfferStatus.REJECTED);
 
     assertThat(offers.resolve(offer.id(), OfferStatus.ACCEPTED)).isFalse();
@@ -78,8 +93,8 @@ class JooqCandidateOfferRepositoryTests {
 
   @Test
   void findActiveForCandidate_onlyReturnsActive() {
-    var active = offers.insertActive(candidateId, franchiseId, "{}", 1);
-    var resolved = offers.insertActive(candidateId, otherFranchiseId, "{}", 1);
+    var active = offers.insertActive(candidateId, teamId, "{}", 1);
+    var resolved = offers.insertActive(candidateId, otherTeamId, "{}", 1);
     offers.resolve(resolved.id(), OfferStatus.REJECTED);
 
     assertThat(offers.findActiveForCandidate(candidateId))
@@ -88,18 +103,18 @@ class JooqCandidateOfferRepositoryTests {
   }
 
   @Test
-  void findActiveForFranchise_returnsOnlyThatFranchisesActiveOffers() {
-    offers.insertActive(candidateId, franchiseId, "{}", 1);
-    offers.insertActive(otherCandidateId, franchiseId, "{}", 1);
-    offers.insertActive(candidateId, otherFranchiseId, "{}", 1);
+  void findActiveForTeam_returnsOnlyThatTeamsActiveOffers() {
+    offers.insertActive(candidateId, teamId, "{}", 1);
+    offers.insertActive(otherCandidateId, teamId, "{}", 1);
+    offers.insertActive(candidateId, otherTeamId, "{}", 1);
 
-    assertThat(offers.findActiveForFranchise(franchiseId)).hasSize(2);
+    assertThat(offers.findActiveForTeam(teamId)).hasSize(2);
   }
 
   @Test
   void findAllForCandidate_returnsAllStatuses() {
-    var a = offers.insertActive(candidateId, franchiseId, "{}", 1);
-    var b = offers.insertActive(candidateId, otherFranchiseId, "{}", 2);
+    var a = offers.insertActive(candidateId, teamId, "{}", 1);
+    var b = offers.insertActive(candidateId, otherTeamId, "{}", 2);
     offers.resolve(b.id(), OfferStatus.REJECTED);
 
     assertThat(offers.findAllForCandidate(candidateId))
@@ -109,10 +124,10 @@ class JooqCandidateOfferRepositoryTests {
 
   @Test
   void insertActive_afterRejection_allowedAgain() {
-    var first = offers.insertActive(candidateId, franchiseId, "{}", 1);
+    var first = offers.insertActive(candidateId, teamId, "{}", 1);
     offers.resolve(first.id(), OfferStatus.REJECTED);
 
-    var rebid = offers.insertActive(candidateId, franchiseId, "{}", 2);
+    var rebid = offers.insertActive(candidateId, teamId, "{}", 2);
     assertThat(rebid.status()).isEqualTo(OfferStatus.ACTIVE);
   }
 }

@@ -2,14 +2,9 @@ package app.zoneblitz.league;
 
 import java.util.Objects;
 
-/** A franchise's offer to a candidate. Terms JSON is generator/consumer-shaped. */
+/** A team's offer to a candidate. Terms JSON is generator/consumer-shaped. */
 public record CandidateOffer(
-    long id,
-    long candidateId,
-    long franchiseId,
-    String terms,
-    int submittedAtWeek,
-    OfferStatus status) {
+    long id, long candidateId, long teamId, String terms, int submittedAtWeek, OfferStatus status) {
 
   public CandidateOffer {
     Objects.requireNonNull(terms, "terms");

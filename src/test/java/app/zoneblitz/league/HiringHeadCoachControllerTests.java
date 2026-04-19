@@ -291,7 +291,7 @@ class HiringHeadCoachControllerTests {
             "#ffffff");
     var league =
         new LeagueSummary(
-            42L, "Dynasty", LeaguePhase.HIRING_HEAD_COACH, 1, Instant.now(), franchise);
+            42L, "Dynasty", LeaguePhase.HIRING_HEAD_COACH, 1, Instant.now(), 100L, franchise);
     return new HeadCoachHiringView(league, List.of(), List.of(), List.of(), 0, 3);
   }
 }

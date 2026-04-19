@@ -8,9 +8,8 @@ import java.util.regex.Pattern;
 
 /**
  * Assembles {@link HeadCoachCandidateView} rows and the composite {@link HeadCoachHiringView} from
- * domain candidates + preferences + shortlist state + per-franchise interview history. Extracted
- * from the controller so the controller stays thin and the assembly logic is unit-testable on its
- * own.
+ * domain candidates + preferences + shortlist state + per-team interview history. Extracted from
+ * the controller so the controller stays thin and the assembly logic is unit-testable on its own.
  */
 final class HeadCoachHiringViewModel {
 
@@ -25,7 +24,7 @@ final class HeadCoachHiringViewModel {
       List<Candidate> pool,
       List<CandidatePreferences> preferences,
       List<Long> shortlist,
-      List<FranchiseInterview> interviews,
+      List<TeamInterview> interviews,
       int interviewCapacity) {
     var prefsByCandidate =
         preferences.stream()
@@ -38,7 +37,7 @@ final class HeadCoachHiringViewModel {
     var interviewsThisWeek = countForWeek(interviews, league.phaseWeek());
     var rows =
         pool.stream()
-            .filter(c -> c.hiredByFranchiseId().isEmpty())
+            .filter(c -> c.hiredByTeamId().isEmpty())
             .map(c -> toRow(c, prefsByCandidate, shortlistSet, interviewCounts, latestScouted))
             .toList();
     var shortlistRows = rows.stream().filter(HeadCoachCandidateView::shortlisted).toList();
@@ -47,25 +46,24 @@ final class HeadCoachHiringViewModel {
         league, rows, shortlistRows, activeInterviewRows, interviewsThisWeek, interviewCapacity);
   }
 
-  private static Map<Long, Integer> countsByCandidate(List<FranchiseInterview> interviews) {
+  private static Map<Long, Integer> countsByCandidate(List<TeamInterview> interviews) {
     return interviews.stream()
         .collect(
             java.util.stream.Collectors.groupingBy(
-                FranchiseInterview::candidateId,
+                TeamInterview::candidateId,
                 java.util.stream.Collectors.reducing(0, ignored -> 1, Integer::sum)));
   }
 
-  private static Map<Long, BigDecimal> latestScoutedByCandidate(
-      List<FranchiseInterview> interviews) {
+  private static Map<Long, BigDecimal> latestScoutedByCandidate(List<TeamInterview> interviews) {
     return interviews.stream()
         .collect(
             java.util.stream.Collectors.toMap(
-                FranchiseInterview::candidateId,
-                FranchiseInterview::scoutedOverall,
+                TeamInterview::candidateId,
+                TeamInterview::scoutedOverall,
                 (earlier, later) -> later));
   }
 
-  private static int countForWeek(List<FranchiseInterview> interviews, int phaseWeek) {
+  private static int countForWeek(List<TeamInterview> interviews, int phaseWeek) {
     return (int) interviews.stream().filter(i -> i.phaseWeek() == phaseWeek).count();
   }
 

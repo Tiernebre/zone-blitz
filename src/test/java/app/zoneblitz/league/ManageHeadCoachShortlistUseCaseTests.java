@@ -31,7 +31,7 @@ class ManageHeadCoachShortlistUseCaseTests {
     var pools = new JooqCandidatePoolRepository(dsl);
     candidates = new JooqCandidateRepository(dsl);
     var preferences = new JooqCandidatePreferencesRepository(dsl);
-    var hiringStates = new JooqFranchiseHiringStateRepository(dsl);
+    var hiringStates = new JooqTeamHiringStateRepository(dsl);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
     entryHandler =
         new HiringHeadCoachTransitionHandler(
@@ -43,7 +43,7 @@ class ManageHeadCoachShortlistUseCaseTests {
             hiringStates,
             new HeadCoachGenerator(),
             (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
-    var interviews = new JooqFranchiseInterviewRepository(dsl);
+    var interviews = new JooqTeamInterviewRepository(dsl);
     useCase =
         new ManageHeadCoachShortlistUseCase(
             leagues, pools, candidates, preferences, hiringStates, interviews);

@@ -59,8 +59,8 @@ class StaffRecapControllerTests {
     var franchise = new Franchise(1L, "Patriots", null, "#000", "#FFF");
     var summary =
         new LeagueSummary(
-            42L, "Dynasty", LeaguePhase.ASSEMBLING_STAFF, 1, Instant.EPOCH, franchise);
+            42L, "Dynasty", LeaguePhase.ASSEMBLING_STAFF, 1, Instant.EPOCH, 100L, franchise);
     return new StaffRecapView(
-        summary, List.of(new StaffRecapView.FranchiseStaffTree(franchise, true, List.of())));
+        summary, List.of(new StaffRecapView.TeamStaffTree(100L, franchise, true, List.of())));
   }
 }
