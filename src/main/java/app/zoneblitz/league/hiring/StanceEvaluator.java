@@ -15,7 +15,7 @@ import java.util.Optional;
 public final class StanceEvaluator {
 
   /** Composite score at or above this bucket → AGREED. */
-  static final double AGREE_THRESHOLD = 0.80;
+  static final double AGREE_THRESHOLD = 0.70;
 
   /** Maximum number of revisions before a stale offer is walked. */
   public static final int REVISION_CAP = 3;
@@ -49,20 +49,31 @@ public final class StanceEvaluator {
     record Dim(String hint, double fit) {}
     var dims =
         List.of(
-            new Dim("Wants higher compensation", compFit),
             new Dim(
-                offer.contractLengthYears() < prefs.contractLengthTarget()
-                    ? "Wants a longer contract"
-                    : "Wants a shorter contract",
-                lengthFit),
-            new Dim("Wants more guaranteed money", guarFit),
-            new Dim("Wants different role scope", roleFit),
-            new Dim("Wants different staff continuity", contFit));
+                "I want at least $%,.0f".formatted(prefs.compensationTarget().doubleValue()),
+                compFit),
+            new Dim("I want a %d-year deal".formatted(prefs.contractLengthTarget()), lengthFit),
+            new Dim(
+                "I want at least %.0f%% guaranteed"
+                    .formatted(prefs.guaranteedMoneyTarget().doubleValue() * 100.0),
+                guarFit),
+            new Dim(
+                "I want a %s scope role".formatted(prefs.roleScopeTarget().name().toLowerCase()),
+                roleFit),
+            new Dim(staffContinuityHint(prefs.staffContinuityTarget()), contFit));
 
     return dims.stream()
         .filter(d -> d.fit() < 1.0)
         .min(Comparator.comparingDouble(Dim::fit))
         .map(Dim::hint);
+  }
+
+  private static String staffContinuityHint(app.zoneblitz.league.staff.StaffContinuity target) {
+    return switch (target) {
+      case BRING_OWN -> "I want to bring my own staff";
+      case HYBRID -> "I want to keep some staff and bring in some of my own";
+      case KEEP_EXISTING -> "I want to keep the existing staff";
+    };
   }
 
   public record Evaluation(OfferStance stance, double score, Optional<String> hint) {}

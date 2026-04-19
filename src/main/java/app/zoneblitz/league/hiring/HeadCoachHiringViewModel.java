@@ -115,6 +115,8 @@ public final class HeadCoachHiringViewModel {
             terms.compensation(),
             terms.contractLengthYears(),
             terms.guaranteedMoneyPct(),
+            terms.roleScope(),
+            terms.staffContinuity(),
             stance,
             offer.revisionCount(),
             StanceEvaluator.REVISION_CAP,

@@ -16,8 +16,8 @@ import java.math.BigDecimal;
  */
 public final class InterestScoring {
 
-  static final double INTERESTED_THRESHOLD = 0.66;
-  static final double LUKEWARM_THRESHOLD = 0.33;
+  static final double INTERESTED_THRESHOLD = 0.55;
+  static final double LUKEWARM_THRESHOLD = 0.25;
 
   private InterestScoring() {}
 
@@ -39,13 +39,14 @@ public final class InterestScoring {
     var weighted = 0.0;
     var totalWeight = 0.0;
 
-    weighted += weight(prefs.marketSizeWeight()) * fit(prefs.marketSizeTarget(), team.marketSize());
+    weighted +=
+        weight(prefs.marketSizeWeight()) * ordinalFit(prefs.marketSizeTarget(), team.marketSize());
     totalWeight += weight(prefs.marketSizeWeight());
 
     weighted += weight(prefs.geographyWeight()) * fit(prefs.geographyTarget(), team.geography());
     totalWeight += weight(prefs.geographyWeight());
 
-    weighted += weight(prefs.climateWeight()) * fit(prefs.climateTarget(), team.climate());
+    weighted += weight(prefs.climateWeight()) * ordinalFit(prefs.climateTarget(), team.climate());
     totalWeight += weight(prefs.climateWeight());
 
     weighted +=
@@ -55,7 +56,7 @@ public final class InterestScoring {
 
     weighted +=
         weight(prefs.competitiveWindowWeight())
-            * fit(prefs.competitiveWindowTarget(), team.window());
+            * ordinalFit(prefs.competitiveWindowTarget(), team.window());
     totalWeight += weight(prefs.competitiveWindowWeight());
 
     weighted +=
@@ -82,6 +83,15 @@ public final class InterestScoring {
 
   private static double fit(Object target, Object actual) {
     return target.equals(actual) ? 1.0 : 0.0;
+  }
+
+  private static <E extends Enum<E>> double ordinalFit(E target, E actual) {
+    var diff = Math.abs(target.ordinal() - actual.ordinal());
+    return switch (diff) {
+      case 0 -> 1.0;
+      case 1 -> 0.5;
+      default -> 0.0;
+    };
   }
 
   private static double floorFit(BigDecimal target, BigDecimal actual) {

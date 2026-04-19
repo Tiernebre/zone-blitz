@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+	<!--
+	    Shared negotiation form used by both HIRING_HEAD_COACH and HIRING_DIRECTOR_OF_SCOUTING.
+	    Inputs use step="any" so candidate-target values (non-round dollars / percents) don't
+	    trip the browser's number-step validation.
+
+	    Args:
+	      row       — candidate view row (hasOffer / offer / target fields)
+	      leagueId  — current league id
+	      rolePath  — "head-coach" or "director-of-scouting" (URL segment)
+	      idPrefix  — DOM id prefix, e.g. "hc" or "dos"
+	-->
+	<form th:fragment="form(row, leagueId, rolePath, idPrefix)"
+	      th:id="${idPrefix} + '-offer-form-' + ${row.id()}"
+	      th:attr="hx-post=@{'/leagues/' + ${leagueId} + '/hiring/' + ${rolePath} + '/offer/' + ${row.id()}}"
+	      hx-target="#hiring-regions"
+	      hx-swap="outerHTML"
+	      class="hidden grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs">
+		<label class="flex flex-col gap-1">
+			<span class="text-slate-600">Comp ($)</span>
+			<input type="number" name="compensation" min="0" step="any"
+			       th:value="${row.hasOffer() ? row.offer().get().compensation() : row.compensationTarget()}"
+			       class="border border-slate-300 rounded px-2 py-1" />
+		</label>
+		<label class="flex flex-col gap-1">
+			<span class="text-slate-600">Length (yrs)</span>
+			<input type="number" name="contractLengthYears" min="1" max="7"
+			       th:value="${row.hasOffer() ? row.offer().get().contractLengthYears() : row.contractLengthTarget()}"
+			       class="border border-slate-300 rounded px-2 py-1" />
+		</label>
+		<label class="flex flex-col gap-1">
+			<span class="text-slate-600">Guaranteed (0–1)</span>
+			<input type="number" name="guaranteedMoneyPct" min="0" max="1" step="any"
+			       th:value="${row.hasOffer() ? row.offer().get().guaranteedMoneyPct() : row.guaranteedMoneyTarget()}"
+			       class="border border-slate-300 rounded px-2 py-1" />
+		</label>
+		<label class="flex flex-col gap-1"
+		       th:with="current=${row.hasOffer() ? row.offer().get().roleScope().name() : 'HIGH'}">
+			<span class="text-slate-600">Role scope</span>
+			<select name="roleScope" class="border border-slate-300 rounded px-2 py-1">
+				<option value="HIGH" th:selected="${current == 'HIGH'}">HIGH</option>
+				<option value="MEDIUM" th:selected="${current == 'MEDIUM'}">MEDIUM</option>
+				<option value="LOW" th:selected="${current == 'LOW'}">LOW</option>
+			</select>
+		</label>
+		<label class="flex flex-col gap-1 col-span-2"
+		       th:with="current=${row.hasOffer() ? row.offer().get().staffContinuity().name() : 'BRING_OWN'}">
+			<span class="text-slate-600">Staff continuity</span>
+			<select name="staffContinuity" class="border border-slate-300 rounded px-2 py-1">
+				<option value="BRING_OWN" th:selected="${current == 'BRING_OWN'}">BRING_OWN</option>
+				<option value="HYBRID" th:selected="${current == 'HYBRID'}">HYBRID</option>
+				<option value="KEEP_EXISTING" th:selected="${current == 'KEEP_EXISTING'}">KEEP_EXISTING</option>
+			</select>
+		</label>
+		<button type="submit"
+		        class="col-span-2 px-2 py-1 text-xs rounded bg-slate-900 text-white hover:bg-slate-800 cursor-pointer">
+			Submit offer
+		</button>
+	</form>
+</body>
+</html>

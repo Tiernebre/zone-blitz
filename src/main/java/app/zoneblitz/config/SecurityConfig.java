@@ -14,6 +14,7 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(
                         "/",
+                        "/error",
                         "/css/**",
                         "/js/**",
                         "/webjars/**",

@@ -29,12 +29,11 @@ public final class OfferScoring {
     total += weighted(prefs.contractLengthWeight(), contractLengthFit(prefs, offer));
     total += weighted(prefs.guaranteedMoneyWeight(), guaranteedMoneyFit(prefs, offer));
     total +=
-        weighted(
-            prefs.marketSizeWeight(), categoricalFit(prefs.marketSizeTarget(), team.marketSize()));
+        weighted(prefs.marketSizeWeight(), ordinalFit(prefs.marketSizeTarget(), team.marketSize()));
     total +=
         weighted(
             prefs.geographyWeight(), categoricalFit(prefs.geographyTarget(), team.geography()));
-    total += weighted(prefs.climateWeight(), categoricalFit(prefs.climateTarget(), team.climate()));
+    total += weighted(prefs.climateWeight(), ordinalFit(prefs.climateTarget(), team.climate()));
     total +=
         weighted(
             prefs.franchisePrestigeWeight(),
@@ -42,7 +41,7 @@ public final class OfferScoring {
     total +=
         weighted(
             prefs.competitiveWindowWeight(),
-            categoricalFit(prefs.competitiveWindowTarget(), team.window()));
+            ordinalFit(prefs.competitiveWindowTarget(), team.window()));
     total +=
         weighted(
             prefs.roleScopeWeight(), categoricalFit(prefs.roleScopeTarget(), offer.roleScope()));
@@ -71,6 +70,15 @@ public final class OfferScoring {
 
   private static double categoricalFit(Object target, Object actual) {
     return target.equals(actual) ? 1.0 : 0.0;
+  }
+
+  private static <E extends Enum<E>> double ordinalFit(E target, E actual) {
+    var diff = Math.abs(target.ordinal() - actual.ordinal());
+    return switch (diff) {
+      case 0 -> 1.0;
+      case 1 -> 0.5;
+      default -> 0.0;
+    };
   }
 
   /**

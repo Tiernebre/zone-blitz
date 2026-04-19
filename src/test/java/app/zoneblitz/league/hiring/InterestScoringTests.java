@@ -57,13 +57,13 @@ class InterestScoringTests {
 
   @Test
   void score_partialMatch_returnsLukewarm() {
-    // Three of five categorical dimensions match exactly; prestige/stability/facility score high.
+    // One of five categorical dimensions matches exactly; prestige/stability/facility score high.
     // Split should land between the two thresholds.
     assertThat(
             InterestScoring.score(
                 profile(
                     MarketSize.LARGE,
-                    Geography.NE,
+                    Geography.SW,
                     Climate.WARM,
                     CompetitiveWindow.REBUILD,
                     "AIR_RAID"),

@@ -1,5 +1,6 @@
 package app.zoneblitz.league.hiring;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -125,7 +126,8 @@ public class HiringHeadCoachController {
       @AuthenticationPrincipal OAuth2User principal,
       @PathVariable long id,
       @PathVariable long candidateId,
-      Model model) {
+      Model model,
+      HttpServletResponse response) {
     var result = hireCandidate.hire(id, candidateId, principal.getAttribute("sub"));
     return switch (result) {
       case HireCandidateResult.Hired hired -> {
@@ -134,7 +136,12 @@ public class HiringHeadCoachController {
             id,
             hired.candidateId(),
             hired.teamId());
-        model.addAttribute("view", resolveView(principal, id));
+        var maybeView = viewHiring.view(id, principal.getAttribute("sub"));
+        if (maybeView.isEmpty()) {
+          response.setHeader("HX-Redirect", "/leagues/" + id);
+          yield "";
+        }
+        model.addAttribute("view", maybeView.get());
         yield "league/hiring/head-coach-fragments :: combined";
       }
       case HireCandidateResult.NotFound ignored ->
