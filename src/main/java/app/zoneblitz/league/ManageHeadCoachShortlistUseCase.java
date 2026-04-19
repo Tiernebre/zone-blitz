@@ -14,18 +14,21 @@ class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
   private final FranchiseHiringStateRepository hiringStates;
+  private final FranchiseInterviewRepository interviews;
 
   ManageHeadCoachShortlistUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
-      FranchiseHiringStateRepository hiringStates) {
+      FranchiseHiringStateRepository hiringStates,
+      FranchiseInterviewRepository interviews) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
     this.preferences = preferences;
     this.hiringStates = hiringStates;
+    this.interviews = interviews;
   }
 
   @Override
@@ -89,7 +92,16 @@ class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
             .map(c -> preferences.findByCandidateId(c.id()))
             .flatMap(java.util.Optional::stream)
             .toList();
-    var view = HeadCoachHiringViewModel.assemble(league, pool, prefs, updatedIds);
+    var interviewHistory =
+        interviews.findAllFor(leagueId, franchiseId, LeaguePhase.HIRING_HEAD_COACH);
+    var view =
+        HeadCoachHiringViewModel.assemble(
+            league,
+            pool,
+            prefs,
+            updatedIds,
+            interviewHistory,
+            StartInterview.DEFAULT_WEEKLY_CAPACITY);
     return new ShortlistResult.Updated(view);
   }
 

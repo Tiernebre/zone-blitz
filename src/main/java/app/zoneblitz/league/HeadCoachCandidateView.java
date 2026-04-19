@@ -22,7 +22,8 @@ public record HeadCoachCandidateView(
     BigDecimal compensationTarget,
     int contractLengthTarget,
     BigDecimal guaranteedMoneyTarget,
-    boolean shortlisted) {
+    boolean shortlisted,
+    int interviewCount) {
 
   public HeadCoachCandidateView {
     Objects.requireNonNull(archetype, "archetype");

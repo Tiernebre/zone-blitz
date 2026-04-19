@@ -43,8 +43,10 @@ class ManageHeadCoachShortlistUseCaseTests {
             hiringStates,
             new HeadCoachGenerator(),
             (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
+    var interviews = new JooqFranchiseInterviewRepository(dsl);
     useCase =
-        new ManageHeadCoachShortlistUseCase(leagues, pools, candidates, preferences, hiringStates);
+        new ManageHeadCoachShortlistUseCase(
+            leagues, pools, candidates, preferences, hiringStates, interviews);
   }
 
   @Test

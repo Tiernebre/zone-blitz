@@ -14,18 +14,21 @@ class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
   private final FranchiseHiringStateRepository hiringStates;
+  private final FranchiseInterviewRepository interviews;
 
   ViewHeadCoachHiringUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
-      FranchiseHiringStateRepository hiringStates) {
+      FranchiseHiringStateRepository hiringStates,
+      FranchiseInterviewRepository interviews) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
     this.preferences = preferences;
     this.hiringStates = hiringStates;
+    this.interviews = interviews;
   }
 
   @Override
@@ -40,11 +43,14 @@ class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
     if (league.phase() != LeaguePhase.HIRING_HEAD_COACH) {
       return Optional.empty();
     }
+    var franchiseId = league.userFranchise().id();
     var pool =
         pools.findByLeaguePhaseAndType(
             leagueId, LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH);
     if (pool.isEmpty()) {
-      return Optional.of(new HeadCoachHiringView(league, List.of(), List.of()));
+      return Optional.of(
+          new HeadCoachHiringView(
+              league, List.of(), List.of(), List.of(), 0, StartInterview.DEFAULT_WEEKLY_CAPACITY));
     }
     var rows = candidates.findAllByPoolId(pool.get().id());
     var prefs =
@@ -54,9 +60,18 @@ class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
             .toList();
     var shortlist =
         hiringStates
-            .find(leagueId, league.userFranchise().id(), LeaguePhase.HIRING_HEAD_COACH)
+            .find(leagueId, franchiseId, LeaguePhase.HIRING_HEAD_COACH)
             .map(FranchiseHiringState::shortlist)
             .orElse(List.of());
-    return Optional.of(HeadCoachHiringViewModel.assemble(league, rows, prefs, shortlist));
+    var interviewHistory =
+        interviews.findAllFor(leagueId, franchiseId, LeaguePhase.HIRING_HEAD_COACH);
+    return Optional.of(
+        HeadCoachHiringViewModel.assemble(
+            league,
+            rows,
+            prefs,
+            shortlist,
+            interviewHistory,
+            StartInterview.DEFAULT_WEEKLY_CAPACITY));
   }
 }

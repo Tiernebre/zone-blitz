@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-	<!-- Combined swap target: pool + shortlist updated together after mutations. -->
+	<!-- Combined swap target: pool + shortlist + interviews updated together after mutations. -->
 	<div th:fragment="combined" id="hiring-regions" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 		<div class="lg:col-span-2">
 			<div th:insert="~{league/hiring/head-coach-fragments :: pool}"></div>
 		</div>
-		<div>
+		<div class="space-y-4">
 			<div th:insert="~{league/hiring/head-coach-fragments :: shortlist}"></div>
+			<div th:insert="~{league/hiring/head-coach-fragments :: interviews}"></div>
 		</div>
 	</div>
 
@@ -49,7 +50,7 @@
 					<td class="py-2 pr-2" th:text="'$' + ${#numbers.formatDecimal(row.compensationTarget(), 0, 'COMMA', 0, 'POINT')}"></td>
 					<td class="py-2 pr-2" th:text="${row.contractLengthTarget()} + ' yr'"></td>
 					<td class="py-2 pr-2" th:text="${#numbers.formatPercent(row.guaranteedMoneyTarget(), 1, 0)}"></td>
-					<td class="py-2 pr-2">
+					<td class="py-2 pr-2 space-x-1">
 						<button type="button"
 						        th:unless="${row.shortlisted()}"
 						        th:attr="hx-post=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/head-coach/shortlist/' + ${row.id()}}"
@@ -65,6 +66,17 @@
 						        hx-swap="outerHTML"
 						        class="px-2 py-1 text-xs rounded bg-slate-200 text-slate-700 hover:bg-slate-300 cursor-pointer">
 							Shortlisted
+						</button>
+						<button type="button"
+						        th:attr="hx-post=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/head-coach/interview/' + ${row.id()}},
+						                 disabled=${view.interviewsThisWeek() >= view.interviewCapacity()} ? 'disabled' : null"
+						        hx-target="#hiring-regions"
+						        hx-swap="outerHTML"
+						        th:classappend="${view.interviewsThisWeek() >= view.interviewCapacity()} ? ' opacity-50 cursor-not-allowed' : ' cursor-pointer'"
+						        class="px-2 py-1 text-xs rounded bg-indigo-600 text-white hover:bg-indigo-500">
+							<span th:if="${row.interviewCount() == 0}">Interview</span>
+							<span th:if="${row.interviewCount() > 0}"
+							      th:text="'Re-interview (' + ${row.interviewCount()} + ')'">Re-interview</span>
 						</button>
 					</td>
 				</tr>
@@ -97,6 +109,31 @@
 				        class="px-2 py-1 text-xs rounded border border-slate-300 text-slate-600 hover:bg-slate-100 cursor-pointer">
 					Remove
 				</button>
+			</li>
+		</ul>
+	</aside>
+
+	<aside th:fragment="interviews"
+	       id="hc-interviews"
+	       class="bg-white border border-slate-200 rounded p-4 shadow-sm">
+		<div class="flex items-center justify-between mb-2">
+			<h2 class="text-lg font-semibold text-slate-900">Active interviews</h2>
+			<span class="text-xs text-slate-500"
+			      th:text="${view.interviewsThisWeek()} + ' / ' + ${view.interviewCapacity()} + ' this week'"></span>
+		</div>
+		<p class="text-sm text-slate-500 mb-3">Each interview tightens the scouted signal; true rating is never revealed.</p>
+		<div th:if="${view.activeInterviews().isEmpty()}" class="text-slate-500 italic text-sm">
+			No interviews conducted yet.
+		</div>
+		<ul th:unless="${view.activeInterviews().isEmpty()}" class="space-y-2">
+			<li th:each="row : ${view.activeInterviews()}"
+			    class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+				<div class="min-w-0">
+					<div class="text-sm font-medium text-slate-900"
+					     th:text="${row.archetype()} + ' · ' + ${row.specialty()}"></div>
+					<div class="text-xs text-slate-500"
+					     th:text="${row.interviewCount()} + ' interview(s) · scouted ' + ${row.scoutedOverall()}"></div>
+				</div>
 			</li>
 		</ul>
 	</aside>

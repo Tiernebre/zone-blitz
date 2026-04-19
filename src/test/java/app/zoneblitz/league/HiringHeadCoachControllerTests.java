@@ -37,6 +37,7 @@ class HiringHeadCoachControllerTests {
 
   @MockitoBean ViewHeadCoachHiring viewHiring;
   @MockitoBean ManageHeadCoachShortlist shortlist;
+  @MockitoBean StartInterview startInterview;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
@@ -133,6 +134,75 @@ class HiringHeadCoachControllerTests {
   }
 
   @Test
+  void startInterview_whenStarted_rendersCombinedFragment() throws Exception {
+    given(startInterview.start(42L, 7L, "sub-1"))
+        .willReturn(new InterviewResult.Started(sampleView()));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/interview/7")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(view().name("league/hiring/head-coach-fragments :: combined"));
+
+    verify(startInterview).start(42L, 7L, "sub-1");
+  }
+
+  @Test
+  void startInterview_whenCapacityReached_returns409() throws Exception {
+    given(startInterview.start(42L, 7L, "sub-1"))
+        .willReturn(new InterviewResult.CapacityReached(3));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/interview/7")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void startInterview_whenNotFound_returns404() throws Exception {
+    given(startInterview.start(42L, 7L, "sub-1")).willReturn(new InterviewResult.NotFound(42L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/interview/7")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void startInterview_whenUnknownCandidate_returns404() throws Exception {
+    given(startInterview.start(42L, 7L, "sub-1"))
+        .willReturn(new InterviewResult.UnknownCandidate(7L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/interview/7")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void startInterview_requiresCsrf() throws Exception {
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/interview/7")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void interviewsFragment_returnsFragment() throws Exception {
+    given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
+
+    mvc.perform(
+            get("/leagues/42/hiring/head-coach/interviews")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isOk())
+        .andExpect(view().name("league/hiring/head-coach-fragments :: interviews"));
+  }
+
+  @Test
   void addToShortlist_requiresCsrf() throws Exception {
     mvc.perform(
             post("/leagues/42/hiring/head-coach/shortlist/7")
@@ -151,6 +221,6 @@ class HiringHeadCoachControllerTests {
     var league =
         new LeagueSummary(
             42L, "Dynasty", LeaguePhase.HIRING_HEAD_COACH, 1, Instant.now(), franchise);
-    return new HeadCoachHiringView(league, List.of(), List.of());
+    return new HeadCoachHiringView(league, List.of(), List.of(), List.of(), 0, 3);
   }
 }

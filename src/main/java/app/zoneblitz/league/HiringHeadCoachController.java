@@ -25,10 +25,15 @@ class HiringHeadCoachController {
 
   private final ViewHeadCoachHiring viewHiring;
   private final ManageHeadCoachShortlist shortlist;
+  private final StartInterview startInterview;
 
-  HiringHeadCoachController(ViewHeadCoachHiring viewHiring, ManageHeadCoachShortlist shortlist) {
+  HiringHeadCoachController(
+      ViewHeadCoachHiring viewHiring,
+      ManageHeadCoachShortlist shortlist,
+      StartInterview startInterview) {
     this.viewHiring = viewHiring;
     this.shortlist = shortlist;
+    this.startInterview = startInterview;
   }
 
   @GetMapping("/leagues/{id}/hiring/head-coach")
@@ -43,6 +48,23 @@ class HiringHeadCoachController {
       @AuthenticationPrincipal OAuth2User principal, @PathVariable long id, Model model) {
     model.addAttribute("view", resolveView(principal, id));
     return "league/hiring/head-coach-fragments :: pool";
+  }
+
+  @GetMapping("/leagues/{id}/hiring/head-coach/interviews")
+  String interviewsFragment(
+      @AuthenticationPrincipal OAuth2User principal, @PathVariable long id, Model model) {
+    model.addAttribute("view", resolveView(principal, id));
+    return "league/hiring/head-coach-fragments :: interviews";
+  }
+
+  @PostMapping("/leagues/{id}/hiring/head-coach/interview/{candidateId}")
+  String startInterview(
+      @AuthenticationPrincipal OAuth2User principal,
+      @PathVariable long id,
+      @PathVariable long candidateId,
+      Model model) {
+    var result = startInterview.start(id, candidateId, principal.getAttribute("sub"));
+    return renderInterview(result, model);
   }
 
   @GetMapping("/leagues/{id}/hiring/head-coach/shortlist")
@@ -76,6 +98,27 @@ class HiringHeadCoachController {
     return viewHiring
         .view(id, principal.getAttribute("sub"))
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+  }
+
+  private String renderInterview(InterviewResult result, Model model) {
+    return switch (result) {
+      case InterviewResult.Started started -> {
+        model.addAttribute("view", started.view());
+        log.info(
+            "interview started leagueId={} interviewsThisWeek={}",
+            started.view().league().leagueId(),
+            started.view().interviewsThisWeek());
+        yield "league/hiring/head-coach-fragments :: combined";
+      }
+      case InterviewResult.NotFound ignored ->
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      case InterviewResult.UnknownCandidate ignored ->
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      case InterviewResult.CapacityReached capacity ->
+          throw new ResponseStatusException(
+              HttpStatus.CONFLICT,
+              "Weekly interview capacity of %d already reached".formatted(capacity.capacity()));
+    };
   }
 
   private String renderMutation(ShortlistResult result, Model model) {

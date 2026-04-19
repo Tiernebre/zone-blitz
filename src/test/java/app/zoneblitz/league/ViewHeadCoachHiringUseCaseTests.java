@@ -42,7 +42,10 @@ class ViewHeadCoachHiringUseCaseTests {
             hiringStates,
             new HeadCoachGenerator(),
             (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
-    useCase = new ViewHeadCoachHiringUseCase(leagues, pools, candidates, preferences, hiringStates);
+    var interviews = new JooqFranchiseInterviewRepository(dsl);
+    useCase =
+        new ViewHeadCoachHiringUseCase(
+            leagues, pools, candidates, preferences, hiringStates, interviews);
   }
 
   @Test
