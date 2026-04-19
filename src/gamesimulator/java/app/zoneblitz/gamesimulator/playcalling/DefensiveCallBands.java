@@ -3,7 +3,9 @@ package app.zoneblitz.gamesimulator.playcalling;
 import app.zoneblitz.gamesimulator.band.BandRepository;
 import app.zoneblitz.gamesimulator.formation.CoverageShell;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
+import java.util.Collections;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -20,7 +22,16 @@ final class DefensiveCallBands {
   static final double BASELINE_BLITZ_RATE = 0.30;
 
   /** Distribution of {@code extraRushers} given that a blitz is called. Keys 1..3. */
-  static final Map<Integer, Double> BLITZ_COUNT_WEIGHTS = Map.of(1, 0.60, 2, 0.30, 3, 0.10);
+  // Map.of would JVM-salt iteration order; this map is iterated in a cumulative weighted draw.
+  static final Map<Integer, Double> BLITZ_COUNT_WEIGHTS = blitzCountWeights();
+
+  private static Map<Integer, Double> blitzCountWeights() {
+    var m = new LinkedHashMap<Integer, Double>();
+    m.put(1, 0.60);
+    m.put(2, 0.30);
+    m.put(3, 0.10);
+    return Collections.unmodifiableMap(m);
+  }
 
   private final Map<OffensiveFormation, Map<CoverageShell, Double>> shellByFormation;
   private final Map<OffensiveFormation, Double> manRateByFormation;
@@ -52,7 +63,7 @@ final class DefensiveCallBands {
                 COVERAGE_SHELL,
                 "bands.by_formation." + formation.name() + ".shell",
                 CoverageShell.class);
-        shellByFormation.put(formation, Map.copyOf(shell));
+        shellByFormation.put(formation, Collections.unmodifiableMap(new LinkedHashMap<>(shell)));
         var man =
             repo.loadScalar(COVERAGE_SHELL, "bands.by_formation." + formation.name() + ".type.man");
         manByFormation.put(formation, man);
@@ -61,7 +72,10 @@ final class DefensiveCallBands {
       }
     }
     return new DefensiveCallBands(
-        shellByFormation, manByFormation, Map.copyOf(overallShell), overallManRate);
+        shellByFormation,
+        manByFormation,
+        Collections.unmodifiableMap(new LinkedHashMap<>(overallShell)),
+        overallManRate);
   }
 
   Map<CoverageShell, Double> shellBaseline(OffensiveFormation formation) {

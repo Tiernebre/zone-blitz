@@ -117,15 +117,20 @@ public final class BaselineDefensiveCallSelector implements DefensiveCallSelecto
       return DefensivePackage.DIME;
     }
     var subAggression = normalize(dc.substitutionAggression());
-    var baseWeight =
-        switch (formation) {
-          case I_FORM, JUMBO -> Map.of(DefensivePackage.BASE, 0.8, DefensivePackage.NICKEL, 0.2);
-          case SHOTGUN, EMPTY, PISTOL, SINGLEBACK ->
-              Map.of(
-                  DefensivePackage.NICKEL, 0.75,
-                  DefensivePackage.DIME, 0.15,
-                  DefensivePackage.BASE, 0.10);
-        };
+    // LinkedHashMap (not Map.of) — iteration order feeds a cumulative weighted draw, and Map.of
+    // is JVM-salted.
+    var baseWeight = new LinkedHashMap<DefensivePackage, Double>();
+    switch (formation) {
+      case I_FORM, JUMBO -> {
+        baseWeight.put(DefensivePackage.BASE, 0.8);
+        baseWeight.put(DefensivePackage.NICKEL, 0.2);
+      }
+      case SHOTGUN, EMPTY, PISTOL, SINGLEBACK -> {
+        baseWeight.put(DefensivePackage.NICKEL, 0.75);
+        baseWeight.put(DefensivePackage.DIME, 0.15);
+        baseWeight.put(DefensivePackage.BASE, 0.10);
+      }
+    }
     var weights = new LinkedHashMap<DefensivePackage, Double>();
     for (var entry : baseWeight.entrySet()) {
       var w = entry.getValue();

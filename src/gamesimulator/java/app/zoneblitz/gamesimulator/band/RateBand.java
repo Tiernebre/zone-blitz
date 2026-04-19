@@ -1,5 +1,7 @@
 package app.zoneblitz.gamesimulator.band;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -18,7 +20,9 @@ public record RateBand<T>(Map<T, Double> baseProbabilities, Map<T, Double> match
   public RateBand {
     Objects.requireNonNull(baseProbabilities, "baseProbabilities");
     Objects.requireNonNull(matchupCoefficients, "matchupCoefficients");
-    baseProbabilities = Map.copyOf(baseProbabilities);
-    matchupCoefficients = Map.copyOf(matchupCoefficients);
+    // Map.copyOf would JVM-salt iteration order, which is sampled over in cumulative weighted
+    // draws — breaking determinism across JVM runs.
+    baseProbabilities = Collections.unmodifiableMap(new LinkedHashMap<>(baseProbabilities));
+    matchupCoefficients = Collections.unmodifiableMap(new LinkedHashMap<>(matchupCoefficients));
   }
 }

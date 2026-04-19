@@ -2,7 +2,9 @@ package app.zoneblitz.gamesimulator.formation;
 
 import app.zoneblitz.gamesimulator.band.BandRepository;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import java.util.Collections;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -27,7 +29,8 @@ public final class BandCoverageShellSampler implements CoverageShellSampler {
       throw new IllegalArgumentException("fallback shell weights must be non-empty");
     }
     this.byFormation = Map.copyOf(byFormation);
-    this.fallback = Map.copyOf(fallback);
+    // fallback is iterated in weightedSample; Map.copyOf would JVM-salt iteration order.
+    this.fallback = Collections.unmodifiableMap(new LinkedHashMap<>(fallback));
   }
 
   /** Load a sampler from the default {@code coverage-shell.json} band resource. */
