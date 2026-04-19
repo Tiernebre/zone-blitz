@@ -10,6 +10,7 @@ import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayId;
 import app.zoneblitz.gamesimulator.event.Score;
 import app.zoneblitz.gamesimulator.event.Side;
+import app.zoneblitz.gamesimulator.injury.InjuryModel;
 import app.zoneblitz.gamesimulator.kickoff.KickoffResolver;
 import app.zoneblitz.gamesimulator.penalty.PenaltyDraw;
 import app.zoneblitz.gamesimulator.penalty.PenaltyEnforcement;
@@ -69,6 +70,7 @@ final class GameSimulator implements SimulateGame {
   private static final long END_OF_HALF_SPLIT_KEY = 0xE0FA_1F00L;
   private static final long KNEEL_SPLIT_KEY = 0xE0FA_1F01L;
   private static final long SPIKE_SPLIT_KEY = 0xE0FA_1F02L;
+  private static final long INJURY_SPLIT_KEY = 0xF099_C0DEL;
   private static final int KNEEL_LOSS_YARDS = 1;
   private static final int KNEEL_CLOCK_BURN = 42;
   private static final int SPIKE_CLOCK_BURN = 3;
@@ -102,6 +104,7 @@ final class GameSimulator implements SimulateGame {
   private final TimeoutDecider timeoutDecider;
   private final EndOfHalfDecider endOfHalfDecider;
   private final FatigueModel fatigueModel;
+  private final InjuryModel injuryModel;
 
   GameSimulator(
       PlayCaller caller,
@@ -132,7 +135,8 @@ final class GameSimulator implements SimulateGame {
         HomeFieldModel.neutral(),
         new TendencyTimeoutDecider(),
         new TendencyEndOfHalfDecider(),
-        new PositionalFatigueModel());
+        new PositionalFatigueModel(),
+        (outcome, off, def, side, surface, rng) -> java.util.List.of());
   }
 
   GameSimulator(
@@ -166,7 +170,8 @@ final class GameSimulator implements SimulateGame {
         homeFieldModel,
         timeoutDecider,
         new TendencyEndOfHalfDecider(),
-        new PositionalFatigueModel());
+        new PositionalFatigueModel(),
+        (outcome, off, def, side, surface, rng) -> java.util.List.of());
   }
 
   GameSimulator(
@@ -201,7 +206,8 @@ final class GameSimulator implements SimulateGame {
         homeFieldModel,
         timeoutDecider,
         endOfHalfDecider,
-        new PositionalFatigueModel());
+        new PositionalFatigueModel(),
+        (outcome, off, def, side, surface, rng) -> java.util.List.of());
   }
 
   GameSimulator(
@@ -221,6 +227,44 @@ final class GameSimulator implements SimulateGame {
       TimeoutDecider timeoutDecider,
       EndOfHalfDecider endOfHalfDecider,
       FatigueModel fatigueModel) {
+    this(
+        caller,
+        personnel,
+        resolver,
+        clockModel,
+        kickoffResolver,
+        extraPointResolver,
+        fieldGoalResolver,
+        puntResolver,
+        penaltyModel,
+        defensiveCallSelector,
+        twoPointPolicy,
+        twoPointResolver,
+        homeFieldModel,
+        timeoutDecider,
+        endOfHalfDecider,
+        fatigueModel,
+        (outcome, off, def, side, surface, rng) -> java.util.List.of());
+  }
+
+  GameSimulator(
+      PlayCaller caller,
+      PersonnelSelector personnel,
+      PlayResolver resolver,
+      ClockModel clockModel,
+      KickoffResolver kickoffResolver,
+      ExtraPointResolver extraPointResolver,
+      FieldGoalResolver fieldGoalResolver,
+      PuntResolver puntResolver,
+      PenaltyModel penaltyModel,
+      DefensiveCallSelector defensiveCallSelector,
+      TwoPointDecisionPolicy twoPointPolicy,
+      TwoPointResolver twoPointResolver,
+      HomeFieldModel homeFieldModel,
+      TimeoutDecider timeoutDecider,
+      EndOfHalfDecider endOfHalfDecider,
+      FatigueModel fatigueModel,
+      InjuryModel injuryModel) {
     this.caller = Objects.requireNonNull(caller, "caller");
     this.personnel = Objects.requireNonNull(personnel, "personnel");
     this.resolver = Objects.requireNonNull(resolver, "resolver");
@@ -238,6 +282,7 @@ final class GameSimulator implements SimulateGame {
     this.timeoutDecider = Objects.requireNonNull(timeoutDecider, "timeoutDecider");
     this.endOfHalfDecider = Objects.requireNonNull(endOfHalfDecider, "endOfHalfDecider");
     this.fatigueModel = Objects.requireNonNull(fatigueModel, "fatigueModel");
+    this.injuryModel = Objects.requireNonNull(injuryModel, "injuryModel");
   }
 
   @Override
@@ -381,6 +426,20 @@ final class GameSimulator implements SimulateGame {
     out.add(event);
     state = state.withSnapsAccumulated(snapParticipants(offPersonnel, defPersonnel));
 
+    state =
+        emitInjuries(
+            out,
+            state,
+            outcome,
+            offPersonnel,
+            defPersonnel,
+            offenseSide,
+            inputs,
+            event,
+            clockAfter,
+            seq,
+            snapRng);
+
     if (advance.touchdown()) {
       state = state.withScore(scoreAfter).withClock(clockAfter);
       state = concludeOvertimePossession(state, offenseSide);
@@ -439,6 +498,48 @@ final class GameSimulator implements SimulateGame {
             offenseSide, offPersonnel, defPersonnel, snapRng.split(PENALTY_POST_KEY));
     if (postPlay.isPresent()) {
       state = emitPostPlayPenalty(out, state, postPlay.get(), seq, inputs.gameId(), offenseSide);
+    }
+    return state;
+  }
+
+  private GameState emitInjuries(
+      List<PlayEvent> out,
+      GameState state,
+      PlayOutcome outcome,
+      app.zoneblitz.gamesimulator.personnel.OffensivePersonnel offense,
+      app.zoneblitz.gamesimulator.personnel.DefensivePersonnel defense,
+      Side offenseSide,
+      GameInputs inputs,
+      PlayEvent triggering,
+      GameClock clockAfter,
+      int[] seq,
+      RandomSource rng) {
+    var draws =
+        injuryModel.draw(
+            outcome, offense, defense, offenseSide, inputs.preGameContext().surface(), rng);
+    if (draws.isEmpty()) {
+      return state;
+    }
+    for (var draw : draws) {
+      var sequence = seq[0]++;
+      var id =
+          new PlayId(
+              new UUID(
+                  inputs.gameId().value().getMostSignificantBits(), 0x1B00L | (long) sequence));
+      out.add(
+          new PlayEvent.Injury(
+              id,
+              inputs.gameId(),
+              sequence,
+              triggering.preSnap(),
+              triggering.preSnapSpot(),
+              triggering.clockBefore(),
+              clockAfter,
+              triggering.scoreAfter(),
+              draw.player(),
+              draw.side(),
+              draw.severity()));
+      state = state.withInjury(draw.player());
     }
     return state;
   }

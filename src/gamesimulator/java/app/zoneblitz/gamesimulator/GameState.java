@@ -7,6 +7,7 @@ import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.Score;
 import app.zoneblitz.gamesimulator.event.Side;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -317,6 +318,35 @@ public record GameState(
         drive,
         updated,
         injuredPlayers,
+        homeTimeouts,
+        awayTimeouts,
+        phase,
+        overtimeRound,
+        overtime);
+  }
+
+  /**
+   * Append {@code playerId} to {@link #injuredPlayers} if not already present. Idempotent — calling
+   * with the same id returns the same logical state. Used by the simulator after each injury draw
+   * so subsequent personnel selections skip the injured player.
+   */
+  public GameState withInjury(PlayerId playerId) {
+    Objects.requireNonNull(playerId, "playerId");
+    if (injuredPlayers.contains(playerId)) {
+      return this;
+    }
+    var next = new ArrayList<PlayerId>(injuredPlayers.size() + 1);
+    next.addAll(injuredPlayers);
+    next.add(playerId);
+    return new GameState(
+        score,
+        clock,
+        downAndDistance,
+        spot,
+        possession,
+        drive,
+        fatigueSnapCounts,
+        next,
         homeTimeouts,
         awayTimeouts,
         phase,

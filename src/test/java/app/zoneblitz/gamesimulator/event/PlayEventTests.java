@@ -169,7 +169,19 @@ class PlayEventTests {
             new PlayEvent.Spike(PLAY, GAME, 13, DD, SPOT, CLOCK, CLOCK, SCORE),
             new PlayEvent.Timeout(PLAY, GAME, 14, DD, SPOT, CLOCK, CLOCK, SCORE, Side.HOME),
             new PlayEvent.TwoMinuteWarning(PLAY, GAME, 15, DD, SPOT, CLOCK, CLOCK, SCORE),
-            new PlayEvent.EndOfQuarter(PLAY, GAME, 16, DD, SPOT, CLOCK, CLOCK, SCORE, 1));
+            new PlayEvent.EndOfQuarter(PLAY, GAME, 16, DD, SPOT, CLOCK, CLOCK, SCORE, 1),
+            new PlayEvent.Injury(
+                PLAY,
+                GAME,
+                17,
+                DD,
+                SPOT,
+                CLOCK,
+                CLOCK,
+                SCORE,
+                PLAYER,
+                Side.HOME,
+                InjurySeverity.PLAY));
 
     for (var event : events) {
       var label =
@@ -192,9 +204,10 @@ class PlayEventTests {
             case PlayEvent.Timeout t -> "timeout";
             case PlayEvent.TwoMinuteWarning w -> "two-minute";
             case PlayEvent.EndOfQuarter e -> "end-of-quarter";
+            case PlayEvent.Injury i -> "injury";
           };
       assertThat(label).isNotBlank();
     }
-    assertThat(events).hasSize(18);
+    assertThat(events).hasSize(19);
   }
 }

@@ -26,7 +26,8 @@ public sealed interface PlayEvent
         PlayEvent.Spike,
         PlayEvent.Timeout,
         PlayEvent.TwoMinuteWarning,
-        PlayEvent.EndOfQuarter {
+        PlayEvent.EndOfQuarter,
+        PlayEvent.Injury {
 
   /** The play's stable identifier. */
   PlayId id();
@@ -324,5 +325,24 @@ public sealed interface PlayEvent
       GameClock clockAfter,
       Score scoreAfter,
       int quarter)
+      implements PlayEvent {}
+
+  /**
+   * A player injury emitted immediately after the snap that caused it. {@link #scoreAfter} and
+   * {@link #clockAfter} match the triggering play's tail values — the injury does not move the
+   * clock on its own. {@link #severity} drives how long the player is unavailable.
+   */
+  record Injury(
+      PlayId id,
+      GameId gameId,
+      int sequence,
+      DownAndDistance preSnap,
+      FieldPosition preSnapSpot,
+      GameClock clockBefore,
+      GameClock clockAfter,
+      Score scoreAfter,
+      PlayerId player,
+      Side side,
+      InjurySeverity severity)
       implements PlayEvent {}
 }

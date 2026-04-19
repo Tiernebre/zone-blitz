@@ -41,6 +41,12 @@ final class DefaultPlayNarrator implements PlayNarrator {
       case PlayEvent.TwoMinuteWarning w ->
           "Two-minute warning, Q%d.".formatted(w.clockAfter().quarter());
       case PlayEvent.EndOfQuarter e -> endOfQuarter(e, context);
+      case PlayEvent.Injury i ->
+          "INJURY — %s (%s) is down (%s)."
+              .formatted(
+                  context.nameOf(i.player()),
+                  context.nameOf(i.side()),
+                  i.severity().name().toLowerCase().replace('_', ' '));
     };
   }
 
