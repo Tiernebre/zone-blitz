@@ -3,8 +3,12 @@
 <body>
 	<!--
 	    Shared negotiation form used by both HIRING_HEAD_COACH and HIRING_DIRECTOR_OF_SCOUTING.
-	    Inputs use step="any" so candidate-target values (non-round dollars / percents) don't
-	    trip the browser's number-step validation.
+
+	    Compensation: text input with comma formatting; the inline handler keeps only digits on
+	      submit so the server receives a plain number. Server rounds to the nearest $10,000.
+	    Guaranteed: integer percent (0–100); server converts to a fraction.
+	    Role scope / staff continuity are not rendered: during initial-staff-hiring there is no
+	      existing staff or scoped role to negotiate against.
 
 	    Args:
 	      row       — candidate view row (hasOffer / offer / target fields)
@@ -20,9 +24,20 @@
 	      class="hidden grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs">
 		<label class="flex flex-col gap-1">
 			<span class="text-slate-600">Comp ($)</span>
-			<input type="number" name="compensation" min="0" step="any"
-			       th:value="${row.hasOffer() ? row.offer().get().compensation() : row.compensationTarget()}"
-			       class="border border-slate-300 rounded px-2 py-1" />
+			<div class="relative">
+				<input type="text" inputmode="numeric" name="compensation" required
+				       th:value="${#numbers.formatInteger(row.hasOffer() ? row.offer().get().compensation() : row.compensationTarget(), 1, 'COMMA')}"
+				       oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+				       class="w-full border border-slate-300 rounded pl-2 pr-12 py-1" />
+				<div class="absolute inset-y-0 right-1 flex flex-col justify-center">
+					<button type="button" tabindex="-1" aria-label="Increase by $10,000"
+					        onclick="const i=this.closest('div').previousElementSibling; const v=(parseInt(i.value.replace(/[^0-9]/g,''))||0) + 10000; i.value = v.toLocaleString('en-US');"
+					        class="h-1/2 px-1 leading-none text-[8px] text-slate-500 hover:text-slate-900 cursor-pointer">▲</button>
+					<button type="button" tabindex="-1" aria-label="Decrease by $10,000"
+					        onclick="const i=this.closest('div').previousElementSibling; const v=Math.max(0, (parseInt(i.value.replace(/[^0-9]/g,''))||0) - 10000); i.value = v.toLocaleString('en-US');"
+					        class="h-1/2 px-1 leading-none text-[8px] text-slate-500 hover:text-slate-900 cursor-pointer">▼</button>
+				</div>
+			</div>
 		</label>
 		<label class="flex flex-col gap-1">
 			<span class="text-slate-600">Length (yrs)</span>
@@ -30,31 +45,14 @@
 			       th:value="${row.hasOffer() ? row.offer().get().contractLengthYears() : row.contractLengthTarget()}"
 			       class="border border-slate-300 rounded px-2 py-1" />
 		</label>
-		<label class="flex flex-col gap-1">
-			<span class="text-slate-600">Guaranteed (0–1)</span>
-			<input type="number" name="guaranteedMoneyPct" min="0" max="1" step="any"
-			       th:value="${row.hasOffer() ? row.offer().get().guaranteedMoneyPct() : row.guaranteedMoneyTarget()}"
+		<label class="flex flex-col gap-1 col-span-2">
+			<span class="text-slate-600">Guaranteed (%)</span>
+			<input type="number" name="guaranteedMoneyPct" min="0" max="100" step="1"
+			       th:value="${row.hasOffer() ? row.offer().get().guaranteedMoneyPctWhole() : row.guaranteedMoneyTargetPct()}"
 			       class="border border-slate-300 rounded px-2 py-1" />
 		</label>
-		<label class="flex flex-col gap-1"
-		       th:with="current=${row.hasOffer() ? row.offer().get().roleScope().name() : 'HIGH'}">
-			<span class="text-slate-600">Role scope</span>
-			<select name="roleScope" class="border border-slate-300 rounded px-2 py-1">
-				<option value="HIGH" th:selected="${current == 'HIGH'}">HIGH</option>
-				<option value="MEDIUM" th:selected="${current == 'MEDIUM'}">MEDIUM</option>
-				<option value="LOW" th:selected="${current == 'LOW'}">LOW</option>
-			</select>
-		</label>
-		<label class="flex flex-col gap-1 col-span-2"
-		       th:with="current=${row.hasOffer() ? row.offer().get().staffContinuity().name() : 'BRING_OWN'}">
-			<span class="text-slate-600">Staff continuity</span>
-			<select name="staffContinuity" class="border border-slate-300 rounded px-2 py-1">
-				<option value="BRING_OWN" th:selected="${current == 'BRING_OWN'}">BRING_OWN</option>
-				<option value="HYBRID" th:selected="${current == 'HYBRID'}">HYBRID</option>
-				<option value="KEEP_EXISTING" th:selected="${current == 'KEEP_EXISTING'}">KEEP_EXISTING</option>
-			</select>
-		</label>
 		<button type="submit"
+		        onclick="this.form.compensation.value = this.form.compensation.value.replace(/[^0-9]/g, '')"
 		        class="col-span-2 px-2 py-1 text-xs rounded bg-slate-900 text-white hover:bg-slate-800 cursor-pointer">
 			Submit offer
 		</button>

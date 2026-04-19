@@ -43,9 +43,6 @@ public final class StanceEvaluator {
     var guarTarget = prefs.guaranteedMoneyTarget().doubleValue();
     var guarFit = guarTarget <= 0 ? 1.0 : Math.min(1.0, guar / guarTarget);
 
-    var roleFit = offer.roleScope() == prefs.roleScopeTarget() ? 1.0 : 0.0;
-    var contFit = offer.staffContinuity() == prefs.staffContinuityTarget() ? 1.0 : 0.0;
-
     record Dim(String hint, double fit) {}
     var dims =
         List.of(
@@ -56,24 +53,12 @@ public final class StanceEvaluator {
             new Dim(
                 "I want at least %.0f%% guaranteed"
                     .formatted(prefs.guaranteedMoneyTarget().doubleValue() * 100.0),
-                guarFit),
-            new Dim(
-                "I want a %s scope role".formatted(prefs.roleScopeTarget().name().toLowerCase()),
-                roleFit),
-            new Dim(staffContinuityHint(prefs.staffContinuityTarget()), contFit));
+                guarFit));
 
     return dims.stream()
         .filter(d -> d.fit() < 1.0)
         .min(Comparator.comparingDouble(Dim::fit))
         .map(Dim::hint);
-  }
-
-  private static String staffContinuityHint(app.zoneblitz.league.staff.StaffContinuity target) {
-    return switch (target) {
-      case BRING_OWN -> "I want to bring my own staff";
-      case HYBRID -> "I want to keep some staff and bring in some of my own";
-      case KEEP_EXISTING -> "I want to keep the existing staff";
-    };
   }
 
   public record Evaluation(OfferStance stance, double score, Optional<String> hint) {}

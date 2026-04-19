@@ -63,9 +63,10 @@ public final class ScoutCandidateGenerator {
     var trueRating = clamp(TRUE_RATING_MEAN + TRUE_RATING_STD * rng.nextGaussian(), 20.0, 99.0);
 
     var dosBase = bands.salaryP10() + rng.nextDouble() * (bands.salaryP50() - bands.salaryP10());
+    var compRaw =
+        Math.max(90_000, dosBase * SCOUT_SALARY_FRACTION * (0.85 + rng.nextDouble() * 0.3));
     var compensation =
-        BigDecimal.valueOf(
-                Math.max(90_000, dosBase * SCOUT_SALARY_FRACTION * (0.85 + rng.nextDouble() * 0.3)))
+        BigDecimal.valueOf(Math.round(compRaw / 10_000.0) * 10_000L)
             .setScale(2, RoundingMode.HALF_UP);
     var contractLength = 1 + (int) Math.round(rng.nextDouble() * 2);
     var guaranteedMoney =

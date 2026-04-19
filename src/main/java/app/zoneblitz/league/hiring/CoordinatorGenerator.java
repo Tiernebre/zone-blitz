@@ -154,7 +154,8 @@ public final class CoordinatorGenerator {
     var ageMultiplier = 0.85 + Math.min(Math.abs(age - 48), 15) * -0.005;
     var experienceMultiplier = 0.9 + Math.min(totalExperience, 20) * 0.01;
     var value = hcBase * COORDINATOR_SALARY_FRACTION * ageMultiplier * experienceMultiplier;
-    return BigDecimal.valueOf(Math.max(400_000, value)).setScale(2, RoundingMode.HALF_UP);
+    var rounded = Math.round(Math.max(400_000, value) / 10_000.0) * 10_000L;
+    return BigDecimal.valueOf(rounded).setScale(2, RoundingMode.HALF_UP);
   }
 
   private static boolean isCoordinator(CandidateKind kind) {

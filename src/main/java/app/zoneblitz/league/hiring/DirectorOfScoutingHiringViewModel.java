@@ -56,7 +56,12 @@ public final class DirectorOfScoutingHiringViewModel {
             .toList();
     var poolRows = rows.stream().filter(r -> !r.hiredAway()).toList();
     var activeInterviewRows =
-        rows.stream().filter(DirectorOfScoutingCandidateView::interviewed).toList();
+        rows.stream()
+            .filter(DirectorOfScoutingCandidateView::interviewed)
+            .sorted(
+                java.util.Comparator.comparing(DirectorOfScoutingCandidateView::hiredAway)
+                    .thenComparing(r -> r.interest().orElseThrow()))
+            .toList();
     return new DirectorOfScoutingHiringView(
         league, poolRows, activeInterviewRows, leagueHires, interviewsToday, interviewCapacity);
   }
@@ -130,8 +135,6 @@ public final class DirectorOfScoutingHiringViewModel {
             terms.compensation(),
             terms.contractLengthYears(),
             terms.guaranteedMoneyPct(),
-            terms.roleScope(),
-            terms.staffContinuity(),
             stance,
             offer.revisionCount(),
             StanceEvaluator.REVISION_CAP,

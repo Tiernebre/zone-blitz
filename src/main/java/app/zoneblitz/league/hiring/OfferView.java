@@ -1,8 +1,7 @@
 package app.zoneblitz.league.hiring;
 
-import app.zoneblitz.league.staff.RoleScope;
-import app.zoneblitz.league.staff.StaffContinuity;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -15,8 +14,6 @@ public record OfferView(
     BigDecimal compensation,
     int contractLengthYears,
     BigDecimal guaranteedMoneyPct,
-    RoleScope roleScope,
-    StaffContinuity staffContinuity,
     OfferStance stance,
     int revisionCount,
     int revisionCap,
@@ -25,8 +22,6 @@ public record OfferView(
   public OfferView {
     Objects.requireNonNull(compensation, "compensation");
     Objects.requireNonNull(guaranteedMoneyPct, "guaranteedMoneyPct");
-    Objects.requireNonNull(roleScope, "roleScope");
-    Objects.requireNonNull(staffContinuity, "staffContinuity");
     Objects.requireNonNull(stance, "stance");
     Objects.requireNonNull(directionalHint, "directionalHint");
   }
@@ -37,5 +32,12 @@ public record OfferView(
 
   public boolean isAgreed() {
     return stance == OfferStance.AGREED;
+  }
+
+  public int guaranteedMoneyPctWhole() {
+    return guaranteedMoneyPct
+        .multiply(BigDecimal.valueOf(100L))
+        .setScale(0, RoundingMode.HALF_UP)
+        .intValueExact();
   }
 }

@@ -92,7 +92,7 @@ class PreferenceScoringOfferResolverTests {
     var offer =
         offers.insertActive(ctx.candidateId, ctx.cpuTeamId, OfferTermsJson.toJson(goodTerms()), 1);
 
-    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
 
     assertThat(offers.findById(offer.id()).orElseThrow().status()).isEqualTo(OfferStatus.ACCEPTED);
     assertThat(candidates.findById(ctx.candidateId).orElseThrow().hiredByTeamId())
@@ -111,7 +111,7 @@ class PreferenceScoringOfferResolverTests {
     var offer =
         offers.insertActive(ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(goodTerms()), 1);
 
-    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
 
     var reloaded = offers.findById(offer.id()).orElseThrow();
     assertThat(reloaded.status()).isEqualTo(OfferStatus.ACTIVE);
@@ -128,7 +128,7 @@ class PreferenceScoringOfferResolverTests {
     var cpuOffer =
         offers.insertActive(ctx.candidateId, ctx.cpuTeamId, OfferTermsJson.toJson(goodTerms()), 1);
 
-    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
 
     assertThat(offers.findById(userOffer.id()).orElseThrow().status())
         .isEqualTo(OfferStatus.ACTIVE);
@@ -144,7 +144,7 @@ class PreferenceScoringOfferResolverTests {
         offers.insertActive(
             ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(lowCompOffer()), 1);
 
-    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
 
     var reloaded = offers.findById(offer.id()).orElseThrow();
     assertThat(reloaded.status()).isEqualTo(OfferStatus.ACTIVE);
@@ -163,7 +163,7 @@ class PreferenceScoringOfferResolverTests {
       offers.revise(offer.id(), OfferTermsJson.toJson(lowCompOffer()), 1);
     }
 
-    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
 
     assertThat(offers.findById(offer.id()).orElseThrow().status()).isEqualTo(OfferStatus.REJECTED);
   }

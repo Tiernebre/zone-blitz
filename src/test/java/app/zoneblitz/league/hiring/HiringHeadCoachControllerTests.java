@@ -156,9 +156,7 @@ class HiringHeadCoachControllerTests {
             post("/leagues/42/hiring/head-coach/offer/7")
                 .param("compensation", "8500000")
                 .param("contractLengthYears", "5")
-                .param("guaranteedMoneyPct", "0.85")
-                .param("roleScope", "HIGH")
-                .param("staffContinuity", "BRING_OWN")
+                .param("guaranteedMoneyPct", "85")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
                 .with(csrf()))
         .andExpect(status().isOk())
@@ -174,9 +172,7 @@ class HiringHeadCoachControllerTests {
             post("/leagues/42/hiring/head-coach/offer/7")
                 .param("compensation", "8500000")
                 .param("contractLengthYears", "5")
-                .param("guaranteedMoneyPct", "0.85")
-                .param("roleScope", "HIGH")
-                .param("staffContinuity", "BRING_OWN")
+                .param("guaranteedMoneyPct", "85")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
                 .with(csrf()))
         .andExpect(status().isConflict());
@@ -191,9 +187,7 @@ class HiringHeadCoachControllerTests {
             post("/leagues/42/hiring/head-coach/offer/7")
                 .param("compensation", "8500000")
                 .param("contractLengthYears", "5")
-                .param("guaranteedMoneyPct", "0.85")
-                .param("roleScope", "HIGH")
-                .param("staffContinuity", "BRING_OWN")
+                .param("guaranteedMoneyPct", "85")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
                 .with(csrf()))
         .andExpect(status().isNotFound());
@@ -232,9 +226,7 @@ class HiringHeadCoachControllerTests {
             post("/leagues/42/hiring/head-coach/offer/7")
                 .param("compensation", "8500000")
                 .param("contractLengthYears", "5")
-                .param("guaranteedMoneyPct", "0.85")
-                .param("roleScope", "HIGH")
-                .param("staffContinuity", "BRING_OWN")
+                .param("guaranteedMoneyPct", "85")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
         .andExpect(status().isForbidden());
   }

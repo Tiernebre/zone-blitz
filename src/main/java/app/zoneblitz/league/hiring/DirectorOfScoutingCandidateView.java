@@ -2,6 +2,7 @@ package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.league.staff.SpecialtyPosition;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -53,5 +54,12 @@ public record DirectorOfScoutingCandidateView(
 
   public boolean canOffer() {
     return interviewed() && interest.get() != InterviewInterest.NOT_INTERESTED && !hiredAway();
+  }
+
+  public int guaranteedMoneyTargetPct() {
+    return guaranteedMoneyTarget
+        .multiply(BigDecimal.valueOf(100L))
+        .setScale(0, RoundingMode.HALF_UP)
+        .intValueExact();
   }
 }

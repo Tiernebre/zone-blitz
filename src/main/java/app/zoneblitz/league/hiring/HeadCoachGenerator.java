@@ -181,7 +181,8 @@ public final class HeadCoachGenerator implements CandidateGenerator {
         base * ageMultiplier * experienceMultiplier * retreadMultiplier * archetypeMultiplier;
     var clamped =
         Math.max(bands.salaryP10() * 0.6, Math.min(bands.salaryCeiling() * 1.1, combined));
-    return BigDecimal.valueOf(clamped).setScale(2, RoundingMode.HALF_UP);
+    var rounded = Math.round(clamped / 10_000.0) * 10_000L;
+    return BigDecimal.valueOf(rounded).setScale(2, RoundingMode.HALF_UP);
   }
 
   private double ageSalaryMultiplier(int age) {

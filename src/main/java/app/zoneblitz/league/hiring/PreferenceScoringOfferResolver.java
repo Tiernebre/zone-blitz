@@ -85,12 +85,19 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
     if (pool.isEmpty()) {
       return;
     }
-    restance(leagueId);
+    restance(leagueId, dayAtResolve);
     autoHireCpuWinners(leagueId, phase, dayAtResolve);
   }
 
-  private void restance(long leagueId) {
+  private void restance(long leagueId, int dayAtResolve) {
     for (var offer : offers.findActiveForLeague(leagueId)) {
+      // Offers submitted (or revised) today don't resolve until the next tick. Without this gate,
+      // the CPU can offer and auto-hire in a single day-advance before the user sees the offer
+      // appear. A one-day response delay gives every franchise — user included — a full day to see
+      // what's on the board and react before stances land.
+      if (offer.submittedAtDay() >= dayAtResolve) {
+        continue;
+      }
       var prefs = preferences.findByCandidateId(offer.candidateId());
       var profile = teamProfiles.forTeam(offer.teamId());
       if (prefs.isEmpty() || profile.isEmpty()) {

@@ -44,13 +44,6 @@ public final class OfferScoring {
             ordinalFit(prefs.competitiveWindowTarget(), team.window()));
     total +=
         weighted(
-            prefs.roleScopeWeight(), categoricalFit(prefs.roleScopeTarget(), offer.roleScope()));
-    total +=
-        weighted(
-            prefs.staffContinuityWeight(),
-            categoricalFit(prefs.staffContinuityTarget(), offer.staffContinuity()));
-    total +=
-        weighted(
             prefs.schemeAlignmentWeight(),
             categoricalFit(prefs.schemeAlignmentTarget(), team.schemeAlignment()));
     total +=
@@ -61,6 +54,12 @@ public final class OfferScoring {
         weighted(
             prefs.facilityQualityWeight(),
             numericFloorFit(prefs.facilityQualityTarget(), team.facilityQuality(), 100.0));
+    // Role-scope and staff-continuity are dormant during initial-staff-hiring phases — no existing
+    // staff or scoped role exists for the candidate to evaluate — so their weights carry through at
+    // full fit instead of penalizing every offer. Reactivate the target-vs-offer comparison when
+    // in-season hiring lands.
+    total += weighted(prefs.roleScopeWeight(), 1.0);
+    total += weighted(prefs.staffContinuityWeight(), 1.0);
     return total;
   }
 

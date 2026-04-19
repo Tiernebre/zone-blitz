@@ -5,10 +5,22 @@ import java.math.BigDecimal;
 
 /**
  * Pure, stateless interest-scoring for interviews. Evaluates only the team-side preference
- * dimensions (categorical market/geography/climate/window/scheme and numeric prestige/owner
- * stability/facility quality) — offer-dependent dimensions (compensation, contract length,
- * guaranteed money, role scope, staff continuity) are intentionally excluded because no offer
- * exists at interview time.
+ * dimensions that carry real signal in the v1 expansion-league setup: {@code market}, {@code
+ * geography}, and {@code climate} (sourced from the team's franchise city).
+ *
+ * <p>Deliberately excluded:
+ *
+ * <ul>
+ *   <li>Offer-dependent dims (compensation, contract length, guaranteed money, role scope, staff
+ *       continuity) — no offer exists at interview time.
+ *   <li>Scheme alignment — the incoming head coach sets the team's scheme; it isn't a team
+ *       attribute the candidate is evaluating.
+ *   <li>Franchise prestige, owner stability, facility quality, competitive window — documented "v1
+ *       equal-footing" constants in {@code CityTeamProfiles} (see {@code
+ *       docs/technical/league-phases.md}). Because every team reports the same value, these
+ *       dimensions cannot differentiate teams and only reflect candidate target variance. Promote
+ *       them back into interest scoring once real team ratings land.
+ * </ul>
  *
  * <p>The weighted fit score is normalized by the sum of the considered dimensions' weights, then
  * bucketed into {@link InterviewInterest}. The result is deterministic: re-interviewing the same
@@ -49,31 +61,6 @@ public final class InterestScoring {
     weighted += weight(prefs.climateWeight()) * ordinalFit(prefs.climateTarget(), team.climate());
     totalWeight += weight(prefs.climateWeight());
 
-    weighted +=
-        weight(prefs.franchisePrestigeWeight())
-            * floorFit(prefs.franchisePrestigeTarget(), team.prestige());
-    totalWeight += weight(prefs.franchisePrestigeWeight());
-
-    weighted +=
-        weight(prefs.competitiveWindowWeight())
-            * ordinalFit(prefs.competitiveWindowTarget(), team.window());
-    totalWeight += weight(prefs.competitiveWindowWeight());
-
-    weighted +=
-        weight(prefs.schemeAlignmentWeight())
-            * fit(prefs.schemeAlignmentTarget(), team.schemeAlignment());
-    totalWeight += weight(prefs.schemeAlignmentWeight());
-
-    weighted +=
-        weight(prefs.ownerStabilityWeight())
-            * floorFit(prefs.ownerStabilityTarget(), team.ownerStability());
-    totalWeight += weight(prefs.ownerStabilityWeight());
-
-    weighted +=
-        weight(prefs.facilityQualityWeight())
-            * floorFit(prefs.facilityQualityTarget(), team.facilityQuality());
-    totalWeight += weight(prefs.facilityQualityWeight());
-
     return totalWeight <= 0.0 ? 0.0 : weighted / totalWeight;
   }
 
@@ -92,21 +79,5 @@ public final class InterestScoring {
       case 1 -> 0.5;
       default -> 0.0;
     };
-  }
-
-  private static double floorFit(BigDecimal target, BigDecimal actual) {
-    var t = target.doubleValue();
-    var a = actual.doubleValue();
-    if (t <= 0.0) {
-      return 1.0;
-    }
-    if (a >= t) {
-      return 1.0;
-    }
-    var floor = Math.max(0.0, t * 0.5);
-    if (a <= floor) {
-      return 0.0;
-    }
-    return (a - floor) / (t - floor);
   }
 }

@@ -18,17 +18,9 @@ class InterestScoringTests {
     assertThat(
             InterestScoring.score(
                 profile(
-                    MarketSize.LARGE,
-                    Geography.NE,
-                    Climate.NEUTRAL,
-                    CompetitiveWindow.CONTENDER,
-                    "WEST_COAST"),
+                    MarketSize.LARGE, Geography.NE, Climate.NEUTRAL, CompetitiveWindow.CONTENDER),
                 prefs(
-                    MarketSize.LARGE,
-                    Geography.NE,
-                    Climate.NEUTRAL,
-                    CompetitiveWindow.CONTENDER,
-                    "WEST_COAST")))
+                    MarketSize.LARGE, Geography.NE, Climate.NEUTRAL, CompetitiveWindow.CONTENDER)))
         .isEqualTo(InterviewInterest.INTERESTED);
   }
 
@@ -47,52 +39,41 @@ class InterestScoringTests {
                     new BigDecimal("20.00"),
                     "AIR_RAID"),
                 prefs(
-                    MarketSize.LARGE,
-                    Geography.NE,
-                    Climate.NEUTRAL,
-                    CompetitiveWindow.CONTENDER,
-                    "WEST_COAST")))
+                    MarketSize.LARGE, Geography.NE, Climate.NEUTRAL, CompetitiveWindow.CONTENDER)))
         .isEqualTo(InterviewInterest.NOT_INTERESTED);
   }
 
   @Test
   void score_partialMatch_returnsLukewarm() {
-    // One of five categorical dimensions matches exactly; prestige/stability/facility score high.
-    // Split should land between the two thresholds.
+    // Market, prestige, and owner-stability match; geography/climate/window/facility miss.
+    // 3/7 equal-weight dimensions at full fit → ~0.43 normalized → LUKEWARM band.
     assertThat(
             InterestScoring.score(
-                profile(
+                new TeamProfile(
+                    1L,
                     MarketSize.LARGE,
                     Geography.SW,
                     Climate.WARM,
+                    new BigDecimal("80.00"),
                     CompetitiveWindow.REBUILD,
+                    new BigDecimal("80.00"),
+                    new BigDecimal("20.00"),
                     "AIR_RAID"),
                 prefs(
-                    MarketSize.LARGE,
-                    Geography.NE,
-                    Climate.NEUTRAL,
-                    CompetitiveWindow.CONTENDER,
-                    "WEST_COAST")))
+                    MarketSize.LARGE, Geography.NE, Climate.NEUTRAL, CompetitiveWindow.CONTENDER)))
         .isEqualTo(InterviewInterest.LUKEWARM);
   }
 
   @Test
   void score_isDeterministic_sameInputsSameBucket() {
-    var team =
-        profile(
-            MarketSize.MEDIUM, Geography.MW, Climate.COLD, CompetitiveWindow.NEUTRAL, "COVER_2");
-    var p =
-        prefs(MarketSize.MEDIUM, Geography.MW, Climate.COLD, CompetitiveWindow.NEUTRAL, "COVER_2");
+    var team = profile(MarketSize.MEDIUM, Geography.MW, Climate.COLD, CompetitiveWindow.NEUTRAL);
+    var p = prefs(MarketSize.MEDIUM, Geography.MW, Climate.COLD, CompetitiveWindow.NEUTRAL);
 
     assertThat(InterestScoring.score(team, p)).isEqualTo(InterestScoring.score(team, p));
   }
 
   private static TeamProfile profile(
-      MarketSize marketSize,
-      Geography geography,
-      Climate climate,
-      CompetitiveWindow window,
-      String scheme) {
+      MarketSize marketSize, Geography geography, Climate climate, CompetitiveWindow window) {
     return new TeamProfile(
         1L,
         marketSize,
@@ -102,15 +83,11 @@ class InterestScoringTests {
         window,
         new BigDecimal("80.00"),
         new BigDecimal("80.00"),
-        scheme);
+        "BALANCED");
   }
 
   private static CandidatePreferences prefs(
-      MarketSize marketSize,
-      Geography geography,
-      Climate climate,
-      CompetitiveWindow window,
-      String scheme) {
+      MarketSize marketSize, Geography geography, Climate climate, CompetitiveWindow window) {
     return new CandidatePreferences(
         1L,
         new BigDecimal("8500000.00"),
@@ -133,7 +110,7 @@ class InterestScoringTests {
         new BigDecimal("0.050"),
         StaffContinuity.BRING_OWN,
         new BigDecimal("0.050"),
-        scheme,
+        "WEST_COAST",
         new BigDecimal("0.100"),
         new BigDecimal("70.00"),
         new BigDecimal("0.100"),

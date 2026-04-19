@@ -195,13 +195,11 @@ class StaffAssemblyE2ETest {
   }
 
   private static String headCoachOfferBody() {
-    return "compensation=8500000&contractLengthYears=5&guaranteedMoneyPct=0.85"
-        + "&roleScope=HIGH&staffContinuity=BRING_OWN";
+    return "compensation=8500000&contractLengthYears=5&guaranteedMoneyPct=85";
   }
 
   private static String directorOfScoutingOfferBody() {
-    return "compensation=1200000&contractLengthYears=4&guaranteedMoneyPct=0.5"
-        + "&roleScope=MEDIUM&staffContinuity=HYBRID";
+    return "compensation=1200000&contractLengthYears=4&guaranteedMoneyPct=50";
   }
 
   /**

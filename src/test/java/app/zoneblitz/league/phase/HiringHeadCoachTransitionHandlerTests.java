@@ -90,7 +90,7 @@ class HiringHeadCoachTransitionHandlerTests {
             .orElseThrow();
     var generated = candidates.findAllByPoolId(pool.id());
     var franchiseCount = teams.teamIdsForLeague(league.id()).size();
-    assertThat(generated).hasSize(franchiseCount * 5);
+    assertThat(generated).hasSize(franchiseCount * 2);
     assertThat(generated).allSatisfy(c -> assertThat(c.kind()).isEqualTo(CandidateKind.HEAD_COACH));
     assertThat(generated)
         .allSatisfy(c -> assertThat(preferences.findByCandidateId(c.id())).isPresent());

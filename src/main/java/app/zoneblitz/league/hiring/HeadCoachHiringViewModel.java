@@ -56,7 +56,13 @@ public final class HeadCoachHiringViewModel {
                         teamProfile.orElse(null)))
             .toList();
     var poolRows = rows.stream().filter(r -> !r.hiredAway()).toList();
-    var activeInterviewRows = rows.stream().filter(HeadCoachCandidateView::interviewed).toList();
+    var activeInterviewRows =
+        rows.stream()
+            .filter(HeadCoachCandidateView::interviewed)
+            .sorted(
+                java.util.Comparator.comparing(HeadCoachCandidateView::hiredAway)
+                    .thenComparing(r -> r.interest().orElseThrow()))
+            .toList();
     return new HeadCoachHiringView(
         league, poolRows, activeInterviewRows, leagueHires, interviewsToday, interviewCapacity);
   }
@@ -130,8 +136,6 @@ public final class HeadCoachHiringViewModel {
             terms.compensation(),
             terms.contractLengthYears(),
             terms.guaranteedMoneyPct(),
-            terms.roleScope(),
-            terms.staffContinuity(),
             stance,
             offer.revisionCount(),
             StanceEvaluator.REVISION_CAP,
