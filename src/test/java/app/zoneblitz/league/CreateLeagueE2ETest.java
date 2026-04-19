@@ -6,6 +6,7 @@ import app.zoneblitz.support.E2ETestAuth;
 import app.zoneblitz.support.PostgresTestcontainer;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.Dialog;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
@@ -86,6 +87,74 @@ class CreateLeagueE2ETest {
         .isVisible();
     assertThat(page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("All Leagues")))
         .isVisible();
+  }
+
+  @Test
+  void createdLeagueAppearsInAllLeaguesTable() {
+    signIn("e2e-user-" + System.nanoTime());
+
+    var leagueName = "Dynasty " + System.nanoTime();
+    createLeague(leagueName);
+
+    page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("All Leagues")).click();
+
+    assertThat(page).hasURL(Pattern.compile(".*/$|.*localhost:\\d+/?$"));
+    assertThat(
+            page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName("Your leagues")))
+        .isVisible();
+    assertThat(page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(leagueName)))
+        .isVisible();
+  }
+
+  @Test
+  void deletingLeagueFromTableRemovesItFromTheList() {
+    signIn("e2e-user-" + System.nanoTime());
+
+    var leagueName = "Doomed " + System.nanoTime();
+    createLeague(leagueName);
+
+    page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("All Leagues")).click();
+    assertThat(page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(leagueName)))
+        .isVisible();
+
+    page.onceDialog(Dialog::accept);
+    page.getByRole(
+            AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Delete league " + leagueName))
+        .click();
+
+    assertThat(page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(leagueName)))
+        .hasCount(0);
+  }
+
+  @Test
+  void deletingLeagueFromSettingsPageRemovesItFromTheList() {
+    signIn("e2e-user-" + System.nanoTime());
+
+    var leagueName = "Settings Delete " + System.nanoTime();
+    createLeague(leagueName);
+
+    page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("Settings")).click();
+    assertThat(page).hasURL(Pattern.compile(".*/leagues/\\d+/settings$"));
+    assertThat(page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName("Danger zone")))
+        .isVisible();
+
+    page.onceDialog(Dialog::accept);
+    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Delete league")).click();
+
+    assertThat(page).hasURL(Pattern.compile(".*/$|.*localhost:\\d+/?$"));
+    assertThat(page.getByText("You haven't created a league yet.")).isVisible();
+    assertThat(page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(leagueName)))
+        .hasCount(0);
+  }
+
+  private void createLeague(String leagueName) {
+    page.navigate("/leagues/new");
+    page.getByLabel("League name").fill(leagueName);
+    page.locator("input[name='franchiseId']")
+        .first()
+        .check(new Locator.CheckOptions().setForce(true));
+    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Create league")).click();
+    assertThat(page).hasURL(Pattern.compile(".*/leagues/\\d+$"));
   }
 
   private void signIn(String subject) {
