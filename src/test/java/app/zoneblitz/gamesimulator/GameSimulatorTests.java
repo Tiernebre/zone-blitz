@@ -434,7 +434,7 @@ class GameSimulatorTests {
             .withPhase(GameState.Phase.OVERTIME)
             .withOvertimeRound(1);
 
-    var result = GameSimulator.concludeOvertimePossession(state, Side.HOME);
+    var result = PeriodController.concludeOvertimePossession(state, Side.HOME);
 
     assertThat(result.phase()).isEqualTo(GameState.Phase.OVERTIME);
     assertThat(result.overtime().homePossessed()).isTrue();
@@ -450,7 +450,7 @@ class GameSimulatorTests {
             .withOvertimeRound(1)
             .withOvertime(new GameState.OvertimeState(true, false, false));
 
-    var result = GameSimulator.concludeOvertimePossession(state, Side.AWAY);
+    var result = PeriodController.concludeOvertimePossession(state, Side.AWAY);
 
     assertThat(result.phase()).isEqualTo(GameState.Phase.FINAL);
     assertThat(result.overtime().bothPossessed()).isTrue();
@@ -465,7 +465,7 @@ class GameSimulatorTests {
             .withOvertimeRound(1)
             .withOvertime(new GameState.OvertimeState(true, false, false));
 
-    var result = GameSimulator.concludeOvertimePossession(state, Side.AWAY);
+    var result = PeriodController.concludeOvertimePossession(state, Side.AWAY);
 
     assertThat(result.phase()).isEqualTo(GameState.Phase.OVERTIME);
     assertThat(result.overtime().suddenDeath()).isTrue();
@@ -479,7 +479,7 @@ class GameSimulatorTests {
             .withOvertimeRound(1)
             .withOvertime(new GameState.OvertimeState(true, true, true));
 
-    var result = GameSimulator.concludeOvertimePossession(state, Side.HOME);
+    var result = PeriodController.concludeOvertimePossession(state, Side.HOME);
 
     assertThat(result.phase()).isEqualTo(GameState.Phase.FINAL);
   }
@@ -488,7 +488,7 @@ class GameSimulatorTests {
   void concludeOvertimePossession_outsideOvertime_leavesStateUntouched() {
     var state = TestGameStates.of(1, 10, 25, 2, 600, 7, 7, Side.HOME);
 
-    var result = GameSimulator.concludeOvertimePossession(state, Side.HOME);
+    var result = PeriodController.concludeOvertimePossession(state, Side.HOME);
 
     assertThat(result).isSameAs(state);
   }
