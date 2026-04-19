@@ -102,7 +102,9 @@ class TalentAxisSweepCalibrationTests {
     assertThat(matched.avgMargin()).as("50v50 avg margin should be near 0").isBetween(-5.0, 5.0);
 
     // Monotonicity: as the gap widens, offense win rate must not drop and avg margin must not
-    // shrink. Small epsilons absorb sampling noise without letting a real inversion through.
+    // shrink. Epsilons absorb sampling noise — at 1,000 games/pair the between-pair std of win
+    // rate is ~2.2pp, so a 10pp floor is ~4σ and keeps real inversions catchable while tolerating
+    // stochastic dips.
     for (var i = 1; i < results.size(); i++) {
       var prev = results.get(i - 1);
       var curr = results.get(i);
@@ -110,12 +112,12 @@ class TalentAxisSweepCalibrationTests {
           .as(
               "win rate must not decrease as talent gap widens: %s -> %s",
               prev.label(), curr.label())
-          .isGreaterThanOrEqualTo(prev.offenseWinRate() - 0.03);
+          .isGreaterThanOrEqualTo(prev.offenseWinRate() - 0.10);
       assertThat(curr.avgMargin())
           .as(
               "avg margin must not shrink as talent gap widens: %s -> %s",
               prev.label(), curr.label())
-          .isGreaterThanOrEqualTo(prev.avgMargin() - 2.0);
+          .isGreaterThanOrEqualTo(prev.avgMargin() - 4.0);
     }
 
     // No cliff: adjacent pairs should not jump by more than ~30 percentage points in win rate or

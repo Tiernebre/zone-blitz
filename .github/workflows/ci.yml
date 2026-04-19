@@ -50,7 +50,7 @@ jobs:
         with:
           node-version: 20
       - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew flywayMigrate generateJooq test jacocoTestReport
+      - run: ./gradlew test jacocoTestReport
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -87,7 +87,7 @@ jobs:
         with:
           node-version: 20
       - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew flywayMigrate generateJooq e2eTest
+      - run: ./gradlew e2eTest
       - uses: actions/upload-artifact@v4
         if: always()
         with:
