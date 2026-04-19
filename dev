@@ -79,6 +79,13 @@ cleanup() {
 }
 trap cleanup INT TERM EXIT
 
+log "starting postgres (docker compose)…"
+if ! docker compose up -d --wait postgres 2>&1 | prefix "postgres" "$CYAN"; then
+	log "${YELLOW}postgres failed to become healthy — aborting${RESET}"
+	exit 1
+fi
+log "${GREEN}✔ postgres ready${RESET}"
+
 tag_pids=()
 tag_names=()
 
