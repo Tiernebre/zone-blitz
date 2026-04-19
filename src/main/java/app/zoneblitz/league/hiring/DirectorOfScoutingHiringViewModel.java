@@ -1,5 +1,6 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.LeagueSummary;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.regex.Pattern;
  * DirectorOfScoutingHiringView}. Mirrors {@link HeadCoachHiringViewModel} for the DoS phase — only
  * the experience-by-role keys (DOS / SCOUT / AREA_SCOUT) differ.
  */
-final class DirectorOfScoutingHiringViewModel {
+public final class DirectorOfScoutingHiringViewModel {
 
   private static final Pattern OVERALL =
       Pattern.compile("\"overall\"\\s*:\\s*(-?[0-9]+(?:\\.[0-9]+)?)");

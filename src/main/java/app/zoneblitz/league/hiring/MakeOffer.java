@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 /**
  * Use case: a franchise submits an offer to a Head Coach candidate. One offer per (franchise,
@@ -6,7 +6,7 @@ package app.zoneblitz.league;
  * {@link MakeOfferResult.ActiveOfferExists}. Offer is resolved at the next week tick by {@link
  * OfferResolver}.
  */
-interface MakeOffer {
+public interface MakeOffer {
 
   /**
    * Submit an offer on behalf of the requester's franchise.

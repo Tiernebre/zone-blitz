@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.team;
 
 import static app.zoneblitz.jooq.Tables.TEAMS;
 
@@ -7,11 +7,11 @@ import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 @Repository
-class JooqTeamRepository implements TeamRepository {
+public class JooqTeamRepository implements TeamRepository {
 
   private final DSLContext dsl;
 
-  JooqTeamRepository(DSLContext dsl) {
+  public JooqTeamRepository(DSLContext dsl) {
     this.dsl = dsl;
   }
 

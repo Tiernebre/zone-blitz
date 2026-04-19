@@ -1,10 +1,10 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import java.util.List;
 import java.util.Optional;
 
 /** Feature-internal persistence seam for {@link Candidate}. */
-interface CandidateRepository {
+public interface CandidateRepository {
 
   /**
    * Insert a candidate into the given pool. {@code hiredByTeamId} and {@code scoutBranch} default

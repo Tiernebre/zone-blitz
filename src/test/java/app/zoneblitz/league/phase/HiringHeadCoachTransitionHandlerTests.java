@@ -1,8 +1,31 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.league.CreateLeague;
+import app.zoneblitz.league.CreateLeagueResult;
+import app.zoneblitz.league.CreateLeagueUseCase;
+import app.zoneblitz.league.FakeRandomSource;
+import app.zoneblitz.league.JooqLeagueRepository;
+import app.zoneblitz.league.League;
+import app.zoneblitz.league.LeagueRepository;
+import app.zoneblitz.league.franchise.JooqFranchiseRepository;
+import app.zoneblitz.league.hiring.CandidateKind;
+import app.zoneblitz.league.hiring.CandidatePoolRepository;
+import app.zoneblitz.league.hiring.CandidatePoolType;
+import app.zoneblitz.league.hiring.CandidatePreferencesRepository;
+import app.zoneblitz.league.hiring.CandidateRandomSources;
+import app.zoneblitz.league.hiring.CandidateRepository;
+import app.zoneblitz.league.hiring.HeadCoachGenerator;
+import app.zoneblitz.league.hiring.JooqCandidatePoolRepository;
+import app.zoneblitz.league.hiring.JooqCandidatePreferencesRepository;
+import app.zoneblitz.league.hiring.JooqCandidateRepository;
+import app.zoneblitz.league.team.JooqTeamHiringStateRepository;
+import app.zoneblitz.league.team.JooqTeamLookup;
+import app.zoneblitz.league.team.JooqTeamRepository;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
+import app.zoneblitz.league.team.TeamLookup;
 import app.zoneblitz.support.PostgresTestcontainer;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.BeforeEach;

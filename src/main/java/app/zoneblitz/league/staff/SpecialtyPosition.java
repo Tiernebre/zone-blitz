@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.staff;
 
 /**
  * Coaching/scouting specialty — the position a candidate understands best. Broader than the sim

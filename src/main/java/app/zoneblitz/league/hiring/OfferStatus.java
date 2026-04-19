@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 public enum OfferStatus {
   ACTIVE,

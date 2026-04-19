@@ -1,5 +1,9 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.LeagueRepository;
+import app.zoneblitz.league.phase.HiringPhases;
+import app.zoneblitz.league.phase.HiringStep;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class MakeOfferUseCase implements MakeOffer {
+public class MakeOfferUseCase implements MakeOffer {
 
   private static final Logger log = LoggerFactory.getLogger(MakeOfferUseCase.class);
 
@@ -17,7 +21,7 @@ class MakeOfferUseCase implements MakeOffer {
   private final CandidateOfferRepository offers;
   private final TeamHiringStateRepository hiringStates;
 
-  MakeOfferUseCase(
+  public MakeOfferUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,

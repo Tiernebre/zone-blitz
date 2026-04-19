@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import java.util.List;

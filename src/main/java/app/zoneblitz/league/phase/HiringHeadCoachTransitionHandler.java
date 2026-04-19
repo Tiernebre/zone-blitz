@@ -1,5 +1,16 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
+import app.zoneblitz.league.LeagueRepository;
+import app.zoneblitz.league.hiring.CandidatePoolRepository;
+import app.zoneblitz.league.hiring.CandidatePoolType;
+import app.zoneblitz.league.hiring.CandidatePreferencesRepository;
+import app.zoneblitz.league.hiring.CandidateRandomSources;
+import app.zoneblitz.league.hiring.CandidateRepository;
+import app.zoneblitz.league.hiring.HeadCoachGenerator;
+import app.zoneblitz.league.hiring.NewCandidate;
+import app.zoneblitz.league.team.TeamHiringState;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
+import app.zoneblitz.league.team.TeamLookup;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +25,7 @@ import org.springframework.stereotype.Component;
  * do not duplicate data.
  */
 @Component
-class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
+public class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(HiringHeadCoachTransitionHandler.class);
 
@@ -30,7 +41,7 @@ class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
   private final HeadCoachGenerator generator;
   private final CandidateRandomSources rngs;
 
-  HiringHeadCoachTransitionHandler(
+  public HiringHeadCoachTransitionHandler(
       LeagueRepository leagues,
       TeamLookup teams,
       CandidatePoolRepository pools,

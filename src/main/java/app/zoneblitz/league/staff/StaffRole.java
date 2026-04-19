@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.staff;
 
 /** Terminal staff role on a franchise org chart. See {@code docs/technical/league-phases.md}. */
 public enum StaffRole {

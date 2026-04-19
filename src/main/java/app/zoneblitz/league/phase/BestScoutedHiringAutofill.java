@@ -1,5 +1,24 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
+import app.zoneblitz.league.hiring.Candidate;
+import app.zoneblitz.league.hiring.CandidateOfferRepository;
+import app.zoneblitz.league.hiring.CandidatePoolRepository;
+import app.zoneblitz.league.hiring.CandidatePoolType;
+import app.zoneblitz.league.hiring.CandidatePreferences;
+import app.zoneblitz.league.hiring.CandidatePreferencesRepository;
+import app.zoneblitz.league.hiring.CandidateRandomSources;
+import app.zoneblitz.league.hiring.CandidateRepository;
+import app.zoneblitz.league.hiring.OfferStatus;
+import app.zoneblitz.league.hiring.OfferTerms;
+import app.zoneblitz.league.hiring.OfferTermsJson;
+import app.zoneblitz.league.hiring.PreferenceScoringOfferResolver;
+import app.zoneblitz.league.staff.NewTeamStaffMember;
+import app.zoneblitz.league.staff.StaffRole;
+import app.zoneblitz.league.staff.TeamStaffMember;
+import app.zoneblitz.league.staff.TeamStaffRepository;
+import app.zoneblitz.league.team.TeamHiringState;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
+import app.zoneblitz.league.team.TeamLookup;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -21,7 +40,7 @@ import org.springframework.stereotype.Component;
  * row) matches the flow in {@link PreferenceScoringOfferResolver}.
  */
 @Component
-class BestScoutedHiringAutofill implements HiringPhaseAutofill {
+public class BestScoutedHiringAutofill implements HiringPhaseAutofill {
 
   private static final Logger log = LoggerFactory.getLogger(BestScoutedHiringAutofill.class);
 
@@ -37,7 +56,7 @@ class BestScoutedHiringAutofill implements HiringPhaseAutofill {
   private final TeamLookup teams;
   private final CandidateRandomSources rngs;
 
-  BestScoutedHiringAutofill(
+  public BestScoutedHiringAutofill(
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,

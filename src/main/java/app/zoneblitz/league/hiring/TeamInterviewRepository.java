@@ -1,9 +1,10 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.List;
 
 /** Feature-internal persistence seam for {@link TeamInterview}. */
-interface TeamInterviewRepository {
+public interface TeamInterviewRepository {
 
   /** Insert a completed interview row. Returns the persisted record with its generated id. */
   TeamInterview insert(NewTeamInterview interview);

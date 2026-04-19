@@ -1,9 +1,9 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import java.util.Optional;
 
 /** Feature-internal persistence seam for {@link CandidatePreferences}. */
-interface CandidatePreferencesRepository {
+public interface CandidatePreferencesRepository {
 
   /** Insert the preference row for a candidate. The candidate must already exist. */
   CandidatePreferences insert(CandidatePreferences preferences);

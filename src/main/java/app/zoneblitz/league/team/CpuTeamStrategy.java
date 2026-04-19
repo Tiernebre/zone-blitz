@@ -1,4 +1,8 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.team;
+
+import app.zoneblitz.league.AdvanceWeek;
+import app.zoneblitz.league.hiring.CandidateRandomSources;
+import app.zoneblitz.league.phase.LeaguePhase;
 
 /**
  * Per-phase CPU decision-maker. One implementation per {@link LeaguePhase} that requires CPU
@@ -9,7 +13,7 @@ package app.zoneblitz.league;
  * be deterministic given the inputs they receive and any league-scoped RNG they derive from {@link
  * CandidateRandomSources}; the week tick is the only place their side effects may commit.
  */
-interface CpuTeamStrategy {
+public interface CpuTeamStrategy {
 
   /** The phase this strategy handles. */
   LeaguePhase phase();

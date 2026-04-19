@@ -1,18 +1,23 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import static app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES;
 
+import app.zoneblitz.league.geography.Climate;
+import app.zoneblitz.league.geography.Geography;
+import app.zoneblitz.league.geography.MarketSize;
+import app.zoneblitz.league.staff.RoleScope;
+import app.zoneblitz.league.staff.StaffContinuity;
 import java.util.Objects;
 import java.util.Optional;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 @Repository
-class JooqCandidatePreferencesRepository implements CandidatePreferencesRepository {
+public class JooqCandidatePreferencesRepository implements CandidatePreferencesRepository {
 
   private final DSLContext dsl;
 
-  JooqCandidatePreferencesRepository(DSLContext dsl) {
+  public JooqCandidatePreferencesRepository(DSLContext dsl) {
     this.dsl = dsl;
   }
 

@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,11 +8,11 @@ import java.util.List;
  * a JSON binding dependency into the repository layer. The shape is deliberately strict: a JSON
  * array of integer literals.
  */
-final class JsonLongArrays {
+public final class JsonLongArrays {
 
   private JsonLongArrays() {}
 
-  static String encode(List<Long> ids) {
+  public static String encode(List<Long> ids) {
     if (ids.isEmpty()) {
       return "[]";
     }
@@ -25,7 +25,7 @@ final class JsonLongArrays {
     return sb.toString();
   }
 
-  static List<Long> decode(String json) {
+  public static List<Long> decode(String json) {
     if (json == null) return List.of();
     var trimmed = json.trim();
     if (trimmed.isEmpty() || trimmed.equals("[]")) return List.of();

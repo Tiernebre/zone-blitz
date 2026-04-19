@@ -1,5 +1,9 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.LeagueRepository;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.team.TeamHiringState;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -7,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScoutingHiring {
+public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScoutingHiring {
 
   private final LeagueRepository leagues;
   private final CandidatePoolRepository pools;
@@ -16,7 +20,7 @@ class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScoutingHirin
   private final TeamHiringStateRepository hiringStates;
   private final TeamInterviewRepository interviews;
 
-  ViewDirectorOfScoutingHiringUseCase(
+  public ViewDirectorOfScoutingHiringUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,

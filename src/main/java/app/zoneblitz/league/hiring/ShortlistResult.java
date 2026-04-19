@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 /** Sealed outcomes for adding/removing a candidate on the user's hiring shortlist. */
 public sealed interface ShortlistResult {

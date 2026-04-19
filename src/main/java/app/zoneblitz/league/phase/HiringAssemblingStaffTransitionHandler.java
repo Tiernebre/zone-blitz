@@ -1,5 +1,25 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
+import app.zoneblitz.league.hiring.Candidate;
+import app.zoneblitz.league.hiring.CandidateArchetype;
+import app.zoneblitz.league.hiring.CandidateKind;
+import app.zoneblitz.league.hiring.CandidatePool;
+import app.zoneblitz.league.hiring.CandidatePoolRepository;
+import app.zoneblitz.league.hiring.CandidatePoolType;
+import app.zoneblitz.league.hiring.CandidatePreferencesRepository;
+import app.zoneblitz.league.hiring.CandidateRandomSources;
+import app.zoneblitz.league.hiring.CandidateRepository;
+import app.zoneblitz.league.hiring.CoordinatorGenerator;
+import app.zoneblitz.league.hiring.GeneratedCandidate;
+import app.zoneblitz.league.hiring.NewCandidate;
+import app.zoneblitz.league.hiring.PositionCoachGenerator;
+import app.zoneblitz.league.hiring.ScoutBranch;
+import app.zoneblitz.league.hiring.ScoutCandidateGenerator;
+import app.zoneblitz.league.staff.NewTeamStaffMember;
+import app.zoneblitz.league.staff.SpecialtyPosition;
+import app.zoneblitz.league.staff.StaffRole;
+import app.zoneblitz.league.staff.TeamStaffRepository;
+import app.zoneblitz.league.team.TeamLookup;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -29,7 +49,7 @@ import org.springframework.stereotype.Component;
  * is a no-op for that team.
  */
 @Component
-class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
+public class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
 
   private static final Logger log =
       LoggerFactory.getLogger(HiringAssemblingStaffTransitionHandler.class);
@@ -60,7 +80,7 @@ class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHandler {
   private final ScoutCandidateGenerator scoutGenerator;
   private final CandidateRandomSources rngs;
 
-  HiringAssemblingStaffTransitionHandler(
+  public HiringAssemblingStaffTransitionHandler(
       TeamLookup teams,
       CandidatePoolRepository pools,
       CandidateRepository candidates,

@@ -1,5 +1,9 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.staff;
 
+import app.zoneblitz.league.LeagueSummary;
+import app.zoneblitz.league.franchise.Franchise;
+import app.zoneblitz.league.hiring.Candidate;
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.List;
 import java.util.Objects;
 

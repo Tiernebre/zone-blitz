@@ -1,7 +1,8 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import static app.zoneblitz.jooq.Tables.CANDIDATE_POOLS;
 
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -9,11 +10,11 @@ import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 @Repository
-class JooqCandidatePoolRepository implements CandidatePoolRepository {
+public class JooqCandidatePoolRepository implements CandidatePoolRepository {
 
   private final DSLContext dsl;
 
-  JooqCandidatePoolRepository(DSLContext dsl) {
+  public JooqCandidatePoolRepository(DSLContext dsl) {
     this.dsl = dsl;
   }
 

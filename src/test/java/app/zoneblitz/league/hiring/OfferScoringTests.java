@@ -1,7 +1,11 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.zoneblitz.league.geography.Climate;
+import app.zoneblitz.league.geography.Geography;
+import app.zoneblitz.league.geography.MarketSize;
+import app.zoneblitz.league.team.TeamProfile;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 

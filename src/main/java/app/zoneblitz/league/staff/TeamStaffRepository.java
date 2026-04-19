@@ -1,10 +1,10 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.staff;
 
 import java.util.List;
 import java.util.Optional;
 
 /** Feature-internal persistence seam for {@link TeamStaffMember}. */
-interface TeamStaffRepository {
+public interface TeamStaffRepository {
 
   /** Insert a new terminal staff hire. */
   TeamStaffMember insert(NewTeamStaffMember hire);

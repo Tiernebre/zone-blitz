@@ -1,5 +1,7 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.staff.RoleScope;
+import app.zoneblitz.league.staff.StaffContinuity;
 import java.math.BigDecimal;
 import java.util.Objects;
 

@@ -1,6 +1,12 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
+import app.zoneblitz.league.LeagueRepository;
+import app.zoneblitz.league.phase.HiringPhases;
+import app.zoneblitz.league.phase.HiringStep;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.team.TeamHiringState;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -12,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class StartInterviewUseCase implements StartInterview {
+public class StartInterviewUseCase implements StartInterview {
 
   private static final Logger log = LoggerFactory.getLogger(StartInterviewUseCase.class);
   private static final Pattern HIDDEN_OVERALL =
@@ -27,7 +33,7 @@ class StartInterviewUseCase implements StartInterview {
   private final TeamHiringStateRepository hiringStates;
   private final TeamInterviewRepository interviews;
 
-  StartInterviewUseCase(
+  public StartInterviewUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,

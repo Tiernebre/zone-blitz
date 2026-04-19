@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
 /**
  * Use case: advance a league from its current phase to the next phase.

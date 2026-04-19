@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 /**
  * Feature-public use case for adding or removing a candidate on the requesting franchise's

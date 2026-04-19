@@ -1,5 +1,6 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
+import app.zoneblitz.league.LeagueRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -10,14 +11,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class AdvancePhaseUseCase implements AdvancePhase {
+public class AdvancePhaseUseCase implements AdvancePhase {
 
   private static final Logger log = LoggerFactory.getLogger(AdvancePhaseUseCase.class);
 
   private final LeagueRepository leagues;
   private final Map<LeaguePhase, PhaseTransitionHandler> handlers;
 
-  AdvancePhaseUseCase(LeagueRepository leagues, List<PhaseTransitionHandler> handlers) {
+  public AdvancePhaseUseCase(LeagueRepository leagues, List<PhaseTransitionHandler> handlers) {
     this.leagues = leagues;
     this.handlers =
         handlers.stream()

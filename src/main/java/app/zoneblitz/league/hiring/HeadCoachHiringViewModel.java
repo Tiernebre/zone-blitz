@@ -1,5 +1,6 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.LeagueSummary;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.regex.Pattern;
  * domain candidates + preferences + shortlist state + per-team interview history. Extracted from
  * the controller so the controller stays thin and the assembly logic is unit-testable on its own.
  */
-final class HeadCoachHiringViewModel {
+public final class HeadCoachHiringViewModel {
 
   private static final Pattern OVERALL =
       Pattern.compile("\"overall\"\\s*:\\s*(-?[0-9]+(?:\\.[0-9]+)?)");

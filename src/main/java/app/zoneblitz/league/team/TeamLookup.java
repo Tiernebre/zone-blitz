@@ -1,12 +1,13 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.team;
 
+import app.zoneblitz.league.AdvanceWeek;
 import java.util.List;
 
 /**
  * Read-side companion to {@link TeamRepository} for features that need to know which teams belong
  * to a league. Kept separate so the write-side repository stays insert-only.
  */
-interface TeamLookup {
+public interface TeamLookup {
 
   /** Return the team ids participating in the given league, ordered by team id. */
   List<Long> teamIdsForLeague(long leagueId);

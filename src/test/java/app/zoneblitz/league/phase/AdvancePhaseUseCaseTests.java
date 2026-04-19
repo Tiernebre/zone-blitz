@@ -1,7 +1,15 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.zoneblitz.league.CreateLeague;
+import app.zoneblitz.league.CreateLeagueResult;
+import app.zoneblitz.league.CreateLeagueUseCase;
+import app.zoneblitz.league.JooqLeagueRepository;
+import app.zoneblitz.league.League;
+import app.zoneblitz.league.LeagueRepository;
+import app.zoneblitz.league.franchise.JooqFranchiseRepository;
+import app.zoneblitz.league.team.JooqTeamRepository;
 import app.zoneblitz.support.PostgresTestcontainer;
 import java.util.ArrayList;
 import java.util.List;

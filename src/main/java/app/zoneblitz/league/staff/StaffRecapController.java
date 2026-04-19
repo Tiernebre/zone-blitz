@@ -1,5 +1,7 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.staff;
 
+import app.zoneblitz.league.LeagueController;
+import app.zoneblitz.league.phase.LeaguePhase;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -15,11 +17,11 @@ import org.springframework.web.server.ResponseStatusException;
  * LeagueController#advancePhase} which every phase dashboard shares.
  */
 @Controller
-class StaffRecapController {
+public class StaffRecapController {
 
   private final ViewStaffRecap viewStaffRecap;
 
-  StaffRecapController(ViewStaffRecap viewStaffRecap) {
+  public StaffRecapController(ViewStaffRecap viewStaffRecap) {
     this.viewStaffRecap = viewStaffRecap;
   }
 

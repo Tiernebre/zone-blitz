@@ -1,14 +1,14 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.franchise;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-class ListFranchisesUseCase implements ListFranchises {
+public class ListFranchisesUseCase implements ListFranchises {
 
   private final FranchiseRepository repository;
 
-  ListFranchisesUseCase(FranchiseRepository repository) {
+  public ListFranchisesUseCase(FranchiseRepository repository) {
     this.repository = repository;
   }
 

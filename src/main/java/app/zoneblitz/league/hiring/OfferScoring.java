@@ -1,5 +1,6 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.team.TeamProfile;
 import java.math.BigDecimal;
 
 /**
@@ -14,7 +15,7 @@ import java.math.BigDecimal;
  * Numeric targets use a saturating asymmetric ramp (floor-style) for compensation /
  * guaranteed-money and a symmetric bell for contract length. Categorical fits are exact-match.
  */
-final class OfferScoring {
+public final class OfferScoring {
 
   private OfferScoring() {}
 

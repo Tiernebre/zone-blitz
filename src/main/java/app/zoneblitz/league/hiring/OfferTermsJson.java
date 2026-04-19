@@ -1,5 +1,7 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.staff.RoleScope;
+import app.zoneblitz.league.staff.StaffContinuity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -10,13 +12,13 @@ import java.math.BigDecimal;
  * JSON codec for {@link OfferTerms}. Used by repositories and use cases to round-trip the {@code
  * candidate_offers.terms} JSONB payload.
  */
-final class OfferTermsJson {
+public final class OfferTermsJson {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private OfferTermsJson() {}
 
-  static String toJson(OfferTerms terms) {
+  public static String toJson(OfferTerms terms) {
     var node = MAPPER.createObjectNode();
     node.put("compensation", terms.compensation());
     node.put("contract_length_years", terms.contractLengthYears());

@@ -1,7 +1,11 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.staff;
 
 import static app.zoneblitz.jooq.Tables.TEAMS;
 
+import app.zoneblitz.league.LeagueRepository;
+import app.zoneblitz.league.franchise.FranchiseRepository;
+import app.zoneblitz.league.hiring.CandidateRepository;
+import app.zoneblitz.league.team.TeamLookup;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
@@ -10,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class ViewStaffRecapUseCase implements ViewStaffRecap {
+public class ViewStaffRecapUseCase implements ViewStaffRecap {
 
   private final LeagueRepository leagues;
   private final TeamLookup teams;
@@ -19,7 +23,7 @@ class ViewStaffRecapUseCase implements ViewStaffRecap {
   private final CandidateRepository candidates;
   private final DSLContext dsl;
 
-  ViewStaffRecapUseCase(
+  public ViewStaffRecapUseCase(
       LeagueRepository leagues,
       TeamLookup teams,
       FranchiseRepository franchises,

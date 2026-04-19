@@ -8,12 +8,12 @@ import java.util.Random;
  * so generator outputs are reproducible across runs. {@link #split(long)} returns a child with a
  * seed derived from the parent seed and the split key.
  */
-final class FakeRandomSource implements RandomSource {
+public final class FakeRandomSource implements RandomSource {
 
   private final Random random;
   private final long seed;
 
-  FakeRandomSource(long seed) {
+  public FakeRandomSource(long seed) {
     this.seed = seed;
     this.random = new Random(seed);
   }

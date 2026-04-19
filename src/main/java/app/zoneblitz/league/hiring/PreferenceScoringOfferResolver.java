@@ -1,5 +1,13 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.phase.HiringStep;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.staff.NewTeamStaffMember;
+import app.zoneblitz.league.staff.StaffRole;
+import app.zoneblitz.league.staff.TeamStaffRepository;
+import app.zoneblitz.league.team.TeamHiringState;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
+import app.zoneblitz.league.team.TeamProfiles;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -16,7 +24,7 @@ import org.springframework.stereotype.Component;
  * docs/technical/league-phases.md}), falling back to offer id for total order safety.
  */
 @Component
-class PreferenceScoringOfferResolver implements OfferResolver {
+public class PreferenceScoringOfferResolver implements OfferResolver {
 
   private static final Logger log = LoggerFactory.getLogger(PreferenceScoringOfferResolver.class);
 
@@ -29,7 +37,7 @@ class PreferenceScoringOfferResolver implements OfferResolver {
   private final TeamStaffRepository staff;
   private final CandidateRandomSources rngs;
 
-  PreferenceScoringOfferResolver(
+  public PreferenceScoringOfferResolver(
       CandidateOfferRepository offers,
       CandidateRepository candidates,
       CandidatePoolRepository pools,

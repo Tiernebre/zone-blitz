@@ -1,10 +1,11 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.List;
 import java.util.Optional;
 
 /** Feature-internal persistence seam for {@link CandidatePool}. */
-interface CandidatePoolRepository {
+public interface CandidatePoolRepository {
 
   /** Insert a new pool. */
   CandidatePool insert(long leagueId, LeaguePhase phase, CandidatePoolType type);

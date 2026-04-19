@@ -1,4 +1,8 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
+
+import app.zoneblitz.league.hiring.OfferStatus;
+import app.zoneblitz.league.staff.TeamStaffMember;
+import app.zoneblitz.league.team.TeamHiringState;
 
 /**
  * Seam invoked when a hiring phase hits its week cap before every team has reached {@link
@@ -14,7 +18,7 @@ package app.zoneblitz.league;
  * <p>Idempotent: running twice on a phase where every team is already {@link HiringStep#HIRED} is a
  * no-op.
  */
-interface HiringPhaseAutofill {
+public interface HiringPhaseAutofill {
 
   /**
    * Auto-assign hires to any team that is not already {@link HiringStep#HIRED} in the given phase.

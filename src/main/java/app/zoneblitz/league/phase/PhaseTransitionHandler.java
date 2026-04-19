@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
 /**
  * Per-phase seam invoked by {@link AdvancePhase} on exit of the outgoing phase and entry of the
@@ -9,7 +9,7 @@ package app.zoneblitz.league;
  * resolution on exit, per-franchise sub-state reset, etc. None of that exists yet; the seam is
  * introduced now so hiring phases can plug in without controller/use-case churn.
  */
-interface PhaseTransitionHandler {
+public interface PhaseTransitionHandler {
 
   /** The phase this handler owns. */
   LeaguePhase phase();

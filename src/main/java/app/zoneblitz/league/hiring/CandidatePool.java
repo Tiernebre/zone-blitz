@@ -1,5 +1,6 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.time.Instant;
 
 /** League-wide pool of candidates generated on phase entry. */

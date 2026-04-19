@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 /**
  * Interview noise-reduction function. Each completed interview multiplies the remaining noise above
@@ -8,7 +8,7 @@ package app.zoneblitz.league;
  *
  * <p>σ(n) = FLOOR_STD + (INITIAL_STD − FLOOR_STD) · (1 − REDUCTION)^n
  */
-final class InterviewNoiseModel {
+public final class InterviewNoiseModel {
 
   static final double HC_INITIAL_STD = 8.0;
   static final double HC_FLOOR_STD = 2.0;

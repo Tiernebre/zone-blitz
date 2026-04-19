@@ -1,5 +1,10 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.team;
 
+import app.zoneblitz.league.geography.Climate;
+import app.zoneblitz.league.geography.Geography;
+import app.zoneblitz.league.geography.MarketSize;
+import app.zoneblitz.league.hiring.CompetitiveWindow;
+import app.zoneblitz.league.hiring.OfferResolver;
 import java.math.BigDecimal;
 import java.util.Objects;
 

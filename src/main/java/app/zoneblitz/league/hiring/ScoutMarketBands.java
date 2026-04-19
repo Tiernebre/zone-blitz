@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +11,7 @@ import java.util.Objects;
  * Parsed once at construction so no I/O happens mid-generation. Mirrors {@link
  * HeadCoachMarketBands} for the DoS candidate tier.
  */
-record ScoutMarketBands(
+public record ScoutMarketBands(
     int salaryP10,
     int salaryP50,
     int salaryP90,

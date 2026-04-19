@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
  * re-renders the DoS view from {@link ViewDirectorOfScoutingHiring} after each mutation.
  */
 @Controller
-class HiringDirectorOfScoutingController {
+public class HiringDirectorOfScoutingController {
 
   private static final Logger log =
       LoggerFactory.getLogger(HiringDirectorOfScoutingController.class);
@@ -31,7 +31,7 @@ class HiringDirectorOfScoutingController {
   private final StartInterview startInterview;
   private final MakeOffer makeOffer;
 
-  HiringDirectorOfScoutingController(
+  public HiringDirectorOfScoutingController(
       ViewDirectorOfScoutingHiring viewHiring,
       ManageHeadCoachShortlist shortlist,
       StartInterview startInterview,

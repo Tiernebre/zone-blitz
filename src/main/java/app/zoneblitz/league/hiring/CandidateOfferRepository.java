@@ -1,10 +1,10 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import java.util.List;
 import java.util.Optional;
 
 /** Feature-internal persistence seam for {@link CandidateOffer}. */
-interface CandidateOfferRepository {
+public interface CandidateOfferRepository {
 
   /**
    * Insert a new offer in {@link OfferStatus#ACTIVE} status. A team may only have one active offer

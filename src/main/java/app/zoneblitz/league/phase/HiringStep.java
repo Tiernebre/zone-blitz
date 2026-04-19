@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
 /**
  * Per-franchise hiring sub-state within a hiring phase. {@code SEARCHING} composes several

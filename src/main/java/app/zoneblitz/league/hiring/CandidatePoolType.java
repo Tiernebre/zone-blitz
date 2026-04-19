@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 /** Candidate pool bucket. Determines which tier of the market the pool was drawn from. */
 public enum CandidatePoolType {

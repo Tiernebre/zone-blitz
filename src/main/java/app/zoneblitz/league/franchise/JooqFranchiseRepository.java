@@ -1,9 +1,11 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.franchise;
 
 import static app.zoneblitz.jooq.Tables.CITIES;
 import static app.zoneblitz.jooq.Tables.FRANCHISES;
 import static app.zoneblitz.jooq.Tables.STATES;
 
+import app.zoneblitz.league.geography.City;
+import app.zoneblitz.league.geography.State;
 import java.util.List;
 import java.util.Optional;
 import org.jooq.DSLContext;
@@ -11,11 +13,11 @@ import org.jooq.Record;
 import org.springframework.stereotype.Repository;
 
 @Repository
-class JooqFranchiseRepository implements FranchiseRepository {
+public class JooqFranchiseRepository implements FranchiseRepository {
 
   private final DSLContext dsl;
 
-  JooqFranchiseRepository(DSLContext dsl) {
+  public JooqFranchiseRepository(DSLContext dsl) {
     this.dsl = dsl;
   }
 
@@ -61,7 +63,7 @@ class JooqFranchiseRepository implements FranchiseRepository {
         .fetchOptional(JooqFranchiseRepository::mapFranchise);
   }
 
-  static Franchise mapFranchise(Record r) {
+  public static Franchise mapFranchise(Record r) {
     var state = new State(r.get(STATES.ID), r.get(STATES.CODE), r.get(STATES.NAME));
     var city = new City(r.get(CITIES.ID), r.get(CITIES.NAME), state);
     return new Franchise(

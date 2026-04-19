@@ -1,7 +1,15 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.zoneblitz.league.JooqLeagueRepository;
+import app.zoneblitz.league.LeagueSettings;
+import app.zoneblitz.league.geography.Climate;
+import app.zoneblitz.league.geography.Geography;
+import app.zoneblitz.league.geography.MarketSize;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.staff.RoleScope;
+import app.zoneblitz.league.staff.StaffContinuity;
 import app.zoneblitz.support.PostgresTestcontainer;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.BeforeEach;

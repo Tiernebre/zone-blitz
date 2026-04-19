@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import static app.zoneblitz.jooq.Tables.CANDIDATE_OFFERS;
 
@@ -10,11 +10,11 @@ import org.jooq.JSONB;
 import org.springframework.stereotype.Repository;
 
 @Repository
-class JooqCandidateOfferRepository implements CandidateOfferRepository {
+public class JooqCandidateOfferRepository implements CandidateOfferRepository {
 
   private final DSLContext dsl;
 
-  JooqCandidateOfferRepository(DSLContext dsl) {
+  public JooqCandidateOfferRepository(DSLContext dsl) {
     this.dsl = dsl;
   }
 

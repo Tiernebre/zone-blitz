@@ -1,7 +1,9 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.staff;
 
 import static app.zoneblitz.jooq.Tables.TEAM_STAFF;
 
+import app.zoneblitz.league.hiring.ScoutBranch;
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -9,11 +11,11 @@ import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 @Repository
-class JooqTeamStaffRepository implements TeamStaffRepository {
+public class JooqTeamStaffRepository implements TeamStaffRepository {
 
   private final DSLContext dsl;
 
-  JooqTeamStaffRepository(DSLContext dsl) {
+  public JooqTeamStaffRepository(DSLContext dsl) {
     this.dsl = dsl;
   }
 

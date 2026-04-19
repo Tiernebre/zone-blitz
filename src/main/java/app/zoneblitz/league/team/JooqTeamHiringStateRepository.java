@@ -1,8 +1,11 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.team;
 
 import static app.zoneblitz.jooq.Tables.TEAMS;
 import static app.zoneblitz.jooq.Tables.TEAM_HIRING_STATES;
 
+import app.zoneblitz.league.hiring.JsonLongArrays;
+import app.zoneblitz.league.phase.HiringStep;
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -11,11 +14,11 @@ import org.jooq.JSONB;
 import org.springframework.stereotype.Repository;
 
 @Repository
-class JooqTeamHiringStateRepository implements TeamHiringStateRepository {
+public class JooqTeamHiringStateRepository implements TeamHiringStateRepository {
 
   private final DSLContext dsl;
 
-  JooqTeamHiringStateRepository(DSLContext dsl) {
+  public JooqTeamHiringStateRepository(DSLContext dsl) {
     this.dsl = dsl;
   }
 

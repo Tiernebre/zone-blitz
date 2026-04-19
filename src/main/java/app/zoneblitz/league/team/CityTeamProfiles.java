@@ -1,7 +1,12 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.team;
 
 import static app.zoneblitz.jooq.Tables.TEAMS;
 
+import app.zoneblitz.league.franchise.FranchiseRepository;
+import app.zoneblitz.league.geography.Climate;
+import app.zoneblitz.league.geography.Geography;
+import app.zoneblitz.league.geography.MarketSize;
+import app.zoneblitz.league.hiring.CompetitiveWindow;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
@@ -15,7 +20,7 @@ import org.springframework.stereotype.Component;
  * docs/technical/league-phases.md} "v1 equal-footing note").
  */
 @Component
-class CityTeamProfiles implements TeamProfiles {
+public class CityTeamProfiles implements TeamProfiles {
 
   private static final BigDecimal EQUAL_FOOTING_PRESTIGE = new BigDecimal("50.00");
   private static final BigDecimal EQUAL_FOOTING_OWNER_STABILITY = new BigDecimal("50.00");
@@ -42,7 +47,7 @@ class CityTeamProfiles implements TeamProfiles {
   private final DSLContext dsl;
   private final FranchiseRepository franchises;
 
-  CityTeamProfiles(DSLContext dsl, FranchiseRepository franchises) {
+  public CityTeamProfiles(DSLContext dsl, FranchiseRepository franchises) {
     this.dsl = dsl;
     this.franchises = franchises;
   }

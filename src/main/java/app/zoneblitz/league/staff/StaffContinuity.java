@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.staff;
 
 /** Candidate's preference over subordinate-staff retention in the role. */
 public enum StaffContinuity {

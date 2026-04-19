@@ -1,6 +1,12 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.league.geography.Climate;
+import app.zoneblitz.league.geography.Geography;
+import app.zoneblitz.league.geography.MarketSize;
+import app.zoneblitz.league.staff.RoleScope;
+import app.zoneblitz.league.staff.SpecialtyPosition;
+import app.zoneblitz.league.staff.StaffContinuity;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -28,7 +34,7 @@ public final class HeadCoachGenerator implements CandidateGenerator {
     this(HeadCoachMarketBands.loadFromClasspath());
   }
 
-  HeadCoachGenerator(HeadCoachMarketBands bands) {
+  public HeadCoachGenerator(HeadCoachMarketBands bands) {
     this.bands = Objects.requireNonNull(bands, "bands");
   }
 

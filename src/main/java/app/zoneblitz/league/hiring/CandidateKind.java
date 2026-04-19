@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 /**
  * The kind of staff seat a {@link Candidate} is generated to fill.

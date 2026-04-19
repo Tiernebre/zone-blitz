@@ -1,14 +1,20 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.geography.Climate;
+import app.zoneblitz.league.geography.Geography;
+import app.zoneblitz.league.geography.MarketSize;
+import app.zoneblitz.league.staff.RoleScope;
+import app.zoneblitz.league.staff.SpecialtyPosition;
+import app.zoneblitz.league.staff.StaffContinuity;
 import java.math.BigDecimal;
 import java.util.Optional;
 
 /** Test data factories for candidate-domain records. Keeps tests free of boilerplate. */
-final class CandidateTestData {
+public final class CandidateTestData {
 
   private CandidateTestData() {}
 
-  static NewCandidate newHeadCoach(long poolId) {
+  public static NewCandidate newHeadCoach(long poolId) {
     return new NewCandidate(
         poolId,
         CandidateKind.HEAD_COACH,
@@ -22,7 +28,7 @@ final class CandidateTestData {
         Optional.empty());
   }
 
-  static NewCandidate newScout(long poolId, ScoutBranch branch) {
+  public static NewCandidate newScout(long poolId, ScoutBranch branch) {
     return new NewCandidate(
         poolId,
         CandidateKind.SCOUT,
@@ -36,7 +42,7 @@ final class CandidateTestData {
         Optional.of(branch));
   }
 
-  static CandidatePreferences preferencesFor(long candidateId) {
+  public static CandidatePreferences preferencesFor(long candidateId) {
     return new CandidatePreferences(
         candidateId,
         new BigDecimal("8500000.00"),

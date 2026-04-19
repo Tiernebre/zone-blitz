@@ -1,6 +1,11 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.league.phase.HiringStep;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.team.CpuTeamStrategy;
+import app.zoneblitz.league.team.TeamHiringState;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -37,7 +42,7 @@ import org.slf4j.LoggerFactory;
  * CandidateRandomSources#forLeaguePhase(long, LeaguePhase)}, so the same seed reproduces identical
  * behavior.
  */
-class CpuHiringStrategy implements CpuTeamStrategy {
+public class CpuHiringStrategy implements CpuTeamStrategy {
 
   private static final Logger log = LoggerFactory.getLogger(CpuHiringStrategy.class);
 
@@ -59,7 +64,7 @@ class CpuHiringStrategy implements CpuTeamStrategy {
   private final TeamInterviewRepository interviews;
   private final CandidateRandomSources rngs;
 
-  CpuHiringStrategy(
+  public CpuHiringStrategy(
       LeaguePhase phase,
       CandidatePoolType poolType,
       CandidatePoolRepository pools,

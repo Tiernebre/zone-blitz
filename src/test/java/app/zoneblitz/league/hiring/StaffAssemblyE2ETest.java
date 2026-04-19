@@ -1,7 +1,12 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
+import app.zoneblitz.league.AdvanceWeek;
+import app.zoneblitz.league.LeagueRepository;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.staff.TeamStaffRepository;
+import app.zoneblitz.league.team.TeamLookup;
 import app.zoneblitz.support.E2ETestAuth;
 import app.zoneblitz.support.PostgresTestcontainer;
 import com.microsoft.playwright.Browser;

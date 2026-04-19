@@ -1,8 +1,13 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.team;
 
 import static app.zoneblitz.jooq.Tables.TEAMS;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.zoneblitz.league.JooqLeagueRepository;
+import app.zoneblitz.league.LeagueSettings;
+import app.zoneblitz.league.franchise.JooqFranchiseRepository;
+import app.zoneblitz.league.phase.HiringStep;
+import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.support.PostgresTestcontainer;
 import java.util.List;
 import java.util.Optional;

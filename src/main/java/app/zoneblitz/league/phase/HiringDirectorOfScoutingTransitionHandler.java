@@ -1,5 +1,16 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
+import app.zoneblitz.league.LeagueRepository;
+import app.zoneblitz.league.hiring.CandidatePoolRepository;
+import app.zoneblitz.league.hiring.CandidatePoolType;
+import app.zoneblitz.league.hiring.CandidatePreferencesRepository;
+import app.zoneblitz.league.hiring.CandidateRandomSources;
+import app.zoneblitz.league.hiring.CandidateRepository;
+import app.zoneblitz.league.hiring.DirectorOfScoutingGenerator;
+import app.zoneblitz.league.hiring.NewCandidate;
+import app.zoneblitz.league.team.TeamHiringState;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
+import app.zoneblitz.league.team.TeamLookup;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +25,7 @@ import org.springframework.stereotype.Component;
  * <p>Idempotent: re-entry of a phase that already has a pool is a no-op.
  */
 @Component
-class HiringDirectorOfScoutingTransitionHandler implements PhaseTransitionHandler {
+public class HiringDirectorOfScoutingTransitionHandler implements PhaseTransitionHandler {
 
   private static final Logger log =
       LoggerFactory.getLogger(HiringDirectorOfScoutingTransitionHandler.class);
@@ -31,7 +42,7 @@ class HiringDirectorOfScoutingTransitionHandler implements PhaseTransitionHandle
   private final DirectorOfScoutingGenerator generator;
   private final CandidateRandomSources rngs;
 
-  HiringDirectorOfScoutingTransitionHandler(
+  public HiringDirectorOfScoutingTransitionHandler(
       LeagueRepository leagues,
       TeamLookup teams,
       CandidatePoolRepository pools,

@@ -1,4 +1,9 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
+
+import app.zoneblitz.league.phase.HiringStep;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.staff.TeamStaffMember;
+import app.zoneblitz.league.team.TeamHiringState;
 
 /**
  * Seam invoked on each week tick — before {@code phase_week} is incremented — to resolve every
@@ -14,7 +19,7 @@ package app.zoneblitz.league;
  * <p>Idempotent: running twice on the same week is safe — there will be no remaining active offers
  * after the first run.
  */
-interface OfferResolver {
+public interface OfferResolver {
 
   /**
    * Resolve all active offers in the given league for the given hiring phase. {@code weekAtResolve}

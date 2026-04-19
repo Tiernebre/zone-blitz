@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +11,7 @@ import java.util.Objects;
  * Typed view over the {@code tiers.HC} section of {@code data/bands/coach-market.json}. Parsed once
  * at construction and handed to the generator so no I/O happens mid-generation.
  */
-record HeadCoachMarketBands(
+public record HeadCoachMarketBands(
     int salaryP10,
     int salaryP50,
     int salaryP90,

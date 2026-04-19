@@ -1,5 +1,10 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.LeagueRepository;
+import app.zoneblitz.league.phase.HiringPhases;
+import app.zoneblitz.league.phase.HiringStep;
+import app.zoneblitz.league.team.TeamHiringState;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -7,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
+public class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
 
   private final LeagueRepository leagues;
   private final CandidatePoolRepository pools;
@@ -16,7 +21,7 @@ class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
   private final TeamHiringStateRepository hiringStates;
   private final TeamInterviewRepository interviews;
 
-  ManageHeadCoachShortlistUseCase(
+  public ManageHeadCoachShortlistUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,

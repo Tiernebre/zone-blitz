@@ -1,18 +1,19 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import static app.zoneblitz.jooq.Tables.TEAM_INTERVIEWS;
 
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.List;
 import java.util.Objects;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 @Repository
-class JooqTeamInterviewRepository implements TeamInterviewRepository {
+public class JooqTeamInterviewRepository implements TeamInterviewRepository {
 
   private final DSLContext dsl;
 
-  JooqTeamInterviewRepository(DSLContext dsl) {
+  public JooqTeamInterviewRepository(DSLContext dsl) {
     this.dsl = dsl;
   }
 

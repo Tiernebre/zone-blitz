@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 /** Sealed outcomes for {@link StartInterview#start}. */
 public sealed interface InterviewResult {

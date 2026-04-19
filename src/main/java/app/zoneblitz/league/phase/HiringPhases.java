@@ -1,5 +1,7 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
+import app.zoneblitz.league.hiring.CandidatePoolType;
+import app.zoneblitz.league.staff.StaffRole;
 import java.util.Optional;
 
 /**
@@ -8,14 +10,14 @@ import java.util.Optional;
  * a hiring phase?" centralized so services can accept either hiring phase without sprinkling {@code
  * switch} ladders through every use case.
  */
-final class HiringPhases {
+public final class HiringPhases {
 
   private HiringPhases() {}
 
   /**
    * Candidate pool type the given phase draws from, or empty if the phase is not a hiring phase.
    */
-  static Optional<CandidatePoolType> poolTypeFor(LeaguePhase phase) {
+  public static Optional<CandidatePoolType> poolTypeFor(LeaguePhase phase) {
     return switch (phase) {
       case HIRING_HEAD_COACH -> Optional.of(CandidatePoolType.HEAD_COACH);
       case HIRING_DIRECTOR_OF_SCOUTING -> Optional.of(CandidatePoolType.DIRECTOR_OF_SCOUTING);
@@ -24,7 +26,7 @@ final class HiringPhases {
   }
 
   /** Terminal staff role produced by a hire in this phase. */
-  static StaffRole staffRoleFor(LeaguePhase phase) {
+  public static StaffRole staffRoleFor(LeaguePhase phase) {
     return switch (phase) {
       case HIRING_HEAD_COACH -> StaffRole.HEAD_COACH;
       case HIRING_DIRECTOR_OF_SCOUTING -> StaffRole.DIRECTOR_OF_SCOUTING;
@@ -33,7 +35,7 @@ final class HiringPhases {
     };
   }
 
-  static boolean isHiring(LeaguePhase phase) {
+  public static boolean isHiring(LeaguePhase phase) {
     return poolTypeFor(phase).isPresent();
   }
 }

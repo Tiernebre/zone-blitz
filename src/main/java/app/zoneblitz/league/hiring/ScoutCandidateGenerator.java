@@ -1,6 +1,7 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.league.staff.SpecialtyPosition;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -29,7 +30,7 @@ public final class ScoutCandidateGenerator {
     this(ScoutMarketBands.loadFromClasspath());
   }
 
-  ScoutCandidateGenerator(ScoutMarketBands bands) {
+  public ScoutCandidateGenerator(ScoutMarketBands bands) {
     this.bands = Objects.requireNonNull(bands, "bands");
   }
 

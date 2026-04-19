@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
 public enum LeaguePhase {
   INITIAL_SETUP,

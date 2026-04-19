@@ -7,17 +7,19 @@ import static app.zoneblitz.jooq.Tables.STATES;
 import static app.zoneblitz.jooq.Tables.TEAMS;
 import static org.jooq.impl.DSL.lower;
 
+import app.zoneblitz.league.franchise.JooqFranchiseRepository;
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.List;
 import java.util.Optional;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 @Repository
-class JooqLeagueRepository implements LeagueRepository {
+public class JooqLeagueRepository implements LeagueRepository {
 
   private final DSLContext dsl;
 
-  JooqLeagueRepository(DSLContext dsl) {
+  public JooqLeagueRepository(DSLContext dsl) {
     this.dsl = dsl;
   }
 

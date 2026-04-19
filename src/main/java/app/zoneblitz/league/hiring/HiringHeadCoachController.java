@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
  * template composes the same fragments returned by the fragment endpoints.
  */
 @Controller
-class HiringHeadCoachController {
+public class HiringHeadCoachController {
 
   private static final Logger log = LoggerFactory.getLogger(HiringHeadCoachController.class);
 
@@ -29,7 +29,7 @@ class HiringHeadCoachController {
   private final StartInterview startInterview;
   private final MakeOffer makeOffer;
 
-  HiringHeadCoachController(
+  public HiringHeadCoachController(
       ViewHeadCoachHiring viewHiring,
       ManageHeadCoachShortlist shortlist,
       StartInterview startInterview,

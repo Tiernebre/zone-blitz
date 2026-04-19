@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 /**
  * Categorical archetype tag. HC archetypes come first; other kinds' archetype sets are placeholders

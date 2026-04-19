@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.geography;
 
 public enum Climate {
   WARM,

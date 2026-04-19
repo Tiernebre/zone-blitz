@@ -1,6 +1,11 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.league.geography.Climate;
+import app.zoneblitz.league.geography.Geography;
+import app.zoneblitz.league.geography.MarketSize;
+import app.zoneblitz.league.staff.RoleScope;
+import app.zoneblitz.league.staff.StaffContinuity;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -11,7 +16,7 @@ import java.util.List;
  * candidates can be persisted and scored by {@link OfferScoring} without special casing. Extracted
  * so each generator doesn't reimplement the same weight-normalization math.
  */
-final class StaffPreferencesFactory {
+public final class StaffPreferencesFactory {
 
   private static final List<String> SCHEMES =
       List.of("SPREAD", "WEST_COAST", "AIR_RAID", "SMASHMOUTH", "COVER_2", "COVER_3");

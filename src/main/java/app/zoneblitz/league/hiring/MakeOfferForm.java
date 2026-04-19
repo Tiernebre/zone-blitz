@@ -1,5 +1,7 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.staff.RoleScope;
+import app.zoneblitz.league.staff.StaffContinuity;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -10,7 +12,7 @@ import java.math.BigDecimal;
  * HTMX form record bound by {@link HiringHeadCoachController#submitOffer} when a franchise submits
  * a HC offer. All fields map directly onto the typed {@link OfferTerms} payload.
  */
-record MakeOfferForm(
+public record MakeOfferForm(
     @NotNull @DecimalMin("0.0") BigDecimal compensation,
     @Min(1) int contractLengthYears,
     @NotNull @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal guaranteedMoneyPct,

@@ -1,4 +1,4 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.geography;
 
 /** US region bucket used for candidate geography preference. */
 public enum Geography {

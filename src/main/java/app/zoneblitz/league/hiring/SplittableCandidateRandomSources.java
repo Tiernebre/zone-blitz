@@ -1,7 +1,8 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
+import app.zoneblitz.league.phase.LeaguePhase;
 import org.springframework.stereotype.Component;
 
 /**
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Component;
  * — useful for reproducibility and tests.
  */
 @Component
-class SplittableCandidateRandomSources implements CandidateRandomSources {
+public class SplittableCandidateRandomSources implements CandidateRandomSources {
 
   @Override
   public RandomSource forLeaguePhase(long leagueId, LeaguePhase phase) {

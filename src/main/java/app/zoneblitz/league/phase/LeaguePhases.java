@@ -1,5 +1,6 @@
-package app.zoneblitz.league;
+package app.zoneblitz.league.phase;
 
+import app.zoneblitz.league.AdvanceWeekUseCase;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,7 +18,7 @@ import java.util.Optional;
  *   <li>{@link LeaguePhase#INITIAL_SETUP} — no cap; user-advanced explicitly.
  * </ul>
  */
-final class LeaguePhases {
+public final class LeaguePhases {
 
   private static final Map<LeaguePhase, LeaguePhase> NEXT =
       Map.of(
@@ -34,7 +35,7 @@ final class LeaguePhases {
 
   private LeaguePhases() {}
 
-  static Optional<LeaguePhase> next(LeaguePhase phase) {
+  public static Optional<LeaguePhase> next(LeaguePhase phase) {
     return Optional.ofNullable(NEXT.get(phase));
   }
 
@@ -42,7 +43,7 @@ final class LeaguePhases {
    * Returns the phase's week cap, or {@link Optional#empty()} if the phase has no cap (e.g. {@link
    * LeaguePhase#INITIAL_SETUP}, which is user-advanced).
    */
-  static Optional<Integer> maxWeeks(LeaguePhase phase) {
+  public static Optional<Integer> maxWeeks(LeaguePhase phase) {
     return Optional.ofNullable(MAX_WEEKS.get(phase));
   }
 }
