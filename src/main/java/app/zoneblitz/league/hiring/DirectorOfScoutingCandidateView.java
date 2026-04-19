@@ -8,7 +8,8 @@ import java.util.Optional;
 /**
  * Row view-model for a single Director-of-Scouting candidate. Never carries hidden-attribute data.
  * {@code interest} is present iff the requesting team has interviewed this candidate. {@code offer}
- * is present iff the team has an ACTIVE offer on this candidate.
+ * is present iff the team has an ACTIVE offer on this candidate. {@code hiredByFranchise} is
+ * present iff the candidate has signed with another team.
  */
 public record DirectorOfScoutingCandidateView(
     long id,
@@ -24,7 +25,8 @@ public record DirectorOfScoutingCandidateView(
     int contractLengthTarget,
     BigDecimal guaranteedMoneyTarget,
     Optional<InterviewInterest> interest,
-    Optional<OfferView> offer) {
+    Optional<OfferView> offer,
+    Optional<String> hiredByFranchise) {
 
   public DirectorOfScoutingCandidateView {
     Objects.requireNonNull(name, "name");
@@ -34,6 +36,7 @@ public record DirectorOfScoutingCandidateView(
     Objects.requireNonNull(guaranteedMoneyTarget, "guaranteedMoneyTarget");
     Objects.requireNonNull(interest, "interest");
     Objects.requireNonNull(offer, "offer");
+    Objects.requireNonNull(hiredByFranchise, "hiredByFranchise");
   }
 
   public boolean interviewed() {
@@ -44,7 +47,11 @@ public record DirectorOfScoutingCandidateView(
     return offer.isPresent();
   }
 
+  public boolean hiredAway() {
+    return hiredByFranchise.isPresent();
+  }
+
   public boolean canOffer() {
-    return interviewed() && interest.get() != InterviewInterest.NOT_INTERESTED;
+    return interviewed() && interest.get() != InterviewInterest.NOT_INTERESTED && !hiredAway();
   }
 }

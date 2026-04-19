@@ -34,9 +34,13 @@ import org.slf4j.LoggerFactory;
  * <ol>
  *   <li>If the team is already {@link HiringStep#HIRED}, do nothing.
  *   <li>Interview the best-fit unhired candidates not yet interviewed, up to daily capacity.
- *   <li>If no active CPU offer is outstanding, submit a single offer on the highest-fit interviewed
- *       candidate that is still unhired and not {@code NOT_INTERESTED}. Terms scale the candidate's
- *       preference targets by a willingness-to-pay multiplier keyed off the fit score.
+ *   <li>If the league is still inside the interview-only window ({@code phaseDay <
+ *       MakeOffer.OFFERS_OPEN_ON_DAY}), hold off on offering — every franchise gets time to vet a
+ *       shortlist before negotiations begin.
+ *   <li>If no active CPU offer is outstanding, submit a single offer on the highest-priority
+ *       interviewed candidate: {@code INTERESTED} candidates rank ahead of {@code LUKEWARM} ones,
+ *       ties broken by fit score. {@code NOT_INTERESTED} candidates are skipped. Terms scale the
+ *       candidate's preference targets by a willingness-to-pay multiplier keyed off the fit score.
  * </ol>
  */
 public class CpuHiringStrategy implements CpuTeamStrategy {
@@ -182,22 +186,33 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
       List<Candidate> unhired,
       TeamProfile profile,
       Map<Long, CandidatePreferences> prefsByCandidate) {
+    if (phaseDay < MakeOffer.OFFERS_OPEN_ON_DAY) {
+      return;
+    }
     var existingOffers = offers.findActiveForTeam(teamId);
     if (!existingOffers.isEmpty()) {
       return;
     }
-    var interviewedIds =
-        interviews.findAllFor(teamId, phase()).stream().map(TeamInterview::candidateId).toList();
+    var interestByCandidate =
+        interviews.findAllFor(teamId, phase()).stream()
+            .collect(
+                Collectors.toMap(
+                    TeamInterview::candidateId, TeamInterview::interestLevel, (a, b) -> a));
+    if (interestByCandidate.isEmpty()) {
+      return;
+    }
     var unhiredById =
         unhired.stream().collect(Collectors.toMap(Candidate::id, c -> c, (a, b) -> a));
     var ordered =
-        interviewedIds.stream()
+        interestByCandidate.keySet().stream()
             .map(unhiredById::get)
             .filter(Objects::nonNull)
             .filter(c -> prefsByCandidate.containsKey(c.id()))
+            .filter(c -> interestByCandidate.get(c.id()) != InterviewInterest.NOT_INTERESTED)
             .sorted(
-                Comparator.comparingDouble(
-                        (Candidate c) -> -fitScore(profile, prefsByCandidate.get(c.id())))
+                Comparator.comparingInt(
+                        (Candidate c) -> interestRank(interestByCandidate.get(c.id())))
+                    .thenComparingDouble(c -> -fitScore(profile, prefsByCandidate.get(c.id())))
                     .thenComparingLong(Candidate::id))
             .toList();
     for (var candidate : ordered) {
@@ -222,14 +237,16 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
   }
 
   /**
-   * Simple willingness-to-pay: scale the candidate's compensation target by 0.90..1.20 linear in
-   * preference-fit score. Contract length and guaranteed money mirror the candidate's own targets
-   * so the CPU never bids below the floor fit. Role scope / staff continuity match the candidate's
-   * preference target so categorical dimensions always score 1.0.
+   * Willingness-to-pay: scale the candidate's compensation target by 0.85..1.00 linear in
+   * preference-fit score. A perfect fit bids exactly at target — most real offers land below, which
+   * pushes day-1 stances toward RENEGOTIATE and stretches the funnel across multiple days instead
+   * of collapsing to instant agreement. Contract length and guaranteed money mirror the candidate's
+   * own targets; role scope / staff continuity match the candidate's preference target so
+   * categorical dimensions always score 1.0.
    */
   private OfferTerms buildOfferTerms(CandidatePreferences prefs, double fit) {
     var clamped = Math.max(0.0, Math.min(1.0, fit));
-    var multiplier = 0.90 + clamped * 0.30;
+    var multiplier = 0.85 + clamped * 0.15;
     var compensation =
         prefs
             .compensationTarget()
@@ -245,6 +262,14 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
 
   private static double fitScore(TeamProfile profile, CandidatePreferences prefs) {
     return InterestScoring.normalizedScore(profile, prefs);
+  }
+
+  private static int interestRank(InterviewInterest interest) {
+    return switch (interest) {
+      case INTERESTED -> 0;
+      case LUKEWARM -> 1;
+      case NOT_INTERESTED -> 2;
+    };
   }
 
   private Optional<TeamHiringState> findExisting(long teamId) {

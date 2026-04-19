@@ -102,6 +102,6 @@ class HiringDirectorOfScoutingControllerTests {
             Instant.now(),
             100L,
             franchise);
-    return new DirectorOfScoutingHiringView(league, List.of(), List.of(), 0, 5);
+    return new DirectorOfScoutingHiringView(league, List.of(), List.of(), List.of(), 0, 5);
   }
 }

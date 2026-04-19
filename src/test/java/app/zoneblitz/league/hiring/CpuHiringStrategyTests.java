@@ -102,11 +102,25 @@ class CpuHiringStrategyTests {
   }
 
   @Test
-  void execute_submitsExactlyOneActiveOfferOnInterviewedCandidate() {
+  void execute_holdsOfferDuringInterviewOnlyWindow() {
     var ctx = seedLeague("sub-1");
     var cpuFranchiseId = ctx.cpuFranchises().getFirst();
 
-    strategy.execute(ctx.leagueId(), cpuFranchiseId, 1);
+    for (var day = 1; day < MakeOffer.OFFERS_OPEN_ON_DAY; day++) {
+      strategy.execute(ctx.leagueId(), cpuFranchiseId, day);
+    }
+
+    assertThat(offers.findActiveForTeam(cpuFranchiseId))
+        .as("no offer before the league-wide interview-only window closes")
+        .isEmpty();
+  }
+
+  @Test
+  void execute_submitsExactlyOneActiveOfferOnceOffersOpen() {
+    var ctx = seedLeague("sub-1");
+    var cpuFranchiseId = ctx.cpuFranchises().getFirst();
+
+    runUntilOfferSubmitted(ctx.leagueId(), cpuFranchiseId);
 
     var active = offers.findActiveForTeam(cpuFranchiseId);
     assertThat(active).hasSize(1);
@@ -118,20 +132,54 @@ class CpuHiringStrategyTests {
   }
 
   @Test
-  void execute_nextWeek_doesNotSubmitSecondOfferWhilePriorIsActive() {
+  void execute_prioritizesInterestedCandidatesOverLukewarm() {
     var ctx = seedLeague("sub-1");
     var cpuFranchiseId = ctx.cpuFranchises().getFirst();
-    strategy.execute(ctx.leagueId(), cpuFranchiseId, 1);
-    var week1Offers = offers.findActiveForTeam(cpuFranchiseId);
 
-    strategy.execute(ctx.leagueId(), cpuFranchiseId, 2);
+    var offeredCandidateId = runUntilOfferSubmitted(ctx.leagueId(), cpuFranchiseId).candidateId();
 
-    var week2Offers = offers.findActiveForTeam(cpuFranchiseId);
-    assertThat(week2Offers)
+    var interest =
+        interviews.findAllFor(cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH).stream()
+            .filter(i -> i.candidateId() == offeredCandidateId)
+            .findFirst()
+            .map(TeamInterview::interestLevel)
+            .orElseThrow();
+    var anyInterested =
+        interviews.findAllFor(cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH).stream()
+            .anyMatch(i -> i.interestLevel() == InterviewInterest.INTERESTED);
+    if (anyInterested) {
+      assertThat(interest).isEqualTo(InterviewInterest.INTERESTED);
+    }
+  }
+
+  @Test
+  void execute_nextDay_doesNotSubmitSecondOfferWhilePriorIsActive() {
+    var ctx = seedLeague("sub-1");
+    var cpuFranchiseId = ctx.cpuFranchises().getFirst();
+    var submitted = runUntilOfferSubmitted(ctx.leagueId(), cpuFranchiseId);
+    var priorOffers = offers.findActiveForTeam(cpuFranchiseId);
+
+    strategy.execute(ctx.leagueId(), cpuFranchiseId, submitted.dayAtOffer() + 1);
+
+    var nextOffers = offers.findActiveForTeam(cpuFranchiseId);
+    assertThat(nextOffers)
         .hasSize(1)
         .extracting(CandidateOffer::id)
-        .containsExactlyElementsOf(week1Offers.stream().map(CandidateOffer::id).toList());
+        .containsExactlyElementsOf(priorOffers.stream().map(CandidateOffer::id).toList());
   }
+
+  private SubmittedOffer runUntilOfferSubmitted(long leagueId, long cpuTeamId) {
+    int day = 0;
+    while (offers.findActiveForTeam(cpuTeamId).isEmpty() && day < 15) {
+      day++;
+      strategy.execute(leagueId, cpuTeamId, day);
+    }
+    var active = offers.findActiveForTeam(cpuTeamId);
+    assertThat(active).as("CPU should have submitted an offer within the loop").hasSize(1);
+    return new SubmittedOffer(active.getFirst().candidateId(), day);
+  }
+
+  private record SubmittedOffer(long candidateId, int dayAtOffer) {}
 
   @Test
   void execute_whenAlreadyHired_skipsAllWork() {

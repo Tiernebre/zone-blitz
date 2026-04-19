@@ -19,6 +19,7 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
   private final TeamInterviewRepository interviews;
   private final CandidateOfferRepository offers;
   private final TeamProfiles teamProfiles;
+  private final LeagueHires leagueHires;
 
   public ViewHeadCoachHiringUseCase(
       LeagueRepository leagues,
@@ -27,7 +28,8 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
       CandidatePreferencesRepository preferences,
       TeamInterviewRepository interviews,
       CandidateOfferRepository offers,
-      TeamProfiles teamProfiles) {
+      TeamProfiles teamProfiles,
+      LeagueHires leagueHires) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
@@ -35,6 +37,7 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
     this.interviews = interviews;
     this.offers = offers;
     this.teamProfiles = teamProfiles;
+    this.leagueHires = leagueHires;
   }
 
   @Override
@@ -54,7 +57,8 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
     var pool = pools.findByLeaguePhaseAndType(leagueId, phase, CandidatePoolType.HEAD_COACH);
     if (pool.isEmpty()) {
       return Optional.of(
-          new HeadCoachHiringView(league, List.of(), List.of(), 0, StartInterview.DAILY_CAPACITY));
+          new HeadCoachHiringView(
+              league, List.of(), List.of(), List.of(), 0, StartInterview.DAILY_CAPACITY));
     }
     var rows = candidates.findAllByPoolId(pool.get().id());
     var prefs =
@@ -65,6 +69,7 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
     var interviewHistory = interviews.findAllFor(teamId, phase);
     var teamOffers = offers.findActiveForTeam(teamId);
     var profile = teamProfiles.forTeam(teamId);
+    var board = leagueHires.forLeaguePool(leagueId, teamId, pool.get().id());
     return Optional.of(
         HeadCoachHiringViewModel.assemble(
             league,
@@ -73,6 +78,7 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
             interviewHistory,
             teamOffers,
             profile,
+            board,
             StartInterview.DAILY_CAPACITY));
   }
 }

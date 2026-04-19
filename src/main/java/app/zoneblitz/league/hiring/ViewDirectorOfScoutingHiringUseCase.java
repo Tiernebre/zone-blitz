@@ -19,6 +19,7 @@ public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScouti
   private final TeamInterviewRepository interviews;
   private final CandidateOfferRepository offers;
   private final TeamProfiles teamProfiles;
+  private final LeagueHires leagueHires;
 
   public ViewDirectorOfScoutingHiringUseCase(
       LeagueRepository leagues,
@@ -27,7 +28,8 @@ public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScouti
       CandidatePreferencesRepository preferences,
       TeamInterviewRepository interviews,
       CandidateOfferRepository offers,
-      TeamProfiles teamProfiles) {
+      TeamProfiles teamProfiles,
+      LeagueHires leagueHires) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
@@ -35,6 +37,7 @@ public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScouti
     this.interviews = interviews;
     this.offers = offers;
     this.teamProfiles = teamProfiles;
+    this.leagueHires = leagueHires;
   }
 
   @Override
@@ -56,7 +59,7 @@ public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScouti
     if (pool.isEmpty()) {
       return Optional.of(
           new DirectorOfScoutingHiringView(
-              league, List.of(), List.of(), 0, StartInterview.DAILY_CAPACITY));
+              league, List.of(), List.of(), List.of(), 0, StartInterview.DAILY_CAPACITY));
     }
     var rows = candidates.findAllByPoolId(pool.get().id());
     var prefs =
@@ -67,6 +70,7 @@ public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScouti
     var interviewHistory = interviews.findAllFor(teamId, phase);
     var teamOffers = offers.findActiveForTeam(teamId);
     var profile = teamProfiles.forTeam(teamId);
+    var board = leagueHires.forLeaguePool(leagueId, teamId, pool.get().id());
     return Optional.of(
         DirectorOfScoutingHiringViewModel.assemble(
             league,
@@ -75,6 +79,7 @@ public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScouti
             interviewHistory,
             teamOffers,
             profile,
+            board,
             StartInterview.DAILY_CAPACITY));
   }
 }

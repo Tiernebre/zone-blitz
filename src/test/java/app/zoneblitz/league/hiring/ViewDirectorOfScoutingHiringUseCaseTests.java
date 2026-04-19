@@ -59,9 +59,10 @@ class ViewDirectorOfScoutingHiringUseCaseTests {
     var interviews = new JooqTeamInterviewRepository(dsl);
     var offers = new JooqCandidateOfferRepository(dsl);
     var profiles = new app.zoneblitz.league.team.CityTeamProfiles(dsl, franchises);
+    var leagueHires = new JooqLeagueHires(dsl);
     useCase =
         new ViewDirectorOfScoutingHiringUseCase(
-            leagues, pools, candidates, preferences, interviews, offers, profiles);
+            leagues, pools, candidates, preferences, interviews, offers, profiles, leagueHires);
   }
 
   @Test

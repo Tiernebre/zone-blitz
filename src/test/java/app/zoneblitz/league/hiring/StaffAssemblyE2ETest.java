@@ -116,6 +116,7 @@ class StaffAssemblyE2ETest {
     buttonInRow(hcCandidateId, "Interview").click();
     assertThat(reInterviewButton(hcCandidateId)).isVisible();
 
+    advanceToOffersOpen(leagueId, subject);
     submitOfferForm(leagueUrl + "/hiring/head-coach/offer/" + hcCandidateId, headCoachOfferBody());
 
     tickUntilPhaseLeaves(leagueId, subject, LeaguePhase.HIRING_HEAD_COACH);
@@ -132,6 +133,7 @@ class StaffAssemblyE2ETest {
     buttonInRow(dosCandidateId, "Interview").click();
     assertThat(reInterviewButton(dosCandidateId)).isVisible();
 
+    advanceToOffersOpen(leagueId, subject);
     submitOfferForm(
         leagueUrl + "/hiring/director-of-scouting/offer/" + dosCandidateId,
         directorOfScoutingOfferBody());
@@ -233,6 +235,13 @@ class StaffAssemblyE2ETest {
         """,
         java.util.Map.of("action", action, "formBody", formBody));
     page.waitForLoadState();
+  }
+
+  private void advanceToOffersOpen(long leagueId, String subject) {
+    while (leagues.findById(leagueId).orElseThrow().phaseDay()
+        < app.zoneblitz.league.hiring.MakeOffer.OFFERS_OPEN_ON_DAY) {
+      advanceDay.advance(leagueId, subject);
+    }
   }
 
   private void tickUntilPhaseLeaves(long leagueId, String subject, LeaguePhase phase) {

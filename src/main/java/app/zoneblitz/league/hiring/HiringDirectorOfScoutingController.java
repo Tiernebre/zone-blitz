@@ -120,6 +120,11 @@ public class HiringDirectorOfScoutingController {
           throw new ResponseStatusException(
               HttpStatus.CONFLICT,
               "Candidate has walked — %d revisions exhausted".formatted(capped.revisionCount()));
+      case MakeOfferResult.OffersNotYetOpen notYet ->
+          throw new ResponseStatusException(
+              HttpStatus.CONFLICT,
+              "Offers open on day %d (currently day %d)"
+                  .formatted(notYet.offersOpenOnDay(), notYet.phaseDay()));
     };
   }
 

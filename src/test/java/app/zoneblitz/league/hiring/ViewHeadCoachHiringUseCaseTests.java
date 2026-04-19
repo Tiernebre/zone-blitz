@@ -58,9 +58,10 @@ class ViewHeadCoachHiringUseCaseTests {
     var interviews = new JooqTeamInterviewRepository(dsl);
     var offers = new JooqCandidateOfferRepository(dsl);
     var profiles = new app.zoneblitz.league.team.CityTeamProfiles(dsl, franchises);
+    var leagueHires = new JooqLeagueHires(dsl);
     useCase =
         new ViewHeadCoachHiringUseCase(
-            leagues, pools, candidates, preferences, interviews, offers, profiles);
+            leagues, pools, candidates, preferences, interviews, offers, profiles, leagueHires);
   }
 
   @Test
@@ -95,6 +96,19 @@ class ViewHeadCoachHiringUseCaseTests {
     assertThat(view.pool()).isNotEmpty();
     assertThat(view.activeInterviews()).isEmpty();
     assertThat(view.pool()).allSatisfy(row -> assertThat(row.hasOffer()).isFalse());
+  }
+
+  @Test
+  void view_whenInPhase_returnsLeagueHiresWithViewerTeamFirstAllOpen() {
+    var league = createLeagueFor("sub-1");
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    entryHandler.onEntry(league.id());
+
+    var view = useCase.view(league.id(), "sub-1").orElseThrow();
+
+    assertThat(view.leagueHires()).isNotEmpty();
+    assertThat(view.leagueHires().getFirst().isViewerTeam()).isTrue();
+    assertThat(view.leagueHires()).allSatisfy(row -> assertThat(row.hire()).isEmpty());
   }
 
   private League createLeagueFor(String ownerSubject) {

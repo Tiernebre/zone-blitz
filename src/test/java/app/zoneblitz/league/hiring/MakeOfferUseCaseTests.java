@@ -74,6 +74,7 @@ class MakeOfferUseCaseTests {
   void offer_whenValid_persistsActiveOffer() {
     var ctx = seedLeagueInPhase("sub-1");
     seedInterview(ctx, InterviewInterest.INTERESTED);
+    advanceToOffersOpen(ctx.leagueId);
 
     var result = makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms());
 
@@ -81,10 +82,24 @@ class MakeOfferUseCaseTests {
     var created = ((MakeOfferResult.Created) result).offer();
     assertThat(created.status()).isEqualTo(OfferStatus.ACTIVE);
     assertThat(created.candidateId()).isEqualTo(ctx.firstCandidateId);
-    assertThat(created.submittedAtDay()).isEqualTo(1);
+    assertThat(created.submittedAtDay()).isEqualTo(MakeOffer.OFFERS_OPEN_ON_DAY);
     assertThat(created.stance()).contains(OfferStance.PENDING);
     assertThat(created.revisionCount()).isEqualTo(0);
     assertThat(offers.findActiveForCandidate(ctx.firstCandidateId)).hasSize(1);
+  }
+
+  @Test
+  void offer_whenBeforeOffersOpen_returnsOffersNotYetOpen() {
+    var ctx = seedLeagueInPhase("sub-1");
+    seedInterview(ctx, InterviewInterest.INTERESTED);
+
+    var result = makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms());
+
+    assertThat(result).isInstanceOf(MakeOfferResult.OffersNotYetOpen.class);
+    var notYet = (MakeOfferResult.OffersNotYetOpen) result;
+    assertThat(notYet.phaseDay()).isEqualTo(1);
+    assertThat(notYet.offersOpenOnDay()).isEqualTo(MakeOffer.OFFERS_OPEN_ON_DAY);
+    assertThat(offers.findActiveForCandidate(ctx.firstCandidateId)).isEmpty();
   }
 
   @Test
@@ -150,6 +165,7 @@ class MakeOfferUseCaseTests {
   void offer_whenActiveOfferExists_revisesInPlace() {
     var ctx = seedLeagueInPhase("sub-1");
     seedInterview(ctx, InterviewInterest.INTERESTED);
+    advanceToOffersOpen(ctx.leagueId);
     var first =
         ((MakeOfferResult.Created)
                 makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms()))
@@ -171,6 +187,12 @@ class MakeOfferUseCaseTests {
     var result = makeOffer.offer(league.id(), 1L, "sub-1", terms());
 
     assertThat(result).isInstanceOf(MakeOfferResult.NotFound.class);
+  }
+
+  private void advanceToOffersOpen(long leagueId) {
+    for (var i = 1; i < MakeOffer.OFFERS_OPEN_ON_DAY; i++) {
+      leagues.incrementPhaseDay(leagueId);
+    }
   }
 
   private void seedInterview(Ctx ctx, InterviewInterest interest) {

@@ -19,4 +19,6 @@ public sealed interface MakeOfferResult {
   record CandidateNotInterested(long candidateId) implements MakeOfferResult {}
 
   record RevisionCapReached(long candidateId, int revisionCount) implements MakeOfferResult {}
+
+  record OffersNotYetOpen(int phaseDay, int offersOpenOnDay) implements MakeOfferResult {}
 }

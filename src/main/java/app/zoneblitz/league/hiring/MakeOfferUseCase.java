@@ -82,6 +82,9 @@ public class MakeOfferUseCase implements MakeOffer {
     }
 
     var phaseDay = league.phaseDay();
+    if (phaseDay < MakeOffer.OFFERS_OPEN_ON_DAY) {
+      return new MakeOfferResult.OffersNotYetOpen(phaseDay, MakeOffer.OFFERS_OPEN_ON_DAY);
+    }
     var existing = offers.findActiveForTeamAndCandidate(teamId, candidateId);
     if (existing.isPresent()) {
       if (existing.get().revisionCount() >= StanceEvaluator.REVISION_CAP) {

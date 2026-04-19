@@ -9,6 +9,7 @@ public record HeadCoachHiringView(
     LeagueSummary league,
     List<HeadCoachCandidateView> pool,
     List<HeadCoachCandidateView> activeInterviews,
+    List<LeagueHire> leagueHires,
     int interviewsToday,
     int interviewCapacity) {
 
@@ -16,5 +17,14 @@ public record HeadCoachHiringView(
     Objects.requireNonNull(league, "league");
     pool = List.copyOf(pool);
     activeInterviews = List.copyOf(activeInterviews);
+    leagueHires = List.copyOf(leagueHires);
+  }
+
+  public boolean offersOpen() {
+    return league.phaseDay() >= MakeOffer.OFFERS_OPEN_ON_DAY;
+  }
+
+  public int offersOpenOnDay() {
+    return MakeOffer.OFFERS_OPEN_ON_DAY;
   }
 }

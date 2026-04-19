@@ -27,6 +27,7 @@ public final class DirectorOfScoutingHiringViewModel {
       List<TeamInterview> interviews,
       List<CandidateOffer> teamOffers,
       Optional<TeamProfile> teamProfile,
+      List<LeagueHire> leagueHires,
       int interviewCapacity) {
     var prefsByCandidate =
         preferences.stream()
@@ -39,10 +40,10 @@ public final class DirectorOfScoutingHiringViewModel {
             .collect(
                 java.util.stream.Collectors.toUnmodifiableMap(
                     CandidateOffer::candidateId, o -> o, (a, b) -> a));
+    var franchiseByTeamId = franchiseByTeamId(leagueHires);
     var interviewsToday = countForDay(interviews, league.phaseDay());
     var rows =
         pool.stream()
-            .filter(c -> c.hiredByTeamId().isEmpty())
             .map(
                 c ->
                     toRow(
@@ -50,18 +51,28 @@ public final class DirectorOfScoutingHiringViewModel {
                         prefsByCandidate,
                         interestByCandidate,
                         offerByCandidate,
+                        franchiseByTeamId,
                         teamProfile.orElse(null)))
             .toList();
+    var poolRows = rows.stream().filter(r -> !r.hiredAway()).toList();
     var activeInterviewRows =
         rows.stream().filter(DirectorOfScoutingCandidateView::interviewed).toList();
     return new DirectorOfScoutingHiringView(
-        league, rows, activeInterviewRows, interviewsToday, interviewCapacity);
+        league, poolRows, activeInterviewRows, leagueHires, interviewsToday, interviewCapacity);
   }
 
   private static Map<Long, InterviewInterest> interestByCandidate(List<TeamInterview> interviews) {
     var m = new HashMap<Long, InterviewInterest>();
     for (var i : interviews) {
       m.put(i.candidateId(), i.interestLevel());
+    }
+    return m;
+  }
+
+  private static Map<Long, String> franchiseByTeamId(List<LeagueHire> leagueHires) {
+    var m = new HashMap<Long, String>();
+    for (var h : leagueHires) {
+      m.put(h.teamId(), h.franchiseName());
     }
     return m;
   }
@@ -75,12 +86,15 @@ public final class DirectorOfScoutingHiringViewModel {
       Map<Long, CandidatePreferences> prefsById,
       Map<Long, InterviewInterest> interestByCandidate,
       Map<Long, CandidateOffer> offerByCandidate,
+      Map<Long, String> franchiseByTeamId,
       TeamProfile teamProfile) {
     var prefs = prefsById.get(candidate.id());
     var interest = Optional.ofNullable(interestByCandidate.get(candidate.id()));
     var offer =
         Optional.ofNullable(offerByCandidate.get(candidate.id()))
             .flatMap(o -> toOfferView(o, prefs, teamProfile));
+    var hiredByFranchise =
+        candidate.hiredByTeamId().map(franchiseByTeamId::get).filter(java.util.Objects::nonNull);
     return new DirectorOfScoutingCandidateView(
         candidate.id(),
         candidate.fullName(),
@@ -95,7 +109,8 @@ public final class DirectorOfScoutingHiringViewModel {
         prefs == null ? 0 : prefs.contractLengthTarget(),
         prefs == null ? BigDecimal.ZERO : prefs.guaranteedMoneyTarget(),
         interest,
-        offer);
+        offer,
+        hiredByFranchise);
   }
 
   private static Optional<OfferView> toOfferView(

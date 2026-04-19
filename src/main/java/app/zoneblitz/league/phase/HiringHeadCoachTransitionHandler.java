@@ -29,7 +29,7 @@ public class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler 
 
   private static final Logger log = LoggerFactory.getLogger(HiringHeadCoachTransitionHandler.class);
 
-  private static final int POOL_SIZE_PER_TEAM = 5;
+  private static final int POOL_SIZE_PER_TEAM = 2;
 
   private final LeagueRepository leagues;
   private final TeamLookup teams;

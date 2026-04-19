@@ -9,7 +9,10 @@ import java.util.Optional;
  * Row view-model for a single HC candidate. Derived from {@link Candidate} + {@link
  * CandidatePreferences} + the requesting team's offer (if any); never carries hidden-attribute
  * data. {@code interest} is present iff the requesting team has interviewed this candidate. {@code
- * offer} is present iff the team has an ACTIVE offer out on this candidate.
+ * offer} is present iff the team has an ACTIVE offer out on this candidate. {@code
+ * hiredByFranchise} is present iff the candidate has signed with another team — surfaced so the
+ * "Your candidates" panel can keep the row visible (with a "Hired by X" badge) instead of
+ * disappearing mid-negotiation.
  */
 public record HeadCoachCandidateView(
     long id,
@@ -25,7 +28,8 @@ public record HeadCoachCandidateView(
     int contractLengthTarget,
     BigDecimal guaranteedMoneyTarget,
     Optional<InterviewInterest> interest,
-    Optional<OfferView> offer) {
+    Optional<OfferView> offer,
+    Optional<String> hiredByFranchise) {
 
   public HeadCoachCandidateView {
     Objects.requireNonNull(name, "name");
@@ -35,6 +39,7 @@ public record HeadCoachCandidateView(
     Objects.requireNonNull(guaranteedMoneyTarget, "guaranteedMoneyTarget");
     Objects.requireNonNull(interest, "interest");
     Objects.requireNonNull(offer, "offer");
+    Objects.requireNonNull(hiredByFranchise, "hiredByFranchise");
   }
 
   public boolean interviewed() {
@@ -45,7 +50,11 @@ public record HeadCoachCandidateView(
     return offer.isPresent();
   }
 
+  public boolean hiredAway() {
+    return hiredByFranchise.isPresent();
+  }
+
   public boolean canOffer() {
-    return interviewed() && interest.get() != InterviewInterest.NOT_INTERESTED;
+    return interviewed() && interest.get() != InterviewInterest.NOT_INTERESTED && !hiredAway();
   }
 }

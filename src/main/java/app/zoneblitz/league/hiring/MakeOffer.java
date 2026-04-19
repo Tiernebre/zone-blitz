@@ -9,6 +9,13 @@ package app.zoneblitz.league.hiring;
 public interface MakeOffer {
 
   /**
+   * League-wide interview-only window. Offers may only be submitted on phase days &gt;= this value.
+   * Days 1..{@code OFFERS_OPEN_ON_DAY - 1} are reserved for interviews so every franchise (user and
+   * CPU) has time to vet a shortlist before negotiations begin.
+   */
+  int OFFERS_OPEN_ON_DAY = 4;
+
+  /**
    * Submit an offer on behalf of the requester's franchise.
    *
    * @param leagueId the league.
@@ -25,6 +32,8 @@ public interface MakeOffer {
    *           this league.
    *       <li>{@link MakeOfferResult.ActiveOfferExists} — caller already has an active offer on
    *           this candidate.
+   *       <li>{@link MakeOfferResult.OffersNotYetOpen} — current phase day is inside the
+   *           interview-only window ({@code phaseDay < OFFERS_OPEN_ON_DAY}).
    *     </ul>
    */
   MakeOfferResult offer(long leagueId, long candidateId, String ownerSubject, OfferTerms terms);
