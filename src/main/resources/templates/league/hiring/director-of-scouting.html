@@ -3,19 +3,12 @@
       th:replace="~{league/layout :: shell(
           league=${view.league()},
           activeNav='staff-hiring',
+          pageHeading='Staff Hiring',
           pageTitle=${view.league().leagueName() + ' — Hire a Director of Scouting — Zone Blitz'},
           includeHtmx=true,
           content=~{:: #page-content})}">
 <body>
 	<div id="page-content" class="space-y-4">
-		<header>
-			<h1 class="text-2xl font-bold">Staff Hiring</h1>
-			<p class="text-sm text-slate-500">
-				Hire Director of Scouting · Week
-				<span th:text="${view.league().phaseWeek()}">1</span>
-			</p>
-		</header>
-
 		<div th:insert="~{league/hiring/director-of-scouting-fragments :: combined}"></div>
 	</div>
 </body>

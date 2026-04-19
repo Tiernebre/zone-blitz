@@ -98,12 +98,12 @@ class StaffAssemblyE2ETest {
     // INITIAL_SETUP: dashboard intro card; advance into HIRING_HEAD_COACH via the rendered form.
     assertThat(page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName(leagueName)))
         .isVisible();
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Advance to staff hiring"))
-        .click();
+    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Advance")).click();
 
     // HIRING_HEAD_COACH: shortlist, interview, offer on the first candidate, then tick to hire.
     assertThat(page).hasURL(Pattern.compile(".*/leagues/\\d+/hiring/head-coach$"));
-    assertThat(page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName(leagueName)))
+    assertThat(
+            page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName("Staff Hiring")))
         .isVisible();
 
     var hcRow = firstCandidateRow();
@@ -141,18 +141,15 @@ class StaffAssemblyE2ETest {
     // ASSEMBLING_STAFF: the recap page lists the viewer franchise expanded with a full staff tree.
     page.navigate(leagueUrl);
     assertThat(page).hasURL(Pattern.compile(".*/leagues/\\d+/staff-recap$"));
-    assertThat(page.getByText("Phase: Assembling Staff")).isVisible();
+    assertThat(page.getByText(Pattern.compile("Assembling Staff · Week"))).isVisible();
     assertThat(page.locator("details[open]").locator("li")).hasCount(EXPECTED_SEATS_PER_FRANCHISE);
     assertThat(page.locator("details[open] summary").getByText("22 staff")).isVisible();
 
-    // Advance out of ASSEMBLING_STAFF into COMPLETE through the on-page form.
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Advance to next phase"))
-        .click();
+    // Advance out of ASSEMBLING_STAFF into COMPLETE through the header form.
+    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Advance")).click();
 
     assertThat(page).hasURL(Pattern.compile(".*/leagues/\\d+$"));
-    assertThat(
-            page.getByRole(
-                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Advance to staff hiring")))
+    assertThat(page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Advance")))
         .hasCount(0);
 
     // Assert franchise staff is fully populated for every franchise in the league.

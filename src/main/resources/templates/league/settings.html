@@ -3,13 +3,12 @@
       th:replace="~{league/layout :: shell(
           league=${league},
           activeNav='settings',
+          pageHeading='Settings',
           pageTitle=${league.leagueName() + ' settings — Zone Blitz'},
           includeHtmx=false,
           content=~{:: #page-content})}">
 <body>
 	<div id="page-content" class="max-w-3xl">
-		<h1 class="text-3xl font-bold mb-8">Settings</h1>
-
 		<section class="border border-red-200 bg-white rounded-md">
 			<header class="px-6 py-4 border-b border-red-200">
 				<h2 class="text-lg font-semibold text-red-700">Danger zone</h2>

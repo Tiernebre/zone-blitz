@@ -3,36 +3,25 @@
       th:replace="~{league/layout :: shell(
           league=${league},
           activeNav='home',
+          pageHeading=${league.leagueName()},
           pageTitle=${league.leagueName() + ' — Zone Blitz'},
           includeHtmx=false,
           content=~{:: #page-content})}">
 <body>
 	<div id="page-content"
 	     th:with="phaseName=${league.phase().name()}">
-		<h1 class="text-3xl font-bold" th:text="${league.leagueName()}">League name</h1>
-
 		<section th:if="${phaseName == 'INITIAL_SETUP'}"
-		         class="mt-6 max-w-2xl bg-white border border-slate-200 rounded p-6 shadow-sm">
+		         class="max-w-2xl bg-white border border-slate-200 rounded p-6 shadow-sm">
 			<h2 class="text-xl font-semibold text-slate-900">Welcome to your league</h2>
 			<p class="mt-2 text-slate-700">
-				Your franchise is ready. Next up: hire a Head Coach to lead the team.
+				Your franchise is ready. Next up: hire a Head Coach to lead the team. Use the Advance button above to move into staff hiring.
 			</p>
-			<form th:action="@{'/leagues/' + ${league.leagueId()} + '/phase/advance'}"
-			      method="post"
-			      class="mt-4">
-				<button type="submit"
-				        class="inline-flex items-center gap-2 px-4 py-2 rounded bg-slate-900 text-white font-medium hover:bg-slate-800 cursor-pointer">
-					Advance to staff hiring
-				</button>
-			</form>
 		</section>
 
 		<section th:if="${phaseName == 'HIRING_HEAD_COACH' or phaseName == 'HIRING_DIRECTOR_OF_SCOUTING' or phaseName == 'ASSEMBLING_STAFF'}"
-		         th:with="staffHiringHref=${phaseName == 'HIRING_HEAD_COACH' ? '/leagues/' + league.leagueId() + '/hiring/head-coach' : (phaseName == 'HIRING_DIRECTOR_OF_SCOUTING' ? '/leagues/' + league.leagueId() + '/hiring/director-of-scouting' : '/leagues/' + league.leagueId() + '/staff-recap')},
-		                  phaseLabel=${phaseName == 'HIRING_HEAD_COACH' ? 'Hiring Head Coach' : (phaseName == 'HIRING_DIRECTOR_OF_SCOUTING' ? 'Hiring Director of Scouting' : 'Assembling Staff')}"
-		         class="mt-6 max-w-2xl bg-white border border-slate-200 rounded p-6 shadow-sm">
-			<p class="text-xs font-medium uppercase tracking-wide text-slate-500" th:text="${phaseLabel}">Phase</p>
-			<h2 class="mt-1 text-xl font-semibold text-slate-900">Continue staff hiring</h2>
+		         th:with="staffHiringHref=${phaseName == 'HIRING_HEAD_COACH' ? '/leagues/' + league.leagueId() + '/hiring/head-coach' : (phaseName == 'HIRING_DIRECTOR_OF_SCOUTING' ? '/leagues/' + league.leagueId() + '/hiring/director-of-scouting' : '/leagues/' + league.leagueId() + '/staff-recap')}"
+		         class="max-w-2xl bg-white border border-slate-200 rounded p-6 shadow-sm">
+			<h2 class="text-xl font-semibold text-slate-900">Continue staff hiring</h2>
 			<p class="mt-2 text-slate-700">
 				Pick up where you left off in the staff hiring flow.
 			</p>

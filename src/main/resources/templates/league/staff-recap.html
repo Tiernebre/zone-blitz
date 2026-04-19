@@ -3,25 +3,12 @@
       th:replace="~{league/layout :: shell(
           league=${view.league()},
           activeNav='staff-hiring',
+          pageHeading='Staff Recap',
           pageTitle=${view.league().leagueName() + ' — Staff Recap — Zone Blitz'},
           includeHtmx=false,
           content=~{:: #page-content})}">
 <body>
 	<div id="page-content" class="space-y-4">
-		<header class="flex items-center justify-between">
-			<div>
-				<h1 class="text-2xl font-bold" th:text="${view.league().leagueName()}">League</h1>
-				<p class="text-sm text-slate-500">Phase: Assembling Staff</p>
-			</div>
-			<form th:action="@{'/leagues/' + ${view.league().leagueId()} + '/phase/advance'}"
-			      method="post">
-				<button type="submit"
-				        class="inline-flex items-center gap-2 px-4 py-2 rounded bg-slate-900 text-white font-medium hover:bg-slate-800 cursor-pointer">
-					Advance to next phase
-				</button>
-			</form>
-		</header>
-
 		<p class="text-sm text-slate-600">
 			Coordinators, position coaches and scouts have been hired for every franchise. Your staff is
 			shown expanded; other franchises are collapsed — click to expand.
