@@ -58,12 +58,12 @@ class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
       return new ShortlistResult.NotFound(leagueId);
     }
     var league = maybeLeague.get();
-    if (league.phase() != LeaguePhase.HIRING_HEAD_COACH) {
+    var phase = league.phase();
+    var poolType = HiringPhases.poolTypeFor(phase);
+    if (poolType.isEmpty()) {
       return new ShortlistResult.NotFound(leagueId);
     }
-    var maybePool =
-        pools.findByLeaguePhaseAndType(
-            leagueId, LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH);
+    var maybePool = pools.findByLeaguePhaseAndType(leagueId, phase, poolType.get());
     if (maybePool.isEmpty()) {
       return new ShortlistResult.NotFound(leagueId);
     }
@@ -72,7 +72,7 @@ class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
       return new ShortlistResult.UnknownCandidate(candidateId);
     }
     var franchiseId = league.userFranchise().id();
-    var existing = hiringStates.find(leagueId, franchiseId, LeaguePhase.HIRING_HEAD_COACH);
+    var existing = hiringStates.find(leagueId, franchiseId, phase);
     var currentIds = existing.map(FranchiseHiringState::shortlist).orElse(List.of());
     var interviewingIds =
         existing.map(FranchiseHiringState::interviewingCandidateIds).orElse(List.of());
@@ -82,7 +82,7 @@ class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
             existing.map(FranchiseHiringState::id).orElse(0L),
             leagueId,
             franchiseId,
-            LeaguePhase.HIRING_HEAD_COACH,
+            phase,
             HiringStep.SEARCHING,
             updatedIds,
             interviewingIds));
@@ -92,8 +92,7 @@ class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
             .map(c -> preferences.findByCandidateId(c.id()))
             .flatMap(java.util.Optional::stream)
             .toList();
-    var interviewHistory =
-        interviews.findAllFor(leagueId, franchiseId, LeaguePhase.HIRING_HEAD_COACH);
+    var interviewHistory = interviews.findAllFor(leagueId, franchiseId, phase);
     var view =
         HeadCoachHiringViewModel.assemble(
             league,

@@ -62,7 +62,15 @@ class CpuHiringStrategyTests {
             rngs);
     strategy =
         new CpuHiringStrategy(
-            pools, candidates, preferences, offers, hiringStates, interviews, rngs);
+            LeaguePhase.HIRING_HEAD_COACH,
+            CandidatePoolType.HEAD_COACH,
+            pools,
+            candidates,
+            preferences,
+            offers,
+            hiringStates,
+            interviews,
+            rngs);
     resolver =
         new PreferenceScoringOfferResolver(
             offers, candidates, pools, preferences, profiles, hiringStates, staff, rngs);

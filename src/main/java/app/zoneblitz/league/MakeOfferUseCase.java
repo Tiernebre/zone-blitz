@@ -42,12 +42,12 @@ class MakeOfferUseCase implements MakeOffer {
       return new MakeOfferResult.NotFound(leagueId);
     }
     var league = maybeLeague.get();
-    if (league.phase() != LeaguePhase.HIRING_HEAD_COACH) {
+    var phase = league.phase();
+    var poolType = HiringPhases.poolTypeFor(phase);
+    if (poolType.isEmpty()) {
       return new MakeOfferResult.NotFound(leagueId);
     }
-    var maybePool =
-        pools.findByLeaguePhaseAndType(
-            leagueId, LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH);
+    var maybePool = pools.findByLeaguePhaseAndType(leagueId, phase, poolType.get());
     if (maybePool.isEmpty()) {
       return new MakeOfferResult.UnknownCandidate(candidateId);
     }
@@ -60,7 +60,7 @@ class MakeOfferUseCase implements MakeOffer {
     }
 
     var franchiseId = league.userFranchise().id();
-    var hiringState = hiringStates.find(leagueId, franchiseId, LeaguePhase.HIRING_HEAD_COACH);
+    var hiringState = hiringStates.find(leagueId, franchiseId, phase);
     if (hiringState.isPresent() && hiringState.get().step() == HiringStep.HIRED) {
       return new MakeOfferResult.AlreadyHired(franchiseId);
     }

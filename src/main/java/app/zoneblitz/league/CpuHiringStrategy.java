@@ -9,11 +9,14 @@ import java.util.List;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /**
- * CPU decision-maker for {@link LeaguePhase#HIRING_HEAD_COACH}. Runs one week of hiring behavior
- * per invocation:
+ * CPU decision-maker for the two hiring phases ({@link LeaguePhase#HIRING_HEAD_COACH} and {@link
+ * LeaguePhase#HIRING_DIRECTOR_OF_SCOUTING}). One bean is registered per phase; the behavior is
+ * identical — only the phase/pool-type pair differs — because the hiring sub-state machine is
+ * phase-agnostic per {@code docs/technical/league-phases.md} (Hiring sub-state machine).
+ *
+ * <p>Runs one week of hiring behavior per invocation:
  *
  * <ol>
  *   <li>If the franchise is already {@link HiringStep#HIRED}, do nothing.
@@ -34,7 +37,6 @@ import org.springframework.stereotype.Component;
  * CandidateRandomSources#forLeaguePhase(long, LeaguePhase)}, so the same seed reproduces identical
  * behavior.
  */
-@Component
 class CpuHiringStrategy implements CpuFranchiseStrategy {
 
   private static final Logger log = LoggerFactory.getLogger(CpuHiringStrategy.class);
@@ -47,6 +49,8 @@ class CpuHiringStrategy implements CpuFranchiseStrategy {
   private static final double SCOUTED_LOWER = 20.0;
   private static final double SCOUTED_UPPER = 99.0;
 
+  private final LeaguePhase phase;
+  private final CandidatePoolType poolType;
   private final CandidatePoolRepository pools;
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
@@ -56,6 +60,8 @@ class CpuHiringStrategy implements CpuFranchiseStrategy {
   private final CandidateRandomSources rngs;
 
   CpuHiringStrategy(
+      LeaguePhase phase,
+      CandidatePoolType poolType,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
@@ -63,6 +69,8 @@ class CpuHiringStrategy implements CpuFranchiseStrategy {
       FranchiseHiringStateRepository hiringStates,
       FranchiseInterviewRepository interviews,
       CandidateRandomSources rngs) {
+    this.phase = phase;
+    this.poolType = poolType;
     this.pools = pools;
     this.candidates = candidates;
     this.preferences = preferences;
@@ -74,7 +82,7 @@ class CpuHiringStrategy implements CpuFranchiseStrategy {
 
   @Override
   public LeaguePhase phase() {
-    return LeaguePhase.HIRING_HEAD_COACH;
+    return phase;
   }
 
   @Override
@@ -83,7 +91,7 @@ class CpuHiringStrategy implements CpuFranchiseStrategy {
     if (existing.isPresent() && existing.get().step() == HiringStep.HIRED) {
       return;
     }
-    var maybePool = pools.findByLeaguePhaseAndType(leagueId, phase(), CandidatePoolType.HEAD_COACH);
+    var maybePool = pools.findByLeaguePhaseAndType(leagueId, phase(), poolType);
     if (maybePool.isEmpty()) {
       return;
     }

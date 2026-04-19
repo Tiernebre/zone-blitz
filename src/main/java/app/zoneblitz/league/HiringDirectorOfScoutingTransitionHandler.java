@@ -6,18 +6,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Phase-entry hook for {@link LeaguePhase#HIRING_HEAD_COACH}. On entry: generate the league-wide HC
- * candidate pool (if not already present), persist candidates + preferences, and initialize each
- * franchise's hiring sub-state to {@link HiringStep#SEARCHING} with empty shortlist/interview
- * lists.
+ * Phase-entry hook for {@link LeaguePhase#HIRING_DIRECTOR_OF_SCOUTING}. Mirrors {@link
+ * HiringHeadCoachTransitionHandler}: generate the league-wide DoS candidate pool (if not already
+ * present), persist candidates + preferences, and initialize each franchise's hiring sub-state to
+ * {@link HiringStep#SEARCHING} with empty shortlist/interview lists.
  *
- * <p>Idempotent: re-entry of a phase that already has a pool is a no-op so autofill/recovery paths
- * do not duplicate data.
+ * <p>Idempotent: re-entry of a phase that already has a pool is a no-op.
  */
 @Component
-class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
+class HiringDirectorOfScoutingTransitionHandler implements PhaseTransitionHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(HiringHeadCoachTransitionHandler.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(HiringDirectorOfScoutingTransitionHandler.class);
 
   /** Per {@code docs/technical/league-phases.md}: pool size is 2–3× franchise count. */
   private static final int POOL_SIZE_PER_FRANCHISE = 3;
@@ -28,17 +28,17 @@ class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
   private final FranchiseHiringStateRepository hiringStates;
-  private final HeadCoachGenerator generator;
+  private final DirectorOfScoutingGenerator generator;
   private final CandidateRandomSources rngs;
 
-  HiringHeadCoachTransitionHandler(
+  HiringDirectorOfScoutingTransitionHandler(
       LeagueRepository leagues,
       TeamLookup teams,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
       FranchiseHiringStateRepository hiringStates,
-      HeadCoachGenerator generator,
+      DirectorOfScoutingGenerator generator,
       CandidateRandomSources rngs) {
     this.leagues = leagues;
     this.teams = teams;
@@ -52,15 +52,15 @@ class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
 
   @Override
   public LeaguePhase phase() {
-    return LeaguePhase.HIRING_HEAD_COACH;
+    return LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING;
   }
 
   @Override
   public void onEntry(long leagueId) {
     if (pools
-        .findByLeaguePhaseAndType(leagueId, phase(), CandidatePoolType.HEAD_COACH)
+        .findByLeaguePhaseAndType(leagueId, phase(), CandidatePoolType.DIRECTOR_OF_SCOUTING)
         .isPresent()) {
-      log.debug("HC pool already present for league={}; entry is a no-op", leagueId);
+      log.debug("DoS pool already present for league={}; entry is a no-op", leagueId);
       return;
     }
     var league =
@@ -70,7 +70,7 @@ class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
     var franchiseIds = teams.franchiseIdsForLeague(leagueId);
     var poolSize = Math.max(1, franchiseIds.size() * POOL_SIZE_PER_FRANCHISE);
 
-    var pool = pools.insert(leagueId, phase(), CandidatePoolType.HEAD_COACH);
+    var pool = pools.insert(leagueId, phase(), CandidatePoolType.DIRECTOR_OF_SCOUTING);
     var rng = rngs.forLeaguePhase(leagueId, phase());
     var generated = generator.generate(poolSize, rng);
     for (var g : generated) {
@@ -84,7 +84,7 @@ class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler {
               0L, leagueId, franchiseId, phase(), HiringStep.SEARCHING, List.of(), List.of()));
     }
     log.info(
-        "hiring head-coach pool generated leagueId={} poolId={} size={} franchises={}",
+        "hiring director-of-scouting pool generated leagueId={} poolId={} size={} franchises={}",
         league.id(),
         pool.id(),
         generated.size(),

@@ -51,12 +51,12 @@ class StartInterviewUseCase implements StartInterview {
       return new InterviewResult.NotFound(leagueId);
     }
     var league = maybeLeague.get();
-    if (league.phase() != LeaguePhase.HIRING_HEAD_COACH) {
+    var phase = league.phase();
+    var poolType = HiringPhases.poolTypeFor(phase);
+    if (poolType.isEmpty()) {
       return new InterviewResult.NotFound(leagueId);
     }
-    var maybePool =
-        pools.findByLeaguePhaseAndType(
-            leagueId, LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH);
+    var maybePool = pools.findByLeaguePhaseAndType(leagueId, phase, poolType.get());
     if (maybePool.isEmpty()) {
       return new InterviewResult.NotFound(leagueId);
     }
@@ -66,16 +66,13 @@ class StartInterviewUseCase implements StartInterview {
     }
     var franchiseId = league.userFranchise().id();
     var phaseWeek = league.phaseWeek();
-    var weekCount =
-        interviews.countForWeek(leagueId, franchiseId, LeaguePhase.HIRING_HEAD_COACH, phaseWeek);
+    var weekCount = interviews.countForWeek(leagueId, franchiseId, phase, phaseWeek);
     if (weekCount >= DEFAULT_WEEKLY_CAPACITY) {
       return new InterviewResult.CapacityReached(DEFAULT_WEEKLY_CAPACITY);
     }
 
     var candidate = maybeCandidate.get();
-    var priorCount =
-        interviews.countForCandidate(
-            leagueId, franchiseId, candidateId, LeaguePhase.HIRING_HEAD_COACH);
+    var priorCount = interviews.countForCandidate(leagueId, franchiseId, candidateId, phase);
     var newIndex = priorCount + 1;
     var trueRating = extractOverall(candidate.hiddenAttrs());
     var sigma = InterviewNoiseModel.headCoachSigma(newIndex);
@@ -86,14 +83,8 @@ class StartInterviewUseCase implements StartInterview {
 
     interviews.insert(
         new NewFranchiseInterview(
-            leagueId,
-            franchiseId,
-            candidateId,
-            LeaguePhase.HIRING_HEAD_COACH,
-            phaseWeek,
-            newIndex,
-            scoutedOverall));
-    appendToHiringState(leagueId, franchiseId, candidateId);
+            leagueId, franchiseId, candidateId, phase, phaseWeek, newIndex, scoutedOverall));
+    appendToHiringState(leagueId, franchiseId, candidateId, phase);
 
     var pool = candidates.findAllByPoolId(maybePool.get().id());
     var prefs =
@@ -101,9 +92,9 @@ class StartInterviewUseCase implements StartInterview {
             .map(c -> preferences.findByCandidateId(c.id()))
             .flatMap(java.util.Optional::stream)
             .toList();
-    var state = hiringStates.find(leagueId, franchiseId, LeaguePhase.HIRING_HEAD_COACH);
+    var state = hiringStates.find(leagueId, franchiseId, phase);
     var shortlistIds = state.map(FranchiseHiringState::shortlist).orElse(java.util.List.of());
-    var history = interviews.findAllFor(leagueId, franchiseId, LeaguePhase.HIRING_HEAD_COACH);
+    var history = interviews.findAllFor(leagueId, franchiseId, phase);
     var view =
         HeadCoachHiringViewModel.assemble(
             league, pool, prefs, shortlistIds, history, DEFAULT_WEEKLY_CAPACITY);
@@ -117,8 +108,9 @@ class StartInterviewUseCase implements StartInterview {
     return new InterviewResult.Started(view);
   }
 
-  private void appendToHiringState(long leagueId, long franchiseId, long candidateId) {
-    var existing = hiringStates.find(leagueId, franchiseId, LeaguePhase.HIRING_HEAD_COACH);
+  private void appendToHiringState(
+      long leagueId, long franchiseId, long candidateId, LeaguePhase phase) {
+    var existing = hiringStates.find(leagueId, franchiseId, phase);
     var shortlistIds = existing.map(FranchiseHiringState::shortlist).orElse(java.util.List.of());
     var interviewingIds =
         existing.map(FranchiseHiringState::interviewingCandidateIds).orElse(java.util.List.of());
@@ -130,7 +122,7 @@ class StartInterviewUseCase implements StartInterview {
             existing.map(FranchiseHiringState::id).orElse(0L),
             leagueId,
             franchiseId,
-            LeaguePhase.HIRING_HEAD_COACH,
+            phase,
             HiringStep.SEARCHING,
             shortlistIds,
             java.util.List.copyOf(updated)));

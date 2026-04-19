@@ -172,10 +172,19 @@ class PreferenceScoringOfferResolver implements OfferResolver {
             leagueId,
             franchiseId,
             candidateId,
-            StaffRole.HEAD_COACH,
+            staffRoleFor(phase),
             Optional.empty(),
             phase,
             weekAtResolve));
+  }
+
+  private static StaffRole staffRoleFor(LeaguePhase phase) {
+    return switch (phase) {
+      case HIRING_HEAD_COACH -> StaffRole.HEAD_COACH;
+      case HIRING_DIRECTOR_OF_SCOUTING -> StaffRole.DIRECTOR_OF_SCOUTING;
+      case INITIAL_SETUP, ASSEMBLING_STAFF ->
+          throw new IllegalStateException("no staff role for non-hiring phase " + phase);
+    };
   }
 
   private static Optional<CandidatePoolType> poolTypeFor(LeaguePhase phase) {

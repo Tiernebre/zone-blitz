@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
+class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScoutingHiring {
 
   private final LeagueRepository leagues;
   private final CandidatePoolRepository pools;
@@ -16,7 +16,7 @@ class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
   private final FranchiseHiringStateRepository hiringStates;
   private final FranchiseInterviewRepository interviews;
 
-  ViewHeadCoachHiringUseCase(
+  ViewDirectorOfScoutingHiringUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
@@ -33,22 +33,23 @@ class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
 
   @Override
   @Transactional(readOnly = true)
-  public Optional<HeadCoachHiringView> view(long leagueId, String ownerSubject) {
+  public Optional<DirectorOfScoutingHiringView> view(long leagueId, String ownerSubject) {
     Objects.requireNonNull(ownerSubject, "ownerSubject");
     var maybeLeague = leagues.findSummaryByIdAndOwner(leagueId, ownerSubject);
     if (maybeLeague.isEmpty()) {
       return Optional.empty();
     }
     var league = maybeLeague.get();
-    if (league.phase() != LeaguePhase.HIRING_HEAD_COACH) {
+    if (league.phase() != LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING) {
       return Optional.empty();
     }
     var franchiseId = league.userFranchise().id();
-    var phase = LeaguePhase.HIRING_HEAD_COACH;
-    var pool = pools.findByLeaguePhaseAndType(leagueId, phase, CandidatePoolType.HEAD_COACH);
+    var phase = LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING;
+    var pool =
+        pools.findByLeaguePhaseAndType(leagueId, phase, CandidatePoolType.DIRECTOR_OF_SCOUTING);
     if (pool.isEmpty()) {
       return Optional.of(
-          new HeadCoachHiringView(
+          new DirectorOfScoutingHiringView(
               league, List.of(), List.of(), List.of(), 0, StartInterview.DEFAULT_WEEKLY_CAPACITY));
     }
     var rows = candidates.findAllByPoolId(pool.get().id());
@@ -64,7 +65,7 @@ class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
             .orElse(List.of());
     var interviewHistory = interviews.findAllFor(leagueId, franchiseId, phase);
     return Optional.of(
-        HeadCoachHiringViewModel.assemble(
+        DirectorOfScoutingHiringViewModel.assemble(
             league,
             rows,
             prefs,
