@@ -1,5 +1,7 @@
 package app.zoneblitz.gamesimulator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
 import app.zoneblitz.gamesimulator.band.DefaultBandSampler;
 import app.zoneblitz.gamesimulator.band.DistributionalBand;
@@ -50,6 +52,12 @@ class FullGameCalibrationTests {
 
   private static final int GAMES = 10_000;
   private static final double PASS_RATE = 0.5793;
+
+  // Budget of tolerated drift cells (across p10/p50/p90 × 6 stats = 18 total cells). Burn-down
+  // tracked via #627. Any commit that pushes drift above the budget — e.g. the silent elite-vs-
+  // bench 9998-2 pattern — fails the build instead of being swept under a print statement.
+  private static final int AVG_VS_AVG_DRIFT_BUDGET = 3;
+  private static final int BENCH_VS_BENCH_DRIFT_BUDGET = 3;
 
   @Test
   void tenThousandGames_teamGameAggregates_matchBands() {
@@ -128,13 +136,23 @@ class FullGameCalibrationTests {
         String.format(
             "%-16s %-22s %-22s %-22s%n",
             "stat", "p10 obs/target/tol", "p50 obs/target/tol", "p90 obs/target/tol"));
-    reportBand(report, "pass_yards", passYards, loadBand(repo, "pass_yards"), 40, 30, 40);
-    reportBand(report, "rush_yards", rushYards, loadBand(repo, "rush_yards"), 30, 20, 30);
-    reportBand(report, "plays", plays, loadBand(repo, "plays"), 6, 4, 6);
-    reportBand(report, "sacks_taken", sacks, loadBand(repo, "sacks_taken"), 2, 2, 2);
-    reportBand(report, "interceptions", interceptions, loadBand(repo, "interceptions"), 1, 1, 1);
-    reportBand(report, "fumbles_lost", fumbles, loadBand(repo, "fumbles_lost"), 1, 1, 1);
+    var drift = new DriftAccumulator();
+    reportBand(report, drift, "pass_yards", passYards, loadBand(repo, "pass_yards"), 40, 30, 40);
+    reportBand(report, drift, "rush_yards", rushYards, loadBand(repo, "rush_yards"), 30, 20, 30);
+    reportBand(report, drift, "plays", plays, loadBand(repo, "plays"), 6, 4, 6);
+    reportBand(report, drift, "sacks_taken", sacks, loadBand(repo, "sacks_taken"), 2, 2, 2);
+    reportBand(
+        report, drift, "interceptions", interceptions, loadBand(repo, "interceptions"), 1, 1, 1);
+    reportBand(report, drift, "fumbles_lost", fumbles, loadBand(repo, "fumbles_lost"), 1, 1, 1);
     System.out.println(report);
+    // Known-drift budget tracked for burn-down via #627: the sim's yardage distribution has a
+    // thinner right tail than the NFL bands (the p90 cells for pass_yards and rush_yards
+    // chronically under-shoot, and run-to-run non-determinism occasionally pushes rush p50 out
+    // of tolerance too). Budget bounds acceptable drift without pinning specific cells that
+    // wander between runs; any real calibration regression blows the budget and fails CI.
+    assertThat(drift.driftCount())
+        .as("calibration drift (average-vs-average): %s", drift.reports())
+        .isLessThanOrEqualTo(AVG_VS_AVG_DRIFT_BUDGET);
   }
 
   @Test
@@ -361,13 +379,19 @@ class FullGameCalibrationTests {
         String.format(
             "%-16s %-22s %-22s %-22s%n",
             "stat", "p10 obs/target/tol", "p50 obs/target/tol", "p90 obs/target/tol"));
-    reportBand(report, "pass_yards", passYards, loadBand(repo, "pass_yards"), 40, 30, 40);
-    reportBand(report, "rush_yards", rushYards, loadBand(repo, "rush_yards"), 30, 20, 30);
-    reportBand(report, "plays", plays, loadBand(repo, "plays"), 6, 4, 6);
-    reportBand(report, "sacks_taken", sacks, loadBand(repo, "sacks_taken"), 2, 2, 2);
-    reportBand(report, "interceptions", interceptions, loadBand(repo, "interceptions"), 1, 1, 1);
-    reportBand(report, "fumbles_lost", fumbles, loadBand(repo, "fumbles_lost"), 1, 1, 1);
+    var drift = new DriftAccumulator();
+    reportBand(report, drift, "pass_yards", passYards, loadBand(repo, "pass_yards"), 40, 30, 40);
+    reportBand(report, drift, "rush_yards", rushYards, loadBand(repo, "rush_yards"), 30, 20, 30);
+    reportBand(report, drift, "plays", plays, loadBand(repo, "plays"), 6, 4, 6);
+    reportBand(report, drift, "sacks_taken", sacks, loadBand(repo, "sacks_taken"), 2, 2, 2);
+    reportBand(
+        report, drift, "interceptions", interceptions, loadBand(repo, "interceptions"), 1, 1, 1);
+    reportBand(report, drift, "fumbles_lost", fumbles, loadBand(repo, "fumbles_lost"), 1, 1, 1);
     System.out.println(report);
+    // See AVG-vs-AVG test for context on the drift budget (#627).
+    assertThat(drift.driftCount())
+        .as("calibration drift (benchwarmer-vs-benchwarmer): %s", drift.reports())
+        .isLessThanOrEqualTo(BENCH_VS_BENCH_DRIFT_BUDGET);
   }
 
   private static DistributionalBand loadBand(ClasspathBandRepository repo, String key) {
@@ -376,6 +400,7 @@ class FullGameCalibrationTests {
 
   private static void reportBand(
       StringBuilder out,
+      DriftAccumulator drift,
       String label,
       int[] samples,
       DistributionalBand band,
@@ -389,15 +414,50 @@ class FullGameCalibrationTests {
         String.format(
             "%-16s %-22s %-22s %-22s%n",
             label,
-            cell(sorted, 0.10, ladder.get(0.10).intValue(), tolP10),
-            cell(sorted, 0.50, ladder.get(0.50).intValue(), tolP50),
-            cell(sorted, 0.90, ladder.get(0.90).intValue(), tolP90)));
+            cell(drift, label, "p10", sorted, 0.10, ladder.get(0.10).intValue(), tolP10),
+            cell(drift, label, "p50", sorted, 0.50, ladder.get(0.50).intValue(), tolP50),
+            cell(drift, label, "p90", sorted, 0.90, ladder.get(0.90).intValue(), tolP90)));
   }
 
-  private static String cell(int[] sorted, double p, int target, int tol) {
+  private static String cell(
+      DriftAccumulator drift,
+      String label,
+      String percentile,
+      int[] sorted,
+      double p,
+      int target,
+      int tol) {
     var obs = sorted[(int) Math.round(p * (sorted.length - 1))];
-    var drift = Math.abs(obs - target) > tol ? " DRIFT" : "";
-    return "%d/%d/%d%s".formatted(obs, target, tol, drift);
+    var isDrift = Math.abs(obs - target) > tol;
+    if (isDrift) {
+      drift.record(
+          "%s.%s (obs=%d target=%d tol=%d)".formatted(label, percentile, obs, target, tol));
+    }
+    return "%d/%d/%d%s".formatted(obs, target, tol, isDrift ? " DRIFT" : "");
+  }
+
+  /**
+   * Accumulates drift reports. {@link #driftCount()} is asserted by the caller against a small,
+   * explicitly-capped budget (see #627). The sim is currently non-deterministic across JVM runs
+   * (HashMap iteration order threads through event ordering), so cells drifting between runs makes
+   * a per-cell allowlist brittle — the budget bounds the total drift instead. Any change that
+   * meaningfully regresses calibration (e.g. the elite-vs-bench 9998-2 pattern the harness exists
+   * to catch) blows this budget and fails the build.
+   */
+  private static final class DriftAccumulator {
+    private final List<String> reports = new ArrayList<>();
+
+    void record(String detail) {
+      reports.add(detail);
+    }
+
+    int driftCount() {
+      return reports.size();
+    }
+
+    List<String> reports() {
+      return List.copyOf(reports);
+    }
   }
 
   private static void accumulate(PlayEvent event, TeamStats stats, Map<PlayerId, Side> playerSide) {
