@@ -51,7 +51,7 @@ public final class DefaultBandSampler implements BandSampler {
     return clamped;
   }
 
-  private static double saturate(double shift) {
+  static double saturate(double shift) {
     return SHIFT_SATURATION * Math.tanh(shift / SHIFT_SATURATION);
   }
 
