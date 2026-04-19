@@ -83,14 +83,13 @@ class AdvancePhaseUseCaseTests {
   @Test
   void advance_whenAlreadyInTerminalPhase_returnsNoNextPhase() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.ASSEMBLING_STAFF);
+    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.COMPLETE);
 
     var result = advancePhase.advance(league.id(), "sub-1");
 
     assertThat(result)
-        .isEqualTo(new AdvancePhaseResult.NoNextPhase(league.id(), LeaguePhase.ASSEMBLING_STAFF));
-    assertThat(leagues.findById(league.id()).orElseThrow().phase())
-        .isEqualTo(LeaguePhase.ASSEMBLING_STAFF);
+        .isEqualTo(new AdvancePhaseResult.NoNextPhase(league.id(), LeaguePhase.COMPLETE));
+    assertThat(leagues.findById(league.id()).orElseThrow().phase()).isEqualTo(LeaguePhase.COMPLETE);
   }
 
   @Test

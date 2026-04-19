@@ -18,6 +18,21 @@ class LeagueBeans {
   }
 
   @Bean
+  CoordinatorGenerator coordinatorGenerator() {
+    return new CoordinatorGenerator();
+  }
+
+  @Bean
+  PositionCoachGenerator positionCoachGenerator() {
+    return new PositionCoachGenerator();
+  }
+
+  @Bean
+  ScoutCandidateGenerator scoutCandidateGenerator() {
+    return new ScoutCandidateGenerator();
+  }
+
+  @Bean
   CpuFranchiseStrategy headCoachCpuHiringStrategy(
       CandidatePoolRepository pools,
       CandidateRepository candidates,

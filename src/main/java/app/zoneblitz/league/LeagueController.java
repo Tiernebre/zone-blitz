@@ -64,6 +64,9 @@ class LeagueController {
     if (league.phase() == LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING) {
       return "redirect:/leagues/" + id + "/hiring/director-of-scouting";
     }
+    if (league.phase() == LeaguePhase.ASSEMBLING_STAFF) {
+      return "redirect:/leagues/" + id + "/staff-recap";
+    }
     model.addAttribute("league", league);
     return "league/dashboard";
   }

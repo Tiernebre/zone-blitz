@@ -23,7 +23,8 @@ final class LeaguePhases {
       Map.of(
           LeaguePhase.INITIAL_SETUP, LeaguePhase.HIRING_HEAD_COACH,
           LeaguePhase.HIRING_HEAD_COACH, LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING,
-          LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING, LeaguePhase.ASSEMBLING_STAFF);
+          LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING, LeaguePhase.ASSEMBLING_STAFF,
+          LeaguePhase.ASSEMBLING_STAFF, LeaguePhase.COMPLETE);
 
   private static final Map<LeaguePhase, Integer> MAX_WEEKS =
       Map.of(

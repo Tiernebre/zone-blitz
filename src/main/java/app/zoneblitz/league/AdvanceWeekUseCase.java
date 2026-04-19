@@ -110,7 +110,7 @@ class AdvanceWeekUseCase implements AdvanceWeek {
         }
         yield true;
       }
-      case INITIAL_SETUP, ASSEMBLING_STAFF -> false;
+      case INITIAL_SETUP, ASSEMBLING_STAFF, COMPLETE -> false;
     };
   }
 
