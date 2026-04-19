@@ -6,9 +6,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Row view-model for a single Director-of-Scouting candidate in the hiring pool table. Never
- * carries hidden-attribute data. {@code shortlisted} reflects the requesting team's shortlist
- * membership; {@code interest} is present iff the requesting team has interviewed this candidate.
+ * Row view-model for a single Director-of-Scouting candidate. Never carries hidden-attribute data.
+ * {@code interest} is present iff the requesting team has interviewed this candidate. {@code offer}
+ * is present iff the team has an ACTIVE offer on this candidate.
  */
 public record DirectorOfScoutingCandidateView(
     long id,
@@ -23,8 +23,8 @@ public record DirectorOfScoutingCandidateView(
     BigDecimal compensationTarget,
     int contractLengthTarget,
     BigDecimal guaranteedMoneyTarget,
-    boolean shortlisted,
-    Optional<InterviewInterest> interest) {
+    Optional<InterviewInterest> interest,
+    Optional<OfferView> offer) {
 
   public DirectorOfScoutingCandidateView {
     Objects.requireNonNull(name, "name");
@@ -33,9 +33,18 @@ public record DirectorOfScoutingCandidateView(
     Objects.requireNonNull(compensationTarget, "compensationTarget");
     Objects.requireNonNull(guaranteedMoneyTarget, "guaranteedMoneyTarget");
     Objects.requireNonNull(interest, "interest");
+    Objects.requireNonNull(offer, "offer");
   }
 
   public boolean interviewed() {
     return interest.isPresent();
+  }
+
+  public boolean hasOffer() {
+    return offer.isPresent();
+  }
+
+  public boolean canOffer() {
+    return interviewed() && interest.get() != InterviewInterest.NOT_INTERESTED;
   }
 }

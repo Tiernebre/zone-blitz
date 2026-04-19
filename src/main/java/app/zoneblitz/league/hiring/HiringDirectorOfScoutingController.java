@@ -7,7 +7,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,10 +14,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Web controller for the HIRING_DIRECTOR_OF_SCOUTING page and its HTMX fragment endpoints. Mirrors
- * {@link HiringHeadCoachController}. The underlying shortlist / interview / offer use cases are
- * phase-agnostic (they route on {@code league.phase()}), so this controller reuses them and
- * re-renders the DoS view from {@link ViewDirectorOfScoutingHiring} after each mutation.
+ * Web controller for the HIRING_DIRECTOR_OF_SCOUTING page. Mirrors {@link
+ * HiringHeadCoachController}. The underlying interview / offer / hire use cases are phase-agnostic
+ * (they route on {@code league.phase()}), so this controller reuses them and re-renders the DoS
+ * view after each mutation.
  */
 @Controller
 public class HiringDirectorOfScoutingController {
@@ -27,25 +26,24 @@ public class HiringDirectorOfScoutingController {
       LoggerFactory.getLogger(HiringDirectorOfScoutingController.class);
 
   private final ViewDirectorOfScoutingHiring viewHiring;
-  private final ManageHeadCoachShortlist shortlist;
   private final StartInterview startInterview;
   private final MakeOffer makeOffer;
+  private final HireCandidate hireCandidate;
 
   public HiringDirectorOfScoutingController(
       ViewDirectorOfScoutingHiring viewHiring,
-      ManageHeadCoachShortlist shortlist,
       StartInterview startInterview,
-      MakeOffer makeOffer) {
+      MakeOffer makeOffer,
+      HireCandidate hireCandidate) {
     this.viewHiring = viewHiring;
-    this.shortlist = shortlist;
     this.startInterview = startInterview;
     this.makeOffer = makeOffer;
+    this.hireCandidate = hireCandidate;
   }
 
   @GetMapping("/leagues/{id}/hiring/director-of-scouting")
   String page(@AuthenticationPrincipal OAuth2User principal, @PathVariable long id, Model model) {
-    var view = resolveView(principal, id);
-    model.addAttribute("view", view);
+    model.addAttribute("view", resolveView(principal, id));
     return "league/hiring/director-of-scouting";
   }
 
@@ -56,11 +54,11 @@ public class HiringDirectorOfScoutingController {
     return "league/hiring/director-of-scouting-fragments :: pool";
   }
 
-  @GetMapping("/leagues/{id}/hiring/director-of-scouting/interviews")
-  String interviewsFragment(
+  @GetMapping("/leagues/{id}/hiring/director-of-scouting/candidates")
+  String candidatesFragment(
       @AuthenticationPrincipal OAuth2User principal, @PathVariable long id, Model model) {
     model.addAttribute("view", resolveView(principal, id));
-    return "league/hiring/director-of-scouting-fragments :: interviews";
+    return "league/hiring/director-of-scouting-fragments :: candidates";
   }
 
   @PostMapping("/leagues/{id}/hiring/director-of-scouting/interview/{candidateId}")
@@ -89,33 +87,6 @@ public class HiringDirectorOfScoutingController {
     };
   }
 
-  @GetMapping("/leagues/{id}/hiring/director-of-scouting/shortlist")
-  String shortlistFragment(
-      @AuthenticationPrincipal OAuth2User principal, @PathVariable long id, Model model) {
-    model.addAttribute("view", resolveView(principal, id));
-    return "league/hiring/director-of-scouting-fragments :: shortlist";
-  }
-
-  @PostMapping("/leagues/{id}/hiring/director-of-scouting/shortlist/{candidateId}")
-  String addToShortlist(
-      @AuthenticationPrincipal OAuth2User principal,
-      @PathVariable long id,
-      @PathVariable long candidateId,
-      Model model) {
-    var result = shortlist.add(id, candidateId, principal.getAttribute("sub"));
-    return renderMutation(result, principal, id, model);
-  }
-
-  @DeleteMapping("/leagues/{id}/hiring/director-of-scouting/shortlist/{candidateId}")
-  String removeFromShortlist(
-      @AuthenticationPrincipal OAuth2User principal,
-      @PathVariable long id,
-      @PathVariable long candidateId,
-      Model model) {
-    var result = shortlist.remove(id, candidateId, principal.getAttribute("sub"));
-    return renderMutation(result, principal, id, model);
-  }
-
   @PostMapping("/leagues/{id}/hiring/director-of-scouting/offer/{candidateId}")
   String submitOffer(
       @AuthenticationPrincipal OAuth2User principal,
@@ -127,10 +98,11 @@ public class HiringDirectorOfScoutingController {
     return switch (result) {
       case MakeOfferResult.Created created -> {
         log.info(
-            "dos offer submitted leagueId={} candidateId={} offerId={}",
+            "dos offer submitted leagueId={} candidateId={} offerId={} revision={}",
             id,
             candidateId,
-            created.offer().id());
+            created.offer().id(),
+            created.offer().revisionCount());
         model.addAttribute("view", resolveView(principal, id));
         yield "league/hiring/director-of-scouting-fragments :: combined";
       }
@@ -140,7 +112,41 @@ public class HiringDirectorOfScoutingController {
           throw new ResponseStatusException(HttpStatus.NOT_FOUND);
       case MakeOfferResult.AlreadyHired ignored ->
           throw new ResponseStatusException(HttpStatus.CONFLICT);
-      case MakeOfferResult.ActiveOfferExists ignored ->
+      case MakeOfferResult.CandidateNotInterested ignored ->
+          throw new ResponseStatusException(
+              HttpStatus.CONFLICT, "Candidate not interested — interview required first");
+      case MakeOfferResult.RevisionCapReached capped ->
+          throw new ResponseStatusException(
+              HttpStatus.CONFLICT,
+              "Candidate has walked — %d revisions exhausted".formatted(capped.revisionCount()));
+    };
+  }
+
+  @PostMapping("/leagues/{id}/hiring/director-of-scouting/hire/{candidateId}")
+  String hire(
+      @AuthenticationPrincipal OAuth2User principal,
+      @PathVariable long id,
+      @PathVariable long candidateId,
+      Model model) {
+    var result = hireCandidate.hire(id, candidateId, principal.getAttribute("sub"));
+    return switch (result) {
+      case HireCandidateResult.Hired hired -> {
+        log.info(
+            "dos user hire leagueId={} candidateId={} teamId={}",
+            id,
+            hired.candidateId(),
+            hired.teamId());
+        model.addAttribute("view", resolveView(principal, id));
+        yield "league/hiring/director-of-scouting-fragments :: combined";
+      }
+      case HireCandidateResult.NotFound ignored ->
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      case HireCandidateResult.UnknownCandidate ignored ->
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      case HireCandidateResult.NoAgreedOffer ignored ->
+          throw new ResponseStatusException(
+              HttpStatus.CONFLICT, "Candidate has not agreed to an offer yet");
+      case HireCandidateResult.AlreadyHired ignored ->
           throw new ResponseStatusException(HttpStatus.CONFLICT);
     };
   }
@@ -149,20 +155,5 @@ public class HiringDirectorOfScoutingController {
     return viewHiring
         .view(id, principal.getAttribute("sub"))
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-  }
-
-  private String renderMutation(
-      ShortlistResult result, OAuth2User principal, long leagueId, Model model) {
-    return switch (result) {
-      case ShortlistResult.Updated updated -> {
-        log.info("dos shortlist updated leagueId={}", updated.view().league().leagueId());
-        model.addAttribute("view", resolveView(principal, leagueId));
-        yield "league/hiring/director-of-scouting-fragments :: combined";
-      }
-      case ShortlistResult.NotFound ignored ->
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-      case ShortlistResult.UnknownCandidate ignored ->
-          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-    };
   }
 }

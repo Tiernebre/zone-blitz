@@ -9,7 +9,6 @@ import app.zoneblitz.league.FakeRandomSource;
 import app.zoneblitz.league.JooqLeagueRepository;
 import app.zoneblitz.league.League;
 import app.zoneblitz.league.LeagueRepository;
-import app.zoneblitz.league.LeagueSettings;
 import app.zoneblitz.league.franchise.JooqFranchiseRepository;
 import app.zoneblitz.league.phase.HiringHeadCoachTransitionHandler;
 import app.zoneblitz.league.phase.HiringStep;
@@ -23,10 +22,8 @@ import app.zoneblitz.league.team.CityTeamProfiles;
 import app.zoneblitz.league.team.JooqTeamHiringStateRepository;
 import app.zoneblitz.league.team.JooqTeamLookup;
 import app.zoneblitz.league.team.JooqTeamRepository;
-import app.zoneblitz.league.team.TeamDraft;
 import app.zoneblitz.league.team.TeamHiringState;
 import app.zoneblitz.league.team.TeamLookup;
-import app.zoneblitz.league.team.TeamProfile;
 import app.zoneblitz.league.team.TeamProfiles;
 import app.zoneblitz.support.PostgresTestcontainer;
 import java.math.BigDecimal;
@@ -74,7 +71,7 @@ class PreferenceScoringOfferResolverTests {
     rngs = (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal());
     resolver =
         new PreferenceScoringOfferResolver(
-            offers, candidates, pools, preferences, profiles, hiringStates, staff, rngs);
+            offers, candidates, pools, preferences, profiles, hiringStates, staff, teams, rngs);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
     entryHandler =
         new HiringHeadCoachTransitionHandler(
@@ -89,146 +86,89 @@ class PreferenceScoringOfferResolverTests {
   }
 
   @Test
-  void resolve_singleOffer_acceptsAndHires() {
+  void resolve_cpuOfferMeetingThreshold_setsAgreedAndAutoHires() {
     var ctx = seedLeague();
+    dominateComp(ctx.candidateId);
     var offer =
-        offers.insertActive(ctx.candidateId, ctx.teamId, OfferTermsJson.toJson(goodTerms()), 1);
+        offers.insertActive(ctx.candidateId, ctx.cpuTeamId, OfferTermsJson.toJson(goodTerms()), 1);
 
     resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
 
     assertThat(offers.findById(offer.id()).orElseThrow().status()).isEqualTo(OfferStatus.ACCEPTED);
     assertThat(candidates.findById(ctx.candidateId).orElseThrow().hiredByTeamId())
-        .contains(ctx.teamId);
-    assertThat(hiringStates.find(ctx.teamId, LeaguePhase.HIRING_HEAD_COACH).orElseThrow().step())
+        .contains(ctx.cpuTeamId);
+    assertThat(hiringStates.find(ctx.cpuTeamId, LeaguePhase.HIRING_HEAD_COACH).orElseThrow().step())
         .isEqualTo(HiringStep.HIRED);
-    assertThat(staff.findAllForTeam(ctx.teamId))
+    assertThat(staff.findAllForTeam(ctx.cpuTeamId))
         .extracting(TeamStaffMember::role)
         .containsExactly(StaffRole.HEAD_COACH);
   }
 
   @Test
-  void resolve_multipleOffers_acceptsHighestAndRejectsOthers() {
+  void resolve_userOfferMeetingThreshold_setsAgreedButDoesNotHire() {
     var ctx = seedLeague();
-    // Lower offer from other franchise
-    var loser =
-        offers.insertActive(
-            ctx.candidateId, ctx.otherTeamId, OfferTermsJson.toJson(lowCompOffer()), 1);
-    var winner =
-        offers.insertActive(ctx.candidateId, ctx.teamId, OfferTermsJson.toJson(goodTerms()), 1);
+    dominateComp(ctx.candidateId);
+    var offer =
+        offers.insertActive(ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(goodTerms()), 1);
 
     resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
 
-    assertThat(offers.findById(winner.id()).orElseThrow().status()).isEqualTo(OfferStatus.ACCEPTED);
-    assertThat(offers.findById(loser.id()).orElseThrow().status()).isEqualTo(OfferStatus.REJECTED);
-    assertThat(candidates.findById(ctx.candidateId).orElseThrow().hiredByTeamId())
-        .contains(ctx.teamId);
-  }
-
-  @Test
-  void resolve_withNoActiveOffers_noChange() {
-    var ctx = seedLeague();
-
-    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
-
+    var reloaded = offers.findById(offer.id()).orElseThrow();
+    assertThat(reloaded.status()).isEqualTo(OfferStatus.ACTIVE);
+    assertThat(reloaded.stance()).contains(OfferStance.AGREED);
     assertThat(candidates.findById(ctx.candidateId).orElseThrow().hiredByTeamId()).isEmpty();
-    assertThat(staff.findAllForTeam(ctx.teamId)).isEmpty();
   }
 
   @Test
-  void resolve_equalFootingV1_identicalStaticProfilesScoreEqually() {
-    // When two teams' franchises share the same static city triple (market/geo/climate), v1
-    // equal-footing constants on dynamic dimensions guarantee identical composite scores.
-    var league =
-        leagues.insert(
-            "profile-test", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
-    var allFranchises = new JooqFranchiseRepository(dsl).listAll();
-    var teamRepo = new JooqTeamRepository(dsl);
-    teamRepo.insertAll(
-        league.id(),
-        allFranchises.stream()
-            .map(f -> new TeamDraft(f.id(), java.util.Optional.empty()))
-            .toList());
-    var teamIds = teams.teamIdsForLeague(league.id());
-    TeamProfile a = null;
-    TeamProfile b = null;
-    for (var ta : teamIds) {
-      var pa = profiles.forTeam(ta).orElseThrow();
-      for (var tb : teamIds) {
-        if (ta.equals(tb)) {
-          continue;
-        }
-        var pb = profiles.forTeam(tb).orElseThrow();
-        if (pa.marketSize() == pb.marketSize()
-            && pa.geography() == pb.geography()
-            && pa.climate() == pb.climate()) {
-          a = pa;
-          b = pb;
-          break;
-        }
-      }
-      if (a != null) {
-        break;
-      }
+  void resolve_userAndCpuBothAgreed_cpuDefersToUserPriority() {
+    var ctx = seedLeague();
+    dominateComp(ctx.candidateId);
+    var userOffer =
+        offers.insertActive(ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+    var cpuOffer =
+        offers.insertActive(ctx.candidateId, ctx.cpuTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
+
+    assertThat(offers.findById(userOffer.id()).orElseThrow().status())
+        .isEqualTo(OfferStatus.ACTIVE);
+    assertThat(offers.findById(cpuOffer.id()).orElseThrow().status()).isEqualTo(OfferStatus.ACTIVE);
+    assertThat(candidates.findById(ctx.candidateId).orElseThrow().hiredByTeamId()).isEmpty();
+  }
+
+  @Test
+  void resolve_lowScore_marksRenegotiate() {
+    var ctx = seedLeague();
+    dominateComp(ctx.candidateId);
+    var offer =
+        offers.insertActive(
+            ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(lowCompOffer()), 1);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
+
+    var reloaded = offers.findById(offer.id()).orElseThrow();
+    assertThat(reloaded.status()).isEqualTo(OfferStatus.ACTIVE);
+    assertThat(reloaded.stance()).contains(OfferStance.RENEGOTIATE);
+  }
+
+  @Test
+  void resolve_revisionCapExceededBelowThreshold_rejectsOffer() {
+    var ctx = seedLeague();
+    dominateComp(ctx.candidateId);
+    var offer =
+        offers.insertActive(
+            ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(lowCompOffer()), 1);
+    // Simulate three prior revisions that never reached AGREED. Use revise() to bump counter.
+    for (int i = 0; i < StanceEvaluator.REVISION_CAP; i++) {
+      offers.revise(offer.id(), OfferTermsJson.toJson(lowCompOffer()), 1);
     }
-    assertThat(a).describedAs("expected at least one matching city pair in seed data").isNotNull();
-
-    var prefs = CandidateTestData.preferencesFor(1L);
-    var terms = goodTerms();
-    assertThat(OfferScoring.score(terms, a, prefs)).isEqualTo(OfferScoring.score(terms, b, prefs));
-  }
-
-  @Test
-  void resolve_tieBrokenDeterministically_onlyOneWinner() {
-    // Two franchises make byte-identical offers on the same candidate. Exactly one must be
-    // accepted and one rejected — tie-break driven by the candidate's seeded RNG.
-    var ctx = seedLeague();
-    var offerA =
-        offers.insertActive(ctx.candidateId, ctx.teamId, OfferTermsJson.toJson(goodTerms()), 1);
-    var offerB =
-        offers.insertActive(
-            ctx.candidateId, ctx.otherTeamId, OfferTermsJson.toJson(goodTerms()), 1);
 
     resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
 
-    var statuses =
-        List.of(
-            offers.findById(offerA.id()).orElseThrow().status(),
-            offers.findById(offerB.id()).orElseThrow().status());
-    assertThat(statuses).containsExactlyInAnyOrder(OfferStatus.ACCEPTED, OfferStatus.REJECTED);
-    assertThat(candidates.findById(ctx.candidateId).orElseThrow().hiredByTeamId()).isPresent();
+    assertThat(offers.findById(offer.id()).orElseThrow().status()).isEqualTo(OfferStatus.REJECTED);
   }
 
-  @Test
-  void resolve_losingFranchise_remainsSearchingAndCanRebid() {
-    var ctx = seedLeague();
-    // Force the candidate's compensation to dominate the composite score so the good-offer
-    // franchise always wins regardless of the random preferences the generator produced for this
-    // specific seed. Without this the test is seed-sensitive — at some leagueId values the
-    // candidate's random dimension weights make a low-comp offer competitive with good terms, and
-    // the outcome flips.
-    overwritePreferencesToDominateComp(ctx.candidateId);
-    // Winner franchise has high offer; loser has low offer on same candidate.
-    offers.insertActive(ctx.candidateId, ctx.teamId, OfferTermsJson.toJson(goodTerms()), 1);
-    offers.insertActive(ctx.candidateId, ctx.otherTeamId, OfferTermsJson.toJson(lowCompOffer()), 1);
-
-    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 1);
-
-    // Loser still SEARCHING (never transitioned to HIRED).
-    var loserState =
-        hiringStates.find(ctx.otherTeamId, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
-    assertThat(loserState.step()).isEqualTo(HiringStep.SEARCHING);
-
-    // Loser can submit a new offer on a different candidate.
-    var otherCandidate = candidates.findAllByPoolId(poolIdFor(ctx.leagueId)).get(1);
-    var rebid =
-        offers.insertActive(
-            otherCandidate.id(), ctx.otherTeamId, OfferTermsJson.toJson(goodTerms()), 2);
-    assertThat(rebid.status()).isEqualTo(OfferStatus.ACTIVE);
-  }
-
-  private void overwritePreferencesToDominateComp(long candidateId) {
-    // Zero all non-comp weights, saturate the comp weight. Composite score then reduces to
-    // numericFloorFit on compensation — good terms ($20M vs any target) = 1.0, low ($500k) = 0.0.
+  private void dominateComp(long candidateId) {
     dsl.update(app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES)
         .set(
             app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.COMPENSATION_WEIGHT,
@@ -275,14 +215,6 @@ class PreferenceScoringOfferResolverTests {
         .execute();
   }
 
-  private long poolIdFor(long leagueId) {
-    return pools
-        .findByLeaguePhaseAndType(
-            leagueId, LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH)
-        .orElseThrow()
-        .id();
-  }
-
   private Ctx seedLeague() {
     var league = createLeagueFor("sub-" + System.nanoTime());
     leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
@@ -293,14 +225,12 @@ class PreferenceScoringOfferResolverTests {
                 league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH)
             .orElseThrow();
     var firstCandidate = candidates.findAllByPoolId(pool.id()).getFirst();
-    var teamIds = teams.teamIdsForLeague(league.id());
-    var teamA = teamIds.get(0);
-    var teamB = teamIds.get(1);
-    // Initialize hiring states for both so the loser can be inspected.
+    var userTeamId = teams.userTeamIdForLeague(league.id()).orElseThrow();
+    var cpuTeamId = teams.cpuTeamIdsForLeague(league.id()).getFirst();
     hiringStates.upsert(
         new TeamHiringState(
-            0L, teamB, LeaguePhase.HIRING_HEAD_COACH, HiringStep.SEARCHING, List.of(), List.of()));
-    return new Ctx(league.id(), firstCandidate.id(), teamA, teamB);
+            0L, cpuTeamId, LeaguePhase.HIRING_HEAD_COACH, HiringStep.SEARCHING, List.of()));
+    return new Ctx(league.id(), firstCandidate.id(), userTeamId, cpuTeamId);
   }
 
   private League createLeagueFor(String ownerSubject) {
@@ -327,5 +257,5 @@ class PreferenceScoringOfferResolverTests {
         StaffContinuity.KEEP_EXISTING);
   }
 
-  private record Ctx(long leagueId, long candidateId, long teamId, long otherTeamId) {}
+  private record Ctx(long leagueId, long candidateId, long userTeamId, long cpuTeamId) {}
 }

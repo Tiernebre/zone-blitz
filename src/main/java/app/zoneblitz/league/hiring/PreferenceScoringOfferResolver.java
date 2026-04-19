@@ -7,6 +7,7 @@ import app.zoneblitz.league.staff.StaffRole;
 import app.zoneblitz.league.staff.TeamStaffRepository;
 import app.zoneblitz.league.team.TeamHiringState;
 import app.zoneblitz.league.team.TeamHiringStateRepository;
+import app.zoneblitz.league.team.TeamLookup;
 import app.zoneblitz.league.team.TeamProfiles;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -17,11 +18,26 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Default {@link OfferResolver}: scores every candidate's active offers against their {@link
- * CandidatePreferences}, accepts the highest-scoring offer, rejects the rest.
+ * Default {@link OfferResolver}. Two-phase per tick:
  *
- * <p>Ties on composite score are broken deterministically by the candidate's seeded RNG (see {@code
- * docs/technical/league-phases.md}), falling back to offer id for total order safety.
+ * <ol>
+ *   <li>Score every ACTIVE offer in the league, update stance and enforce the revision cap:
+ *       <ul>
+ *         <li>Score ≥ {@link StanceEvaluator#AGREE_THRESHOLD} → {@link OfferStance#AGREED}.
+ *         <li>Below threshold and revisions remaining → {@link OfferStance#RENEGOTIATE}.
+ *         <li>Below threshold and revisions exhausted → offer {@link OfferStatus#REJECTED} (the
+ *             candidate walks).
+ *       </ul>
+ *   <li>Resolve candidates with one or more AGREED offers:
+ *       <ul>
+ *         <li>If the user's team has an AGREED offer, leave the offers open — the user must click
+ *             Hire explicitly. This gives the user priority over CPU teams.
+ *         <li>Otherwise the highest-scoring CPU AGREED offer is ACCEPTED; sibling AGREED offers
+ *             from other CPU teams are REJECTED (candidate off the market).
+ *       </ul>
+ * </ol>
+ *
+ * <p>Idempotent on re-run within the same week.
  */
 @Component
 public class PreferenceScoringOfferResolver implements OfferResolver {
@@ -35,6 +51,7 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
   private final TeamProfiles teamProfiles;
   private final TeamHiringStateRepository hiringStates;
   private final TeamStaffRepository staff;
+  private final TeamLookup teams;
   private final CandidateRandomSources rngs;
 
   public PreferenceScoringOfferResolver(
@@ -45,6 +62,7 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
       TeamProfiles teamProfiles,
       TeamHiringStateRepository hiringStates,
       TeamStaffRepository staff,
+      TeamLookup teams,
       CandidateRandomSources rngs) {
     this.offers = offers;
     this.candidates = candidates;
@@ -53,6 +71,7 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
     this.teamProfiles = teamProfiles;
     this.hiringStates = hiringStates;
     this.staff = staff;
+    this.teams = teams;
     this.rngs = rngs;
   }
 
@@ -66,116 +85,127 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
     if (pool.isEmpty()) {
       return;
     }
-
-    var candidateRows = candidates.findAllByPoolId(pool.get().id());
-    for (var candidate : candidateRows) {
-      if (candidate.hiredByTeamId().isPresent()) {
-        continue;
-      }
-      var activeOffers = offers.findActiveForCandidate(candidate.id());
-      if (activeOffers.isEmpty()) {
-        continue;
-      }
-      resolveForCandidate(leagueId, phase, weekAtResolve, candidate, activeOffers);
-    }
+    restance(leagueId);
+    autoHireCpuWinners(leagueId, phase, weekAtResolve);
   }
 
-  private void resolveForCandidate(
-      long leagueId,
-      LeaguePhase phase,
-      int weekAtResolve,
-      Candidate candidate,
-      List<CandidateOffer> activeOffers) {
-    var maybePrefs = preferences.findByCandidateId(candidate.id());
-    if (maybePrefs.isEmpty()) {
-      log.warn("offer resolution skipped — no preferences for candidateId={}", candidate.id());
-      return;
-    }
-    var prefs = maybePrefs.get();
-
-    var scored = new ArrayList<ScoredOffer>(activeOffers.size());
-    for (var offer : activeOffers) {
+  private void restance(long leagueId) {
+    for (var offer : offers.findActiveForLeague(leagueId)) {
+      var prefs = preferences.findByCandidateId(offer.candidateId());
       var profile = teamProfiles.forTeam(offer.teamId());
-      if (profile.isEmpty()) {
-        log.warn(
-            "offer resolution skipped offerId={} — no profile for teamId={}",
-            offer.id(),
-            offer.teamId());
+      if (prefs.isEmpty() || profile.isEmpty()) {
+        log.warn("offer restance skipped offerId={} — missing prefs or team profile", offer.id());
         continue;
       }
       var terms = OfferTermsJson.fromJson(offer.terms());
-      var score = OfferScoring.score(terms, profile.get(), prefs);
-      scored.add(new ScoredOffer(offer, score));
-    }
-    if (scored.isEmpty()) {
-      return;
-    }
-
-    var winner = chooseWinner(leagueId, phase, candidate.id(), scored);
-
-    candidates.markHired(candidate.id(), winner.offer().teamId());
-    offers.resolve(winner.offer().id(), OfferStatus.ACCEPTED);
-    upsertHired(phase, winner.offer().teamId(), weekAtResolve, candidate.id());
-
-    var winningTeam = winner.offer().teamId();
-    for (var other : scored) {
-      if (other.offer().id() != winner.offer().id()) {
-        offers.resolve(other.offer().id(), OfferStatus.REJECTED);
+      var eval = StanceEvaluator.evaluate(terms, profile.get(), prefs.get());
+      if (eval.stance() == OfferStance.AGREED) {
+        offers.setStance(offer.id(), OfferStance.AGREED);
+      } else if (offer.revisionCount() >= StanceEvaluator.REVISION_CAP) {
+        offers.resolve(offer.id(), OfferStatus.REJECTED);
+        log.info(
+            "offer walked — revisions exhausted offerId={} candidateId={} score={}",
+            offer.id(),
+            offer.candidateId(),
+            eval.score());
+      } else {
+        offers.setStance(offer.id(), OfferStance.RENEGOTIATE);
       }
     }
-    // Auto-reject any of this candidate's active offers from teams that did not win — the
-    // candidate is off the market. `findActiveForCandidate` above captured the scored set, but a
-    // candidate may have active offers from teams whose profiles are missing; reject those too so
-    // the lifecycle is clean.
-    for (var stray : offers.findActiveForCandidate(candidate.id())) {
-      if (stray.teamId() != winningTeam) {
-        offers.resolve(stray.id(), OfferStatus.REJECTED);
-      }
-    }
-
-    log.info(
-        "offer accepted leagueId={} candidateId={} teamId={} offerId={} score={} week={}",
-        leagueId,
-        candidate.id(),
-        winner.offer().teamId(),
-        winner.offer().id(),
-        winner.score(),
-        weekAtResolve);
   }
 
-  private ScoredOffer chooseWinner(
-      long leagueId, LeaguePhase phase, long candidateId, List<ScoredOffer> scored) {
+  private void autoHireCpuWinners(long leagueId, LeaguePhase phase, int weekAtResolve) {
+    var userTeamId = teams.userTeamIdForLeague(leagueId);
+    var pool = pools.findByLeaguePhaseAndType(leagueId, phase, poolTypeFor(phase).get());
+    if (pool.isEmpty()) {
+      return;
+    }
+    for (var candidate : candidates.findAllByPoolId(pool.get().id())) {
+      if (candidate.hiredByTeamId().isPresent()) {
+        continue;
+      }
+      var active = offers.findActiveForCandidate(candidate.id());
+      var agreed =
+          active.stream().filter(o -> o.stance().orElse(null) == OfferStance.AGREED).toList();
+      if (agreed.isEmpty()) {
+        continue;
+      }
+      if (userTeamId.isPresent() && agreed.stream().anyMatch(o -> o.teamId() == userTeamId.get())) {
+        continue;
+      }
+      var winner = chooseCpuWinner(leagueId, phase, candidate, agreed);
+      if (winner.isEmpty()) {
+        continue;
+      }
+      finalizeHire(phase, weekAtResolve, candidate, winner.get());
+    }
+  }
+
+  private Optional<CandidateOffer> chooseCpuWinner(
+      long leagueId, LeaguePhase phase, Candidate candidate, List<CandidateOffer> agreed) {
+    record Scored(CandidateOffer offer, double score) {}
+    var prefs = preferences.findByCandidateId(candidate.id());
+    if (prefs.isEmpty()) {
+      return Optional.empty();
+    }
+    var scored = new ArrayList<Scored>();
+    for (var o : agreed) {
+      var profile = teamProfiles.forTeam(o.teamId());
+      if (profile.isEmpty()) {
+        continue;
+      }
+      var score =
+          OfferScoring.score(OfferTermsJson.fromJson(o.terms()), profile.get(), prefs.get());
+      scored.add(new Scored(o, score));
+    }
+    if (scored.isEmpty()) {
+      return Optional.empty();
+    }
     scored.sort(
-        Comparator.comparingDouble(ScoredOffer::score)
+        Comparator.comparingDouble(Scored::score)
             .reversed()
             .thenComparingLong(s -> s.offer().id()));
     var topScore = scored.getFirst().score();
     var tied = scored.stream().filter(s -> s.score() == topScore).toList();
     if (tied.size() == 1) {
-      return tied.getFirst();
+      return Optional.of(tied.getFirst().offer());
     }
-    // Ties broken with the candidate's seeded RNG, split per-candidate so results are deterministic
-    // regardless of the order in which candidates are resolved.
-    var rng = rngs.forLeaguePhase(leagueId, phase).split(candidateId);
+    var rng = rngs.forLeaguePhase(leagueId, phase).split(candidate.id());
     var sortedTied = new ArrayList<>(tied);
     sortedTied.sort(Comparator.comparingLong(s -> s.offer().id()));
     var pick = (int) ((rng.nextLong() & Long.MAX_VALUE) % sortedTied.size());
-    return sortedTied.get(pick);
+    return Optional.of(sortedTied.get(pick).offer());
   }
 
-  private void upsertHired(LeaguePhase phase, long teamId, int weekAtResolve, long candidateId) {
-    var existing = hiringStates.find(teamId, phase);
+  private void finalizeHire(
+      LeaguePhase phase, int weekAtResolve, Candidate candidate, CandidateOffer winner) {
+    candidates.markHired(candidate.id(), winner.teamId());
+    offers.resolve(winner.id(), OfferStatus.ACCEPTED);
+    for (var other : offers.findActiveForCandidate(candidate.id())) {
+      offers.resolve(other.id(), OfferStatus.REJECTED);
+    }
+    var existing = hiringStates.find(winner.teamId(), phase);
     hiringStates.upsert(
         new TeamHiringState(
             existing.map(TeamHiringState::id).orElse(0L),
-            teamId,
+            winner.teamId(),
             phase,
             HiringStep.HIRED,
-            existing.map(TeamHiringState::shortlist).orElse(List.of()),
             existing.map(TeamHiringState::interviewingCandidateIds).orElse(List.of())));
     staff.insert(
         new NewTeamStaffMember(
-            teamId, candidateId, staffRoleFor(phase), Optional.empty(), phase, weekAtResolve));
+            winner.teamId(),
+            candidate.id(),
+            staffRoleFor(phase),
+            Optional.empty(),
+            phase,
+            weekAtResolve));
+    log.info(
+        "cpu auto-hire candidateId={} teamId={} offerId={} week={}",
+        candidate.id(),
+        winner.teamId(),
+        winner.id(),
+        weekAtResolve);
   }
 
   private static StaffRole staffRoleFor(LeaguePhase phase) {
@@ -194,6 +224,4 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
       case INITIAL_SETUP, ASSEMBLING_STAFF, COMPLETE -> Optional.empty();
     };
   }
-
-  private record ScoredOffer(CandidateOffer offer, double score) {}
 }

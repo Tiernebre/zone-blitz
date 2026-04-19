@@ -112,7 +112,15 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
             rngs);
     var resolver =
         new PreferenceScoringOfferResolver(
-            offers, candidates, pools, preferences, profiles, hiringStates, staff, rngs);
+            offers,
+            candidates,
+            pools,
+            preferences,
+            profiles,
+            hiringStates,
+            staff,
+            teamLookup,
+            rngs);
     var hcCpu =
         new CpuHiringStrategy(
             LeaguePhase.HIRING_HEAD_COACH,

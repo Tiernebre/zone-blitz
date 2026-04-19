@@ -11,8 +11,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,31 +25,23 @@ import org.slf4j.LoggerFactory;
  * LeaguePhase#HIRING_DIRECTOR_OF_SCOUTING}). One bean is registered per phase; behavior is
  * identical — only the phase/pool-type pair differs.
  *
- * <p>Hidden coach ratings are never consulted. Shortlisting, interview ordering, and bid sizing all
- * key off {@link InterestScoring#normalizedScore} — the same preference-fit signal humans see as an
- * interview bucket. CPUs pick candidates most likely to accept, not the ones with the highest
- * latent rating.
+ * <p>Hidden coach ratings are never consulted. Interview ordering and bid sizing key off {@link
+ * InterestScoring#normalizedScore} — the same preference-fit signal humans see as an interview
+ * bucket. CPUs pick candidates most likely to accept, not the ones with the highest latent rating.
  *
  * <p>Runs one week of hiring behavior per invocation:
  *
  * <ol>
  *   <li>If the team is already {@link HiringStep#HIRED}, do nothing.
- *   <li>If no shortlist yet, build one from the top candidates by preference-fit score (unhired
- *       only), up to {@link #SHORTLIST_SIZE}.
- *   <li>Interview shortlisted candidates up to the weekly capacity, skipping any already
- *       interviewed (one-shot). Ordering prefers highest fit score first.
- *   <li>If no active CPU offer is outstanding, submit a single offer on the top shortlisted
- *       candidate that is still unhired, is not in {@code NOT_INTERESTED}, and that the team does
- *       not already have an active offer on. Terms scale the candidate's preference targets by a
- *       willingness-to-pay multiplier keyed off the fit score.
+ *   <li>Interview the best-fit unhired candidates not yet interviewed, up to weekly capacity.
+ *   <li>If no active CPU offer is outstanding, submit a single offer on the highest-fit interviewed
+ *       candidate that is still unhired and not {@code NOT_INTERESTED}. Terms scale the candidate's
+ *       preference targets by a willingness-to-pay multiplier keyed off the fit score.
  * </ol>
  */
 public class CpuHiringStrategy implements CpuTeamStrategy {
 
   private static final Logger log = LoggerFactory.getLogger(CpuHiringStrategy.class);
-
-  /** How many candidates a CPU team shortlists. Kept small per the ticket brief. */
-  static final int SHORTLIST_SIZE = 4;
 
   private final LeaguePhase phase;
   private final CandidatePoolType poolType;
@@ -106,76 +102,33 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
     }
     var prefsByCandidate = prefsByCandidate(unhired);
 
-    var state = ensureState(teamId, existing, unhired, profile, prefsByCandidate);
-    var shortlist = state.shortlist();
-
-    runInterviews(leagueId, teamId, phaseWeek, shortlist, unhired, profile, prefsByCandidate);
-    submitOfferIfNone(leagueId, teamId, phaseWeek, shortlist, unhired, profile, prefsByCandidate);
+    runInterviews(leagueId, teamId, phaseWeek, unhired, profile, prefsByCandidate);
+    submitOfferIfNone(leagueId, teamId, phaseWeek, unhired, profile, prefsByCandidate);
   }
 
-  private java.util.Map<Long, CandidatePreferences> prefsByCandidate(List<Candidate> unhired) {
-    var m = new java.util.HashMap<Long, CandidatePreferences>();
+  private Map<Long, CandidatePreferences> prefsByCandidate(List<Candidate> unhired) {
+    var m = new HashMap<Long, CandidatePreferences>();
     for (var c : unhired) {
       preferences.findByCandidateId(c.id()).ifPresent(p -> m.put(c.id(), p));
     }
     return m;
   }
 
-  private TeamHiringState ensureState(
-      long teamId,
-      Optional<TeamHiringState> existing,
-      List<Candidate> unhired,
-      TeamProfile profile,
-      java.util.Map<Long, CandidatePreferences> prefsByCandidate) {
-    if (existing.isPresent() && !existing.get().shortlist().isEmpty()) {
-      return existing.get();
-    }
-    var shortlist = pickShortlist(unhired, profile, prefsByCandidate);
-    var stateId = existing.map(TeamHiringState::id).orElse(0L);
-    var interviewing = existing.map(TeamHiringState::interviewingCandidateIds).orElse(List.of());
-    return hiringStates.upsert(
-        new TeamHiringState(
-            stateId, teamId, phase(), HiringStep.SEARCHING, shortlist, interviewing));
-  }
-
-  private List<Long> pickShortlist(
-      List<Candidate> unhired,
-      TeamProfile profile,
-      java.util.Map<Long, CandidatePreferences> prefsByCandidate) {
-    return unhired.stream()
-        .filter(c -> prefsByCandidate.containsKey(c.id()))
-        .sorted(
-            Comparator.comparingDouble(
-                    (Candidate c) -> -fitScore(profile, prefsByCandidate.get(c.id())))
-                .thenComparingLong(Candidate::id))
-        .limit(SHORTLIST_SIZE)
-        .map(Candidate::id)
-        .toList();
-  }
-
   private void runInterviews(
       long leagueId,
       long teamId,
       int phaseWeek,
-      List<Long> shortlist,
       List<Candidate> unhired,
       TeamProfile profile,
-      java.util.Map<Long, CandidatePreferences> prefsByCandidate) {
+      Map<Long, CandidatePreferences> prefsByCandidate) {
     var capacity = StartInterview.DEFAULT_WEEKLY_CAPACITY;
     var used = interviews.countForWeek(teamId, phase(), phaseWeek);
     if (used >= capacity) {
       return;
     }
     var remaining = capacity - used;
-    var candidatesById =
-        unhired.stream()
-            .collect(
-                java.util.stream.Collectors.toMap(
-                    Candidate::id, c -> c, (a, b) -> a, java.util.LinkedHashMap::new));
     var ordered =
-        shortlist.stream()
-            .map(candidatesById::get)
-            .filter(java.util.Objects::nonNull)
+        unhired.stream()
             .filter(c -> prefsByCandidate.containsKey(c.id()))
             .filter(c -> interviews.countForCandidate(teamId, c.id(), phase()) == 0)
             .sorted(
@@ -195,7 +148,7 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
       int phaseWeek,
       Candidate candidate,
       TeamProfile profile,
-      java.util.Map<Long, CandidatePreferences> prefsByCandidate) {
+      Map<Long, CandidatePreferences> prefsByCandidate) {
     var interest = InterestScoring.score(profile, prefsByCandidate.get(candidate.id()));
     interviews.insert(
         new NewTeamInterview(teamId, candidate.id(), phase(), phaseWeek, 1, interest));
@@ -210,7 +163,6 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
 
   private void appendInterviewing(long teamId, long candidateId) {
     var existing = hiringStates.find(teamId, phase());
-    var shortlist = existing.map(TeamHiringState::shortlist).orElse(List.of());
     var interviewing = existing.map(TeamHiringState::interviewingCandidateIds).orElse(List.of());
     var updated = new ArrayList<Long>(interviewing.size() + 1);
     updated.addAll(interviewing);
@@ -221,7 +173,6 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
             teamId,
             phase(),
             HiringStep.SEARCHING,
-            shortlist,
             List.copyOf(updated)));
   }
 
@@ -229,26 +180,29 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
       long leagueId,
       long teamId,
       int phaseWeek,
-      List<Long> shortlist,
       List<Candidate> unhired,
       TeamProfile profile,
-      java.util.Map<Long, CandidatePreferences> prefsByCandidate) {
+      Map<Long, CandidatePreferences> prefsByCandidate) {
     var existingOffers = offers.findActiveForTeam(teamId);
     if (!existingOffers.isEmpty()) {
       return;
     }
+    var interviewedIds =
+        interviews.findAllFor(teamId, phase()).stream().map(TeamInterview::candidateId).toList();
     var unhiredById =
-        unhired.stream()
-            .collect(java.util.stream.Collectors.toMap(Candidate::id, c -> c, (a, b) -> a));
-    for (var candidateId : shortlist) {
-      var candidate = unhiredById.get(candidateId);
-      if (candidate == null) {
-        continue;
-      }
-      var prefs = prefsByCandidate.get(candidateId);
-      if (prefs == null) {
-        continue;
-      }
+        unhired.stream().collect(Collectors.toMap(Candidate::id, c -> c, (a, b) -> a));
+    var ordered =
+        interviewedIds.stream()
+            .map(unhiredById::get)
+            .filter(Objects::nonNull)
+            .filter(c -> prefsByCandidate.containsKey(c.id()))
+            .sorted(
+                Comparator.comparingDouble(
+                        (Candidate c) -> -fitScore(profile, prefsByCandidate.get(c.id())))
+                    .thenComparingLong(Candidate::id))
+            .toList();
+    for (var candidate : ordered) {
+      var prefs = prefsByCandidate.get(candidate.id());
       var fit = fitScore(profile, prefs);
       if (fit < InterestScoring.LUKEWARM_THRESHOLD) {
         continue;
@@ -292,5 +246,9 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
 
   private static double fitScore(TeamProfile profile, CandidatePreferences prefs) {
     return InterestScoring.normalizedScore(profile, prefs);
+  }
+
+  private Optional<TeamHiringState> findExisting(long teamId) {
+    return hiringStates.find(teamId, phase());
   }
 }

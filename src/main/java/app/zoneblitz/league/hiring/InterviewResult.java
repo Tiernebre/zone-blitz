@@ -3,13 +3,13 @@ package app.zoneblitz.league.hiring;
 /** Sealed outcomes for {@link StartInterview#start}. */
 public sealed interface InterviewResult {
 
-  /** Interview recorded; the refreshed view-model is returned for fragment rendering. */
-  record Started(HeadCoachHiringView view) implements InterviewResult {}
+  /** Interview recorded. Callers re-fetch the appropriate phase view for rendering. */
+  record Started(long candidateId) implements InterviewResult {}
 
-  /** League not found for the requesting user, or not in the HC hiring phase. */
+  /** League not found for the requesting user, or not in a hiring phase. */
   record NotFound(long leagueId) implements InterviewResult {}
 
-  /** Candidate does not exist in this league's HC pool. */
+  /** Candidate does not exist in this league's current hiring pool. */
   record UnknownCandidate(long candidateId) implements InterviewResult {}
 
   /** Team has already hit its per-week interview cap. */

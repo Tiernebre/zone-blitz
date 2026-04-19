@@ -6,7 +6,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,9 +42,9 @@ class HiringHeadCoachControllerTests {
   @Autowired MockMvc mvc;
 
   @MockitoBean ViewHeadCoachHiring viewHiring;
-  @MockitoBean ManageHeadCoachShortlist shortlist;
   @MockitoBean StartInterview startInterview;
   @MockitoBean MakeOffer makeOffer;
+  @MockitoBean HireCandidate hireCandidate;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
@@ -81,70 +80,20 @@ class HiringHeadCoachControllerTests {
   }
 
   @Test
-  void shortlistFragment_returnsFragment() throws Exception {
+  void candidatesFragment_returnsFragment() throws Exception {
     given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
 
     mvc.perform(
-            get("/leagues/42/hiring/head-coach/shortlist")
+            get("/leagues/42/hiring/head-coach/candidates")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
         .andExpect(status().isOk())
-        .andExpect(view().name("league/hiring/head-coach-fragments :: shortlist"));
-  }
-
-  @Test
-  void addToShortlist_whenUpdated_rendersCombinedFragment() throws Exception {
-    given(shortlist.add(42L, 7L, "sub-1")).willReturn(new ShortlistResult.Updated(sampleView()));
-
-    mvc.perform(
-            post("/leagues/42/hiring/head-coach/shortlist/7")
-                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
-                .with(csrf()))
-        .andExpect(status().isOk())
-        .andExpect(view().name("league/hiring/head-coach-fragments :: combined"));
-
-    verify(shortlist).add(42L, 7L, "sub-1");
-  }
-
-  @Test
-  void addToShortlist_whenNotFound_returns404() throws Exception {
-    given(shortlist.add(42L, 7L, "sub-1")).willReturn(new ShortlistResult.NotFound(42L));
-
-    mvc.perform(
-            post("/leagues/42/hiring/head-coach/shortlist/7")
-                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
-                .with(csrf()))
-        .andExpect(status().isNotFound());
-  }
-
-  @Test
-  void addToShortlist_whenUnknownCandidate_returns404() throws Exception {
-    given(shortlist.add(42L, 7L, "sub-1")).willReturn(new ShortlistResult.UnknownCandidate(7L));
-
-    mvc.perform(
-            post("/leagues/42/hiring/head-coach/shortlist/7")
-                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
-                .with(csrf()))
-        .andExpect(status().isNotFound());
-  }
-
-  @Test
-  void removeFromShortlist_whenUpdated_rendersCombinedFragment() throws Exception {
-    given(shortlist.remove(42L, 7L, "sub-1")).willReturn(new ShortlistResult.Updated(sampleView()));
-
-    mvc.perform(
-            delete("/leagues/42/hiring/head-coach/shortlist/7")
-                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
-                .with(csrf()))
-        .andExpect(status().isOk())
-        .andExpect(view().name("league/hiring/head-coach-fragments :: combined"));
-
-    verify(shortlist).remove(42L, 7L, "sub-1");
+        .andExpect(view().name("league/hiring/head-coach-fragments :: candidates"));
   }
 
   @Test
   void startInterview_whenStarted_rendersCombinedFragment() throws Exception {
-    given(startInterview.start(42L, 7L, "sub-1"))
-        .willReturn(new InterviewResult.Started(sampleView()));
+    given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
+    given(startInterview.start(42L, 7L, "sub-1")).willReturn(new InterviewResult.Started(7L));
 
     mvc.perform(
             post("/leagues/42/hiring/head-coach/interview/7")
@@ -180,18 +129,6 @@ class HiringHeadCoachControllerTests {
   }
 
   @Test
-  void startInterview_whenUnknownCandidate_returns404() throws Exception {
-    given(startInterview.start(42L, 7L, "sub-1"))
-        .willReturn(new InterviewResult.UnknownCandidate(7L));
-
-    mvc.perform(
-            post("/leagues/42/hiring/head-coach/interview/7")
-                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
-                .with(csrf()))
-        .andExpect(status().isNotFound());
-  }
-
-  @Test
   void startInterview_requiresCsrf() throws Exception {
     mvc.perform(
             post("/leagues/42/hiring/head-coach/interview/7")
@@ -200,23 +137,20 @@ class HiringHeadCoachControllerTests {
   }
 
   @Test
-  void interviewsFragment_returnsFragment() throws Exception {
-    given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
-
-    mvc.perform(
-            get("/leagues/42/hiring/head-coach/interviews")
-                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
-        .andExpect(status().isOk())
-        .andExpect(view().name("league/hiring/head-coach-fragments :: interviews"));
-  }
-
-  @Test
   void submitOffer_whenCreated_rendersCombinedFragment() throws Exception {
     given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
     given(makeOffer.offer(eq(42L), eq(7L), eq("sub-1"), any()))
         .willReturn(
             new MakeOfferResult.Created(
-                new CandidateOffer(1L, 7L, 99L, "{}", 1, OfferStatus.ACTIVE)));
+                new CandidateOffer(
+                    1L,
+                    7L,
+                    99L,
+                    "{}",
+                    1,
+                    OfferStatus.ACTIVE,
+                    Optional.of(OfferStance.PENDING),
+                    0)));
 
     mvc.perform(
             post("/leagues/42/hiring/head-coach/offer/7")
@@ -232,9 +166,9 @@ class HiringHeadCoachControllerTests {
   }
 
   @Test
-  void submitOffer_whenActiveOfferExists_returns409() throws Exception {
+  void submitOffer_whenRevisionCapReached_returns409() throws Exception {
     given(makeOffer.offer(eq(42L), eq(7L), eq("sub-1"), any()))
-        .willReturn(new MakeOfferResult.ActiveOfferExists(7L, 1L));
+        .willReturn(new MakeOfferResult.RevisionCapReached(7L, 3));
 
     mvc.perform(
             post("/leagues/42/hiring/head-coach/offer/7")
@@ -266,6 +200,33 @@ class HiringHeadCoachControllerTests {
   }
 
   @Test
+  void hire_whenHired_rendersCombinedFragment() throws Exception {
+    given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
+    given(hireCandidate.hire(42L, 7L, "sub-1")).willReturn(new HireCandidateResult.Hired(7L, 100L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/hire/7")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(view().name("league/hiring/head-coach-fragments :: combined"));
+
+    verify(hireCandidate).hire(42L, 7L, "sub-1");
+  }
+
+  @Test
+  void hire_whenNoAgreedOffer_returns409() throws Exception {
+    given(hireCandidate.hire(42L, 7L, "sub-1"))
+        .willReturn(new HireCandidateResult.NoAgreedOffer(7L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/hire/7")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
   void submitOffer_requiresCsrf() throws Exception {
     mvc.perform(
             post("/leagues/42/hiring/head-coach/offer/7")
@@ -274,14 +235,6 @@ class HiringHeadCoachControllerTests {
                 .param("guaranteedMoneyPct", "0.85")
                 .param("roleScope", "HIGH")
                 .param("staffContinuity", "BRING_OWN")
-                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
-        .andExpect(status().isForbidden());
-  }
-
-  @Test
-  void addToShortlist_requiresCsrf() throws Exception {
-    mvc.perform(
-            post("/leagues/42/hiring/head-coach/shortlist/7")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
         .andExpect(status().isForbidden());
   }
@@ -297,6 +250,6 @@ class HiringHeadCoachControllerTests {
     var league =
         new LeagueSummary(
             42L, "Dynasty", LeaguePhase.HIRING_HEAD_COACH, 1, Instant.now(), 100L, franchise);
-    return new HeadCoachHiringView(league, List.of(), List.of(), List.of(), 0, 3);
+    return new HeadCoachHiringView(league, List.of(), List.of(), 0, 5);
   }
 }

@@ -106,7 +106,6 @@ class HiringDirectorOfScoutingTransitionHandlerTests {
         .allSatisfy(
             s -> {
               assertThat(s.step()).isEqualTo(HiringStep.SEARCHING);
-              assertThat(s.shortlist()).isEmpty();
               assertThat(s.interviewingCandidateIds()).isEmpty();
             });
   }

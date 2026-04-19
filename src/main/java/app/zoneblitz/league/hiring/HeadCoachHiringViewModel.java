@@ -1,18 +1,19 @@
 package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.league.LeagueSummary;
+import app.zoneblitz.league.team.TeamProfile;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
  * Assembles {@link HeadCoachCandidateView} rows and the composite {@link HeadCoachHiringView} from
- * domain candidates + preferences + shortlist state + per-team interview history. Extracted from
- * the controller so the controller stays thin and the assembly logic is unit-testable on its own.
+ * domain candidates + preferences + team profile + per-team interview history + the requesting
+ * team's active offers. The view is read-only: stance and directional hints are derived from the
+ * stored offer stance and recomputed hint, not persisted separately in the view model.
  */
 public final class HeadCoachHiringViewModel {
 
@@ -24,26 +25,37 @@ public final class HeadCoachHiringViewModel {
       LeagueSummary league,
       List<Candidate> pool,
       List<CandidatePreferences> preferences,
-      List<Long> shortlist,
       List<TeamInterview> interviews,
+      List<CandidateOffer> teamOffers,
+      Optional<TeamProfile> teamProfile,
       int interviewCapacity) {
     var prefsByCandidate =
         preferences.stream()
             .collect(
                 java.util.stream.Collectors.toUnmodifiableMap(
                     CandidatePreferences::candidateId, p -> p));
-    var shortlistSet = Set.copyOf(shortlist);
     var interestByCandidate = interestByCandidate(interviews);
+    var offerByCandidate =
+        teamOffers.stream()
+            .collect(
+                java.util.stream.Collectors.toUnmodifiableMap(
+                    CandidateOffer::candidateId, o -> o, (a, b) -> a));
     var interviewsThisWeek = countForWeek(interviews, league.phaseWeek());
     var rows =
         pool.stream()
             .filter(c -> c.hiredByTeamId().isEmpty())
-            .map(c -> toRow(c, prefsByCandidate, shortlistSet, interestByCandidate))
+            .map(
+                c ->
+                    toRow(
+                        c,
+                        prefsByCandidate,
+                        interestByCandidate,
+                        offerByCandidate,
+                        teamProfile.orElse(null)))
             .toList();
-    var shortlistRows = rows.stream().filter(HeadCoachCandidateView::shortlisted).toList();
     var activeInterviewRows = rows.stream().filter(HeadCoachCandidateView::interviewed).toList();
     return new HeadCoachHiringView(
-        league, rows, shortlistRows, activeInterviewRows, interviewsThisWeek, interviewCapacity);
+        league, rows, activeInterviewRows, interviewsThisWeek, interviewCapacity);
   }
 
   private static Map<Long, InterviewInterest> interestByCandidate(List<TeamInterview> interviews) {
@@ -61,10 +73,14 @@ public final class HeadCoachHiringViewModel {
   private static HeadCoachCandidateView toRow(
       Candidate candidate,
       Map<Long, CandidatePreferences> prefsById,
-      Set<Long> shortlistSet,
-      Map<Long, InterviewInterest> interestByCandidate) {
+      Map<Long, InterviewInterest> interestByCandidate,
+      Map<Long, CandidateOffer> offerByCandidate,
+      TeamProfile teamProfile) {
     var prefs = prefsById.get(candidate.id());
     var interest = Optional.ofNullable(interestByCandidate.get(candidate.id()));
+    var offer =
+        Optional.ofNullable(offerByCandidate.get(candidate.id()))
+            .flatMap(o -> toOfferView(o, prefs, teamProfile));
     return new HeadCoachCandidateView(
         candidate.id(),
         candidate.fullName(),
@@ -78,8 +94,31 @@ public final class HeadCoachHiringViewModel {
         prefs == null ? BigDecimal.ZERO : prefs.compensationTarget(),
         prefs == null ? 0 : prefs.contractLengthTarget(),
         prefs == null ? BigDecimal.ZERO : prefs.guaranteedMoneyTarget(),
-        shortlistSet.contains(candidate.id()),
-        interest);
+        interest,
+        offer);
+  }
+
+  private static Optional<OfferView> toOfferView(
+      CandidateOffer offer, CandidatePreferences prefs, TeamProfile teamProfile) {
+    if (prefs == null || teamProfile == null) {
+      return Optional.empty();
+    }
+    var terms = OfferTermsJson.fromJson(offer.terms());
+    var stance = offer.stance().orElse(OfferStance.PENDING);
+    var hint =
+        stance == OfferStance.PENDING
+            ? Optional.<String>empty()
+            : StanceEvaluator.evaluate(terms, teamProfile, prefs).hint();
+    return Optional.of(
+        new OfferView(
+            offer.id(),
+            terms.compensation(),
+            terms.contractLengthYears(),
+            terms.guaranteedMoneyPct(),
+            stance,
+            offer.revisionCount(),
+            StanceEvaluator.REVISION_CAP,
+            hint));
   }
 
   private static int experienceFor(String experienceByRoleJson, String role) {

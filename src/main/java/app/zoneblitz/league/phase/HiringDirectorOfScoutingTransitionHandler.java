@@ -91,7 +91,7 @@ public class HiringDirectorOfScoutingTransitionHandler implements PhaseTransitio
     }
     for (var teamId : teamIds) {
       hiringStates.upsert(
-          new TeamHiringState(0L, teamId, phase(), HiringStep.SEARCHING, List.of(), List.of()));
+          new TeamHiringState(0L, teamId, phase(), HiringStep.SEARCHING, List.of()));
     }
     log.info(
         "hiring director-of-scouting pool generated leagueId={} poolId={} size={} teams={}",

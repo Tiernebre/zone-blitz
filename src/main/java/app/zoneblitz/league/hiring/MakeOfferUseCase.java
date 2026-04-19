@@ -20,18 +20,21 @@ public class MakeOfferUseCase implements MakeOffer {
   private final CandidateRepository candidates;
   private final CandidateOfferRepository offers;
   private final TeamHiringStateRepository hiringStates;
+  private final TeamInterviewRepository interviews;
 
   public MakeOfferUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidateOfferRepository offers,
-      TeamHiringStateRepository hiringStates) {
+      TeamHiringStateRepository hiringStates,
+      TeamInterviewRepository interviews) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
     this.offers = offers;
     this.hiringStates = hiringStates;
+    this.interviews = interviews;
   }
 
   @Override
@@ -69,12 +72,33 @@ public class MakeOfferUseCase implements MakeOffer {
       return new MakeOfferResult.AlreadyHired(teamId);
     }
 
-    var existing = offers.findActiveForTeam(teamId);
-    if (existing.stream().anyMatch(o -> o.candidateId() == candidateId)) {
-      return new MakeOfferResult.ActiveOfferExists(candidateId, teamId);
+    var interview =
+        interviews.findAllFor(teamId, phase).stream()
+            .filter(i -> i.candidateId() == candidateId)
+            .findFirst();
+    if (interview.isEmpty()
+        || interview.get().interestLevel() == InterviewInterest.NOT_INTERESTED) {
+      return new MakeOfferResult.CandidateNotInterested(candidateId);
     }
 
     var phaseWeek = league.phaseWeek();
+    var existing = offers.findActiveForTeamAndCandidate(teamId, candidateId);
+    if (existing.isPresent()) {
+      if (existing.get().revisionCount() >= StanceEvaluator.REVISION_CAP) {
+        return new MakeOfferResult.RevisionCapReached(candidateId, existing.get().revisionCount());
+      }
+      var revised = offers.revise(existing.get().id(), OfferTermsJson.toJson(terms), phaseWeek);
+      log.info(
+          "offer revised leagueId={} teamId={} candidateId={} offerId={} revision={} week={}",
+          leagueId,
+          teamId,
+          candidateId,
+          revised.id(),
+          revised.revisionCount(),
+          phaseWeek);
+      return new MakeOfferResult.Created(revised);
+    }
+
     var saved = offers.insertActive(candidateId, teamId, OfferTermsJson.toJson(terms), phaseWeek);
     log.info(
         "offer submitted leagueId={} teamId={} candidateId={} offerId={} week={}",

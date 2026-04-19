@@ -9,7 +9,7 @@ package app.zoneblitz.league.hiring;
  *   <li>Increments the franchise's interview count against that candidate; each step reduces the
  *       scouted-signal σ per {@link InterviewNoiseModel}, with diminishing returns and a hard
  *       tier-dependent floor (σ never reaches 0).
- *   <li>Counts against the franchise's weekly interview capacity (default 3/week).
+ *   <li>Counts against the franchise's weekly interview capacity (default 5/week).
  *   <li>Persists a new scouted-overall estimate derived from the candidate's hidden true rating
  *       plus noise at the current σ. The shared {@code candidates.scouted_attrs} column is never
  *       written to — the hidden true rating never leaks into the shared column.
@@ -24,7 +24,7 @@ package app.zoneblitz.league.hiring;
  */
 public interface StartInterview {
 
-  int DEFAULT_WEEKLY_CAPACITY = 3;
+  int DEFAULT_WEEKLY_CAPACITY = 5;
 
   InterviewResult start(long leagueId, long candidateId, String ownerSubject);
 }

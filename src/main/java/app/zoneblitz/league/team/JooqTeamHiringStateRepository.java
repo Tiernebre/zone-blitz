@@ -25,19 +25,16 @@ public class JooqTeamHiringStateRepository implements TeamHiringStateRepository 
   @Override
   public TeamHiringState upsert(TeamHiringState state) {
     Objects.requireNonNull(state, "state");
-    var shortlistJson = JSONB.valueOf(JsonLongArrays.encode(state.shortlist()));
     var interviewingJson = JSONB.valueOf(JsonLongArrays.encode(state.interviewingCandidateIds()));
     var record =
         dsl.insertInto(TEAM_HIRING_STATES)
             .set(TEAM_HIRING_STATES.TEAM_ID, state.teamId())
             .set(TEAM_HIRING_STATES.PHASE, state.phase().name())
             .set(TEAM_HIRING_STATES.STEP, state.step().name())
-            .set(TEAM_HIRING_STATES.SHORTLIST, shortlistJson)
             .set(TEAM_HIRING_STATES.INTERVIEWING_CANDIDATE_IDS, interviewingJson)
             .onConflict(TEAM_HIRING_STATES.TEAM_ID, TEAM_HIRING_STATES.PHASE)
             .doUpdate()
             .set(TEAM_HIRING_STATES.STEP, state.step().name())
-            .set(TEAM_HIRING_STATES.SHORTLIST, shortlistJson)
             .set(TEAM_HIRING_STATES.INTERVIEWING_CANDIDATE_IDS, interviewingJson)
             .returning(TEAM_HIRING_STATES.fields())
             .fetchOne();
@@ -70,7 +67,6 @@ public class JooqTeamHiringStateRepository implements TeamHiringStateRepository 
         r.get(TEAM_HIRING_STATES.TEAM_ID),
         LeaguePhase.valueOf(r.get(TEAM_HIRING_STATES.PHASE)),
         HiringStep.valueOf(r.get(TEAM_HIRING_STATES.STEP)),
-        JsonLongArrays.decode(r.get(TEAM_HIRING_STATES.SHORTLIST).data()),
         JsonLongArrays.decode(r.get(TEAM_HIRING_STATES.INTERVIEWING_CANDIDATE_IDS).data()));
   }
 }

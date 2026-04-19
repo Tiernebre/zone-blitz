@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-	<!-- Combined swap target: pool + shortlist + interviews updated together after mutations. -->
 	<div th:fragment="combined" id="hiring-regions" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 		<div class="lg:col-span-2">
 			<div th:insert="~{league/hiring/director-of-scouting-fragments :: pool}"></div>
 		</div>
-		<div class="space-y-4">
-			<div th:insert="~{league/hiring/director-of-scouting-fragments :: shortlist}"></div>
-			<div th:insert="~{league/hiring/director-of-scouting-fragments :: interviews}"></div>
+		<div>
+			<div th:insert="~{league/hiring/director-of-scouting-fragments :: candidates}"></div>
 		</div>
 	</div>
 
@@ -28,7 +26,9 @@
 					<th class="py-2 pr-2">Archetype</th>
 					<th class="py-2 pr-2">Specialty</th>
 					<th class="py-2 pr-2">Age</th>
-					<th class="py-2 pr-2">Exp (DoS / Scout / Area)</th>
+					<th class="py-2 pr-2" title="Years as director of scouting">DoS Yrs</th>
+					<th class="py-2 pr-2" title="Years as scout">Scout Yrs</th>
+					<th class="py-2 pr-2" title="Years as area scout">Area Yrs</th>
 					<th class="py-2 pr-2">Comp target</th>
 					<th class="py-2 pr-2">Length</th>
 					<th class="py-2 pr-2">Guaranteed</th>
@@ -44,10 +44,9 @@
 					<td class="py-2 pr-2" th:text="${row.archetype().displayName()}"></td>
 					<td class="py-2 pr-2" th:text="${row.specialty()}"></td>
 					<td class="py-2 pr-2" th:text="${row.age()}"></td>
-					<td class="py-2 pr-2">
-						<span th:text="${row.dosYears()} + ' / ' + ${row.scoutYears()} + ' / ' + ${row.areaScoutYears()}"></span>
-						<span class="text-slate-400 text-xs" th:text="'(' + ${row.totalExperienceYears()} + ' yrs total)'"></span>
-					</td>
+					<td class="py-2 pr-2 tabular-nums" th:text="${row.dosYears()}"></td>
+					<td class="py-2 pr-2 tabular-nums" th:text="${row.scoutYears()}"></td>
+					<td class="py-2 pr-2 tabular-nums" th:text="${row.areaScoutYears()}"></td>
 					<td class="py-2 pr-2" th:text="'$' + ${#numbers.formatDecimal(row.compensationTarget(), 0, 'COMMA', 0, 'POINT')}"></td>
 					<td class="py-2 pr-2" th:text="${row.contractLengthTarget()} + ' yr'"></td>
 					<td class="py-2 pr-2" th:text="${#numbers.formatPercent(row.guaranteedMoneyTarget(), 1, 0)}"></td>
@@ -61,23 +60,7 @@
 						      class="inline-block px-2 py-0.5 rounded text-xs font-medium"
 						      th:text="${row.interest().get().displayName()}">Interested</span>
 					</td>
-					<td class="py-2 pr-2 space-x-1">
-						<button type="button"
-						        th:unless="${row.shortlisted()}"
-						        th:attr="hx-post=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/director-of-scouting/shortlist/' + ${row.id()}}"
-						        hx-target="#hiring-regions"
-						        hx-swap="outerHTML"
-						        class="px-2 py-1 text-xs rounded bg-slate-900 text-white hover:bg-slate-800 cursor-pointer">
-							Shortlist
-						</button>
-						<button type="button"
-						        th:if="${row.shortlisted()}"
-						        th:attr="hx-delete=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/director-of-scouting/shortlist/' + ${row.id()}}"
-						        hx-target="#hiring-regions"
-						        hx-swap="outerHTML"
-						        class="px-2 py-1 text-xs rounded bg-slate-200 text-slate-700 hover:bg-slate-300 cursor-pointer">
-							Shortlisted
-						</button>
+					<td class="py-2 pr-2">
 						<button type="button"
 						        th:unless="${row.interviewed()}"
 						        th:attr="hx-post=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/director-of-scouting/interview/' + ${row.id()}},
@@ -88,66 +71,136 @@
 						        class="px-2 py-1 text-xs rounded bg-indigo-600 text-white hover:bg-indigo-500">
 							Interview
 						</button>
+						<span th:if="${row.interviewed()}" class="text-slate-400 text-xs italic">Interviewed</span>
 					</td>
 				</tr>
 			</tbody>
 		</table>
 	</section>
 
-	<aside th:fragment="shortlist"
-	       id="dos-shortlist"
-	       class="bg-white border border-slate-200 rounded p-4 shadow-sm">
-		<h2 class="text-lg font-semibold text-slate-900">Your shortlist</h2>
-		<p class="text-sm text-slate-500 mb-3"
-		   th:text="'(' + ${view.shortlist().size()} + ' candidates)'"></p>
-		<div th:if="${view.shortlist().isEmpty()}" class="text-slate-500 italic text-sm">
-			No candidates shortlisted yet.
-		</div>
-		<ul th:unless="${view.shortlist().isEmpty()}" class="space-y-2">
-			<li th:each="row : ${view.shortlist()}"
-			    class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-				<div class="min-w-0">
-					<div class="text-sm font-medium text-slate-900" th:text="${row.name()}"></div>
-					<div class="text-xs text-slate-500"
-					     th:text="${row.archetype().displayName()} + ' · ' + ${row.specialty()} + ' · age ' + ${row.age()}"></div>
-				</div>
-				<button type="button"
-				        th:attr="hx-delete=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/director-of-scouting/shortlist/' + ${row.id()}}"
-				        hx-target="#hiring-regions"
-				        hx-swap="outerHTML"
-				        class="px-2 py-1 text-xs rounded border border-slate-300 text-slate-600 hover:bg-slate-100 cursor-pointer">
-					Remove
-				</button>
-			</li>
-		</ul>
-	</aside>
-
-	<aside th:fragment="interviews"
-	       id="dos-interviews"
+	<aside th:fragment="candidates"
+	       id="dos-candidates"
 	       class="bg-white border border-slate-200 rounded p-4 shadow-sm">
 		<div class="flex items-center justify-between mb-2">
-			<h2 class="text-lg font-semibold text-slate-900">Interviews</h2>
+			<h2 class="text-lg font-semibold text-slate-900">Your candidates</h2>
 			<span class="text-xs text-slate-500"
-			      th:text="${view.interviewsThisWeek()} + ' / ' + ${view.interviewCapacity()} + ' this week'"></span>
+			      th:text="${view.interviewsThisWeek()} + ' / ' + ${view.interviewCapacity()} + ' interviews this week'"></span>
 		</div>
-		<p class="text-sm text-slate-500 mb-3">One interview per candidate. Interest is deterministic — it reflects how well your team fits their preferences.</p>
+		<p class="text-sm text-slate-500 mb-3">Interviewed candidates. Extend offers, revise in response to feedback, and Hire once they agree.</p>
 		<div th:if="${view.activeInterviews().isEmpty()}" class="text-slate-500 italic text-sm">
 			No interviews conducted yet.
 		</div>
-		<ul th:unless="${view.activeInterviews().isEmpty()}" class="space-y-2">
+		<ul th:unless="${view.activeInterviews().isEmpty()}" class="space-y-3">
 			<li th:each="row : ${view.activeInterviews()}"
-			    class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-				<div class="min-w-0">
-					<div class="text-sm font-medium text-slate-900" th:text="${row.name()}"></div>
-					<div class="text-xs text-slate-500"
-					     th:text="${row.archetype().displayName()} + ' · ' + ${row.specialty()}"></div>
+			    class="border border-slate-100 rounded p-3 space-y-2">
+				<div class="flex items-start justify-between gap-2">
+					<div class="min-w-0">
+						<div class="text-sm font-medium text-slate-900" th:text="${row.name()}"></div>
+						<div class="text-xs text-slate-500"
+						     th:text="${row.archetype().displayName()} + ' · ' + ${row.specialty()}"></div>
+					</div>
+					<span th:with="level=${row.interest().get().name()}"
+					      th:classappend="${level == 'INTERESTED'} ? ' bg-emerald-100 text-emerald-800'
+					                    : (${level == 'LUKEWARM'} ? ' bg-amber-100 text-amber-800'
+					                    : ' bg-rose-100 text-rose-800')"
+					      class="inline-block px-2 py-0.5 rounded text-xs font-medium flex-shrink-0"
+					      th:text="${row.interest().get().displayName()}">Interested</span>
 				</div>
-				<span th:with="level=${row.interest().get().name()}"
-				      th:classappend="${level == 'INTERESTED'} ? ' bg-emerald-100 text-emerald-800'
-				                    : (${level == 'LUKEWARM'} ? ' bg-amber-100 text-amber-800'
-				                    : ' bg-rose-100 text-rose-800')"
-				      class="inline-block px-2 py-0.5 rounded text-xs font-medium"
-				      th:text="${row.interest().get().displayName()}">Interested</span>
+
+				<div class="text-xs text-slate-500"
+				     th:text="'Targets: $' + ${#numbers.formatDecimal(row.compensationTarget(), 0, 'COMMA', 0, 'POINT')}
+				              + ' · ' + ${row.contractLengthTarget()} + ' yr'
+				              + ' · ' + ${#numbers.formatPercent(row.guaranteedMoneyTarget(), 1, 0)} + ' guar'"></div>
+
+				<div th:if="${row.hasOffer()}"
+				     class="bg-slate-50 border border-slate-100 rounded p-2 space-y-1 text-xs">
+					<div class="flex items-center justify-between gap-2">
+						<span th:with="s=${row.offer().get().stance().name()}"
+						      th:classappend="${s == 'AGREED'} ? ' bg-emerald-100 text-emerald-800'
+						                    : (${s == 'RENEGOTIATE'} ? ' bg-amber-100 text-amber-800'
+						                    : ' bg-slate-200 text-slate-700')"
+						      class="inline-block px-2 py-0.5 rounded text-xs font-semibold"
+						      th:text="${row.offer().get().stance().name()}">PENDING</span>
+						<span class="text-slate-500"
+						      th:text="'Revision ' + ${row.offer().get().revisionCount()} + ' / ' + ${row.offer().get().revisionCap()}"></span>
+					</div>
+					<div class="text-slate-600"
+					     th:text="'Offered: $' + ${#numbers.formatDecimal(row.offer().get().compensation(), 0, 'COMMA', 0, 'POINT')}
+					              + ' · ' + ${row.offer().get().contractLengthYears()} + ' yr'
+					              + ' · ' + ${#numbers.formatPercent(row.offer().get().guaranteedMoneyPct(), 1, 0)} + ' guar'"></div>
+					<div th:if="${row.offer().get().directionalHint().isPresent()}"
+					     class="text-slate-700 italic"
+					     th:text="'“' + ${row.offer().get().directionalHint().get()} + '”'"></div>
+				</div>
+
+				<div class="flex items-center gap-2">
+					<button th:if="${row.hasOffer() and row.offer().get().isAgreed()}"
+					        type="button"
+					        th:attr="hx-post=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/director-of-scouting/hire/' + ${row.id()}}"
+					        hx-target="#hiring-regions"
+					        hx-swap="outerHTML"
+					        class="px-2 py-1 text-xs rounded bg-emerald-600 text-white hover:bg-emerald-500 cursor-pointer">
+						Hire
+					</button>
+
+					<button th:if="${row.canOffer() and (not row.hasOffer() or row.offer().get().canRevise())}"
+					        type="button"
+					        th:attr="data-toggle-form='dos-offer-form-' + ${row.id()}"
+					        onclick="(function(btn){var id=btn.getAttribute('data-toggle-form');var el=document.getElementById(id);if(el){el.classList.toggle('hidden');}})(this)"
+					        class="px-2 py-1 text-xs rounded bg-indigo-600 text-white hover:bg-indigo-500 cursor-pointer"
+					        th:text="${row.hasOffer()} ? 'Revise offer' : 'Make offer'">
+						Make offer
+					</button>
+
+					<span th:if="${not row.canOffer()}"
+					      class="text-xs text-slate-400 italic">Not interested — can't negotiate</span>
+				</div>
+
+				<form th:if="${row.canOffer() and (not row.hasOffer() or row.offer().get().canRevise())}"
+				      th:id="'dos-offer-form-' + ${row.id()}"
+				      th:attr="hx-post=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/director-of-scouting/offer/' + ${row.id()}}"
+				      hx-target="#hiring-regions"
+				      hx-swap="outerHTML"
+				      class="hidden grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs">
+					<label class="flex flex-col gap-1">
+						<span class="text-slate-600">Comp ($)</span>
+						<input type="number" name="compensation" min="0" step="100000"
+						       th:value="${row.hasOffer() ? row.offer().get().compensation() : row.compensationTarget()}"
+						       class="border border-slate-300 rounded px-2 py-1" />
+					</label>
+					<label class="flex flex-col gap-1">
+						<span class="text-slate-600">Length (yrs)</span>
+						<input type="number" name="contractLengthYears" min="1" max="7"
+						       th:value="${row.hasOffer() ? row.offer().get().contractLengthYears() : row.contractLengthTarget()}"
+						       class="border border-slate-300 rounded px-2 py-1" />
+					</label>
+					<label class="flex flex-col gap-1">
+						<span class="text-slate-600">Guaranteed (0–1)</span>
+						<input type="number" name="guaranteedMoneyPct" min="0" max="1" step="0.05"
+						       th:value="${row.hasOffer() ? row.offer().get().guaranteedMoneyPct() : row.guaranteedMoneyTarget()}"
+						       class="border border-slate-300 rounded px-2 py-1" />
+					</label>
+					<label class="flex flex-col gap-1">
+						<span class="text-slate-600">Role scope</span>
+						<select name="roleScope" class="border border-slate-300 rounded px-2 py-1">
+							<option value="HIGH">HIGH</option>
+							<option value="MEDIUM">MEDIUM</option>
+							<option value="LOW">LOW</option>
+						</select>
+					</label>
+					<label class="flex flex-col gap-1 col-span-2">
+						<span class="text-slate-600">Staff continuity</span>
+						<select name="staffContinuity" class="border border-slate-300 rounded px-2 py-1">
+							<option value="BRING_OWN">BRING_OWN</option>
+							<option value="HYBRID">HYBRID</option>
+							<option value="KEEP_EXISTING">KEEP_EXISTING</option>
+						</select>
+					</label>
+					<button type="submit"
+					        class="col-span-2 px-2 py-1 text-xs rounded bg-slate-900 text-white hover:bg-slate-800 cursor-pointer">
+						Submit offer
+					</button>
+				</form>
 			</li>
 		</ul>
 	</aside>

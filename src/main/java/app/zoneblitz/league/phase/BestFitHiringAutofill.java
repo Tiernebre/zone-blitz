@@ -173,6 +173,12 @@ public class BestFitHiringAutofill implements HiringPhaseAutofill {
       return;
     }
     var terms = defaultTerms(maybePrefs.get());
+    // Autofill may collide with a CPU's own active offer on the same candidate (e.g. one that
+    // stayed at RENEGOTIATE). Reject any existing active team offer first so insertActive can
+    // succeed without tripping the (candidate_id, team_id) WHERE status='ACTIVE' unique index.
+    for (var existing : offers.findActiveForTeam(teamId)) {
+      offers.resolve(existing.id(), OfferStatus.REJECTED);
+    }
     var offer =
         offers.insertActive(candidate.id(), teamId, OfferTermsJson.toJson(terms), phaseWeek);
     offers.resolve(offer.id(), OfferStatus.ACCEPTED);
@@ -197,7 +203,6 @@ public class BestFitHiringAutofill implements HiringPhaseAutofill {
             teamId,
             phase,
             HiringStep.HIRED,
-            existing.map(TeamHiringState::shortlist).orElse(List.of()),
             existing.map(TeamHiringState::interviewingCandidateIds).orElse(List.of())));
   }
 

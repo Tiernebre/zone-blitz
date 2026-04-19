@@ -323,7 +323,6 @@ class AdvanceWeekUseCaseTests {
             teamLookup.teamIdsForLeague(league.id()).getFirst(),
             LeaguePhase.HIRING_HEAD_COACH,
             HiringStep.SEARCHING,
-            List.of(),
             List.of()));
     var useCase =
         new AdvanceWeekUseCase(
@@ -347,8 +346,7 @@ class AdvanceWeekUseCaseTests {
 
   private void markAllFranchisesHired(long leagueId, LeaguePhase phase) {
     for (var franchiseId : teamLookup.teamIdsForLeague(leagueId)) {
-      hiringStates.upsert(
-          new TeamHiringState(0L, franchiseId, phase, HiringStep.HIRED, List.of(), List.of()));
+      hiringStates.upsert(new TeamHiringState(0L, franchiseId, phase, HiringStep.HIRED, List.of()));
     }
   }
 

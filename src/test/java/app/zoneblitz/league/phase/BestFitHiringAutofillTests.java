@@ -147,12 +147,7 @@ class BestFitHiringAutofillTests {
     var pending = teamIds.get(1);
     hiringStates.upsert(
         new TeamHiringState(
-            0L,
-            alreadyHired,
-            LeaguePhase.HIRING_HEAD_COACH,
-            HiringStep.HIRED,
-            List.of(),
-            List.of()));
+            0L, alreadyHired, LeaguePhase.HIRING_HEAD_COACH, HiringStep.HIRED, List.of()));
     markSearching(league.id(), pending, LeaguePhase.HIRING_HEAD_COACH);
 
     autofill.autofill(league.id(), LeaguePhase.HIRING_HEAD_COACH, 3);
@@ -215,8 +210,7 @@ class BestFitHiringAutofillTests {
   }
 
   private void markSearching(long leagueId, long teamId, LeaguePhase phase) {
-    hiringStates.upsert(
-        new TeamHiringState(0L, teamId, phase, HiringStep.SEARCHING, List.of(), List.of()));
+    hiringStates.upsert(new TeamHiringState(0L, teamId, phase, HiringStep.SEARCHING, List.of()));
   }
 
   private League createLeagueFor(String ownerSubject) {

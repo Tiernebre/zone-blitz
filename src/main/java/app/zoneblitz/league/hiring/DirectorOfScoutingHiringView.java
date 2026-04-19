@@ -8,7 +8,6 @@ import java.util.Objects;
 public record DirectorOfScoutingHiringView(
     LeagueSummary league,
     List<DirectorOfScoutingCandidateView> pool,
-    List<DirectorOfScoutingCandidateView> shortlist,
     List<DirectorOfScoutingCandidateView> activeInterviews,
     int interviewsThisWeek,
     int interviewCapacity) {
@@ -16,7 +15,6 @@ public record DirectorOfScoutingHiringView(
   public DirectorOfScoutingHiringView {
     Objects.requireNonNull(league, "league");
     pool = List.copyOf(pool);
-    shortlist = List.copyOf(shortlist);
     activeInterviews = List.copyOf(activeInterviews);
   }
 }

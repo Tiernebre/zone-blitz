@@ -39,6 +39,7 @@ class MakeOfferUseCaseTests {
   private JooqCandidateRepository candidates;
   private JooqCandidateOfferRepository offers;
   private JooqTeamHiringStateRepository hiringStates;
+  private JooqTeamInterviewRepository interviews;
   private CreateLeague createLeague;
   private HiringHeadCoachTransitionHandler entryHandler;
   private MakeOffer makeOffer;
@@ -54,6 +55,7 @@ class MakeOfferUseCaseTests {
     var preferences = new JooqCandidatePreferencesRepository(dsl);
     hiringStates = new JooqTeamHiringStateRepository(dsl);
     offers = new JooqCandidateOfferRepository(dsl);
+    interviews = new JooqTeamInterviewRepository(dsl);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
     entryHandler =
         new HiringHeadCoachTransitionHandler(
@@ -65,12 +67,13 @@ class MakeOfferUseCaseTests {
             hiringStates,
             new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
-    makeOffer = new MakeOfferUseCase(leagues, pools, candidates, offers, hiringStates);
+    makeOffer = new MakeOfferUseCase(leagues, pools, candidates, offers, hiringStates, interviews);
   }
 
   @Test
   void offer_whenValid_persistsActiveOffer() {
     var ctx = seedLeagueInPhase("sub-1");
+    seedInterview(ctx, InterviewInterest.INTERESTED);
 
     var result = makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms());
 
@@ -79,6 +82,8 @@ class MakeOfferUseCaseTests {
     assertThat(created.status()).isEqualTo(OfferStatus.ACTIVE);
     assertThat(created.candidateId()).isEqualTo(ctx.firstCandidateId);
     assertThat(created.submittedAtWeek()).isEqualTo(1);
+    assertThat(created.stance()).contains(OfferStance.PENDING);
+    assertThat(created.revisionCount()).isEqualTo(0);
     assertThat(offers.findActiveForCandidate(ctx.firstCandidateId)).hasSize(1);
   }
 
@@ -111,16 +116,30 @@ class MakeOfferUseCaseTests {
   }
 
   @Test
+  void offer_whenNotInterviewed_returnsCandidateNotInterested() {
+    var ctx = seedLeagueInPhase("sub-1");
+
+    var result = makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms());
+
+    assertThat(result).isInstanceOf(MakeOfferResult.CandidateNotInterested.class);
+  }
+
+  @Test
+  void offer_whenInterestIsNotInterested_returnsCandidateNotInterested() {
+    var ctx = seedLeagueInPhase("sub-1");
+    seedInterview(ctx, InterviewInterest.NOT_INTERESTED);
+
+    var result = makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms());
+
+    assertThat(result).isInstanceOf(MakeOfferResult.CandidateNotInterested.class);
+  }
+
+  @Test
   void offer_whenTeamAlreadyHired_returnsAlreadyHired() {
     var ctx = seedLeagueInPhase("sub-1");
     hiringStates.upsert(
         new TeamHiringState(
-            0L,
-            ctx.userTeamId,
-            LeaguePhase.HIRING_HEAD_COACH,
-            HiringStep.HIRED,
-            List.of(),
-            List.of()));
+            0L, ctx.userTeamId, LeaguePhase.HIRING_HEAD_COACH, HiringStep.HIRED, List.of()));
 
     var result = makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms());
 
@@ -128,13 +147,21 @@ class MakeOfferUseCaseTests {
   }
 
   @Test
-  void offer_whenActiveOfferExists_returnsActiveOfferExists() {
+  void offer_whenActiveOfferExists_revisesInPlace() {
     var ctx = seedLeagueInPhase("sub-1");
-    makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms());
+    seedInterview(ctx, InterviewInterest.INTERESTED);
+    var first =
+        ((MakeOfferResult.Created)
+                makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms()))
+            .offer();
 
     var second = makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms());
 
-    assertThat(second).isInstanceOf(MakeOfferResult.ActiveOfferExists.class);
+    assertThat(second).isInstanceOf(MakeOfferResult.Created.class);
+    var revised = ((MakeOfferResult.Created) second).offer();
+    assertThat(revised.id()).isEqualTo(first.id());
+    assertThat(revised.revisionCount()).isEqualTo(1);
+    assertThat(offers.findActiveForCandidate(ctx.firstCandidateId)).hasSize(1);
   }
 
   @Test
@@ -144,6 +171,12 @@ class MakeOfferUseCaseTests {
     var result = makeOffer.offer(league.id(), 1L, "sub-1", terms());
 
     assertThat(result).isInstanceOf(MakeOfferResult.NotFound.class);
+  }
+
+  private void seedInterview(Ctx ctx, InterviewInterest interest) {
+    interviews.insert(
+        new NewTeamInterview(
+            ctx.userTeamId, ctx.firstCandidateId, LeaguePhase.HIRING_HEAD_COACH, 1, 1, interest));
   }
 
   private Ctx seedLeagueInPhase(String subject) {
@@ -158,7 +191,6 @@ class MakeOfferUseCaseTests {
     var first = candidates.findAllByPoolId(pool.id()).getFirst();
     var userTeamId =
         leagues.findSummaryByIdAndOwner(league.id(), subject).orElseThrow().userTeamId();
-    // Create a CPU team so there's another team id in the league.
     var teamIds = new JooqTeamLookup(dsl).teamIdsForLeague(league.id());
     var otherTeamId =
         teamIds.stream()

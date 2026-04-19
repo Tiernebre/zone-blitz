@@ -37,9 +37,9 @@ class HiringDirectorOfScoutingControllerTests {
   @Autowired MockMvc mvc;
 
   @MockitoBean ViewDirectorOfScoutingHiring viewHiring;
-  @MockitoBean ManageHeadCoachShortlist shortlist;
   @MockitoBean StartInterview startInterview;
   @MockitoBean MakeOffer makeOffer;
+  @MockitoBean HireCandidate hireCandidate;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
@@ -75,14 +75,14 @@ class HiringDirectorOfScoutingControllerTests {
   }
 
   @Test
-  void shortlistFragment_returnsFragment() throws Exception {
+  void candidatesFragment_returnsFragment() throws Exception {
     given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
 
     mvc.perform(
-            get("/leagues/42/hiring/director-of-scouting/shortlist")
+            get("/leagues/42/hiring/director-of-scouting/candidates")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
         .andExpect(status().isOk())
-        .andExpect(view().name("league/hiring/director-of-scouting-fragments :: shortlist"));
+        .andExpect(view().name("league/hiring/director-of-scouting-fragments :: candidates"));
   }
 
   private DirectorOfScoutingHiringView sampleView() {
@@ -102,6 +102,6 @@ class HiringDirectorOfScoutingControllerTests {
             Instant.now(),
             100L,
             franchise);
-    return new DirectorOfScoutingHiringView(league, List.of(), List.of(), List.of(), 0, 3);
+    return new DirectorOfScoutingHiringView(league, List.of(), List.of(), 0, 5);
   }
 }

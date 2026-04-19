@@ -2,6 +2,7 @@ package app.zoneblitz.league.team;
 
 import app.zoneblitz.league.AdvanceWeek;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Read-side companion to {@link TeamRepository} for features that need to know which teams belong
@@ -18,4 +19,10 @@ public interface TeamLookup {
    * {@code CpuTeamStrategy} per non-user team.
    */
   List<Long> cpuTeamIdsForLeague(long leagueId);
+
+  /**
+   * Return the user-controlled team id for the league, if one exists. A league has exactly one user
+   * team (the one whose {@code owner_subject} is non-null); empty if none.
+   */
+  Optional<Long> userTeamIdForLeague(long leagueId);
 }

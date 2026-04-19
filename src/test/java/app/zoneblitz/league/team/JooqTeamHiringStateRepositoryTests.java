@@ -60,15 +60,9 @@ class JooqTeamHiringStateRepositoryTests {
     var inserted =
         states.upsert(
             new TeamHiringState(
-                0,
-                teamId,
-                LeaguePhase.HIRING_HEAD_COACH,
-                HiringStep.SEARCHING,
-                List.of(1L, 2L, 3L),
-                List.of(1L)));
+                0, teamId, LeaguePhase.HIRING_HEAD_COACH, HiringStep.SEARCHING, List.of(1L)));
 
     assertThat(inserted.id()).isPositive();
-    assertThat(inserted.shortlist()).containsExactly(1L, 2L, 3L);
     assertThat(inserted.interviewingCandidateIds()).containsExactly(1L);
   }
 
@@ -76,25 +70,15 @@ class JooqTeamHiringStateRepositoryTests {
   void upsert_replacesOnSameTeamAndPhase() {
     states.upsert(
         new TeamHiringState(
-            0,
-            teamId,
-            LeaguePhase.HIRING_HEAD_COACH,
-            HiringStep.SEARCHING,
-            List.of(1L, 2L),
-            List.of()));
+            0, teamId, LeaguePhase.HIRING_HEAD_COACH, HiringStep.SEARCHING, List.of()));
 
     var updated =
         states.upsert(
             new TeamHiringState(
-                0,
-                teamId,
-                LeaguePhase.HIRING_HEAD_COACH,
-                HiringStep.HIRED,
-                List.of(7L),
-                List.of(7L)));
+                0, teamId, LeaguePhase.HIRING_HEAD_COACH, HiringStep.HIRED, List.of(7L)));
 
     assertThat(updated.step()).isEqualTo(HiringStep.HIRED);
-    assertThat(updated.shortlist()).containsExactly(7L);
+    assertThat(updated.interviewingCandidateIds()).containsExactly(7L);
     assertThat(states.findAllForLeaguePhase(leagueId, LeaguePhase.HIRING_HEAD_COACH)).hasSize(1);
   }
 
@@ -107,10 +91,10 @@ class JooqTeamHiringStateRepositoryTests {
   void findAllForLeaguePhase_returnsAllTeamsForPhase() {
     states.upsert(
         new TeamHiringState(
-            0, teamId, LeaguePhase.HIRING_HEAD_COACH, HiringStep.SEARCHING, List.of(), List.of()));
+            0, teamId, LeaguePhase.HIRING_HEAD_COACH, HiringStep.SEARCHING, List.of()));
     states.upsert(
         new TeamHiringState(
-            0, otherTeamId, LeaguePhase.HIRING_HEAD_COACH, HiringStep.HIRED, List.of(), List.of()));
+            0, otherTeamId, LeaguePhase.HIRING_HEAD_COACH, HiringStep.HIRED, List.of()));
 
     assertThat(states.findAllForLeaguePhase(leagueId, LeaguePhase.HIRING_HEAD_COACH)).hasSize(2);
   }
@@ -120,14 +104,8 @@ class JooqTeamHiringStateRepositoryTests {
     var inserted =
         states.upsert(
             new TeamHiringState(
-                0,
-                teamId,
-                LeaguePhase.HIRING_HEAD_COACH,
-                HiringStep.SEARCHING,
-                List.of(),
-                List.of()));
+                0, teamId, LeaguePhase.HIRING_HEAD_COACH, HiringStep.SEARCHING, List.of()));
 
-    assertThat(inserted.shortlist()).isEmpty();
     assertThat(inserted.interviewingCandidateIds()).isEmpty();
   }
 }

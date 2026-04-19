@@ -2,8 +2,7 @@ package app.zoneblitz.league.hiring;
 
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.phase.LeaguePhase;
-import app.zoneblitz.league.team.TeamHiringState;
-import app.zoneblitz.league.team.TeamHiringStateRepository;
+import app.zoneblitz.league.team.TeamProfiles;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -17,22 +16,25 @@ public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScouti
   private final CandidatePoolRepository pools;
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
-  private final TeamHiringStateRepository hiringStates;
   private final TeamInterviewRepository interviews;
+  private final CandidateOfferRepository offers;
+  private final TeamProfiles teamProfiles;
 
   public ViewDirectorOfScoutingHiringUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
-      TeamHiringStateRepository hiringStates,
-      TeamInterviewRepository interviews) {
+      TeamInterviewRepository interviews,
+      CandidateOfferRepository offers,
+      TeamProfiles teamProfiles) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
     this.preferences = preferences;
-    this.hiringStates = hiringStates;
     this.interviews = interviews;
+    this.offers = offers;
+    this.teamProfiles = teamProfiles;
   }
 
   @Override
@@ -54,7 +56,7 @@ public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScouti
     if (pool.isEmpty()) {
       return Optional.of(
           new DirectorOfScoutingHiringView(
-              league, List.of(), List.of(), List.of(), 0, StartInterview.DEFAULT_WEEKLY_CAPACITY));
+              league, List.of(), List.of(), 0, StartInterview.DEFAULT_WEEKLY_CAPACITY));
     }
     var rows = candidates.findAllByPoolId(pool.get().id());
     var prefs =
@@ -62,16 +64,17 @@ public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScouti
             .map(c -> preferences.findByCandidateId(c.id()))
             .flatMap(Optional::stream)
             .toList();
-    var shortlist =
-        hiringStates.find(teamId, phase).map(TeamHiringState::shortlist).orElse(List.of());
     var interviewHistory = interviews.findAllFor(teamId, phase);
+    var teamOffers = offers.findActiveForTeam(teamId);
+    var profile = teamProfiles.forTeam(teamId);
     return Optional.of(
         DirectorOfScoutingHiringViewModel.assemble(
             league,
             rows,
             prefs,
-            shortlist,
             interviewHistory,
+            teamOffers,
+            profile,
             StartInterview.DEFAULT_WEEKLY_CAPACITY));
   }
 }

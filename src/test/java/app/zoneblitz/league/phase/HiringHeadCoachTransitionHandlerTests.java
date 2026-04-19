@@ -90,7 +90,7 @@ class HiringHeadCoachTransitionHandlerTests {
             .orElseThrow();
     var generated = candidates.findAllByPoolId(pool.id());
     var franchiseCount = teams.teamIdsForLeague(league.id()).size();
-    assertThat(generated).hasSize(franchiseCount * 3);
+    assertThat(generated).hasSize(franchiseCount * 5);
     assertThat(generated).allSatisfy(c -> assertThat(c.kind()).isEqualTo(CandidateKind.HEAD_COACH));
     assertThat(generated)
         .allSatisfy(c -> assertThat(preferences.findByCandidateId(c.id())).isPresent());
@@ -101,7 +101,6 @@ class HiringHeadCoachTransitionHandlerTests {
         .allSatisfy(
             s -> {
               assertThat(s.step()).isEqualTo(HiringStep.SEARCHING);
-              assertThat(s.shortlist()).isEmpty();
               assertThat(s.interviewingCandidateIds()).isEmpty();
             });
   }

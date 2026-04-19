@@ -8,7 +8,6 @@ import java.util.Objects;
 public record HeadCoachHiringView(
     LeagueSummary league,
     List<HeadCoachCandidateView> pool,
-    List<HeadCoachCandidateView> shortlist,
     List<HeadCoachCandidateView> activeInterviews,
     int interviewsThisWeek,
     int interviewCapacity) {
@@ -16,7 +15,6 @@ public record HeadCoachHiringView(
   public HeadCoachHiringView {
     Objects.requireNonNull(league, "league");
     pool = List.copyOf(pool);
-    shortlist = List.copyOf(shortlist);
     activeInterviews = List.copyOf(activeInterviews);
   }
 }

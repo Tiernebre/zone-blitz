@@ -57,9 +57,11 @@ class ViewDirectorOfScoutingHiringUseCaseTests {
                 app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
     var interviews = new JooqTeamInterviewRepository(dsl);
+    var offers = new JooqCandidateOfferRepository(dsl);
+    var profiles = new app.zoneblitz.league.team.CityTeamProfiles(dsl, franchises);
     useCase =
         new ViewDirectorOfScoutingHiringUseCase(
-            leagues, pools, candidates, preferences, hiringStates, interviews);
+            leagues, pools, candidates, preferences, interviews, offers, profiles);
   }
 
   @Test
@@ -84,7 +86,7 @@ class ViewDirectorOfScoutingHiringUseCaseTests {
   }
 
   @Test
-  void view_whenInPhase_returnsPoolAndEmptyShortlist() {
+  void view_whenInPhase_returnsPoolAndNoOffers() {
     var league = createLeagueFor("sub-1");
     leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
     entryHandler.onEntry(league.id());
@@ -92,8 +94,8 @@ class ViewDirectorOfScoutingHiringUseCaseTests {
     var view = useCase.view(league.id(), "sub-1").orElseThrow();
 
     assertThat(view.pool()).isNotEmpty();
-    assertThat(view.shortlist()).isEmpty();
-    assertThat(view.pool()).allSatisfy(row -> assertThat(row.shortlisted()).isFalse());
+    assertThat(view.activeInterviews()).isEmpty();
+    assertThat(view.pool()).allSatisfy(row -> assertThat(row.hasOffer()).isFalse());
   }
 
   private League createLeagueFor(String ownerSubject) {

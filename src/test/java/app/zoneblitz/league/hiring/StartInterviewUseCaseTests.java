@@ -80,12 +80,12 @@ class StartInterviewUseCaseTests {
     var result = useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
 
     assertThat(result).isInstanceOf(InterviewResult.Started.class);
-    var view = ((InterviewResult.Started) result).view();
-    assertThat(view.activeInterviews()).hasSize(1);
-    assertThat(view.activeInterviews().getFirst().id()).isEqualTo(ctx.firstCandidateId);
-    assertThat(view.activeInterviews().getFirst().interviewed()).isTrue();
-    assertThat(view.activeInterviews().getFirst().interest()).isPresent();
-    assertThat(view.interviewsThisWeek()).isEqualTo(1);
+    assertThat(((InterviewResult.Started) result).candidateId()).isEqualTo(ctx.firstCandidateId);
+
+    var history = interviews.findAllFor(ctx.teamId, LeaguePhase.HIRING_HEAD_COACH);
+    assertThat(history).hasSize(1);
+    assertThat(history.getFirst().candidateId()).isEqualTo(ctx.firstCandidateId);
+    assertThat(history.getFirst().interestLevel()).isNotNull();
 
     var state = hiringStates.find(ctx.teamId, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
     assertThat(state.interviewingCandidateIds()).containsExactly(ctx.firstCandidateId);
@@ -109,15 +109,14 @@ class StartInterviewUseCaseTests {
   @Test
   void start_hittingWeeklyCap_returnsCapacityReached() {
     var ctx = seedLeagueInPhase("sub-1");
-    var secondId = secondCandidateId(ctx);
-    var thirdId = thirdCandidateId(ctx);
-    var fourthId = fourthCandidateId(ctx);
+    var allIds = candidates.findAllByPoolId(ctx.poolId).stream().map(c -> c.id()).toList();
 
-    useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
-    useCase.start(ctx.leagueId, secondId, "sub-1");
-    useCase.start(ctx.leagueId, thirdId, "sub-1");
+    for (int i = 0; i < StartInterview.DEFAULT_WEEKLY_CAPACITY; i++) {
+      useCase.start(ctx.leagueId, allIds.get(i), "sub-1");
+    }
 
-    var capped = useCase.start(ctx.leagueId, fourthId, "sub-1");
+    var capped =
+        useCase.start(ctx.leagueId, allIds.get(StartInterview.DEFAULT_WEEKLY_CAPACITY), "sub-1");
 
     assertThat(capped).isInstanceOf(InterviewResult.CapacityReached.class);
     assertThat(((InterviewResult.CapacityReached) capped).capacity())
@@ -128,16 +127,11 @@ class StartInterviewUseCaseTests {
   void start_isDeterministicAcrossRuns() {
     var ctx = seedLeagueInPhase("sub-1");
 
-    var first = useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
-    var interestA =
-        ((InterviewResult.Started) first).view().activeInterviews().getFirst().interest();
+    useCase.start(ctx.leagueId, ctx.firstCandidateId, "sub-1");
 
-    // New league for a fresh candidate with (presumably) the same preferences profile would be
-    // non-deterministic across generator seeds; here we just check the single persisted row is
-    // stable under re-reads.
     var history = interviews.findAllFor(ctx.teamId, LeaguePhase.HIRING_HEAD_COACH);
     assertThat(history).hasSize(1);
-    assertThat(history.getFirst().interestLevel()).isEqualTo(interestA.orElseThrow());
+    assertThat(history.getFirst().interestLevel()).isNotNull();
   }
 
   @Test

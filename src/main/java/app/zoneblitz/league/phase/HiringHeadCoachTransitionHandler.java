@@ -29,8 +29,7 @@ public class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler 
 
   private static final Logger log = LoggerFactory.getLogger(HiringHeadCoachTransitionHandler.class);
 
-  /** Per {@code docs/technical/league-phases.md}: pool size is 2–3× team count. */
-  private static final int POOL_SIZE_PER_TEAM = 3;
+  private static final int POOL_SIZE_PER_TEAM = 5;
 
   private final LeagueRepository leagues;
   private final TeamLookup teams;
@@ -90,7 +89,7 @@ public class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler 
     }
     for (var teamId : teamIds) {
       hiringStates.upsert(
-          new TeamHiringState(0L, teamId, phase(), HiringStep.SEARCHING, List.of(), List.of()));
+          new TeamHiringState(0L, teamId, phase(), HiringStep.SEARCHING, List.of()));
     }
     log.info(
         "hiring head-coach pool generated leagueId={} poolId={} size={} teams={}",

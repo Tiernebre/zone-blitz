@@ -6,10 +6,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Row view-model for a single HC candidate in the hiring pool table. Derived from {@link Candidate}
- * + {@link CandidatePreferences}; never carries hidden-attribute data. {@code shortlisted} reflects
- * the requesting team's shortlist membership; {@code interest} is present iff the requesting team
- * has interviewed this candidate.
+ * Row view-model for a single HC candidate. Derived from {@link Candidate} + {@link
+ * CandidatePreferences} + the requesting team's offer (if any); never carries hidden-attribute
+ * data. {@code interest} is present iff the requesting team has interviewed this candidate. {@code
+ * offer} is present iff the team has an ACTIVE offer out on this candidate.
  */
 public record HeadCoachCandidateView(
     long id,
@@ -24,8 +24,8 @@ public record HeadCoachCandidateView(
     BigDecimal compensationTarget,
     int contractLengthTarget,
     BigDecimal guaranteedMoneyTarget,
-    boolean shortlisted,
-    Optional<InterviewInterest> interest) {
+    Optional<InterviewInterest> interest,
+    Optional<OfferView> offer) {
 
   public HeadCoachCandidateView {
     Objects.requireNonNull(name, "name");
@@ -34,9 +34,18 @@ public record HeadCoachCandidateView(
     Objects.requireNonNull(compensationTarget, "compensationTarget");
     Objects.requireNonNull(guaranteedMoneyTarget, "guaranteedMoneyTarget");
     Objects.requireNonNull(interest, "interest");
+    Objects.requireNonNull(offer, "offer");
   }
 
   public boolean interviewed() {
     return interest.isPresent();
+  }
+
+  public boolean hasOffer() {
+    return offer.isPresent();
+  }
+
+  public boolean canOffer() {
+    return interviewed() && interest.get() != InterviewInterest.NOT_INTERESTED;
   }
 }
