@@ -17,7 +17,7 @@ public record TeamStaffMember(
     StaffRole role,
     Optional<ScoutBranch> scoutBranch,
     LeaguePhase hiredAtPhase,
-    int hiredAtWeek,
+    int hiredAtDay,
     Instant hiredAt) {
 
   public TeamStaffMember {

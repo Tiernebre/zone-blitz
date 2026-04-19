@@ -17,10 +17,10 @@ public interface TeamInterviewRepository {
   int countForCandidate(long teamId, long candidateId, LeaguePhase phase);
 
   /**
-   * Count interviews this team has completed this week of the given phase. Used to enforce the
-   * weekly capacity cap.
+   * Count interviews this team has completed this day of the given phase. Used to enforce the daily
+   * capacity cap.
    */
-  int countForWeek(long teamId, LeaguePhase phase, int phaseWeek);
+  int countForDay(long teamId, LeaguePhase phase, int phaseDay);
 
   /** The single interview this team has with the given candidate in the given phase, if any. */
   Optional<TeamInterview> find(long teamId, long candidateId, LeaguePhase phase);

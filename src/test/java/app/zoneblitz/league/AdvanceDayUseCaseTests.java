@@ -18,6 +18,7 @@ import app.zoneblitz.league.phase.HiringHeadCoachTransitionHandler;
 import app.zoneblitz.league.phase.HiringPhaseAutofill;
 import app.zoneblitz.league.phase.HiringStep;
 import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.phase.LeaguePhases;
 import app.zoneblitz.league.staff.JooqTeamStaffRepository;
 import app.zoneblitz.league.team.CpuTeamStrategy;
 import app.zoneblitz.league.team.JooqTeamHiringStateRepository;
@@ -36,7 +37,7 @@ import org.springframework.context.annotation.Import;
 
 @JooqTest
 @Import(PostgresTestcontainer.class)
-class AdvanceWeekUseCaseTests {
+class AdvanceDayUseCaseTests {
 
   @Autowired DSLContext dsl;
 
@@ -49,7 +50,7 @@ class AdvanceWeekUseCaseTests {
   private JooqTeamStaffRepository staff;
   private JooqTeamLookup teamLookup;
   private CreateLeague createLeague;
-  private AdvanceWeek advanceWeek;
+  private AdvanceDay advanceDay;
   private HiringHeadCoachTransitionHandler hcEntryHandler;
   private AdvancePhase advancePhase;
   private HiringPhaseAutofill autofill;
@@ -98,64 +99,64 @@ class AdvanceWeekUseCaseTests {
     noopResolver = (leagueId, phase, week) -> {};
     recordingAutofill = new RecordingAutofill();
     recordingAdvancePhase = new RecordingAdvancePhase(leagues);
-    advanceWeek =
-        new AdvanceWeekUseCase(
+    advanceDay =
+        new AdvanceDayUseCase(
             leagues, noopResolver, teamLookup, autofill, hiringStates, advancePhase, List.of());
   }
 
   @Test
   void advance_incrementsPhaseWeekAndReturnsTicked() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
 
-    var result = advanceWeek.advance(league.id(), "sub-1");
+    var result = advanceDay.advance(league.id(), "sub-1");
 
     assertThat(result)
         .isEqualTo(
-            new AdvanceWeekResult.Ticked(
+            new AdvanceDayResult.Ticked(
                 league.id(), LeaguePhase.HIRING_HEAD_COACH, 2, Optional.empty()));
-    assertThat(leagues.findById(league.id()).orElseThrow().phaseWeek()).isEqualTo(2);
+    assertThat(leagues.findById(league.id()).orElseThrow().phaseDay()).isEqualTo(2);
   }
 
   @Test
   void advance_repeatedTicks_keepIncrementing() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
 
-    advanceWeek.advance(league.id(), "sub-1");
-    var result = advanceWeek.advance(league.id(), "sub-1");
+    advanceDay.advance(league.id(), "sub-1");
+    var result = advanceDay.advance(league.id(), "sub-1");
 
-    assertThat(((AdvanceWeekResult.Ticked) result).phaseWeek()).isEqualTo(3);
-    assertThat(((AdvanceWeekResult.Ticked) result).transitionedTo()).isEmpty();
+    assertThat(((AdvanceDayResult.Ticked) result).phaseDay()).isEqualTo(3);
+    assertThat(((AdvanceDayResult.Ticked) result).transitionedTo()).isEmpty();
   }
 
   @Test
   void advance_fromInitialSetup_transitionsToHeadCoachHiring() {
     var league = createLeagueFor("sub-1");
 
-    var result = advanceWeek.advance(league.id(), "sub-1");
+    var result = advanceDay.advance(league.id(), "sub-1");
 
-    var ticked = (AdvanceWeekResult.Ticked) result;
+    var ticked = (AdvanceDayResult.Ticked) result;
     assertThat(ticked.phase()).isEqualTo(LeaguePhase.HIRING_HEAD_COACH);
-    assertThat(ticked.phaseWeek()).isEqualTo(1);
+    assertThat(ticked.phaseDay()).isEqualTo(1);
     assertThat(ticked.transitionedTo()).contains(LeaguePhase.HIRING_HEAD_COACH);
   }
 
   @Test
   void advance_whenLeagueMissing_returnsNotFound() {
-    var result = advanceWeek.advance(999_999L, "sub-1");
+    var result = advanceDay.advance(999_999L, "sub-1");
 
-    assertThat(result).isEqualTo(new AdvanceWeekResult.NotFound(999_999L));
+    assertThat(result).isEqualTo(new AdvanceDayResult.NotFound(999_999L));
   }
 
   @Test
   void advance_invokesOfferResolverBeforeIncrementingWeek() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     var seen = new java.util.concurrent.atomic.AtomicInteger(-1);
-    OfferResolver capturingResolver = (leagueId, phase, weekAtResolve) -> seen.set(weekAtResolve);
+    OfferResolver capturingResolver = (leagueId, phase, dayAtResolve) -> seen.set(dayAtResolve);
     var useCase =
-        new AdvanceWeekUseCase(
+        new AdvanceDayUseCase(
             leagues,
             capturingResolver,
             teamLookup,
@@ -167,13 +168,13 @@ class AdvanceWeekUseCaseTests {
     useCase.advance(league.id(), "sub-1");
 
     assertThat(seen.get()).isEqualTo(1);
-    assertThat(leagues.findById(league.id()).orElseThrow().phaseWeek()).isEqualTo(2);
+    assertThat(leagues.findById(league.id()).orElseThrow().phaseDay()).isEqualTo(2);
   }
 
   @Test
   void advance_invokesCpuStrategy_onceForEachCpuFranchiseOfMatchingPhase() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     var calls = new java.util.ArrayList<Long>();
     CpuTeamStrategy cpu =
         new CpuTeamStrategy() {
@@ -183,12 +184,12 @@ class AdvanceWeekUseCaseTests {
           }
 
           @Override
-          public void execute(long leagueId, long franchiseId, int phaseWeek) {
+          public void execute(long leagueId, long franchiseId, int phaseDay) {
             calls.add(franchiseId);
           }
         };
     var useCase =
-        new AdvanceWeekUseCase(
+        new AdvanceDayUseCase(
             leagues, noopResolver, teamLookup, autofill, hiringStates, advancePhase, List.of(cpu));
 
     useCase.advance(league.id(), "sub-1");
@@ -209,12 +210,12 @@ class AdvanceWeekUseCaseTests {
           }
 
           @Override
-          public void execute(long leagueId, long franchiseId, int phaseWeek) {
+          public void execute(long leagueId, long franchiseId, int phaseDay) {
             calls.add(franchiseId);
           }
         };
     var useCase =
-        new AdvanceWeekUseCase(
+        new AdvanceDayUseCase(
             leagues, noopResolver, teamLookup, autofill, hiringStates, advancePhase, List.of(cpu));
 
     useCase.advance(league.id(), "sub-1");
@@ -226,18 +227,18 @@ class AdvanceWeekUseCaseTests {
   void advance_whenNotOwnedByCaller_returnsNotFound() {
     var league = createLeagueFor("owner");
 
-    var result = advanceWeek.advance(league.id(), "someone-else");
+    var result = advanceDay.advance(league.id(), "someone-else");
 
-    assertThat(result).isEqualTo(new AdvanceWeekResult.NotFound(league.id()));
+    assertThat(result).isEqualTo(new AdvanceDayResult.NotFound(league.id()));
   }
 
   @Test
   void advance_whenAllFranchisesHired_transitionsToNextPhaseEarly() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     markAllFranchisesHired(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     var useCase =
-        new AdvanceWeekUseCase(
+        new AdvanceDayUseCase(
             leagues,
             noopResolver,
             teamLookup,
@@ -250,22 +251,23 @@ class AdvanceWeekUseCaseTests {
 
     assertThat(recordingAdvancePhase.calls).isEqualTo(1);
     assertThat(recordingAutofill.calls).isEmpty();
-    var ticked = (AdvanceWeekResult.Ticked) result;
+    var ticked = (AdvanceDayResult.Ticked) result;
     assertThat(ticked.transitionedTo()).contains(LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
     assertThat(ticked.phase()).isEqualTo(LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
-    assertThat(ticked.phaseWeek()).isEqualTo(1);
+    assertThat(ticked.phaseDay()).isEqualTo(1);
   }
 
   @Test
-  void advance_whenWeekCapExceededWithPendingFranchise_runsAutofillAndTransitions() {
+  void advance_whenDayCapExceededWithPendingFranchise_runsAutofillAndTransitions() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     hcEntryHandler.onEntry(league.id());
-    // Burn weeks 1 and 2 so the third tick is the capped one.
-    leagues.incrementPhaseWeek(league.id());
-    leagues.incrementPhaseWeek(league.id());
+    // Burn days up to the cap so the next tick is the capped one.
+    for (var i = 1; i < LeaguePhases.maxDays(LeaguePhase.HIRING_HEAD_COACH).orElseThrow(); i++) {
+      leagues.incrementPhaseDay(league.id());
+    }
     var useCase =
-        new AdvanceWeekUseCase(
+        new AdvanceDayUseCase(
             leagues,
             noopResolver,
             teamLookup,
@@ -277,21 +279,26 @@ class AdvanceWeekUseCaseTests {
     var result = useCase.advance(league.id(), "sub-1");
 
     assertThat(recordingAutofill.calls)
-        .containsExactly(new AutofillCall(league.id(), LeaguePhase.HIRING_HEAD_COACH, 3));
+        .containsExactly(
+            new AutofillCall(
+                league.id(),
+                LeaguePhase.HIRING_HEAD_COACH,
+                LeaguePhases.maxDays(LeaguePhase.HIRING_HEAD_COACH).orElseThrow()));
     assertThat(recordingAdvancePhase.calls).isEqualTo(1);
-    var ticked = (AdvanceWeekResult.Ticked) result;
+    var ticked = (AdvanceDayResult.Ticked) result;
     assertThat(ticked.transitionedTo()).contains(LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
   }
 
   @Test
-  void advance_whenWeekCapExceededWithAllHired_transitionsAndAutofillIsNoOp() {
+  void advance_whenDayCapExceededWithAllHired_transitionsAndAutofillIsNoOp() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     markAllFranchisesHired(league.id(), LeaguePhase.HIRING_HEAD_COACH);
-    leagues.incrementPhaseWeek(league.id());
-    leagues.incrementPhaseWeek(league.id());
+    for (var i = 1; i < LeaguePhases.maxDays(LeaguePhase.HIRING_HEAD_COACH).orElseThrow(); i++) {
+      leagues.incrementPhaseDay(league.id());
+    }
     var useCase =
-        new AdvanceWeekUseCase(
+        new AdvanceDayUseCase(
             leagues,
             noopResolver,
             teamLookup,
@@ -308,14 +315,14 @@ class AdvanceWeekUseCaseTests {
       assertThat(staff.findAllForTeam(franchiseId)).isEmpty();
     }
     assertThat(recordingAdvancePhase.calls).isEqualTo(1);
-    var ticked = (AdvanceWeekResult.Ticked) result;
+    var ticked = (AdvanceDayResult.Ticked) result;
     assertThat(ticked.transitionedTo()).contains(LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
   }
 
   @Test
   void advance_whenBelowCapAndSomeFranchisesSearching_doesNotTransition() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     // Only initialize a handful of SEARCHING states; leave others untouched.
     hiringStates.upsert(
         new TeamHiringState(
@@ -325,7 +332,7 @@ class AdvanceWeekUseCaseTests {
             HiringStep.SEARCHING,
             List.of()));
     var useCase =
-        new AdvanceWeekUseCase(
+        new AdvanceDayUseCase(
             leagues,
             noopResolver,
             teamLookup,
@@ -338,10 +345,10 @@ class AdvanceWeekUseCaseTests {
 
     assertThat(recordingAutofill.calls).isEmpty();
     assertThat(recordingAdvancePhase.calls).isZero();
-    var ticked = (AdvanceWeekResult.Ticked) result;
+    var ticked = (AdvanceDayResult.Ticked) result;
     assertThat(ticked.transitionedTo()).isEmpty();
     assertThat(ticked.phase()).isEqualTo(LeaguePhase.HIRING_HEAD_COACH);
-    assertThat(ticked.phaseWeek()).isEqualTo(2);
+    assertThat(ticked.phaseDay()).isEqualTo(2);
   }
 
   private void markAllFranchisesHired(long leagueId, LeaguePhase phase) {
@@ -359,14 +366,14 @@ class AdvanceWeekUseCaseTests {
     return new JooqFranchiseRepository(dsl).listAll().getFirst().id();
   }
 
-  private record AutofillCall(long leagueId, LeaguePhase phase, int phaseWeek) {}
+  private record AutofillCall(long leagueId, LeaguePhase phase, int phaseDay) {}
 
   private static final class RecordingAutofill implements HiringPhaseAutofill {
     final List<AutofillCall> calls = new java.util.ArrayList<>();
 
     @Override
-    public void autofill(long leagueId, LeaguePhase phase, int phaseWeek) {
-      calls.add(new AutofillCall(leagueId, phase, phaseWeek));
+    public void autofill(long leagueId, LeaguePhase phase, int phaseDay) {
+      calls.add(new AutofillCall(leagueId, phase, phaseDay));
     }
   }
 
@@ -383,7 +390,7 @@ class AdvanceWeekUseCaseTests {
       calls++;
       var league = leagues.findSummaryByIdAndOwner(leagueId, ownerSubject).orElseThrow();
       var next = next(league.phase());
-      leagues.updatePhaseAndResetWeek(leagueId, next);
+      leagues.updatePhaseAndResetDay(leagueId, next);
       return new AdvancePhaseResult.Advanced(leagueId, league.phase(), next);
     }
 

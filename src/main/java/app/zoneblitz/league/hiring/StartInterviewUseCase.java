@@ -68,15 +68,15 @@ public class StartInterviewUseCase implements StartInterview {
       return new InterviewResult.UnknownCandidate(candidateId);
     }
     var teamId = league.userTeamId();
-    var phaseWeek = league.phaseWeek();
+    var phaseDay = league.phaseDay();
 
     if (interviews.countForCandidate(teamId, candidateId, phase) > 0) {
       return new InterviewResult.AlreadyInterviewed(candidateId);
     }
 
-    var weekCount = interviews.countForWeek(teamId, phase, phaseWeek);
-    if (weekCount >= DEFAULT_WEEKLY_CAPACITY) {
-      return new InterviewResult.CapacityReached(DEFAULT_WEEKLY_CAPACITY);
+    var dayCount = interviews.countForDay(teamId, phase, phaseDay);
+    if (dayCount >= DAILY_CAPACITY) {
+      return new InterviewResult.CapacityReached(DAILY_CAPACITY);
     }
 
     var maybePrefs = preferences.findByCandidateId(candidateId);
@@ -89,7 +89,7 @@ public class StartInterviewUseCase implements StartInterview {
     }
     var interest = InterestScoring.score(maybeProfile.get(), maybePrefs.get());
 
-    interviews.insert(new NewTeamInterview(teamId, candidateId, phase, phaseWeek, 1, interest));
+    interviews.insert(new NewTeamInterview(teamId, candidateId, phase, phaseDay, 1, interest));
     appendToHiringState(teamId, candidateId, phase);
 
     log.info(

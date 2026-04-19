@@ -13,7 +13,7 @@ public record CandidateOffer(
     long candidateId,
     long teamId,
     String terms,
-    int submittedAtWeek,
+    int submittedAtDay,
     OfferStatus status,
     Optional<OfferStance> stance,
     int revisionCount) {

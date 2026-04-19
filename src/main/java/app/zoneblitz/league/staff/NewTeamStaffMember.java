@@ -12,7 +12,7 @@ public record NewTeamStaffMember(
     StaffRole role,
     Optional<ScoutBranch> scoutBranch,
     LeaguePhase hiredAtPhase,
-    int hiredAtWeek) {
+    int hiredAtDay) {
 
   public NewTeamStaffMember {
     Objects.requireNonNull(role, "role");

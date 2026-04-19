@@ -54,8 +54,7 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
     var pool = pools.findByLeaguePhaseAndType(leagueId, phase, CandidatePoolType.HEAD_COACH);
     if (pool.isEmpty()) {
       return Optional.of(
-          new HeadCoachHiringView(
-              league, List.of(), List.of(), 0, StartInterview.DEFAULT_WEEKLY_CAPACITY));
+          new HeadCoachHiringView(league, List.of(), List.of(), 0, StartInterview.DAILY_CAPACITY));
     }
     var rows = candidates.findAllByPoolId(pool.get().id());
     var prefs =
@@ -74,6 +73,6 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
             interviewHistory,
             teamOffers,
             profile,
-            StartInterview.DEFAULT_WEEKLY_CAPACITY));
+            StartInterview.DAILY_CAPACITY));
   }
 }

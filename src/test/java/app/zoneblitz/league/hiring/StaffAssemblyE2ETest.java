@@ -2,7 +2,7 @@ package app.zoneblitz.league.hiring;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-import app.zoneblitz.league.AdvanceWeek;
+import app.zoneblitz.league.AdvanceDay;
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.staff.TeamStaffRepository;
@@ -36,10 +36,10 @@ import org.springframework.context.annotation.Import;
  * ASSEMBLING_STAFF → COMPLETE}.
  *
  * <p>Each hiring phase is driven through the real UI for the actions it currently exposes
- * (shortlist, interview, offer) and then ticked to completion via {@link AdvanceWeek}. The
- * week-tick affordance does not yet live on any page; injecting the use case keeps this test
- * UI-driven wherever UI exists and server-driven exactly where the UI does not, without smuggling
- * in new production surface for a test-only PR.
+ * (shortlist, interview, offer) and then ticked to completion via {@link AdvanceDay}. The week-tick
+ * affordance does not yet live on any page; injecting the use case keeps this test UI-driven
+ * wherever UI exists and server-driven exactly where the UI does not, without smuggling in new
+ * production surface for a test-only PR.
  *
  * <p>Determinism is inherited from {@link SplittableCandidateRandomSources}, the production {@link
  * CandidateRandomSources} bean: per-league seeds derived from {@code (leagueId, phase)} so
@@ -54,7 +54,7 @@ class StaffAssemblyE2ETest {
   private static Browser browser;
 
   @LocalServerPort int port;
-  @Autowired AdvanceWeek advanceWeek;
+  @Autowired AdvanceDay advanceDay;
   @Autowired LeagueRepository leagues;
   @Autowired TeamStaffRepository staff;
   @Autowired TeamLookup teams;
@@ -241,7 +241,7 @@ class StaffAssemblyE2ETest {
       if (current != phase) {
         return;
       }
-      advanceWeek.advance(leagueId, subject);
+      advanceDay.advance(leagueId, subject);
     }
     throw new IllegalStateException(
         "phase %s did not complete within 10 ticks for league %d".formatted(phase, leagueId));

@@ -81,7 +81,7 @@ class MakeOfferUseCaseTests {
     var created = ((MakeOfferResult.Created) result).offer();
     assertThat(created.status()).isEqualTo(OfferStatus.ACTIVE);
     assertThat(created.candidateId()).isEqualTo(ctx.firstCandidateId);
-    assertThat(created.submittedAtWeek()).isEqualTo(1);
+    assertThat(created.submittedAtDay()).isEqualTo(1);
     assertThat(created.stance()).contains(OfferStance.PENDING);
     assertThat(created.revisionCount()).isEqualTo(0);
     assertThat(offers.findActiveForCandidate(ctx.firstCandidateId)).hasSize(1);
@@ -181,7 +181,7 @@ class MakeOfferUseCaseTests {
 
   private Ctx seedLeagueInPhase(String subject) {
     var league = createLeagueFor(subject);
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     entryHandler.onEntry(league.id());
     var pool =
         new JooqCandidatePoolRepository(dsl)

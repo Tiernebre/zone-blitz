@@ -2,8 +2,8 @@ package app.zoneblitz.league.hiring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.zoneblitz.league.AdvanceWeek;
-import app.zoneblitz.league.AdvanceWeekUseCase;
+import app.zoneblitz.league.AdvanceDay;
+import app.zoneblitz.league.AdvanceDayUseCase;
 import app.zoneblitz.league.CreateLeague;
 import app.zoneblitz.league.CreateLeagueResult;
 import app.zoneblitz.league.CreateLeagueUseCase;
@@ -49,7 +49,7 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
 
   private LeagueRepository leagues;
   private CreateLeague createLeague;
-  private AdvanceWeek advanceWeek;
+  private AdvanceDay advanceDay;
   private AdvancePhase advancePhase;
   private TeamLookup teamLookup;
   private CandidatePoolRepository pools;
@@ -144,8 +144,8 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
             interviews,
             profiles);
 
-    advanceWeek =
-        new AdvanceWeekUseCase(
+    advanceDay =
+        new AdvanceDayUseCase(
             leagues,
             resolver,
             teamLookup,
@@ -165,7 +165,7 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
         .isEqualTo(LeaguePhase.HIRING_HEAD_COACH);
 
     // Tick HC phase until it caps out; autofill + advance move us into DoS.
-    tickUntilPhaseLeaves(league.id(), LeaguePhase.HIRING_HEAD_COACH, 10);
+    tickUntilPhaseLeaves(league.id(), LeaguePhase.HIRING_HEAD_COACH, 30);
 
     assertThat(leagues.findById(league.id()).orElseThrow().phase())
         .isEqualTo(LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
@@ -180,7 +180,7 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
     assertThat(candidates.findAllByPoolId(dosPool.id())).isNotEmpty();
 
     // Tick DoS until it caps out and advances to ASSEMBLING_STAFF.
-    tickUntilPhaseLeaves(league.id(), LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING, 10);
+    tickUntilPhaseLeaves(league.id(), LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING, 30);
 
     assertThat(leagues.findById(league.id()).orElseThrow().phase())
         .isEqualTo(LeaguePhase.ASSEMBLING_STAFF);
@@ -197,7 +197,7 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
       if (current != phase) {
         return;
       }
-      advanceWeek.advance(leagueId, "sub-1");
+      advanceDay.advance(leagueId, "sub-1");
     }
   }
 

@@ -11,14 +11,14 @@ public interface CandidateOfferRepository {
    * team may only have one active offer on a given candidate at a time; violating the invariant
    * raises the underlying DB constraint.
    */
-  CandidateOffer insertActive(long candidateId, long teamId, String terms, int week);
+  CandidateOffer insertActive(long candidateId, long teamId, String terms, int day);
 
   Optional<CandidateOffer> findById(long id);
 
   /** Find the active offer, if any, a team has outstanding on a specific candidate. */
   Optional<CandidateOffer> findActiveForTeamAndCandidate(long teamId, long candidateId);
 
-  /** All offers on a candidate, ordered by submission week ascending. */
+  /** All offers on a candidate, ordered by submission day ascending. */
   List<CandidateOffer> findAllForCandidate(long candidateId);
 
   /** Active offers on a candidate. Used at offer resolution. */
@@ -31,10 +31,10 @@ public interface CandidateOfferRepository {
   List<CandidateOffer> findActiveForLeague(long leagueId);
 
   /**
-   * Update the terms on an ACTIVE offer and bump its revision_count and submitted_at_week. Stance
-   * is reset to {@link OfferStance#PENDING} so the candidate re-reviews on the next tick.
+   * Update the terms on an ACTIVE offer and bump its revision_count and submitted_at_day. Stance is
+   * reset to {@link OfferStance#PENDING} so the candidate re-reviews on the next tick.
    */
-  CandidateOffer revise(long offerId, String terms, int week);
+  CandidateOffer revise(long offerId, String terms, int day);
 
   /** Update the stance of an ACTIVE offer. */
   void setStance(long offerId, OfferStance stance);

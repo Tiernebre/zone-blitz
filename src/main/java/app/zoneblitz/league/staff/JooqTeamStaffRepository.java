@@ -29,7 +29,7 @@ public class JooqTeamStaffRepository implements TeamStaffRepository {
             .set(TEAM_STAFF.ROLE, hire.role().name())
             .set(TEAM_STAFF.SCOUT_BRANCH, hire.scoutBranch().map(Enum::name).orElse(null))
             .set(TEAM_STAFF.HIRED_AT_PHASE, hire.hiredAtPhase().name())
-            .set(TEAM_STAFF.HIRED_AT_WEEK, hire.hiredAtWeek())
+            .set(TEAM_STAFF.HIRED_AT_DAY, hire.hiredAtDay())
             .returning(TEAM_STAFF.fields())
             .fetchOne();
     return map(record);
@@ -56,7 +56,7 @@ public class JooqTeamStaffRepository implements TeamStaffRepository {
         StaffRole.valueOf(r.get(TEAM_STAFF.ROLE)),
         Optional.ofNullable(r.get(TEAM_STAFF.SCOUT_BRANCH)).map(ScoutBranch::valueOf),
         LeaguePhase.valueOf(r.get(TEAM_STAFF.HIRED_AT_PHASE)),
-        r.get(TEAM_STAFF.HIRED_AT_WEEK),
+        r.get(TEAM_STAFF.HIRED_AT_DAY),
         r.get(TEAM_STAFF.HIRED_AT).toInstant());
   }
 }

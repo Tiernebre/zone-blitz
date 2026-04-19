@@ -29,7 +29,7 @@ public class LeagueController {
   private final CreateLeague createLeague;
   private final GetLeague getLeague;
   private final DeleteLeague deleteLeague;
-  private final AdvanceWeek advanceWeek;
+  private final AdvanceDay advanceDay;
 
   public LeagueController(
       ListLeaguesForUser listLeagues,
@@ -37,13 +37,13 @@ public class LeagueController {
       CreateLeague createLeague,
       GetLeague getLeague,
       DeleteLeague deleteLeague,
-      AdvanceWeek advanceWeek) {
+      AdvanceDay advanceDay) {
     this.listLeagues = listLeagues;
     this.listFranchises = listFranchises;
     this.createLeague = createLeague;
     this.getLeague = getLeague;
     this.deleteLeague = deleteLeague;
-    this.advanceWeek = advanceWeek;
+    this.advanceDay = advanceDay;
   }
 
   @GetMapping("/")
@@ -111,18 +111,18 @@ public class LeagueController {
   @PostMapping("/leagues/{id}/advance")
   String advance(@AuthenticationPrincipal OAuth2User principal, @PathVariable long id) {
     var ownerSubject = principal.<String>getAttribute("sub");
-    var result = advanceWeek.advance(id, ownerSubject);
+    var result = advanceDay.advance(id, ownerSubject);
     return switch (result) {
-      case AdvanceWeekResult.Ticked ticked -> {
+      case AdvanceDayResult.Ticked ticked -> {
         log.info(
-            "league week advanced id={} phase={} week={} transitionedTo={}",
+            "league day advanced id={} phase={} day={} transitionedTo={}",
             ticked.leagueId(),
             ticked.phase(),
-            ticked.phaseWeek(),
+            ticked.phaseDay(),
             ticked.transitionedTo().map(Enum::name).orElse("none"));
         yield "redirect:" + landingPathFor(id, ticked.phase());
       }
-      case AdvanceWeekResult.NotFound ignored ->
+      case AdvanceDayResult.NotFound ignored ->
           throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     };
   }

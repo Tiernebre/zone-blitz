@@ -8,7 +8,7 @@ public record NewTeamInterview(
     long teamId,
     long candidateId,
     LeaguePhase phase,
-    int phaseWeek,
+    int phaseDay,
     int interviewIndex,
     InterviewInterest interestLevel) {
 

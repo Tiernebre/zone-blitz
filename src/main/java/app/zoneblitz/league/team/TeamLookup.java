@@ -1,6 +1,6 @@
 package app.zoneblitz.league.team;
 
-import app.zoneblitz.league.AdvanceWeek;
+import app.zoneblitz.league.AdvanceDay;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,7 +15,7 @@ public interface TeamLookup {
 
   /**
    * Return the team ids participating in the given league whose {@code owner_subject} is null —
-   * i.e. the CPU-controlled teams. Ordered by team id. Used by {@link AdvanceWeek} to dispatch
+   * i.e. the CPU-controlled teams. Ordered by team id. Used by {@link AdvanceDay} to dispatch
    * {@code CpuTeamStrategy} per non-user team.
    */
   List<Long> cpuTeamIdsForLeague(long leagueId);

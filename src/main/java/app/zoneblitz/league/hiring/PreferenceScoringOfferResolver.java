@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
  *       </ul>
  * </ol>
  *
- * <p>Idempotent on re-run within the same week.
+ * <p>Idempotent on re-run within the same day.
  */
 @Component
 public class PreferenceScoringOfferResolver implements OfferResolver {
@@ -76,7 +76,7 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
   }
 
   @Override
-  public void resolve(long leagueId, LeaguePhase phase, int weekAtResolve) {
+  public void resolve(long leagueId, LeaguePhase phase, int dayAtResolve) {
     var poolType = poolTypeFor(phase);
     if (poolType.isEmpty()) {
       return;
@@ -86,7 +86,7 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
       return;
     }
     restance(leagueId);
-    autoHireCpuWinners(leagueId, phase, weekAtResolve);
+    autoHireCpuWinners(leagueId, phase, dayAtResolve);
   }
 
   private void restance(long leagueId) {
@@ -114,7 +114,7 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
     }
   }
 
-  private void autoHireCpuWinners(long leagueId, LeaguePhase phase, int weekAtResolve) {
+  private void autoHireCpuWinners(long leagueId, LeaguePhase phase, int dayAtResolve) {
     var userTeamId = teams.userTeamIdForLeague(leagueId);
     var pool = pools.findByLeaguePhaseAndType(leagueId, phase, poolTypeFor(phase).get());
     if (pool.isEmpty()) {
@@ -137,7 +137,7 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
       if (winner.isEmpty()) {
         continue;
       }
-      finalizeHire(phase, weekAtResolve, candidate, winner.get());
+      finalizeHire(phase, dayAtResolve, candidate, winner.get());
     }
   }
 
@@ -178,7 +178,7 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
   }
 
   private void finalizeHire(
-      LeaguePhase phase, int weekAtResolve, Candidate candidate, CandidateOffer winner) {
+      LeaguePhase phase, int dayAtResolve, Candidate candidate, CandidateOffer winner) {
     candidates.markHired(candidate.id(), winner.teamId());
     offers.resolve(winner.id(), OfferStatus.ACCEPTED);
     for (var other : offers.findActiveForCandidate(candidate.id())) {
@@ -199,13 +199,13 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
             staffRoleFor(phase),
             Optional.empty(),
             phase,
-            weekAtResolve));
+            dayAtResolve));
     log.info(
-        "cpu auto-hire candidateId={} teamId={} offerId={} week={}",
+        "cpu auto-hire candidateId={} teamId={} offerId={} day={}",
         candidate.id(),
         winner.teamId(),
         winner.id(),
-        weekAtResolve);
+        dayAtResolve);
   }
 
   private static StaffRole staffRoleFor(LeaguePhase phase) {

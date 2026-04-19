@@ -45,7 +45,7 @@ public class AdvancePhaseUseCase implements AdvancePhase {
     if (exitHandler != null) {
       exitHandler.onExit(leagueId);
     }
-    leagues.updatePhaseAndResetWeek(leagueId, next);
+    leagues.updatePhaseAndResetDay(leagueId, next);
     var entryHandler = handlers.get(next);
     if (entryHandler != null) {
       entryHandler.onEntry(leagueId);

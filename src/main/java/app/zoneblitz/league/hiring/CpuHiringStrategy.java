@@ -29,11 +29,11 @@ import org.slf4j.LoggerFactory;
  * InterestScoring#normalizedScore} — the same preference-fit signal humans see as an interview
  * bucket. CPUs pick candidates most likely to accept, not the ones with the highest latent rating.
  *
- * <p>Runs one week of hiring behavior per invocation:
+ * <p>Runs one day of hiring behavior per invocation:
  *
  * <ol>
  *   <li>If the team is already {@link HiringStep#HIRED}, do nothing.
- *   <li>Interview the best-fit unhired candidates not yet interviewed, up to weekly capacity.
+ *   <li>Interview the best-fit unhired candidates not yet interviewed, up to daily capacity.
  *   <li>If no active CPU offer is outstanding, submit a single offer on the highest-fit interviewed
  *       candidate that is still unhired and not {@code NOT_INTERESTED}. Terms scale the candidate's
  *       preference targets by a willingness-to-pay multiplier keyed off the fit score.
@@ -80,7 +80,7 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
   }
 
   @Override
-  public void execute(long leagueId, long teamId, int phaseWeek) {
+  public void execute(long leagueId, long teamId, int phaseDay) {
     var existing = hiringStates.find(teamId, phase());
     if (existing.isPresent() && existing.get().step() == HiringStep.HIRED) {
       return;
@@ -102,8 +102,8 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
     }
     var prefsByCandidate = prefsByCandidate(unhired);
 
-    runInterviews(leagueId, teamId, phaseWeek, unhired, profile, prefsByCandidate);
-    submitOfferIfNone(leagueId, teamId, phaseWeek, unhired, profile, prefsByCandidate);
+    runInterviews(leagueId, teamId, phaseDay, unhired, profile, prefsByCandidate);
+    submitOfferIfNone(leagueId, teamId, phaseDay, unhired, profile, prefsByCandidate);
   }
 
   private Map<Long, CandidatePreferences> prefsByCandidate(List<Candidate> unhired) {
@@ -117,12 +117,12 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
   private void runInterviews(
       long leagueId,
       long teamId,
-      int phaseWeek,
+      int phaseDay,
       List<Candidate> unhired,
       TeamProfile profile,
       Map<Long, CandidatePreferences> prefsByCandidate) {
-    var capacity = StartInterview.DEFAULT_WEEKLY_CAPACITY;
-    var used = interviews.countForWeek(teamId, phase(), phaseWeek);
+    var capacity = StartInterview.DAILY_CAPACITY;
+    var used = interviews.countForDay(teamId, phase(), phaseDay);
     if (used >= capacity) {
       return;
     }
@@ -138,20 +138,19 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
             .limit(remaining)
             .toList();
     for (var candidate : ordered) {
-      recordInterview(leagueId, teamId, phaseWeek, candidate, profile, prefsByCandidate);
+      recordInterview(leagueId, teamId, phaseDay, candidate, profile, prefsByCandidate);
     }
   }
 
   private void recordInterview(
       long leagueId,
       long teamId,
-      int phaseWeek,
+      int phaseDay,
       Candidate candidate,
       TeamProfile profile,
       Map<Long, CandidatePreferences> prefsByCandidate) {
     var interest = InterestScoring.score(profile, prefsByCandidate.get(candidate.id()));
-    interviews.insert(
-        new NewTeamInterview(teamId, candidate.id(), phase(), phaseWeek, 1, interest));
+    interviews.insert(new NewTeamInterview(teamId, candidate.id(), phase(), phaseDay, 1, interest));
     appendInterviewing(teamId, candidate.id());
     log.debug(
         "cpu interview leagueId={} teamId={} candidateId={} interest={}",
@@ -179,7 +178,7 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
   private void submitOfferIfNone(
       long leagueId,
       long teamId,
-      int phaseWeek,
+      int phaseDay,
       List<Candidate> unhired,
       TeamProfile profile,
       Map<Long, CandidatePreferences> prefsByCandidate) {
@@ -209,15 +208,15 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
       }
       var terms = buildOfferTerms(prefs, fit);
       var saved =
-          offers.insertActive(candidate.id(), teamId, OfferTermsJson.toJson(terms), phaseWeek);
+          offers.insertActive(candidate.id(), teamId, OfferTermsJson.toJson(terms), phaseDay);
       log.info(
-          "cpu offer submitted leagueId={} teamId={} candidateId={} offerId={} fit={} week={}",
+          "cpu offer submitted leagueId={} teamId={} candidateId={} offerId={} fit={} day={}",
           leagueId,
           teamId,
           candidate.id(),
           saved.id(),
           fit,
-          phaseWeek);
+          phaseDay);
       return;
     }
   }

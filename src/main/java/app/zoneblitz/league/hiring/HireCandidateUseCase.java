@@ -1,9 +1,12 @@
 package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.AdvanceDay;
+import app.zoneblitz.league.AdvanceDayResult;
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.phase.HiringPhases;
 import app.zoneblitz.league.phase.HiringStep;
 import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.phase.LeaguePhases;
 import app.zoneblitz.league.staff.NewTeamStaffMember;
 import app.zoneblitz.league.staff.StaffRole;
 import app.zoneblitz.league.staff.TeamStaffRepository;
@@ -28,6 +31,7 @@ public class HireCandidateUseCase implements HireCandidate {
   private final CandidateOfferRepository offers;
   private final TeamHiringStateRepository hiringStates;
   private final TeamStaffRepository staff;
+  private final AdvanceDay advanceDay;
 
   public HireCandidateUseCase(
       LeagueRepository leagues,
@@ -35,13 +39,15 @@ public class HireCandidateUseCase implements HireCandidate {
       CandidateRepository candidates,
       CandidateOfferRepository offers,
       TeamHiringStateRepository hiringStates,
-      TeamStaffRepository staff) {
+      TeamStaffRepository staff,
+      AdvanceDay advanceDay) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
     this.offers = offers;
     this.hiringStates = hiringStates;
     this.staff = staff;
+    this.advanceDay = advanceDay;
   }
 
   @Override
@@ -81,18 +87,38 @@ public class HireCandidateUseCase implements HireCandidate {
     for (var other : offers.findActiveForCandidate(candidateId)) {
       offers.resolve(other.id(), OfferStatus.REJECTED);
     }
-    upsertHired(teamId, phase, candidateId, league.phaseWeek());
+    upsertHired(teamId, phase, candidateId, league.phaseDay());
     log.info(
-        "user hire leagueId={} teamId={} candidateId={} offerId={} week={}",
+        "user hire leagueId={} teamId={} candidateId={} offerId={} day={}",
         leagueId,
         teamId,
         candidateId,
         offer.get().id(),
-        league.phaseWeek());
+        league.phaseDay());
+    fastForwardToNextPhase(leagueId, phase, ownerSubject);
     return new HireCandidateResult.Hired(candidateId, teamId);
   }
 
-  private void upsertHired(long teamId, LeaguePhase phase, long candidateId, int weekAtResolve) {
+  /**
+   * After the user's hire, run day ticks until the phase transitions. The remaining in-phase days
+   * are dead time for the user once their only seat is filled — CPU teams still need to finish
+   * their own hires, so we advance day-by-day (running CPU strategies + the resolver each tick)
+   * until the phase cap hits and autofill transitions us, or every team has resolved.
+   */
+  private void fastForwardToNextPhase(long leagueId, LeaguePhase entryPhase, String ownerSubject) {
+    var maxIterations = LeaguePhases.maxDays(entryPhase).orElse(0) + 1;
+    for (var i = 0; i < maxIterations; i++) {
+      var result = advanceDay.advance(leagueId, ownerSubject);
+      if (!(result instanceof AdvanceDayResult.Ticked ticked)) {
+        return;
+      }
+      if (ticked.transitionedTo().isPresent() || ticked.phase() != entryPhase) {
+        return;
+      }
+    }
+  }
+
+  private void upsertHired(long teamId, LeaguePhase phase, long candidateId, int dayAtResolve) {
     var existing = hiringStates.find(teamId, phase);
     hiringStates.upsert(
         new TeamHiringState(
@@ -103,7 +129,7 @@ public class HireCandidateUseCase implements HireCandidate {
             existing.map(TeamHiringState::interviewingCandidateIds).orElse(List.of())));
     staff.insert(
         new NewTeamStaffMember(
-            teamId, candidateId, staffRoleFor(phase), Optional.empty(), phase, weekAtResolve));
+            teamId, candidateId, staffRoleFor(phase), Optional.empty(), phase, dayAtResolve));
   }
 
   private static StaffRole staffRoleFor(LeaguePhase phase) {

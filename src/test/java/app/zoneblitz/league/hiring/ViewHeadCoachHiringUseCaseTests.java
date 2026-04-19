@@ -71,7 +71,7 @@ class ViewHeadCoachHiringUseCaseTests {
   @Test
   void view_whenNotOwnedByCaller_returnsEmpty() {
     var league = createLeagueFor("owner");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     entryHandler.onEntry(league.id());
 
     assertThat(useCase.view(league.id(), "someone-else")).isEmpty();
@@ -87,7 +87,7 @@ class ViewHeadCoachHiringUseCaseTests {
   @Test
   void view_whenInPhase_returnsPoolAndNoOffers() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     entryHandler.onEntry(league.id());
 
     var view = useCase.view(league.id(), "sub-1").orElseThrow();

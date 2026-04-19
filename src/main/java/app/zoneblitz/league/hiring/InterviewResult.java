@@ -12,7 +12,7 @@ public sealed interface InterviewResult {
   /** Candidate does not exist in this league's current hiring pool. */
   record UnknownCandidate(long candidateId) implements InterviewResult {}
 
-  /** Team has already hit its per-week interview cap. */
+  /** Team has already hit its per-day interview cap. */
   record CapacityReached(int capacity) implements InterviewResult {}
 
   /** Team has already interviewed this candidate — interviews are one-shot. */

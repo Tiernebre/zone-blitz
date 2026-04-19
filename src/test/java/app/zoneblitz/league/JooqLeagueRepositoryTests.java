@@ -153,7 +153,7 @@ class JooqLeagueRepositoryTests {
     var league =
         leagues.insert("sub-1", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
 
-    assertThat(league.phaseWeek()).isEqualTo(1);
+    assertThat(league.phaseDay()).isEqualTo(1);
   }
 
   @Test
@@ -166,7 +166,7 @@ class JooqLeagueRepositoryTests {
             l -> {
               assertThat(l.id()).isEqualTo(inserted.id());
               assertThat(l.phase()).isEqualTo(LeaguePhase.INITIAL_SETUP);
-              assertThat(l.phaseWeek()).isEqualTo(1);
+              assertThat(l.phaseDay()).isEqualTo(1);
             });
   }
 
@@ -180,34 +180,33 @@ class JooqLeagueRepositoryTests {
     var league =
         leagues.insert("sub-1", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
 
-    assertThat(leagues.incrementPhaseWeek(league.id())).hasValue(2);
-    assertThat(leagues.incrementPhaseWeek(league.id())).hasValue(3);
-    assertThat(leagues.findById(league.id()).orElseThrow().phaseWeek()).isEqualTo(3);
+    assertThat(leagues.incrementPhaseDay(league.id())).hasValue(2);
+    assertThat(leagues.incrementPhaseDay(league.id())).hasValue(3);
+    assertThat(leagues.findById(league.id()).orElseThrow().phaseDay()).isEqualTo(3);
   }
 
   @Test
   void incrementPhaseWeek_whenMissing_returnsEmpty() {
-    assertThat(leagues.incrementPhaseWeek(999_999L)).isEmpty();
+    assertThat(leagues.incrementPhaseDay(999_999L)).isEmpty();
   }
 
   @Test
   void updatePhaseAndResetWeek_changesPhaseAndResetsWeekToOne() {
     var league =
         leagues.insert("sub-1", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
-    leagues.incrementPhaseWeek(league.id());
-    leagues.incrementPhaseWeek(league.id());
+    leagues.incrementPhaseDay(league.id());
+    leagues.incrementPhaseDay(league.id());
 
-    assertThat(leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH))
-        .isTrue();
+    assertThat(leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH)).isTrue();
 
     var after = leagues.findById(league.id()).orElseThrow();
     assertThat(after.phase()).isEqualTo(LeaguePhase.HIRING_HEAD_COACH);
-    assertThat(after.phaseWeek()).isEqualTo(1);
+    assertThat(after.phaseDay()).isEqualTo(1);
   }
 
   @Test
   void updatePhaseAndResetWeek_whenMissing_returnsFalse() {
-    assertThat(leagues.updatePhaseAndResetWeek(999_999L, LeaguePhase.HIRING_HEAD_COACH)).isFalse();
+    assertThat(leagues.updatePhaseAndResetDay(999_999L, LeaguePhase.HIRING_HEAD_COACH)).isFalse();
   }
 
   private long pickOther(long excludeId) {

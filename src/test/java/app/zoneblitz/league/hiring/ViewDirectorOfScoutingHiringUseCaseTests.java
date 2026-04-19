@@ -72,7 +72,7 @@ class ViewDirectorOfScoutingHiringUseCaseTests {
   @Test
   void view_whenNotOwnedByCaller_returnsEmpty() {
     var league = createLeagueFor("owner");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
     entryHandler.onEntry(league.id());
 
     assertThat(useCase.view(league.id(), "someone-else")).isEmpty();
@@ -88,7 +88,7 @@ class ViewDirectorOfScoutingHiringUseCaseTests {
   @Test
   void view_whenInPhase_returnsPoolAndNoOffers() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
     entryHandler.onEntry(league.id());
 
     var view = useCase.view(league.id(), "sub-1").orElseThrow();

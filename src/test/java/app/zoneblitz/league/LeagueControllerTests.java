@@ -51,7 +51,7 @@ class LeagueControllerTests {
   @MockitoBean CreateLeague createLeague;
   @MockitoBean GetLeague getLeague;
   @MockitoBean DeleteLeague deleteLeague;
-  @MockitoBean AdvanceWeek advanceWeek;
+  @MockitoBean AdvanceDay advanceDay;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
@@ -271,9 +271,9 @@ class LeagueControllerTests {
 
   @Test
   void advance_whenTickStaysInHeadCoach_redirectsToHeadCoachHiring() throws Exception {
-    given(advanceWeek.advance(42L, "sub-1"))
+    given(advanceDay.advance(42L, "sub-1"))
         .willReturn(
-            new AdvanceWeekResult.Ticked(42L, LeaguePhase.HIRING_HEAD_COACH, 2, Optional.empty()));
+            new AdvanceDayResult.Ticked(42L, LeaguePhase.HIRING_HEAD_COACH, 2, Optional.empty()));
 
     mvc.perform(
             post("/leagues/42/advance")
@@ -282,15 +282,15 @@ class LeagueControllerTests {
         .andExpect(status().is3xxRedirection())
         .andExpect(redirectedUrl("/leagues/42/hiring/head-coach"));
 
-    verify(advanceWeek).advance(42L, "sub-1");
+    verify(advanceDay).advance(42L, "sub-1");
   }
 
   @Test
   void advance_whenTickTransitionsToDirectorOfScouting_redirectsToDirectorHiring()
       throws Exception {
-    given(advanceWeek.advance(42L, "sub-1"))
+    given(advanceDay.advance(42L, "sub-1"))
         .willReturn(
-            new AdvanceWeekResult.Ticked(
+            new AdvanceDayResult.Ticked(
                 42L,
                 LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING,
                 1,
@@ -306,9 +306,9 @@ class LeagueControllerTests {
 
   @Test
   void advance_whenTickTransitionsToAssemblingStaff_redirectsToStaffRecap() throws Exception {
-    given(advanceWeek.advance(42L, "sub-1"))
+    given(advanceDay.advance(42L, "sub-1"))
         .willReturn(
-            new AdvanceWeekResult.Ticked(
+            new AdvanceDayResult.Ticked(
                 42L, LeaguePhase.ASSEMBLING_STAFF, 1, Optional.of(LeaguePhase.ASSEMBLING_STAFF)));
 
     mvc.perform(
@@ -321,9 +321,9 @@ class LeagueControllerTests {
 
   @Test
   void advance_whenTickTransitionsToComplete_redirectsToDashboard() throws Exception {
-    given(advanceWeek.advance(42L, "sub-1"))
+    given(advanceDay.advance(42L, "sub-1"))
         .willReturn(
-            new AdvanceWeekResult.Ticked(
+            new AdvanceDayResult.Ticked(
                 42L, LeaguePhase.COMPLETE, 1, Optional.of(LeaguePhase.COMPLETE)));
 
     mvc.perform(
@@ -336,7 +336,7 @@ class LeagueControllerTests {
 
   @Test
   void advance_whenNotFound_returns404() throws Exception {
-    given(advanceWeek.advance(42L, "sub-1")).willReturn(new AdvanceWeekResult.NotFound(42L));
+    given(advanceDay.advance(42L, "sub-1")).willReturn(new AdvanceDayResult.NotFound(42L));
 
     mvc.perform(
             post("/leagues/42/advance")

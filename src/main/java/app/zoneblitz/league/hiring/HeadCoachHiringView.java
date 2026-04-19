@@ -9,7 +9,7 @@ public record HeadCoachHiringView(
     LeagueSummary league,
     List<HeadCoachCandidateView> pool,
     List<HeadCoachCandidateView> activeInterviews,
-    int interviewsThisWeek,
+    int interviewsToday,
     int interviewCapacity) {
 
   public HeadCoachHiringView {

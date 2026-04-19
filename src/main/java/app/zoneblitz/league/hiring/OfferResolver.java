@@ -6,7 +6,7 @@ import app.zoneblitz.league.staff.TeamStaffMember;
 import app.zoneblitz.league.team.TeamHiringState;
 
 /**
- * Seam invoked on each week tick — before {@code phase_week} is incremented — to resolve every
+ * Seam invoked on each day tick — before {@code phase_day} is incremented — to resolve every
  * candidate's active offers against their preferences. Each candidate with one or more {@link
  * OfferStatus#ACTIVE} offers accepts the highest-scoring offer; losing offers are marked {@link
  * OfferStatus#REJECTED}. When the accepted offer's team is signing, the candidate is marked hired,
@@ -16,15 +16,15 @@ import app.zoneblitz.league.team.TeamHiringState;
  * <p>Ties are broken deterministically using the candidate's seeded RNG (see {@code
  * docs/technical/league-phases.md} "Offer resolution").
  *
- * <p>Idempotent: running twice on the same week is safe — there will be no remaining active offers
+ * <p>Idempotent: running twice on the same day is safe — there will be no remaining active offers
  * after the first run.
  */
 public interface OfferResolver {
 
   /**
-   * Resolve all active offers in the given league for the given hiring phase. {@code weekAtResolve}
-   * is recorded on the resulting {@link TeamStaffMember#hiredAtWeek()} — it's the phase week the
-   * offers were in when they resolved, i.e. <em>before</em> the week tick increments.
+   * Resolve all active offers in the given league for the given hiring phase. {@code dayAtResolve}
+   * is recorded on the resulting {@link TeamStaffMember#hiredAtDay()} — it's the phase day the
+   * offers were in when they resolved, i.e. <em>before</em> the day tick increments.
    */
-  void resolve(long leagueId, LeaguePhase phase, int weekAtResolve);
+  void resolve(long leagueId, LeaguePhase phase, int dayAtResolve);
 }

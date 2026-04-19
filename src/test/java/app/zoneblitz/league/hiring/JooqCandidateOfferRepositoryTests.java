@@ -69,7 +69,7 @@ class JooqCandidateOfferRepositoryTests {
 
     assertThat(offer.id()).isPositive();
     assertThat(offer.status()).isEqualTo(OfferStatus.ACTIVE);
-    assertThat(offer.submittedAtWeek()).isEqualTo(1);
+    assertThat(offer.submittedAtDay()).isEqualTo(1);
     assertThat(offer.terms()).contains("salary");
   }
 

@@ -39,7 +39,7 @@ public final class DirectorOfScoutingHiringViewModel {
             .collect(
                 java.util.stream.Collectors.toUnmodifiableMap(
                     CandidateOffer::candidateId, o -> o, (a, b) -> a));
-    var interviewsThisWeek = countForWeek(interviews, league.phaseWeek());
+    var interviewsToday = countForDay(interviews, league.phaseDay());
     var rows =
         pool.stream()
             .filter(c -> c.hiredByTeamId().isEmpty())
@@ -55,7 +55,7 @@ public final class DirectorOfScoutingHiringViewModel {
     var activeInterviewRows =
         rows.stream().filter(DirectorOfScoutingCandidateView::interviewed).toList();
     return new DirectorOfScoutingHiringView(
-        league, rows, activeInterviewRows, interviewsThisWeek, interviewCapacity);
+        league, rows, activeInterviewRows, interviewsToday, interviewCapacity);
   }
 
   private static Map<Long, InterviewInterest> interestByCandidate(List<TeamInterview> interviews) {
@@ -66,8 +66,8 @@ public final class DirectorOfScoutingHiringViewModel {
     return m;
   }
 
-  private static int countForWeek(List<TeamInterview> interviews, int phaseWeek) {
-    return (int) interviews.stream().filter(i -> i.phaseWeek() == phaseWeek).count();
+  private static int countForDay(List<TeamInterview> interviews, int phaseDay) {
+    return (int) interviews.stream().filter(i -> i.phaseDay() == phaseDay).count();
   }
 
   private static DirectorOfScoutingCandidateView toRow(

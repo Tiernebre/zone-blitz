@@ -26,7 +26,7 @@ public class JooqTeamInterviewRepository implements TeamInterviewRepository {
             .set(TEAM_INTERVIEWS.TEAM_ID, interview.teamId())
             .set(TEAM_INTERVIEWS.CANDIDATE_ID, interview.candidateId())
             .set(TEAM_INTERVIEWS.PHASE, interview.phase().name())
-            .set(TEAM_INTERVIEWS.PHASE_WEEK, interview.phaseWeek())
+            .set(TEAM_INTERVIEWS.PHASE_DAY, interview.phaseDay())
             .set(TEAM_INTERVIEWS.INTERVIEW_INDEX, interview.interviewIndex())
             .set(TEAM_INTERVIEWS.INTEREST_LEVEL, interview.interestLevel().name())
             .returning(TEAM_INTERVIEWS.fields())
@@ -46,14 +46,14 @@ public class JooqTeamInterviewRepository implements TeamInterviewRepository {
   }
 
   @Override
-  public int countForWeek(long teamId, LeaguePhase phase, int phaseWeek) {
+  public int countForDay(long teamId, LeaguePhase phase, int phaseDay) {
     return dsl.fetchCount(
         TEAM_INTERVIEWS,
         TEAM_INTERVIEWS
             .TEAM_ID
             .eq(teamId)
             .and(TEAM_INTERVIEWS.PHASE.eq(phase.name()))
-            .and(TEAM_INTERVIEWS.PHASE_WEEK.eq(phaseWeek)));
+            .and(TEAM_INTERVIEWS.PHASE_DAY.eq(phaseDay)));
   }
 
   @Override
@@ -80,7 +80,7 @@ public class JooqTeamInterviewRepository implements TeamInterviewRepository {
         r.get(TEAM_INTERVIEWS.TEAM_ID),
         r.get(TEAM_INTERVIEWS.CANDIDATE_ID),
         LeaguePhase.valueOf(r.get(TEAM_INTERVIEWS.PHASE)),
-        r.get(TEAM_INTERVIEWS.PHASE_WEEK),
+        r.get(TEAM_INTERVIEWS.PHASE_DAY),
         r.get(TEAM_INTERVIEWS.INTERVIEW_INDEX),
         InterviewInterest.valueOf(r.get(TEAM_INTERVIEWS.INTEREST_LEVEL)));
   }

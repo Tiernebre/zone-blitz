@@ -111,16 +111,15 @@ class StartInterviewUseCaseTests {
     var ctx = seedLeagueInPhase("sub-1");
     var allIds = candidates.findAllByPoolId(ctx.poolId).stream().map(c -> c.id()).toList();
 
-    for (int i = 0; i < StartInterview.DEFAULT_WEEKLY_CAPACITY; i++) {
+    for (int i = 0; i < StartInterview.DAILY_CAPACITY; i++) {
       useCase.start(ctx.leagueId, allIds.get(i), "sub-1");
     }
 
-    var capped =
-        useCase.start(ctx.leagueId, allIds.get(StartInterview.DEFAULT_WEEKLY_CAPACITY), "sub-1");
+    var capped = useCase.start(ctx.leagueId, allIds.get(StartInterview.DAILY_CAPACITY), "sub-1");
 
     assertThat(capped).isInstanceOf(InterviewResult.CapacityReached.class);
     assertThat(((InterviewResult.CapacityReached) capped).capacity())
-        .isEqualTo(StartInterview.DEFAULT_WEEKLY_CAPACITY);
+        .isEqualTo(StartInterview.DAILY_CAPACITY);
   }
 
   @Test
@@ -175,7 +174,7 @@ class StartInterviewUseCaseTests {
 
   private Ctx seedLeagueInPhase(String subject) {
     var league = createLeagueFor(subject);
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     entryHandler.onEntry(league.id());
     var pool =
         new JooqCandidatePoolRepository(dsl)

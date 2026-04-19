@@ -81,7 +81,7 @@ public class HiringDirectorOfScoutingController {
       case InterviewResult.CapacityReached capacity ->
           throw new ResponseStatusException(
               HttpStatus.CONFLICT,
-              "Weekly interview capacity of %d already reached".formatted(capacity.capacity()));
+              "Daily interview capacity of %d already reached".formatted(capacity.capacity()));
       case InterviewResult.AlreadyInterviewed ignored ->
           throw new ResponseStatusException(HttpStatus.CONFLICT, "Candidate already interviewed");
     };

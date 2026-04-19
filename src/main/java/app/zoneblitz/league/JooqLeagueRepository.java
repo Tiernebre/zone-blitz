@@ -38,7 +38,7 @@ public class JooqLeagueRepository implements LeagueRepository {
                 LEAGUES.NAME,
                 LEAGUES.OWNER_SUBJECT,
                 LEAGUES.PHASE,
-                LEAGUES.PHASE_WEEK,
+                LEAGUES.PHASE_DAY,
                 LEAGUES.TEAM_COUNT,
                 LEAGUES.SEASON_GAMES,
                 LEAGUES.CREATED_AT)
@@ -48,7 +48,7 @@ public class JooqLeagueRepository implements LeagueRepository {
         record.getName(),
         record.getOwnerSubject(),
         LeaguePhase.valueOf(record.getPhase()),
-        record.getPhaseWeek(),
+        record.getPhaseDay(),
         new LeagueSettings(record.getTeamCount(), record.getSeasonGames()),
         record.getCreatedAt().toInstant());
   }
@@ -68,7 +68,7 @@ public class JooqLeagueRepository implements LeagueRepository {
             LEAGUES.ID,
             LEAGUES.NAME,
             LEAGUES.PHASE,
-            LEAGUES.PHASE_WEEK,
+            LEAGUES.PHASE_DAY,
             LEAGUES.CREATED_AT,
             TEAMS.ID,
             FRANCHISES.ID,
@@ -98,7 +98,7 @@ public class JooqLeagueRepository implements LeagueRepository {
                     r.get(LEAGUES.ID),
                     r.get(LEAGUES.NAME),
                     LeaguePhase.valueOf(r.get(LEAGUES.PHASE)),
-                    r.get(LEAGUES.PHASE_WEEK),
+                    r.get(LEAGUES.PHASE_DAY),
                     r.get(LEAGUES.CREATED_AT).toInstant(),
                     r.get(TEAMS.ID),
                     JooqFranchiseRepository.mapFranchise(r)));
@@ -110,7 +110,7 @@ public class JooqLeagueRepository implements LeagueRepository {
             LEAGUES.ID,
             LEAGUES.NAME,
             LEAGUES.PHASE,
-            LEAGUES.PHASE_WEEK,
+            LEAGUES.PHASE_DAY,
             LEAGUES.CREATED_AT,
             TEAMS.ID,
             FRANCHISES.ID,
@@ -140,7 +140,7 @@ public class JooqLeagueRepository implements LeagueRepository {
                     r.get(LEAGUES.ID),
                     r.get(LEAGUES.NAME),
                     LeaguePhase.valueOf(r.get(LEAGUES.PHASE)),
-                    r.get(LEAGUES.PHASE_WEEK),
+                    r.get(LEAGUES.PHASE_DAY),
                     r.get(LEAGUES.CREATED_AT).toInstant(),
                     r.get(TEAMS.ID),
                     JooqFranchiseRepository.mapFranchise(r)));
@@ -153,7 +153,7 @@ public class JooqLeagueRepository implements LeagueRepository {
             LEAGUES.NAME,
             LEAGUES.OWNER_SUBJECT,
             LEAGUES.PHASE,
-            LEAGUES.PHASE_WEEK,
+            LEAGUES.PHASE_DAY,
             LEAGUES.TEAM_COUNT,
             LEAGUES.SEASON_GAMES,
             LEAGUES.CREATED_AT)
@@ -166,29 +166,29 @@ public class JooqLeagueRepository implements LeagueRepository {
                     r.get(LEAGUES.NAME),
                     r.get(LEAGUES.OWNER_SUBJECT),
                     LeaguePhase.valueOf(r.get(LEAGUES.PHASE)),
-                    r.get(LEAGUES.PHASE_WEEK),
+                    r.get(LEAGUES.PHASE_DAY),
                     new LeagueSettings(r.get(LEAGUES.TEAM_COUNT), r.get(LEAGUES.SEASON_GAMES)),
                     r.get(LEAGUES.CREATED_AT).toInstant()));
   }
 
   @Override
-  public boolean updatePhaseAndResetWeek(long id, LeaguePhase phase) {
+  public boolean updatePhaseAndResetDay(long id, LeaguePhase phase) {
     return dsl.update(LEAGUES)
             .set(LEAGUES.PHASE, phase.name())
-            .set(LEAGUES.PHASE_WEEK, 1)
+            .set(LEAGUES.PHASE_DAY, 1)
             .where(LEAGUES.ID.eq(id))
             .execute()
         > 0;
   }
 
   @Override
-  public Optional<Integer> incrementPhaseWeek(long id) {
+  public Optional<Integer> incrementPhaseDay(long id) {
     return dsl.update(LEAGUES)
-        .set(LEAGUES.PHASE_WEEK, LEAGUES.PHASE_WEEK.plus(1))
+        .set(LEAGUES.PHASE_DAY, LEAGUES.PHASE_DAY.plus(1))
         .where(LEAGUES.ID.eq(id))
-        .returning(LEAGUES.PHASE_WEEK)
+        .returning(LEAGUES.PHASE_DAY)
         .fetchOptional()
-        .map(r -> r.get(LEAGUES.PHASE_WEEK));
+        .map(r -> r.get(LEAGUES.PHASE_DAY));
   }
 
   @Override

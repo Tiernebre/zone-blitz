@@ -4,7 +4,7 @@ package app.zoneblitz.league.phase;
  * Use case: advance a league from its current phase to the next phase.
  *
  * <p>Runs the outgoing phase's {@link PhaseTransitionHandler#onExit} hook, persists the new phase
- * with {@code phase_week} reset to 1, then runs the incoming phase's {@link
+ * with {@code phase_day} reset to 1, then runs the incoming phase's {@link
  * PhaseTransitionHandler#onEntry} hook. All within a single transaction.
  */
 public interface AdvancePhase {

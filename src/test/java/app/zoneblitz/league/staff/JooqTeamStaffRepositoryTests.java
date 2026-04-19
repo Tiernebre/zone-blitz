@@ -75,7 +75,7 @@ class JooqTeamStaffRepositoryTests {
     assertThat(hire.role()).isEqualTo(StaffRole.HEAD_COACH);
     assertThat(hire.scoutBranch()).isEmpty();
     assertThat(hire.hiredAtPhase()).isEqualTo(LeaguePhase.HIRING_HEAD_COACH);
-    assertThat(hire.hiredAtWeek()).isEqualTo(2);
+    assertThat(hire.hiredAtDay()).isEqualTo(2);
     assertThat(hire.hiredAt()).isNotNull();
   }
 

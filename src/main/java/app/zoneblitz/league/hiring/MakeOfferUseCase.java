@@ -81,32 +81,32 @@ public class MakeOfferUseCase implements MakeOffer {
       return new MakeOfferResult.CandidateNotInterested(candidateId);
     }
 
-    var phaseWeek = league.phaseWeek();
+    var phaseDay = league.phaseDay();
     var existing = offers.findActiveForTeamAndCandidate(teamId, candidateId);
     if (existing.isPresent()) {
       if (existing.get().revisionCount() >= StanceEvaluator.REVISION_CAP) {
         return new MakeOfferResult.RevisionCapReached(candidateId, existing.get().revisionCount());
       }
-      var revised = offers.revise(existing.get().id(), OfferTermsJson.toJson(terms), phaseWeek);
+      var revised = offers.revise(existing.get().id(), OfferTermsJson.toJson(terms), phaseDay);
       log.info(
-          "offer revised leagueId={} teamId={} candidateId={} offerId={} revision={} week={}",
+          "offer revised leagueId={} teamId={} candidateId={} offerId={} revision={} day={}",
           leagueId,
           teamId,
           candidateId,
           revised.id(),
           revised.revisionCount(),
-          phaseWeek);
+          phaseDay);
       return new MakeOfferResult.Created(revised);
     }
 
-    var saved = offers.insertActive(candidateId, teamId, OfferTermsJson.toJson(terms), phaseWeek);
+    var saved = offers.insertActive(candidateId, teamId, OfferTermsJson.toJson(terms), phaseDay);
     log.info(
-        "offer submitted leagueId={} teamId={} candidateId={} offerId={} week={}",
+        "offer submitted leagueId={} teamId={} candidateId={} offerId={} day={}",
         leagueId,
         teamId,
         candidateId,
         saved.id(),
-        phaseWeek);
+        phaseDay);
     return new MakeOfferResult.Created(saved);
   }
 }

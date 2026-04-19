@@ -217,7 +217,7 @@ class PreferenceScoringOfferResolverTests {
 
   private Ctx seedLeague() {
     var league = createLeagueFor("sub-" + System.nanoTime());
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     entryHandler.onEntry(league.id());
     var pool =
         pools

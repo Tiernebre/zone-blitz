@@ -1,6 +1,7 @@
 package app.zoneblitz.league.phase;
 
 import app.zoneblitz.league.hiring.Candidate;
+import app.zoneblitz.league.hiring.CandidateOffer;
 import app.zoneblitz.league.hiring.CandidateOfferRepository;
 import app.zoneblitz.league.hiring.CandidatePoolRepository;
 import app.zoneblitz.league.hiring.CandidatePoolType;
@@ -9,6 +10,7 @@ import app.zoneblitz.league.hiring.CandidatePreferencesRepository;
 import app.zoneblitz.league.hiring.CandidateRandomSources;
 import app.zoneblitz.league.hiring.CandidateRepository;
 import app.zoneblitz.league.hiring.InterestScoring;
+import app.zoneblitz.league.hiring.OfferStance;
 import app.zoneblitz.league.hiring.OfferStatus;
 import app.zoneblitz.league.hiring.OfferTerms;
 import app.zoneblitz.league.hiring.OfferTermsJson;
@@ -78,7 +80,7 @@ public class BestFitHiringAutofill implements HiringPhaseAutofill {
   }
 
   @Override
-  public void autofill(long leagueId, LeaguePhase phase, int phaseWeek) {
+  public void autofill(long leagueId, LeaguePhase phase, int phaseDay) {
     var maybePoolType = poolTypeFor(phase);
     if (maybePoolType.isEmpty()) {
       return;
@@ -99,6 +101,15 @@ public class BestFitHiringAutofill implements HiringPhaseAutofill {
       if (isAlreadyHired(teamId, phase)) {
         continue;
       }
+      // Honor an active AGREED offer (typically the user, left open by the resolver so the user
+      // could click Hire) before falling back to best-fit. Otherwise the user's negotiated choice
+      // gets overridden when the phase autofills at the day cap.
+      var agreedPick = findAgreedCandidate(teamId, remaining);
+      if (agreedPick.isPresent()) {
+        remaining.remove(agreedPick.get());
+        assign(leagueId, phase, phaseDay, teamId, agreedPick.get(), role);
+        continue;
+      }
       if (remaining.isEmpty()) {
         log.warn(
             "autofill ran out of candidates leagueId={} phase={} teamId={}",
@@ -117,12 +128,26 @@ public class BestFitHiringAutofill implements HiringPhaseAutofill {
         continue;
       }
       remaining.remove(pick.get());
-      assign(leagueId, phase, phaseWeek, teamId, pick.get(), role);
+      assign(leagueId, phase, phaseDay, teamId, pick.get(), role);
     }
   }
 
   private boolean isAlreadyHired(long teamId, LeaguePhase phase) {
     return hiringStates.find(teamId, phase).map(s -> s.step() == HiringStep.HIRED).orElse(false);
+  }
+
+  private Optional<Candidate> findAgreedCandidate(long teamId, List<Candidate> remaining) {
+    for (var o : offers.findActiveForTeam(teamId)) {
+      if (o.stance().orElse(null) != OfferStance.AGREED) {
+        continue;
+      }
+      for (var c : remaining) {
+        if (c.id() == o.candidateId()) {
+          return Optional.of(c);
+        }
+      }
+    }
+    return Optional.empty();
   }
 
   private Optional<Candidate> pickBestFit(
@@ -160,7 +185,7 @@ public class BestFitHiringAutofill implements HiringPhaseAutofill {
   private void assign(
       long leagueId,
       LeaguePhase phase,
-      int phaseWeek,
+      int phaseDay,
       long teamId,
       Candidate candidate,
       StaffRole role) {
@@ -172,27 +197,40 @@ public class BestFitHiringAutofill implements HiringPhaseAutofill {
           candidate.id());
       return;
     }
-    var terms = defaultTerms(maybePrefs.get());
-    // Autofill may collide with a CPU's own active offer on the same candidate (e.g. one that
-    // stayed at RENEGOTIATE). Reject any existing active team offer first so insertActive can
-    // succeed without tripping the (candidate_id, team_id) WHERE status='ACTIVE' unique index.
+    // If the team already has an active offer on this candidate (typically AGREED — the resolver
+    // leaves user offers open for explicit Hire), accept that offer as-is. Otherwise synthesize a
+    // default-terms offer from the candidate's preferences. Any *other* active team offers are
+    // rejected first so insertActive doesn't trip the per-team unique index.
     for (var existing : offers.findActiveForTeam(teamId)) {
-      offers.resolve(existing.id(), OfferStatus.REJECTED);
+      if (existing.candidateId() != candidate.id()) {
+        offers.resolve(existing.id(), OfferStatus.REJECTED);
+      }
     }
-    var offer =
-        offers.insertActive(candidate.id(), teamId, OfferTermsJson.toJson(terms), phaseWeek);
-    offers.resolve(offer.id(), OfferStatus.ACCEPTED);
+    var existingForCandidate = offers.findActiveForTeamAndCandidate(teamId, candidate.id());
+    var hiredOfferId =
+        existingForCandidate
+            .map(CandidateOffer::id)
+            .orElseGet(
+                () ->
+                    offers
+                        .insertActive(
+                            candidate.id(),
+                            teamId,
+                            OfferTermsJson.toJson(defaultTerms(maybePrefs.get())),
+                            phaseDay)
+                        .id());
+    offers.resolve(hiredOfferId, OfferStatus.ACCEPTED);
     candidates.markHired(candidate.id(), teamId);
     upsertHired(teamId, phase);
     staff.insert(
-        new NewTeamStaffMember(teamId, candidate.id(), role, Optional.empty(), phase, phaseWeek));
+        new NewTeamStaffMember(teamId, candidate.id(), role, Optional.empty(), phase, phaseDay));
     log.info(
-        "autofill hire leagueId={} phase={} teamId={} candidateId={} week={}",
+        "autofill hire leagueId={} phase={} teamId={} candidateId={} day={}",
         leagueId,
         phase,
         teamId,
         candidate.id(),
-        phaseWeek);
+        phaseDay);
   }
 
   private void upsertHired(long teamId, LeaguePhase phase) {

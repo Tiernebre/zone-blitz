@@ -75,7 +75,7 @@ class JooqTeamInterviewRepositoryTests {
     assertThat(inserted.teamId()).isEqualTo(teamId);
     assertThat(inserted.candidateId()).isEqualTo(candidateId);
     assertThat(inserted.phase()).isEqualTo(LeaguePhase.HIRING_HEAD_COACH);
-    assertThat(inserted.phaseWeek()).isEqualTo(1);
+    assertThat(inserted.phaseDay()).isEqualTo(1);
     assertThat(inserted.interviewIndex()).isEqualTo(1);
     assertThat(inserted.interestLevel()).isEqualTo(InterviewInterest.INTERESTED);
   }
@@ -99,9 +99,9 @@ class JooqTeamInterviewRepositoryTests {
     interviews.insert(interview(teamId, candidateId, 1, 2));
     interviews.insert(interview(teamId, candidateId, 2, 3));
 
-    assertThat(interviews.countForWeek(teamId, LeaguePhase.HIRING_HEAD_COACH, 1)).isEqualTo(2);
-    assertThat(interviews.countForWeek(teamId, LeaguePhase.HIRING_HEAD_COACH, 2)).isEqualTo(1);
-    assertThat(interviews.countForWeek(teamId, LeaguePhase.HIRING_HEAD_COACH, 3)).isZero();
+    assertThat(interviews.countForDay(teamId, LeaguePhase.HIRING_HEAD_COACH, 1)).isEqualTo(2);
+    assertThat(interviews.countForDay(teamId, LeaguePhase.HIRING_HEAD_COACH, 2)).isEqualTo(1);
+    assertThat(interviews.countForDay(teamId, LeaguePhase.HIRING_HEAD_COACH, 3)).isZero();
   }
 
   @Test

@@ -113,8 +113,8 @@
 					<h1 class="text-2xl font-bold text-slate-900 truncate" th:text="${pageHeading}">Page</h1>
 					<p class="text-sm text-slate-500">
 						<span th:text="${phaseLabel}">Phase</span>
-						<span> · Week </span>
-						<span th:text="${league.phaseWeek()}">1</span>
+						<span> · Day </span>
+						<span th:text="${league.phaseDay()}">1</span>
 					</p>
 				</div>
 				<form th:unless="${phaseName == 'COMPLETE'}"

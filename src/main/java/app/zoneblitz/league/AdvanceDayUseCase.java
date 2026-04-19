@@ -21,9 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class AdvanceWeekUseCase implements AdvanceWeek {
+public class AdvanceDayUseCase implements AdvanceDay {
 
-  private static final Logger log = LoggerFactory.getLogger(AdvanceWeekUseCase.class);
+  private static final Logger log = LoggerFactory.getLogger(AdvanceDayUseCase.class);
 
   private final LeagueRepository leagues;
   private final OfferResolver offerResolver;
@@ -33,7 +33,7 @@ public class AdvanceWeekUseCase implements AdvanceWeek {
   private final AdvancePhase advancePhase;
   private final Map<LeaguePhase, CpuTeamStrategy> cpuStrategies;
 
-  public AdvanceWeekUseCase(
+  public AdvanceDayUseCase(
       LeagueRepository leagues,
       OfferResolver offerResolver,
       TeamLookup teams,
@@ -54,44 +54,51 @@ public class AdvanceWeekUseCase implements AdvanceWeek {
 
   @Override
   @Transactional
-  public AdvanceWeekResult advance(long leagueId, String ownerSubject) {
+  public AdvanceDayResult advance(long leagueId, String ownerSubject) {
     Objects.requireNonNull(ownerSubject, "ownerSubject");
 
     var maybeLeague = leagues.findSummaryByIdAndOwner(leagueId, ownerSubject);
     if (maybeLeague.isEmpty()) {
-      return new AdvanceWeekResult.NotFound(leagueId);
+      return new AdvanceDayResult.NotFound(leagueId);
     }
     var league = maybeLeague.get();
-    var phase = league.phase();
-    var phaseWeek = league.phaseWeek();
+    return tickOnce(leagueId, league.phase(), league.phaseDay(), ownerSubject);
+  }
 
-    runCpuStrategies(leagueId, phase, phaseWeek);
+  /**
+   * Run a single day tick against the supplied phase/day state. Public within the package so {@code
+   * HireCandidateUseCase} can fast-forward remaining days of a phase after a user hire.
+   */
+  @Transactional
+  public AdvanceDayResult tickOnce(
+      long leagueId, LeaguePhase phase, int phaseDay, String ownerSubject) {
+    runCpuStrategies(leagueId, phase, phaseDay);
 
-    // Offer resolution runs BEFORE phase_week increments so hires are recorded on the week the
+    // Offer resolution runs BEFORE phase_day increments so hires are recorded on the day the
     // offers were made. See docs/technical/league-phases.md (Ticks, OfferResolver).
-    offerResolver.resolve(leagueId, phase, phaseWeek);
+    offerResolver.resolve(leagueId, phase, phaseDay);
 
-    var newWeek =
+    var newDay =
         leagues
-            .incrementPhaseWeek(leagueId)
+            .incrementPhaseDay(leagueId)
             .orElseThrow(() -> new IllegalStateException("league disappeared mid-transaction"));
 
-    var transitionedTo = maybeCompletePhase(leagueId, phase, phaseWeek, ownerSubject);
+    var transitionedTo = maybeCompletePhase(leagueId, phase, phaseDay, ownerSubject);
 
-    log.info("league week advanced id={} phase={} week={}", leagueId, phase, newWeek);
+    log.info("league day advanced id={} phase={} day={}", leagueId, phase, newDay);
     var phaseAfter = transitionedTo.orElse(phase);
-    var weekAfter = transitionedTo.isPresent() ? 1 : newWeek;
-    return new AdvanceWeekResult.Ticked(leagueId, phaseAfter, weekAfter, transitionedTo);
+    var dayAfter = transitionedTo.isPresent() ? 1 : newDay;
+    return new AdvanceDayResult.Ticked(leagueId, phaseAfter, dayAfter, transitionedTo);
   }
 
   private Optional<LeaguePhase> maybeCompletePhase(
-      long leagueId, LeaguePhase phase, int resolvedAtWeek, String ownerSubject) {
-    var shouldComplete = shouldComplete(leagueId, phase, resolvedAtWeek);
+      long leagueId, LeaguePhase phase, int resolvedAtDay, String ownerSubject) {
+    var shouldComplete = shouldComplete(leagueId, phase, resolvedAtDay);
     if (!shouldComplete) {
       return Optional.empty();
     }
-    if (overCap(phase, resolvedAtWeek)) {
-      autofill.autofill(leagueId, phase, resolvedAtWeek);
+    if (overCap(phase, resolvedAtDay)) {
+      autofill.autofill(leagueId, phase, resolvedAtDay);
     }
     var advanced = advancePhase.advance(leagueId, ownerSubject);
     return switch (advanced) {
@@ -101,10 +108,10 @@ public class AdvanceWeekUseCase implements AdvanceWeek {
     };
   }
 
-  private boolean shouldComplete(long leagueId, LeaguePhase phase, int resolvedAtWeek) {
+  private boolean shouldComplete(long leagueId, LeaguePhase phase, int resolvedAtDay) {
     return phase == LeaguePhase.INITIAL_SETUP
         || allTeamsHired(leagueId, phase)
-        || overCap(phase, resolvedAtWeek);
+        || overCap(phase, resolvedAtDay);
   }
 
   private boolean allTeamsHired(long leagueId, LeaguePhase phase) {
@@ -126,17 +133,17 @@ public class AdvanceWeekUseCase implements AdvanceWeek {
     };
   }
 
-  private static boolean overCap(LeaguePhase phase, int resolvedAtWeek) {
-    return LeaguePhases.maxWeeks(phase).map(cap -> resolvedAtWeek >= cap).orElse(false);
+  private static boolean overCap(LeaguePhase phase, int resolvedAtDay) {
+    return LeaguePhases.maxDays(phase).map(cap -> resolvedAtDay >= cap).orElse(false);
   }
 
-  private void runCpuStrategies(long leagueId, LeaguePhase phase, int phaseWeek) {
+  private void runCpuStrategies(long leagueId, LeaguePhase phase, int phaseDay) {
     var strategy = cpuStrategies.get(phase);
     if (strategy == null) {
       return;
     }
     for (var teamId : teams.cpuTeamIdsForLeague(leagueId)) {
-      strategy.execute(leagueId, teamId, phaseWeek);
+      strategy.execute(leagueId, teamId, phaseDay);
     }
   }
 }

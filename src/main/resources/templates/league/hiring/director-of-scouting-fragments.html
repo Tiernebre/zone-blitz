@@ -64,10 +64,10 @@
 						<button type="button"
 						        th:unless="${row.interviewed()}"
 						        th:attr="hx-post=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/director-of-scouting/interview/' + ${row.id()}},
-						                 disabled=${view.interviewsThisWeek() >= view.interviewCapacity()} ? 'disabled' : null"
+						                 disabled=${view.interviewsToday() >= view.interviewCapacity()} ? 'disabled' : null"
 						        hx-target="#hiring-regions"
 						        hx-swap="outerHTML"
-						        th:classappend="${view.interviewsThisWeek() >= view.interviewCapacity()} ? ' opacity-50 cursor-not-allowed' : ' cursor-pointer'"
+						        th:classappend="${view.interviewsToday() >= view.interviewCapacity()} ? ' opacity-50 cursor-not-allowed' : ' cursor-pointer'"
 						        class="px-2 py-1 text-xs rounded bg-indigo-600 text-white hover:bg-indigo-500">
 							Interview
 						</button>
@@ -84,7 +84,7 @@
 		<div class="flex items-center justify-between mb-2">
 			<h2 class="text-lg font-semibold text-slate-900">Your candidates</h2>
 			<span class="text-xs text-slate-500"
-			      th:text="${view.interviewsThisWeek()} + ' / ' + ${view.interviewCapacity()} + ' interviews this week'"></span>
+			      th:text="${view.interviewsToday()} + ' / ' + ${view.interviewCapacity()} + ' interviews today'"></span>
 		</div>
 		<p class="text-sm text-slate-500 mb-3">Interviewed candidates. Extend offers, revise in response to feedback, and Hire once they agree.</p>
 		<div th:if="${view.activeInterviews().isEmpty()}" class="text-slate-500 italic text-sm">

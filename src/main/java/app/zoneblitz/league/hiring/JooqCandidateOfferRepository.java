@@ -20,14 +20,14 @@ public class JooqCandidateOfferRepository implements CandidateOfferRepository {
   }
 
   @Override
-  public CandidateOffer insertActive(long candidateId, long teamId, String terms, int week) {
+  public CandidateOffer insertActive(long candidateId, long teamId, String terms, int day) {
     Objects.requireNonNull(terms, "terms");
     var record =
         dsl.insertInto(CANDIDATE_OFFERS)
             .set(CANDIDATE_OFFERS.CANDIDATE_ID, candidateId)
             .set(CANDIDATE_OFFERS.TEAM_ID, teamId)
             .set(CANDIDATE_OFFERS.TERMS, JSONB.valueOf(terms))
-            .set(CANDIDATE_OFFERS.SUBMITTED_AT_WEEK, week)
+            .set(CANDIDATE_OFFERS.SUBMITTED_AT_DAY, day)
             .set(CANDIDATE_OFFERS.STATUS, OfferStatus.ACTIVE.name())
             .set(CANDIDATE_OFFERS.STANCE, OfferStance.PENDING.name())
             .set(CANDIDATE_OFFERS.REVISION_COUNT, 0)
@@ -56,7 +56,7 @@ public class JooqCandidateOfferRepository implements CandidateOfferRepository {
   public List<CandidateOffer> findAllForCandidate(long candidateId) {
     return dsl.selectFrom(CANDIDATE_OFFERS)
         .where(CANDIDATE_OFFERS.CANDIDATE_ID.eq(candidateId))
-        .orderBy(CANDIDATE_OFFERS.SUBMITTED_AT_WEEK.asc(), CANDIDATE_OFFERS.ID.asc())
+        .orderBy(CANDIDATE_OFFERS.SUBMITTED_AT_DAY.asc(), CANDIDATE_OFFERS.ID.asc())
         .fetch(this::map);
   }
 
@@ -65,7 +65,7 @@ public class JooqCandidateOfferRepository implements CandidateOfferRepository {
     return dsl.selectFrom(CANDIDATE_OFFERS)
         .where(CANDIDATE_OFFERS.CANDIDATE_ID.eq(candidateId))
         .and(CANDIDATE_OFFERS.STATUS.eq(OfferStatus.ACTIVE.name()))
-        .orderBy(CANDIDATE_OFFERS.SUBMITTED_AT_WEEK.asc(), CANDIDATE_OFFERS.ID.asc())
+        .orderBy(CANDIDATE_OFFERS.SUBMITTED_AT_DAY.asc(), CANDIDATE_OFFERS.ID.asc())
         .fetch(this::map);
   }
 
@@ -74,7 +74,7 @@ public class JooqCandidateOfferRepository implements CandidateOfferRepository {
     return dsl.selectFrom(CANDIDATE_OFFERS)
         .where(CANDIDATE_OFFERS.TEAM_ID.eq(teamId))
         .and(CANDIDATE_OFFERS.STATUS.eq(OfferStatus.ACTIVE.name()))
-        .orderBy(CANDIDATE_OFFERS.SUBMITTED_AT_WEEK.asc(), CANDIDATE_OFFERS.ID.asc())
+        .orderBy(CANDIDATE_OFFERS.SUBMITTED_AT_DAY.asc(), CANDIDATE_OFFERS.ID.asc())
         .fetch(this::map);
   }
 
@@ -86,17 +86,17 @@ public class JooqCandidateOfferRepository implements CandidateOfferRepository {
         .on(TEAMS.ID.eq(CANDIDATE_OFFERS.TEAM_ID))
         .where(TEAMS.LEAGUE_ID.eq(leagueId))
         .and(CANDIDATE_OFFERS.STATUS.eq(OfferStatus.ACTIVE.name()))
-        .orderBy(CANDIDATE_OFFERS.SUBMITTED_AT_WEEK.asc(), CANDIDATE_OFFERS.ID.asc())
+        .orderBy(CANDIDATE_OFFERS.SUBMITTED_AT_DAY.asc(), CANDIDATE_OFFERS.ID.asc())
         .fetch(this::map);
   }
 
   @Override
-  public CandidateOffer revise(long offerId, String terms, int week) {
+  public CandidateOffer revise(long offerId, String terms, int day) {
     Objects.requireNonNull(terms, "terms");
     var record =
         dsl.update(CANDIDATE_OFFERS)
             .set(CANDIDATE_OFFERS.TERMS, JSONB.valueOf(terms))
-            .set(CANDIDATE_OFFERS.SUBMITTED_AT_WEEK, week)
+            .set(CANDIDATE_OFFERS.SUBMITTED_AT_DAY, day)
             .set(CANDIDATE_OFFERS.STANCE, OfferStance.PENDING.name())
             .set(CANDIDATE_OFFERS.REVISION_COUNT, CANDIDATE_OFFERS.REVISION_COUNT.plus(1))
             .where(CANDIDATE_OFFERS.ID.eq(offerId))
@@ -138,7 +138,7 @@ public class JooqCandidateOfferRepository implements CandidateOfferRepository {
         r.get(CANDIDATE_OFFERS.CANDIDATE_ID),
         r.get(CANDIDATE_OFFERS.TEAM_ID),
         r.get(CANDIDATE_OFFERS.TERMS).data(),
-        r.get(CANDIDATE_OFFERS.SUBMITTED_AT_WEEK),
+        r.get(CANDIDATE_OFFERS.SUBMITTED_AT_DAY),
         OfferStatus.valueOf(r.get(CANDIDATE_OFFERS.STATUS)),
         stanceStr == null ? Optional.empty() : Optional.of(OfferStance.valueOf(stanceStr)),
         r.get(CANDIDATE_OFFERS.REVISION_COUNT));

@@ -56,7 +56,7 @@ public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScouti
     if (pool.isEmpty()) {
       return Optional.of(
           new DirectorOfScoutingHiringView(
-              league, List.of(), List.of(), 0, StartInterview.DEFAULT_WEEKLY_CAPACITY));
+              league, List.of(), List.of(), 0, StartInterview.DAILY_CAPACITY));
     }
     var rows = candidates.findAllByPoolId(pool.get().id());
     var prefs =
@@ -75,6 +75,6 @@ public class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScouti
             interviewHistory,
             teamOffers,
             profile,
-            StartInterview.DEFAULT_WEEKLY_CAPACITY));
+            StartInterview.DAILY_CAPACITY));
   }
 }

@@ -9,7 +9,7 @@ public record DirectorOfScoutingHiringView(
     LeagueSummary league,
     List<DirectorOfScoutingCandidateView> pool,
     List<DirectorOfScoutingCandidateView> activeInterviews,
-    int interviewsThisWeek,
+    int interviewsToday,
     int interviewCapacity) {
 
   public DirectorOfScoutingHiringView {

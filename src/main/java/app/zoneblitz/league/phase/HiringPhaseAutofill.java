@@ -5,7 +5,7 @@ import app.zoneblitz.league.staff.TeamStaffMember;
 import app.zoneblitz.league.team.TeamHiringState;
 
 /**
- * Seam invoked when a hiring phase hits its week cap before every team has reached {@link
+ * Seam invoked when a hiring phase hits its day cap before every team has reached {@link
  * HiringStep#HIRED}. Auto-assigns the best remaining candidate (by scouted overall, deterministic
  * tie-break) to each unresolved team, creates an {@link OfferStatus#ACCEPTED} offer with default
  * terms, marks the candidate hired, transitions the team's {@link TeamHiringState} to {@link
@@ -26,8 +26,8 @@ public interface HiringPhaseAutofill {
    * @param leagueId the league whose hiring phase is being capped off.
    * @param phase the hiring phase to autofill. Phases without a candidate pool (e.g. {@link
    *     LeaguePhase#INITIAL_SETUP}, {@link LeaguePhase#ASSEMBLING_STAFF}) are a no-op.
-   * @param phaseWeek the {@code phase_week} value the autofill is running at; stored on the
-   *     resulting {@link TeamStaffMember#hiredAtWeek()} and the synthetic offer row.
+   * @param phaseDay the {@code phase_day} value the autofill is running at; stored on the resulting
+   *     {@link TeamStaffMember#hiredAtDay()} and the synthetic offer row.
    */
-  void autofill(long leagueId, LeaguePhase phase, int phaseWeek);
+  void autofill(long leagueId, LeaguePhase phase, int phaseDay);
 }

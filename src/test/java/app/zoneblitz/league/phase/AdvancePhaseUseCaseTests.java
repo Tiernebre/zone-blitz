@@ -46,8 +46,8 @@ class AdvancePhaseUseCaseTests {
   @Test
   void advance_fromInitialSetup_transitionsToHiringHeadCoachAndResetsWeek() {
     var league = createLeagueFor("sub-1");
-    leagues.incrementPhaseWeek(league.id());
-    leagues.incrementPhaseWeek(league.id());
+    leagues.incrementPhaseDay(league.id());
+    leagues.incrementPhaseDay(league.id());
 
     var result = advancePhase.advance(league.id(), "sub-1");
 
@@ -57,7 +57,7 @@ class AdvancePhaseUseCaseTests {
                 league.id(), LeaguePhase.INITIAL_SETUP, LeaguePhase.HIRING_HEAD_COACH));
     var after = leagues.findById(league.id()).orElseThrow();
     assertThat(after.phase()).isEqualTo(LeaguePhase.HIRING_HEAD_COACH);
-    assertThat(after.phaseWeek()).isEqualTo(1);
+    assertThat(after.phaseDay()).isEqualTo(1);
   }
 
   @Test
@@ -91,7 +91,7 @@ class AdvancePhaseUseCaseTests {
   @Test
   void advance_whenAlreadyInTerminalPhase_returnsNoNextPhase() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.COMPLETE);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.COMPLETE);
 
     var result = advancePhase.advance(league.id(), "sub-1");
 
@@ -103,7 +103,7 @@ class AdvancePhaseUseCaseTests {
   @Test
   void advance_fromHiringHeadCoach_transitionsToHiringDirectorOfScouting() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
 
     var result = advancePhase.advance(league.id(), "sub-1");
 
@@ -118,7 +118,7 @@ class AdvancePhaseUseCaseTests {
   @Test
   void advance_fromHiringDirectorOfScouting_transitionsToAssemblingStaff() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
 
     var result = advancePhase.advance(league.id(), "sub-1");
 

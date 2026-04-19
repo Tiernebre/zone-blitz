@@ -108,7 +108,7 @@ class BestFitHiringAutofillTests {
   @Test
   void autofill_assignsUnresolvedTeam_withBestFitCandidate() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     var pool =
         pools.insert(league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH);
     insertCandidate(pool.id());
@@ -136,7 +136,7 @@ class BestFitHiringAutofillTests {
   @Test
   void autofill_skipsTeamsAlreadyHired() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     var pool =
         pools.insert(league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH);
     insertCandidate(pool.id());
@@ -161,7 +161,7 @@ class BestFitHiringAutofillTests {
   @Test
   void autofill_multipleTeams_getDistinctCandidates() {
     var league = createLeagueFor("sub-1");
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     var pool =
         pools.insert(league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH);
     insertCandidate(pool.id());

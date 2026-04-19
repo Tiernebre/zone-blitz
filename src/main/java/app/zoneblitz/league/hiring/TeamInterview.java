@@ -14,7 +14,7 @@ public record TeamInterview(
     long teamId,
     long candidateId,
     LeaguePhase phase,
-    int phaseWeek,
+    int phaseDay,
     int interviewIndex,
     InterviewInterest interestLevel) {
 

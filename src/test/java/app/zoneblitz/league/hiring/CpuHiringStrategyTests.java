@@ -95,10 +95,10 @@ class CpuHiringStrategyTests {
     strategy.execute(ctx.leagueId(), cpuFranchiseId, 1);
 
     var history = interviews.findAllFor(cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH);
-    assertThat(history).hasSize(StartInterview.DEFAULT_WEEKLY_CAPACITY);
+    assertThat(history).hasSize(StartInterview.DAILY_CAPACITY);
     var state = hiringStates.find(cpuFranchiseId, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
     assertThat(state.step()).isEqualTo(HiringStep.SEARCHING);
-    assertThat(state.interviewingCandidateIds()).hasSize(StartInterview.DEFAULT_WEEKLY_CAPACITY);
+    assertThat(state.interviewingCandidateIds()).hasSize(StartInterview.DAILY_CAPACITY);
   }
 
   @Test
@@ -152,7 +152,7 @@ class CpuHiringStrategyTests {
     var userFranchiseId = franchises.getFirst().id();
     var result = createLeague.create(subject, "Dynasty-" + subject, userFranchiseId);
     var league = ((CreateLeagueResult.Created) result).league();
-    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     entryHandler.onEntry(league.id());
     var cpuTeams = teamLookup.cpuTeamIdsForLeague(league.id());
     var userTeamId =
