@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title th:text="${view.league().leagueName() + ' — Hire a Head Coach — Zone Blitz'}">Hire a Head Coach — Zone Blitz</title>
+	<meta name="_csrf" th:content="${_csrf.token}">
+	<meta name="_csrf_header" th:content="${_csrf.headerName}">
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+	<script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		document.addEventListener('htmx:configRequest', function (event) {
+			var header = document.querySelector('meta[name="_csrf_header"]').content;
+			var token = document.querySelector('meta[name="_csrf"]').content;
+			event.detail.headers[header] = token;
+		});
+		/*]]>*/
+	</script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+	<main class="max-w-6xl mx-auto p-6 space-y-4">
+		<header class="flex items-center justify-between">
+			<div>
+				<h1 class="text-2xl font-bold" th:text="${view.league().leagueName()}">League</h1>
+				<p class="text-sm text-slate-500">
+					Phase: Hire Head Coach · Week
+					<span th:text="${view.league().phaseWeek()}">1</span>
+				</p>
+			</div>
+			<a th:href="@{'/leagues/' + ${view.league().leagueId()}}"
+			   class="text-sm text-slate-600 hover:underline">Back to dashboard</a>
+		</header>
+
+		<div th:insert="~{league/hiring/head-coach-fragments :: combined}"></div>
+	</main>
+</body>
+</html>

@@ -58,6 +58,15 @@ class LeagueController {
         getLeague
             .get(id, principal.getAttribute("sub"))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    if (league.phase() == LeaguePhase.HIRING_HEAD_COACH) {
+      return "redirect:/leagues/" + id + "/hiring/head-coach";
+    }
+    if (league.phase() == LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING) {
+      return "redirect:/leagues/" + id + "/hiring/director-of-scouting";
+    }
+    if (league.phase() == LeaguePhase.ASSEMBLING_STAFF) {
+      return "redirect:/leagues/" + id + "/staff-recap";
+    }
     model.addAttribute("league", league);
     return "league/dashboard";
   }

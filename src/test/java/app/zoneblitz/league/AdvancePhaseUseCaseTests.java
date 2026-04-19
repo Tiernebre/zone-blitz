@@ -83,14 +83,43 @@ class AdvancePhaseUseCaseTests {
   @Test
   void advance_whenAlreadyInTerminalPhase_returnsNoNextPhase() {
     var league = createLeagueFor("sub-1");
+    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.COMPLETE);
+
+    var result = advancePhase.advance(league.id(), "sub-1");
+
+    assertThat(result)
+        .isEqualTo(new AdvancePhaseResult.NoNextPhase(league.id(), LeaguePhase.COMPLETE));
+    assertThat(leagues.findById(league.id()).orElseThrow().phase()).isEqualTo(LeaguePhase.COMPLETE);
+  }
+
+  @Test
+  void advance_fromHiringHeadCoach_transitionsToHiringDirectorOfScouting() {
+    var league = createLeagueFor("sub-1");
     leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
 
     var result = advancePhase.advance(league.id(), "sub-1");
 
     assertThat(result)
-        .isEqualTo(new AdvancePhaseResult.NoNextPhase(league.id(), LeaguePhase.HIRING_HEAD_COACH));
-    assertThat(leagues.findById(league.id()).orElseThrow().phase())
-        .isEqualTo(LeaguePhase.HIRING_HEAD_COACH);
+        .isEqualTo(
+            new AdvancePhaseResult.Advanced(
+                league.id(),
+                LeaguePhase.HIRING_HEAD_COACH,
+                LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING));
+  }
+
+  @Test
+  void advance_fromHiringDirectorOfScouting_transitionsToAssemblingStaff() {
+    var league = createLeagueFor("sub-1");
+    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING);
+
+    var result = advancePhase.advance(league.id(), "sub-1");
+
+    assertThat(result)
+        .isEqualTo(
+            new AdvancePhaseResult.Advanced(
+                league.id(),
+                LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING,
+                LeaguePhase.ASSEMBLING_STAFF));
   }
 
   @Test
