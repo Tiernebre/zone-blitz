@@ -2,12 +2,14 @@ package app.zoneblitz.gamesimulator.personnel;
 
 import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.PlayCaller;
+import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Baseline {@link PersonnelSelector}: always returns {@link OffensivePackage#P_11} for offense and
@@ -27,13 +29,14 @@ public final class BaselinePersonnelSelector implements PersonnelSelector {
     Objects.requireNonNull(call, "call");
     Objects.requireNonNull(state, "state");
     Objects.requireNonNull(offense, "offense");
+    var injured = Set.copyOf(state.injuredPlayers());
     var pkg = OffensivePackage.P_11;
     var players = new ArrayList<Player>(11);
-    addFirstN(offense.roster(), Position.QB, pkg.quarterbacks(), players);
-    addRunningBacks(offense.roster(), pkg.rbs(), players);
-    addFirstN(offense.roster(), Position.TE, pkg.tes(), players);
-    addFirstN(offense.roster(), Position.WR, pkg.wrs(), players);
-    addFirstN(offense.roster(), Position.OL, pkg.offensiveLinemen(), players);
+    addFirstN(offense.roster(), Position.QB, pkg.quarterbacks(), players, injured);
+    addRunningBacks(offense.roster(), pkg.rbs(), players, injured);
+    addFirstN(offense.roster(), Position.TE, pkg.tes(), players, injured);
+    addFirstN(offense.roster(), Position.WR, pkg.wrs(), players, injured);
+    addFirstN(offense.roster(), Position.OL, pkg.offensiveLinemen(), players, injured);
     return new OffensivePersonnel(pkg, players);
   }
 
@@ -44,62 +47,68 @@ public final class BaselinePersonnelSelector implements PersonnelSelector {
     Objects.requireNonNull(offense, "offense");
     Objects.requireNonNull(state, "state");
     Objects.requireNonNull(defense, "defense");
+    var injured = Set.copyOf(state.injuredPlayers());
     var pkg = DefensivePackage.BASE_43;
     var players = new ArrayList<Player>(11);
-    addFirstN(defense.roster(), Position.DL, pkg.defensiveLinemen(), players);
-    addFirstN(defense.roster(), Position.LB, pkg.linebackers(), players);
-    addDefensiveBacks(defense.roster(), pkg.defensiveBacks(), players);
+    addFirstN(defense.roster(), Position.DL, pkg.defensiveLinemen(), players, injured);
+    addFirstN(defense.roster(), Position.LB, pkg.linebackers(), players, injured);
+    addDefensiveBacks(defense.roster(), pkg.defensiveBacks(), players, injured);
     return new DefensivePersonnel(pkg, players);
   }
 
   private static void addFirstN(
-      List<Player> roster, Position position, int count, List<Player> out) {
+      List<Player> roster, Position position, int count, List<Player> out, Set<PlayerId> injured) {
     var picked = 0;
     for (var p : roster) {
       if (picked == count) {
         return;
       }
-      if (p.position() == position) {
+      if (p.position() == position && !injured.contains(p.id())) {
         out.add(p);
         picked++;
       }
     }
     if (picked < count) {
       throw new IllegalStateException(
-          "Roster has only %d %s; needed %d".formatted(picked, position, count));
+          "Roster has only %d healthy %s; needed %d".formatted(picked, position, count));
     }
   }
 
-  private static void addRunningBacks(List<Player> roster, int count, List<Player> out) {
+  private static void addRunningBacks(
+      List<Player> roster, int count, List<Player> out, Set<PlayerId> injured) {
     var picked = 0;
     for (var p : roster) {
       if (picked == count) {
         return;
       }
-      if (p.position() == Position.RB || p.position() == Position.FB) {
+      if ((p.position() == Position.RB || p.position() == Position.FB)
+          && !injured.contains(p.id())) {
         out.add(p);
         picked++;
       }
     }
     if (picked < count) {
       throw new IllegalStateException(
-          "Roster has only %d RB/FB; needed %d".formatted(picked, count));
+          "Roster has only %d healthy RB/FB; needed %d".formatted(picked, count));
     }
   }
 
-  private static void addDefensiveBacks(List<Player> roster, int count, List<Player> out) {
+  private static void addDefensiveBacks(
+      List<Player> roster, int count, List<Player> out, Set<PlayerId> injured) {
     var picked = 0;
     for (var p : roster) {
       if (picked == count) {
         return;
       }
-      if (p.position() == Position.CB || p.position() == Position.S) {
+      if ((p.position() == Position.CB || p.position() == Position.S)
+          && !injured.contains(p.id())) {
         out.add(p);
         picked++;
       }
     }
     if (picked < count) {
-      throw new IllegalStateException("Roster has only %d DB; needed %d".formatted(picked, count));
+      throw new IllegalStateException(
+          "Roster has only %d healthy DB; needed %d".formatted(picked, count));
     }
   }
 }
