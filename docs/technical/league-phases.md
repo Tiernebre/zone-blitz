@@ -256,7 +256,7 @@ No JSON endpoints from web controllers. Fragment responses are `text/html`.
 - Interview capacity per week (default 3, tune later).
 - `ASSEMBLING_STAFF` recap UX detail — which staff roles are hired by HC vs. DoS, and exact roster.
 - Week cap values (`maxWeeks`) — current defaults are guesses; tune against playtest.
-- Autofill logic — pick best remaining candidate vs. random from remaining; needs decision.
+- ~~Autofill logic — pick best remaining candidate vs. random from remaining; needs decision.~~ Resolved (#608): autofill assigns the best remaining candidate by **scouted** overall (never true rating). Deterministic tie-break uses candidate id, then a seeded RNG split per-franchise. The autofill creates an `ACCEPTED` offer with default terms matching the candidate's preference targets and runs the standard hire wiring (mark hired, upsert `HIRED` state, insert `franchise_staff` row).
 
 ---
 

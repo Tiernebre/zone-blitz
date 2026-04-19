@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title th:text="${view.league().leagueName() + ' — Staff Recap — Zone Blitz'}">Staff Recap — Zone Blitz</title>
+	<meta name="_csrf" th:content="${_csrf.token}">
+	<meta name="_csrf_header" th:content="${_csrf.headerName}">
+	<link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+	<main class="max-w-5xl mx-auto p-6 space-y-4">
+		<header class="flex items-center justify-between">
+			<div>
+				<h1 class="text-2xl font-bold" th:text="${view.league().leagueName()}">League</h1>
+				<p class="text-sm text-slate-500">Phase: Assembling Staff</p>
+			</div>
+			<form th:action="@{'/leagues/' + ${view.league().leagueId()} + '/phase/advance'}"
+			      method="post">
+				<button type="submit"
+				        class="inline-flex items-center gap-2 px-4 py-2 rounded bg-slate-900 text-white font-medium hover:bg-slate-800 cursor-pointer">
+					Advance to next phase
+				</button>
+			</form>
+		</header>
+
+		<p class="text-sm text-slate-600">
+			Coordinators, position coaches and scouts have been hired for every franchise. Your staff is
+			shown expanded; other franchises are collapsed — click to expand.
+		</p>
+
+		<section class="space-y-3">
+			<details th:each="tree : ${view.franchises()}"
+			         th:open="${tree.isViewerFranchise()}"
+			         class="bg-white border border-slate-200 rounded shadow-sm">
+				<summary class="cursor-pointer px-4 py-3 flex items-center justify-between">
+					<span class="font-medium" th:text="${tree.franchise().name()}">Franchise</span>
+					<span class="text-xs text-slate-500"
+					      th:text="${tree.seats().size() + ' staff'}">staff</span>
+				</summary>
+				<ul class="divide-y divide-slate-100">
+					<li th:each="seat : ${tree.seats()}"
+					    class="px-4 py-2 flex items-center justify-between text-sm">
+						<span>
+							<span class="font-mono text-xs text-slate-500"
+							      th:text="${seat.hire().role().name()}">ROLE</span>
+							<span th:if="${seat.hire().scoutBranch().isPresent()}"
+							      class="ml-2 inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-xs"
+							      th:text="${seat.hire().scoutBranch().get().name()}">BRANCH</span>
+						</span>
+						<span class="text-slate-500 text-xs">
+							<span th:text="${seat.candidate().specialtyPosition().name()}">SPEC</span>
+							·
+							<span th:text="${seat.candidate().archetype().name()}">ARCH</span>
+							·
+							age <span th:text="${seat.candidate().age()}">0</span>
+						</span>
+					</li>
+				</ul>
+			</details>
+		</section>
+	</main>
+</body>
+</html>

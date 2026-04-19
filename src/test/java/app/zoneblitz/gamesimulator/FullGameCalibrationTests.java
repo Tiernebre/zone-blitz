@@ -41,6 +41,8 @@ import java.util.Random;
 import java.util.UUID;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 /**
  * Calibration harness: simulates 10k games with the real dependency graph wired to the classpath
@@ -48,6 +50,7 @@ import org.junit.jupiter.api.Test;
  * pass yards, rush yards, plays, sacks, interceptions, and fumbles.
  */
 @Tag("calibration")
+@Execution(ExecutionMode.CONCURRENT)
 class FullGameCalibrationTests {
 
   private static final int GAMES = 10_000;
