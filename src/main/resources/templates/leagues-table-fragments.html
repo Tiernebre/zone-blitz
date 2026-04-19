@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div th:fragment="table"
+	     id="leagues-table"
+	     th:with="query=${tablePage.query()}, rows=${tablePage.rows()}"
+	     hx-get="/leagues/rows"
+	     hx-target="this"
+	     hx-swap="outerHTML"
+	     hx-push-url="true"
+	     hx-include="#leagues-table input, #leagues-table select"
+	     hx-trigger="leagues:refresh"
+	     class="space-y-3">
+
+		<input type="hidden" name="sort" th:value="${query.sort().name()}">
+		<input type="hidden" name="dir" th:value="${query.dir().name()}">
+		<input type="hidden" name="page" th:value="${query.page()}">
+		<input type="hidden" name="pageSize" th:value="${query.pageSize()}">
+
+		<div class="flex items-center gap-3 flex-wrap">
+			<label class="flex-1 min-w-[200px]">
+				<span class="sr-only">Search</span>
+				<input type="search" name="q" th:value="${query.q()}"
+				       placeholder="Search name, franchise, phase…"
+				       data-filter-input
+				       class="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			</label>
+			<label class="flex items-center gap-2 text-sm">
+				<span class="text-slate-600">Phase</span>
+				<select name="phase" data-filter-input
+				        class="px-3 py-2 border border-slate-300 rounded text-sm bg-white">
+					<option value="">All</option>
+					<option th:each="p : ${T(app.zoneblitz.league.phase.LeaguePhase).values()}"
+					        th:value="${p.name()}"
+					        th:text="${p.name()}"
+					        th:selected="${query.phase() == p.name()}"></option>
+				</select>
+			</label>
+			<span class="text-xs text-slate-500 tabular-nums"
+			      th:text="${tablePage.filteredRows()} + ' of ' + ${tablePage.totalRows()} + ' leagues'"></span>
+		</div>
+
+		<div class="border border-slate-200 bg-white rounded-md overflow-hidden">
+			<table class="w-full">
+				<thead class="bg-slate-100 text-left text-sm text-slate-600">
+					<tr th:with="sortName=${query.sort().name()}, dirName=${query.dir().name()}">
+						<th class="px-4 py-2">
+							<button type="button" data-sort-key="NAME"
+							        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+								Name
+								<span th:if="${sortName == 'NAME'}" class="text-xs"
+								      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+							</button>
+						</th>
+						<th class="px-4 py-2">
+							<button type="button" data-sort-key="FRANCHISE"
+							        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+								Your franchise
+								<span th:if="${sortName == 'FRANCHISE'}" class="text-xs"
+								      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+							</button>
+						</th>
+						<th class="px-4 py-2">
+							<button type="button" data-sort-key="PHASE"
+							        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+								Phase
+								<span th:if="${sortName == 'PHASE'}" class="text-xs"
+								      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+							</button>
+						</th>
+						<th class="px-4 py-2">
+							<button type="button" data-sort-key="CREATED_AT"
+							        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+								Created
+								<span th:if="${sortName == 'CREATED_AT'}" class="text-xs"
+								      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+							</button>
+						</th>
+						<th class="px-4 py-2 text-right"><span class="sr-only">Actions</span></th>
+					</tr>
+					<tr class="bg-white border-t border-slate-200">
+						<th class="px-4 py-1">
+							<input type="text" name="name" th:value="${query.name()}"
+							       placeholder="Filter" data-filter-input
+							       class="w-full px-2 py-1 border border-slate-200 rounded text-xs font-normal focus:outline-none focus:ring-1 focus:ring-blue-500">
+						</th>
+						<th class="px-4 py-1">
+							<input type="text" name="franchise" th:value="${query.franchise()}"
+							       placeholder="Filter" data-filter-input
+							       class="w-full px-2 py-1 border border-slate-200 rounded text-xs font-normal focus:outline-none focus:ring-1 focus:ring-blue-500">
+						</th>
+						<th class="px-4 py-1"></th>
+						<th class="px-4 py-1"></th>
+						<th class="px-4 py-1"></th>
+					</tr>
+				</thead>
+				<tbody class="text-sm">
+					<tr th:if="${rows.isEmpty()}">
+						<td colspan="5" class="px-4 py-8 text-center text-slate-500 italic">
+							No leagues match your filters.
+						</td>
+					</tr>
+					<tr th:each="league : ${rows}" class="border-t border-slate-200">
+						<td class="px-4 py-2 font-semibold">
+							<a th:href="@{'/leagues/' + ${league.leagueId()}}"
+							   class="text-slate-900 hover:text-blue-700 hover:underline"
+							   th:text="${league.leagueName()}">League</a>
+						</td>
+						<td class="px-4 py-2">
+							<span class="inline-flex items-center gap-2">
+								<span class="inline-block w-3 h-3 rounded-full border border-slate-300"
+								      th:style="'background-color: ' + ${league.userFranchise().primaryColor()}"></span>
+								<span th:text="${league.userFranchise().city().name() + ' ' + league.userFranchise().name()}">Team</span>
+							</span>
+						</td>
+						<td class="px-4 py-2 text-slate-600" th:text="${league.phase()}">PHASE</td>
+						<td class="px-4 py-2 text-slate-500"
+						    th:text="${#temporals.format(league.createdAt(), 'yyyy-MM-dd')}">date</td>
+						<td class="px-4 py-2 text-right">
+							<form th:action="@{'/leagues/' + ${league.leagueId()} + '/delete'}" method="post" class="inline"
+							      th:data-league-name="${league.leagueName()}"
+							      onsubmit="return confirm('Delete league &quot;' + this.dataset.leagueName + '&quot;? This cannot be undone.');">
+								<button type="submit"
+								        th:aria-label="'Delete league ' + ${league.leagueName()}"
+								        class="inline-flex items-center justify-center size-8 rounded text-slate-500 hover:bg-red-50 hover:text-red-600 cursor-pointer">
+									<svg th:replace="~{icons :: trash(cls='size-4')}"></svg>
+								</button>
+							</form>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div class="flex items-center justify-between text-sm text-slate-600">
+			<span>
+				Page <span class="font-semibold" th:text="${query.page()}">1</span>
+				of <span class="font-semibold" th:text="${tablePage.totalPages()}">1</span>
+			</span>
+			<div class="flex gap-2">
+				<button type="button" data-page-delta="-1" th:disabled="${!tablePage.hasPrev()}"
+				        class="px-3 py-1 border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+					Prev
+				</button>
+				<button type="button" data-page-delta="1" th:disabled="${!tablePage.hasNext()}"
+				        class="px-3 py-1 border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+					Next
+				</button>
+			</div>
+		</div>
+
+		<script>
+			(function () {
+				var root = document.getElementById('leagues-table');
+				if (!root || root.dataset.wired) return;
+				root.dataset.wired = '1';
+
+				function refresh() { htmx.trigger(root, 'leagues:refresh'); }
+
+				function resetPage() { root.querySelector('input[name=page]').value = '1'; }
+
+				var debounceTimer;
+				function debouncedRefresh() {
+					clearTimeout(debounceTimer);
+					debounceTimer = setTimeout(refresh, 250);
+				}
+
+				root.addEventListener('input', function (e) {
+					if (e.target.matches('[data-filter-input]') && e.target.type !== 'hidden') {
+						resetPage();
+						debouncedRefresh();
+					}
+				});
+				root.addEventListener('change', function (e) {
+					if (e.target.matches('select[data-filter-input]')) {
+						resetPage();
+						refresh();
+					}
+				});
+
+				root.querySelectorAll('button[data-sort-key]').forEach(function (btn) {
+					btn.addEventListener('click', function () {
+						var sortInput = root.querySelector('input[name=sort]');
+						var dirInput = root.querySelector('input[name=dir]');
+						var key = btn.dataset.sortKey;
+						if (sortInput.value === key) {
+							dirInput.value = dirInput.value === 'ASC' ? 'DESC' : 'ASC';
+						} else {
+							sortInput.value = key;
+							dirInput.value = key === 'CREATED_AT' ? 'DESC' : 'ASC';
+						}
+						resetPage();
+						refresh();
+					});
+				});
+
+				root.querySelectorAll('button[data-page-delta]').forEach(function (btn) {
+					btn.addEventListener('click', function () {
+						if (btn.disabled) return;
+						var pageInput = root.querySelector('input[name=page]');
+						pageInput.value = String(Math.max(1, parseInt(pageInput.value, 10) + parseInt(btn.dataset.pageDelta, 10)));
+						refresh();
+					});
+				});
+			})();
+		</script>
+	</div>
+</body>
+</html>
