@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 @Controller
@@ -46,11 +47,43 @@ public class LeagueController {
   }
 
   @GetMapping("/")
-  String home(@AuthenticationPrincipal OAuth2User principal, Model model) {
+  String home(
+      @AuthenticationPrincipal OAuth2User principal,
+      @RequestParam(name = "q", required = false) String q,
+      @RequestParam(name = "name", required = false) String name,
+      @RequestParam(name = "franchise", required = false) String franchise,
+      @RequestParam(name = "phase", required = false) String phase,
+      @RequestParam(name = "sort", required = false) LeagueTableQuery.SortKey sort,
+      @RequestParam(name = "dir", required = false) LeagueTableQuery.SortDir dir,
+      @RequestParam(name = "page", required = false, defaultValue = "1") int page,
+      @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
+      Model model) {
+    var query = new LeagueTableQuery(q, name, franchise, phase, sort, dir, page, pageSize);
+    model.addAttribute("tablePage", resolveTablePage(principal, query));
+    return "index";
+  }
+
+  @GetMapping("/leagues/rows")
+  String leaguesTableFragment(
+      @AuthenticationPrincipal OAuth2User principal,
+      @RequestParam(name = "q", required = false) String q,
+      @RequestParam(name = "name", required = false) String name,
+      @RequestParam(name = "franchise", required = false) String franchise,
+      @RequestParam(name = "phase", required = false) String phase,
+      @RequestParam(name = "sort", required = false) LeagueTableQuery.SortKey sort,
+      @RequestParam(name = "dir", required = false) LeagueTableQuery.SortDir dir,
+      @RequestParam(name = "page", required = false, defaultValue = "1") int page,
+      @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
+      Model model) {
+    var query = new LeagueTableQuery(q, name, franchise, phase, sort, dir, page, pageSize);
+    model.addAttribute("tablePage", resolveTablePage(principal, query));
+    return "leagues-table-fragments :: table";
+  }
+
+  private LeagueTablePage resolveTablePage(OAuth2User principal, LeagueTableQuery query) {
     List<LeagueSummary> leagues =
         principal == null ? List.of() : listLeagues.listFor(principal.getAttribute("sub"));
-    model.addAttribute("leagues", leagues);
-    return "index";
+    return LeagueTableFilter.apply(leagues, query);
   }
 
   @GetMapping("/leagues/{id}")

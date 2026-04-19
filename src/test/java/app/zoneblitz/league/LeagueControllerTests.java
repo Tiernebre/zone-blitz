@@ -55,11 +55,52 @@ class LeagueControllerTests {
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
-  void home_whenUnauthenticated_rendersIndexWithEmptyLeagues() throws Exception {
+  void home_whenUnauthenticated_rendersIndexWithEmptyTablePage() throws Exception {
     mvc.perform(get("/"))
         .andExpect(status().isOk())
         .andExpect(view().name("index"))
-        .andExpect(model().attribute("leagues", List.of()));
+        .andExpect(model().attributeExists("tablePage"));
+  }
+
+  @Test
+  void leaguesRows_fragmentEndpoint_filtersAndSortsByQuery() throws Exception {
+    given(listLeagues.listFor("sub-1"))
+        .willReturn(
+            List.of(
+                new LeagueSummary(
+                    1L,
+                    "Alpha",
+                    LeaguePhase.INITIAL_SETUP,
+                    1,
+                    Instant.parse("2025-01-01T00:00:00Z"),
+                    100L,
+                    new Franchise(
+                        1L,
+                        "Minutemen",
+                        new City(1L, "Boston", new State(1L, "MA", "Massachusetts")),
+                        "#000000",
+                        "#ffffff")),
+                new LeagueSummary(
+                    2L,
+                    "Zeta",
+                    LeaguePhase.COMPLETE,
+                    1,
+                    Instant.parse("2025-03-01T00:00:00Z"),
+                    200L,
+                    new Franchise(
+                        2L,
+                        "Empires",
+                        new City(2L, "New York", new State(2L, "NY", "New York")),
+                        "#000000",
+                        "#ffffff"))));
+
+    mvc.perform(
+            get("/leagues/rows")
+                .param("phase", "COMPLETE")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isOk())
+        .andExpect(content().string(Matchers.containsString("Zeta")))
+        .andExpect(content().string(Matchers.not(Matchers.containsString(">Alpha<"))));
   }
 
   @Test
