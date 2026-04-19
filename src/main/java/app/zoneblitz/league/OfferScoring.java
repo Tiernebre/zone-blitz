@@ -22,29 +22,26 @@ final class OfferScoring {
    * Compute the composite preference score for an offer from a franchise against a candidate's
    * preferences.
    */
-  static double score(OfferTerms offer, FranchiseProfile franchise, CandidatePreferences prefs) {
+  static double score(OfferTerms offer, TeamProfile team, CandidatePreferences prefs) {
     double total = 0.0;
     total += weighted(prefs.compensationWeight(), compensationFit(prefs, offer));
     total += weighted(prefs.contractLengthWeight(), contractLengthFit(prefs, offer));
     total += weighted(prefs.guaranteedMoneyWeight(), guaranteedMoneyFit(prefs, offer));
     total +=
         weighted(
-            prefs.marketSizeWeight(),
-            categoricalFit(prefs.marketSizeTarget(), franchise.marketSize()));
+            prefs.marketSizeWeight(), categoricalFit(prefs.marketSizeTarget(), team.marketSize()));
     total +=
         weighted(
-            prefs.geographyWeight(),
-            categoricalFit(prefs.geographyTarget(), franchise.geography()));
-    total +=
-        weighted(prefs.climateWeight(), categoricalFit(prefs.climateTarget(), franchise.climate()));
+            prefs.geographyWeight(), categoricalFit(prefs.geographyTarget(), team.geography()));
+    total += weighted(prefs.climateWeight(), categoricalFit(prefs.climateTarget(), team.climate()));
     total +=
         weighted(
             prefs.franchisePrestigeWeight(),
-            numericFloorFit(prefs.franchisePrestigeTarget(), franchise.prestige(), 100.0));
+            numericFloorFit(prefs.franchisePrestigeTarget(), team.prestige(), 100.0));
     total +=
         weighted(
             prefs.competitiveWindowWeight(),
-            categoricalFit(prefs.competitiveWindowTarget(), franchise.window()));
+            categoricalFit(prefs.competitiveWindowTarget(), team.window()));
     total +=
         weighted(
             prefs.roleScopeWeight(), categoricalFit(prefs.roleScopeTarget(), offer.roleScope()));
@@ -55,15 +52,15 @@ final class OfferScoring {
     total +=
         weighted(
             prefs.schemeAlignmentWeight(),
-            categoricalFit(prefs.schemeAlignmentTarget(), franchise.schemeAlignment()));
+            categoricalFit(prefs.schemeAlignmentTarget(), team.schemeAlignment()));
     total +=
         weighted(
             prefs.ownerStabilityWeight(),
-            numericFloorFit(prefs.ownerStabilityTarget(), franchise.ownerStability(), 100.0));
+            numericFloorFit(prefs.ownerStabilityTarget(), team.ownerStability(), 100.0));
     total +=
         weighted(
             prefs.facilityQualityWeight(),
-            numericFloorFit(prefs.facilityQualityTarget(), franchise.facilityQuality(), 100.0));
+            numericFloorFit(prefs.facilityQualityTarget(), team.facilityQuality(), 100.0));
     return total;
   }
 

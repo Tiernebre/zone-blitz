@@ -7,8 +7,8 @@ import java.util.Optional;
 interface CandidateRepository {
 
   /**
-   * Insert a candidate into the given pool. {@code hiredByFranchiseId} and {@code scoutBranch}
-   * default to empty/null on insert.
+   * Insert a candidate into the given pool. {@code hiredByTeamId} and {@code scoutBranch} default
+   * to empty/null on insert.
    */
   Candidate insert(NewCandidate newCandidate);
 
@@ -18,9 +18,9 @@ interface CandidateRepository {
   List<Candidate> findAllByPoolId(long poolId);
 
   /**
-   * Mark the candidate as hired by a franchise. Returns true when the update hit a row.
+   * Mark the candidate as hired by a team. Returns true when the update hit a row.
    *
    * <p>Does not enforce one-hire-per-candidate at this layer; higher-level use cases gate that.
    */
-  boolean markHired(long candidateId, long franchiseId);
+  boolean markHired(long candidateId, long teamId);
 }

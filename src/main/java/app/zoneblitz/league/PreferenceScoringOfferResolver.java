@@ -24,9 +24,9 @@ class PreferenceScoringOfferResolver implements OfferResolver {
   private final CandidateRepository candidates;
   private final CandidatePoolRepository pools;
   private final CandidatePreferencesRepository preferences;
-  private final FranchiseProfiles franchiseProfiles;
-  private final FranchiseHiringStateRepository hiringStates;
-  private final FranchiseStaffRepository staff;
+  private final TeamProfiles teamProfiles;
+  private final TeamHiringStateRepository hiringStates;
+  private final TeamStaffRepository staff;
   private final CandidateRandomSources rngs;
 
   PreferenceScoringOfferResolver(
@@ -34,15 +34,15 @@ class PreferenceScoringOfferResolver implements OfferResolver {
       CandidateRepository candidates,
       CandidatePoolRepository pools,
       CandidatePreferencesRepository preferences,
-      FranchiseProfiles franchiseProfiles,
-      FranchiseHiringStateRepository hiringStates,
-      FranchiseStaffRepository staff,
+      TeamProfiles teamProfiles,
+      TeamHiringStateRepository hiringStates,
+      TeamStaffRepository staff,
       CandidateRandomSources rngs) {
     this.offers = offers;
     this.candidates = candidates;
     this.pools = pools;
     this.preferences = preferences;
-    this.franchiseProfiles = franchiseProfiles;
+    this.teamProfiles = teamProfiles;
     this.hiringStates = hiringStates;
     this.staff = staff;
     this.rngs = rngs;
@@ -61,7 +61,7 @@ class PreferenceScoringOfferResolver implements OfferResolver {
 
     var candidateRows = candidates.findAllByPoolId(pool.get().id());
     for (var candidate : candidateRows) {
-      if (candidate.hiredByFranchiseId().isPresent()) {
+      if (candidate.hiredByTeamId().isPresent()) {
         continue;
       }
       var activeOffers = offers.findActiveForCandidate(candidate.id());
@@ -87,12 +87,12 @@ class PreferenceScoringOfferResolver implements OfferResolver {
 
     var scored = new ArrayList<ScoredOffer>(activeOffers.size());
     for (var offer : activeOffers) {
-      var profile = franchiseProfiles.forFranchise(offer.franchiseId());
+      var profile = teamProfiles.forTeam(offer.teamId());
       if (profile.isEmpty()) {
         log.warn(
-            "offer resolution skipped offerId={} — no profile for franchiseId={}",
+            "offer resolution skipped offerId={} — no profile for teamId={}",
             offer.id(),
-            offer.franchiseId());
+            offer.teamId());
         continue;
       }
       var terms = OfferTermsJson.fromJson(offer.terms());
@@ -105,31 +105,31 @@ class PreferenceScoringOfferResolver implements OfferResolver {
 
     var winner = chooseWinner(leagueId, phase, candidate.id(), scored);
 
-    candidates.markHired(candidate.id(), winner.offer().franchiseId());
+    candidates.markHired(candidate.id(), winner.offer().teamId());
     offers.resolve(winner.offer().id(), OfferStatus.ACCEPTED);
-    upsertHired(leagueId, phase, winner.offer().franchiseId(), weekAtResolve, candidate.id());
+    upsertHired(phase, winner.offer().teamId(), weekAtResolve, candidate.id());
 
-    var winningFranchise = winner.offer().franchiseId();
+    var winningTeam = winner.offer().teamId();
     for (var other : scored) {
       if (other.offer().id() != winner.offer().id()) {
         offers.resolve(other.offer().id(), OfferStatus.REJECTED);
       }
     }
-    // Auto-reject any of this candidate's active offers from franchises that did not win — the
+    // Auto-reject any of this candidate's active offers from teams that did not win — the
     // candidate is off the market. `findActiveForCandidate` above captured the scored set, but a
-    // candidate may have active offers from franchises whose profiles are missing; reject those too
-    // so the lifecycle is clean.
+    // candidate may have active offers from teams whose profiles are missing; reject those too so
+    // the lifecycle is clean.
     for (var stray : offers.findActiveForCandidate(candidate.id())) {
-      if (stray.franchiseId() != winningFranchise) {
+      if (stray.teamId() != winningTeam) {
         offers.resolve(stray.id(), OfferStatus.REJECTED);
       }
     }
 
     log.info(
-        "offer accepted leagueId={} candidateId={} franchiseId={} offerId={} score={} week={}",
+        "offer accepted leagueId={} candidateId={} teamId={} offerId={} score={} week={}",
         leagueId,
         candidate.id(),
-        winner.offer().franchiseId(),
+        winner.offer().teamId(),
         winner.offer().id(),
         winner.score(),
         weekAtResolve);
@@ -155,27 +155,19 @@ class PreferenceScoringOfferResolver implements OfferResolver {
     return sortedTied.get(pick);
   }
 
-  private void upsertHired(
-      long leagueId, LeaguePhase phase, long franchiseId, int weekAtResolve, long candidateId) {
-    var existing = hiringStates.find(leagueId, franchiseId, phase);
+  private void upsertHired(LeaguePhase phase, long teamId, int weekAtResolve, long candidateId) {
+    var existing = hiringStates.find(teamId, phase);
     hiringStates.upsert(
-        new FranchiseHiringState(
-            existing.map(FranchiseHiringState::id).orElse(0L),
-            leagueId,
-            franchiseId,
+        new TeamHiringState(
+            existing.map(TeamHiringState::id).orElse(0L),
+            teamId,
             phase,
             HiringStep.HIRED,
-            existing.map(FranchiseHiringState::shortlist).orElse(List.of()),
-            existing.map(FranchiseHiringState::interviewingCandidateIds).orElse(List.of())));
+            existing.map(TeamHiringState::shortlist).orElse(List.of()),
+            existing.map(TeamHiringState::interviewingCandidateIds).orElse(List.of())));
     staff.insert(
-        new NewFranchiseStaffMember(
-            leagueId,
-            franchiseId,
-            candidateId,
-            staffRoleFor(phase),
-            Optional.empty(),
-            phase,
-            weekAtResolve));
+        new NewTeamStaffMember(
+            teamId, candidateId, staffRoleFor(phase), Optional.empty(), phase, weekAtResolve));
   }
 
   private static StaffRole staffRoleFor(LeaguePhase phase) {

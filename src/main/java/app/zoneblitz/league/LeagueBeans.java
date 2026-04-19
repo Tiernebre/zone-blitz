@@ -33,13 +33,13 @@ class LeagueBeans {
   }
 
   @Bean
-  CpuFranchiseStrategy headCoachCpuHiringStrategy(
+  CpuTeamStrategy headCoachCpuHiringStrategy(
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
       CandidateOfferRepository offers,
-      FranchiseHiringStateRepository hiringStates,
-      FranchiseInterviewRepository interviews,
+      TeamHiringStateRepository hiringStates,
+      TeamInterviewRepository interviews,
       CandidateRandomSources rngs) {
     return new CpuHiringStrategy(
         LeaguePhase.HIRING_HEAD_COACH,
@@ -54,13 +54,13 @@ class LeagueBeans {
   }
 
   @Bean
-  CpuFranchiseStrategy directorOfScoutingCpuHiringStrategy(
+  CpuTeamStrategy directorOfScoutingCpuHiringStrategy(
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
       CandidateOfferRepository offers,
-      FranchiseHiringStateRepository hiringStates,
-      FranchiseInterviewRepository interviews,
+      TeamHiringStateRepository hiringStates,
+      TeamInterviewRepository interviews,
       CandidateRandomSources rngs) {
     return new CpuHiringStrategy(
         LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING,

@@ -19,12 +19,12 @@ class JooqCandidateOfferRepository implements CandidateOfferRepository {
   }
 
   @Override
-  public CandidateOffer insertActive(long candidateId, long franchiseId, String terms, int week) {
+  public CandidateOffer insertActive(long candidateId, long teamId, String terms, int week) {
     Objects.requireNonNull(terms, "terms");
     var record =
         dsl.insertInto(CANDIDATE_OFFERS)
             .set(CANDIDATE_OFFERS.CANDIDATE_ID, candidateId)
-            .set(CANDIDATE_OFFERS.FRANCHISE_ID, franchiseId)
+            .set(CANDIDATE_OFFERS.TEAM_ID, teamId)
             .set(CANDIDATE_OFFERS.TERMS, JSONB.valueOf(terms))
             .set(CANDIDATE_OFFERS.SUBMITTED_AT_WEEK, week)
             .set(CANDIDATE_OFFERS.STATUS, OfferStatus.ACTIVE.name())
@@ -58,9 +58,9 @@ class JooqCandidateOfferRepository implements CandidateOfferRepository {
   }
 
   @Override
-  public List<CandidateOffer> findActiveForFranchise(long franchiseId) {
+  public List<CandidateOffer> findActiveForTeam(long teamId) {
     return dsl.selectFrom(CANDIDATE_OFFERS)
-        .where(CANDIDATE_OFFERS.FRANCHISE_ID.eq(franchiseId))
+        .where(CANDIDATE_OFFERS.TEAM_ID.eq(teamId))
         .and(CANDIDATE_OFFERS.STATUS.eq(OfferStatus.ACTIVE.name()))
         .orderBy(CANDIDATE_OFFERS.SUBMITTED_AT_WEEK.asc(), CANDIDATE_OFFERS.ID.asc())
         .fetch(this::map);
@@ -81,7 +81,7 @@ class JooqCandidateOfferRepository implements CandidateOfferRepository {
     return new CandidateOffer(
         r.get(CANDIDATE_OFFERS.ID),
         r.get(CANDIDATE_OFFERS.CANDIDATE_ID),
-        r.get(CANDIDATE_OFFERS.FRANCHISE_ID),
+        r.get(CANDIDATE_OFFERS.TEAM_ID),
         r.get(CANDIDATE_OFFERS.TERMS).data(),
         r.get(CANDIDATE_OFFERS.SUBMITTED_AT_WEEK),
         OfferStatus.valueOf(r.get(CANDIDATE_OFFERS.STATUS)));

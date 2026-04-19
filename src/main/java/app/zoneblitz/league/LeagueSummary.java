@@ -9,4 +9,5 @@ public record LeagueSummary(
     LeaguePhase phase,
     int phaseWeek,
     Instant createdAt,
+    long userTeamId,
     Franchise userFranchise) {}

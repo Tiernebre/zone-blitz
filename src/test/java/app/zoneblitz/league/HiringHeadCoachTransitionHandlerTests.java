@@ -22,7 +22,7 @@ class HiringHeadCoachTransitionHandlerTests {
   private CandidatePoolRepository pools;
   private CandidateRepository candidates;
   private CandidatePreferencesRepository preferences;
-  private FranchiseHiringStateRepository hiringStates;
+  private TeamHiringStateRepository hiringStates;
   private TeamLookup teams;
   private HiringHeadCoachTransitionHandler handler;
 
@@ -35,7 +35,7 @@ class HiringHeadCoachTransitionHandlerTests {
     pools = new JooqCandidatePoolRepository(dsl);
     candidates = new JooqCandidateRepository(dsl);
     preferences = new JooqCandidatePreferencesRepository(dsl);
-    hiringStates = new JooqFranchiseHiringStateRepository(dsl);
+    hiringStates = new JooqTeamHiringStateRepository(dsl);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
     handler =
         new HiringHeadCoachTransitionHandler(
@@ -66,7 +66,7 @@ class HiringHeadCoachTransitionHandlerTests {
                 league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH)
             .orElseThrow();
     var generated = candidates.findAllByPoolId(pool.id());
-    var franchiseCount = teams.franchiseIdsForLeague(league.id()).size();
+    var franchiseCount = teams.teamIdsForLeague(league.id()).size();
     assertThat(generated).hasSize(franchiseCount * 3);
     assertThat(generated).allSatisfy(c -> assertThat(c.kind()).isEqualTo(CandidateKind.HEAD_COACH));
     assertThat(generated)

@@ -16,21 +16,21 @@ class JooqTeamLookup implements TeamLookup {
   }
 
   @Override
-  public List<Long> franchiseIdsForLeague(long leagueId) {
-    return dsl.select(TEAMS.FRANCHISE_ID)
+  public List<Long> teamIdsForLeague(long leagueId) {
+    return dsl.select(TEAMS.ID)
         .from(TEAMS)
         .where(TEAMS.LEAGUE_ID.eq(leagueId))
-        .orderBy(TEAMS.FRANCHISE_ID.asc())
-        .fetch(TEAMS.FRANCHISE_ID);
+        .orderBy(TEAMS.ID.asc())
+        .fetch(TEAMS.ID);
   }
 
   @Override
-  public List<Long> cpuFranchiseIdsForLeague(long leagueId) {
-    return dsl.select(TEAMS.FRANCHISE_ID)
+  public List<Long> cpuTeamIdsForLeague(long leagueId) {
+    return dsl.select(TEAMS.ID)
         .from(TEAMS)
         .where(TEAMS.LEAGUE_ID.eq(leagueId))
         .and(TEAMS.OWNER_SUBJECT.isNull())
-        .orderBy(TEAMS.FRANCHISE_ID.asc())
-        .fetch(TEAMS.FRANCHISE_ID);
+        .orderBy(TEAMS.ID.asc())
+        .fetch(TEAMS.ID);
   }
 }

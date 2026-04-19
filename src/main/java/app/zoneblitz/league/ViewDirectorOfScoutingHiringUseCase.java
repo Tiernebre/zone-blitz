@@ -13,16 +13,16 @@ class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScoutingHirin
   private final CandidatePoolRepository pools;
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
-  private final FranchiseHiringStateRepository hiringStates;
-  private final FranchiseInterviewRepository interviews;
+  private final TeamHiringStateRepository hiringStates;
+  private final TeamInterviewRepository interviews;
 
   ViewDirectorOfScoutingHiringUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
-      FranchiseHiringStateRepository hiringStates,
-      FranchiseInterviewRepository interviews) {
+      TeamHiringStateRepository hiringStates,
+      TeamInterviewRepository interviews) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
@@ -43,7 +43,7 @@ class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScoutingHirin
     if (league.phase() != LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING) {
       return Optional.empty();
     }
-    var franchiseId = league.userFranchise().id();
+    var teamId = league.userTeamId();
     var phase = LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING;
     var pool =
         pools.findByLeaguePhaseAndType(leagueId, phase, CandidatePoolType.DIRECTOR_OF_SCOUTING);
@@ -59,11 +59,8 @@ class ViewDirectorOfScoutingHiringUseCase implements ViewDirectorOfScoutingHirin
             .flatMap(Optional::stream)
             .toList();
     var shortlist =
-        hiringStates
-            .find(leagueId, franchiseId, phase)
-            .map(FranchiseHiringState::shortlist)
-            .orElse(List.of());
-    var interviewHistory = interviews.findAllFor(leagueId, franchiseId, phase);
+        hiringStates.find(teamId, phase).map(TeamHiringState::shortlist).orElse(List.of());
+    var interviewHistory = interviews.findAllFor(teamId, phase);
     return Optional.of(
         DirectorOfScoutingHiringViewModel.assemble(
             league,

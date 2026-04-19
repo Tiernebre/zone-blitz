@@ -30,7 +30,7 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
   private TeamLookup teamLookup;
   private CandidatePoolRepository pools;
   private CandidateRepository candidates;
-  private FranchiseHiringStateRepository hiringStates;
+  private TeamHiringStateRepository hiringStates;
 
   @BeforeEach
   void setUp() {
@@ -42,10 +42,10 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
     candidates = new JooqCandidateRepository(dsl);
     var preferences = new JooqCandidatePreferencesRepository(dsl);
     var offers = new JooqCandidateOfferRepository(dsl);
-    var staff = new JooqFranchiseStaffRepository(dsl);
-    hiringStates = new JooqFranchiseHiringStateRepository(dsl);
-    var interviews = new JooqFranchiseInterviewRepository(dsl);
-    var profiles = new CityFranchiseProfiles(franchises);
+    var staff = new JooqTeamStaffRepository(dsl);
+    hiringStates = new JooqTeamHiringStateRepository(dsl);
+    var interviews = new JooqTeamInterviewRepository(dsl);
+    var profiles = new CityTeamProfiles(dsl, franchises);
     CandidateRandomSources rngs =
         (leagueId, phase) -> new FakeRandomSource(leagueId * 31 + phase.ordinal());
 

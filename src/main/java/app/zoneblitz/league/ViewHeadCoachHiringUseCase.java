@@ -13,16 +13,16 @@ class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
   private final CandidatePoolRepository pools;
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
-  private final FranchiseHiringStateRepository hiringStates;
-  private final FranchiseInterviewRepository interviews;
+  private final TeamHiringStateRepository hiringStates;
+  private final TeamInterviewRepository interviews;
 
   ViewHeadCoachHiringUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
-      FranchiseHiringStateRepository hiringStates,
-      FranchiseInterviewRepository interviews) {
+      TeamHiringStateRepository hiringStates,
+      TeamInterviewRepository interviews) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
@@ -43,7 +43,7 @@ class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
     if (league.phase() != LeaguePhase.HIRING_HEAD_COACH) {
       return Optional.empty();
     }
-    var franchiseId = league.userFranchise().id();
+    var teamId = league.userTeamId();
     var phase = LeaguePhase.HIRING_HEAD_COACH;
     var pool = pools.findByLeaguePhaseAndType(leagueId, phase, CandidatePoolType.HEAD_COACH);
     if (pool.isEmpty()) {
@@ -58,11 +58,8 @@ class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
             .flatMap(Optional::stream)
             .toList();
     var shortlist =
-        hiringStates
-            .find(leagueId, franchiseId, phase)
-            .map(FranchiseHiringState::shortlist)
-            .orElse(List.of());
-    var interviewHistory = interviews.findAllFor(leagueId, franchiseId, phase);
+        hiringStates.find(teamId, phase).map(TeamHiringState::shortlist).orElse(List.of());
+    var interviewHistory = interviews.findAllFor(teamId, phase);
     return Optional.of(
         HeadCoachHiringViewModel.assemble(
             league,

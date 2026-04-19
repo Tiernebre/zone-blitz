@@ -24,16 +24,16 @@ class StartInterviewUseCase implements StartInterview {
   private final CandidatePoolRepository pools;
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
-  private final FranchiseHiringStateRepository hiringStates;
-  private final FranchiseInterviewRepository interviews;
+  private final TeamHiringStateRepository hiringStates;
+  private final TeamInterviewRepository interviews;
 
   StartInterviewUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
-      FranchiseHiringStateRepository hiringStates,
-      FranchiseInterviewRepository interviews) {
+      TeamHiringStateRepository hiringStates,
+      TeamInterviewRepository interviews) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
@@ -64,27 +64,26 @@ class StartInterviewUseCase implements StartInterview {
     if (maybeCandidate.isEmpty() || maybeCandidate.get().poolId() != maybePool.get().id()) {
       return new InterviewResult.UnknownCandidate(candidateId);
     }
-    var franchiseId = league.userFranchise().id();
+    var teamId = league.userTeamId();
     var phaseWeek = league.phaseWeek();
-    var weekCount = interviews.countForWeek(leagueId, franchiseId, phase, phaseWeek);
+    var weekCount = interviews.countForWeek(teamId, phase, phaseWeek);
     if (weekCount >= DEFAULT_WEEKLY_CAPACITY) {
       return new InterviewResult.CapacityReached(DEFAULT_WEEKLY_CAPACITY);
     }
 
     var candidate = maybeCandidate.get();
-    var priorCount = interviews.countForCandidate(leagueId, franchiseId, candidateId, phase);
+    var priorCount = interviews.countForCandidate(teamId, candidateId, phase);
     var newIndex = priorCount + 1;
     var trueRating = extractOverall(candidate.hiddenAttrs());
     var sigma = InterviewNoiseModel.headCoachSigma(newIndex);
-    var rng = new SplittableRandomSource(seedFor(leagueId, franchiseId, candidateId, newIndex));
+    var rng = new SplittableRandomSource(seedFor(leagueId, teamId, candidateId, newIndex));
     var sample = trueRating + sigma * rng.nextGaussian();
     var clamped = Math.max(SCOUTED_LOWER, Math.min(SCOUTED_UPPER, sample));
     var scoutedOverall = BigDecimal.valueOf(clamped).setScale(2, RoundingMode.HALF_UP);
 
     interviews.insert(
-        new NewFranchiseInterview(
-            leagueId, franchiseId, candidateId, phase, phaseWeek, newIndex, scoutedOverall));
-    appendToHiringState(leagueId, franchiseId, candidateId, phase);
+        new NewTeamInterview(teamId, candidateId, phase, phaseWeek, newIndex, scoutedOverall));
+    appendToHiringState(teamId, candidateId, phase);
 
     var pool = candidates.findAllByPoolId(maybePool.get().id());
     var prefs =
@@ -92,36 +91,34 @@ class StartInterviewUseCase implements StartInterview {
             .map(c -> preferences.findByCandidateId(c.id()))
             .flatMap(java.util.Optional::stream)
             .toList();
-    var state = hiringStates.find(leagueId, franchiseId, phase);
-    var shortlistIds = state.map(FranchiseHiringState::shortlist).orElse(java.util.List.of());
-    var history = interviews.findAllFor(leagueId, franchiseId, phase);
+    var state = hiringStates.find(teamId, phase);
+    var shortlistIds = state.map(TeamHiringState::shortlist).orElse(java.util.List.of());
+    var history = interviews.findAllFor(teamId, phase);
     var view =
         HeadCoachHiringViewModel.assemble(
             league, pool, prefs, shortlistIds, history, DEFAULT_WEEKLY_CAPACITY);
     log.info(
-        "interview recorded leagueId={} franchiseId={} candidateId={} index={} sigma={}",
+        "interview recorded leagueId={} teamId={} candidateId={} index={} sigma={}",
         leagueId,
-        franchiseId,
+        teamId,
         candidateId,
         newIndex,
         sigma);
     return new InterviewResult.Started(view);
   }
 
-  private void appendToHiringState(
-      long leagueId, long franchiseId, long candidateId, LeaguePhase phase) {
-    var existing = hiringStates.find(leagueId, franchiseId, phase);
-    var shortlistIds = existing.map(FranchiseHiringState::shortlist).orElse(java.util.List.of());
+  private void appendToHiringState(long teamId, long candidateId, LeaguePhase phase) {
+    var existing = hiringStates.find(teamId, phase);
+    var shortlistIds = existing.map(TeamHiringState::shortlist).orElse(java.util.List.of());
     var interviewingIds =
-        existing.map(FranchiseHiringState::interviewingCandidateIds).orElse(java.util.List.of());
+        existing.map(TeamHiringState::interviewingCandidateIds).orElse(java.util.List.of());
     var updated = new ArrayList<Long>(interviewingIds.size() + 1);
     updated.addAll(interviewingIds);
     updated.add(candidateId);
     hiringStates.upsert(
-        new FranchiseHiringState(
-            existing.map(FranchiseHiringState::id).orElse(0L),
-            leagueId,
-            franchiseId,
+        new TeamHiringState(
+            existing.map(TeamHiringState::id).orElse(0L),
+            teamId,
             phase,
             HiringStep.SEARCHING,
             shortlistIds,
@@ -140,9 +137,9 @@ class StartInterviewUseCase implements StartInterview {
     return 50.0;
   }
 
-  private static long seedFor(long leagueId, long franchiseId, long candidateId, int index) {
+  private static long seedFor(long leagueId, long teamId, long candidateId, int index) {
     var seed = leagueId * 0x9E3779B97F4A7C15L;
-    seed ^= Long.rotateLeft(franchiseId, 17) * 0xBF58476D1CE4E5B9L;
+    seed ^= Long.rotateLeft(teamId, 17) * 0xBF58476D1CE4E5B9L;
     seed ^= Long.rotateLeft(candidateId, 31) * 0x94D049BB133111EBL;
     seed ^= (long) index * 0xD1B54A32D192ED03L;
     return seed;

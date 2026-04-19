@@ -68,6 +68,7 @@ class JooqLeagueRepository implements LeagueRepository {
             LEAGUES.PHASE,
             LEAGUES.PHASE_WEEK,
             LEAGUES.CREATED_AT,
+            TEAMS.ID,
             FRANCHISES.ID,
             FRANCHISES.NAME,
             FRANCHISES.PRIMARY_COLOR,
@@ -97,6 +98,7 @@ class JooqLeagueRepository implements LeagueRepository {
                     LeaguePhase.valueOf(r.get(LEAGUES.PHASE)),
                     r.get(LEAGUES.PHASE_WEEK),
                     r.get(LEAGUES.CREATED_AT).toInstant(),
+                    r.get(TEAMS.ID),
                     JooqFranchiseRepository.mapFranchise(r)));
   }
 
@@ -108,6 +110,7 @@ class JooqLeagueRepository implements LeagueRepository {
             LEAGUES.PHASE,
             LEAGUES.PHASE_WEEK,
             LEAGUES.CREATED_AT,
+            TEAMS.ID,
             FRANCHISES.ID,
             FRANCHISES.NAME,
             FRANCHISES.PRIMARY_COLOR,
@@ -137,6 +140,7 @@ class JooqLeagueRepository implements LeagueRepository {
                     LeaguePhase.valueOf(r.get(LEAGUES.PHASE)),
                     r.get(LEAGUES.PHASE_WEEK),
                     r.get(LEAGUES.CREATED_AT).toInstant(),
+                    r.get(TEAMS.ID),
                     JooqFranchiseRepository.mapFranchise(r)));
   }
 

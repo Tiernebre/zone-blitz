@@ -23,8 +23,8 @@ class BestScoutedHiringAutofillTests {
   private JooqCandidateRepository candidates;
   private JooqCandidatePreferencesRepository preferences;
   private JooqCandidateOfferRepository offers;
-  private JooqFranchiseHiringStateRepository hiringStates;
-  private JooqFranchiseStaffRepository staff;
+  private JooqTeamHiringStateRepository hiringStates;
+  private JooqTeamStaffRepository staff;
   private JooqTeamLookup teamLookup;
   private CreateLeague createLeague;
   private HiringPhaseAutofill autofill;
@@ -39,8 +39,8 @@ class BestScoutedHiringAutofillTests {
     candidates = new JooqCandidateRepository(dsl);
     preferences = new JooqCandidatePreferencesRepository(dsl);
     offers = new JooqCandidateOfferRepository(dsl);
-    hiringStates = new JooqFranchiseHiringStateRepository(dsl);
-    staff = new JooqFranchiseStaffRepository(dsl);
+    hiringStates = new JooqTeamHiringStateRepository(dsl);
+    staff = new JooqTeamStaffRepository(dsl);
     teamLookup = new JooqTeamLookup(dsl);
     rngs = (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal());
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
@@ -71,25 +71,22 @@ class BestScoutedHiringAutofillTests {
     // Fill out enough candidates so every franchise gets hired without running out.
     seedFillerCandidates(pool.id(), 20, 40.00);
 
-    var franchiseIds = teamLookup.franchiseIdsForLeague(league.id());
+    var franchiseIds = teamLookup.teamIdsForLeague(league.id());
     var targetFranchise = franchiseIds.getFirst();
     markSearching(league.id(), targetFranchise, LeaguePhase.HIRING_HEAD_COACH);
 
     autofill.autofill(league.id(), LeaguePhase.HIRING_HEAD_COACH, 3);
 
     // The first-iterated franchise gets the highest scouted pick. Ranking is by SCOUTED only.
-    assertThat(candidates.findById(topScouted.id()).orElseThrow().hiredByFranchiseId())
+    assertThat(candidates.findById(topScouted.id()).orElseThrow().hiredByTeamId())
         .contains(targetFranchise);
-    assertThat(candidates.findById(strongHidden.id()).orElseThrow().hiredByFranchiseId())
+    assertThat(candidates.findById(strongHidden.id()).orElseThrow().hiredByTeamId())
         .isPresent()
         .hasValueSatisfying(id -> assertThat(id).isNotEqualTo(targetFranchise));
-    var state =
-        hiringStates
-            .find(league.id(), targetFranchise, LeaguePhase.HIRING_HEAD_COACH)
-            .orElseThrow();
+    var state = hiringStates.find(targetFranchise, LeaguePhase.HIRING_HEAD_COACH).orElseThrow();
     assertThat(state.step()).isEqualTo(HiringStep.HIRED);
-    assertThat(staff.findAllForFranchise(league.id(), targetFranchise))
-        .extracting(FranchiseStaffMember::role, FranchiseStaffMember::candidateId)
+    assertThat(staff.findAllForTeam(targetFranchise))
+        .extracting(TeamStaffMember::role, TeamStaffMember::candidateId)
         .containsExactly(
             org.assertj.core.api.Assertions.tuple(StaffRole.HEAD_COACH, topScouted.id()));
     assertThat(offers.findAllForCandidate(topScouted.id()))
@@ -108,13 +105,12 @@ class BestScoutedHiringAutofillTests {
     // Seed additional candidates so every pending franchise in the league gets filled.
     seedFillerCandidates(pool.id(), 20, 60.00);
 
-    var franchiseIds = teamLookup.franchiseIdsForLeague(league.id());
+    var franchiseIds = teamLookup.teamIdsForLeague(league.id());
     var alreadyHired = franchiseIds.get(0);
     var pending = franchiseIds.get(1);
     hiringStates.upsert(
-        new FranchiseHiringState(
+        new TeamHiringState(
             0L,
-            league.id(),
             alreadyHired,
             LeaguePhase.HIRING_HEAD_COACH,
             HiringStep.HIRED,
@@ -124,9 +120,9 @@ class BestScoutedHiringAutofillTests {
 
     autofill.autofill(league.id(), LeaguePhase.HIRING_HEAD_COACH, 3);
 
-    assertThat(staff.findAllForFranchise(league.id(), alreadyHired)).isEmpty();
-    assertThat(staff.findAllForFranchise(league.id(), pending))
-        .extracting(FranchiseStaffMember::role)
+    assertThat(staff.findAllForTeam(alreadyHired)).isEmpty();
+    assertThat(staff.findAllForTeam(pending))
+        .extracting(TeamStaffMember::role)
         .containsExactly(StaffRole.HEAD_COACH);
   }
 
@@ -145,17 +141,17 @@ class BestScoutedHiringAutofillTests {
     // first-iterated franchise is the only one that could conceivably pick it up.
     seedFillerCandidates(pool.id(), 20, 70.00);
 
-    var franchiseIds = teamLookup.franchiseIdsForLeague(league.id());
+    var franchiseIds = teamLookup.teamIdsForLeague(league.id());
     var targetFranchise = franchiseIds.getFirst();
     markSearching(league.id(), targetFranchise, LeaguePhase.HIRING_HEAD_COACH);
 
     autofill.autofill(league.id(), LeaguePhase.HIRING_HEAD_COACH, 3);
 
-    assertThat(candidates.findById(publicFavorite.id()).orElseThrow().hiredByFranchiseId())
+    assertThat(candidates.findById(publicFavorite.id()).orElseThrow().hiredByTeamId())
         .contains(targetFranchise);
     // Hidden gem's scouted is below the filler band, so it stays unhired for this run — the
     // key invariant is that the target (highest scouted) franchise never received it.
-    var hiddenGemOwner = candidates.findById(hiddenGem.id()).orElseThrow().hiredByFranchiseId();
+    var hiddenGemOwner = candidates.findById(hiddenGem.id()).orElseThrow().hiredByTeamId();
     assertThat(hiddenGemOwner).isNotEqualTo(Optional.of(targetFranchise));
   }
 
@@ -170,15 +166,15 @@ class BestScoutedHiringAutofillTests {
         insertCandidate(pool.id(), "{\"overall\": 70.00}", "{\"overall\": 75.00}");
     seedFillerCandidates(pool.id(), 20, 50.00);
 
-    var franchiseIds = teamLookup.franchiseIdsForLeague(league.id());
+    var franchiseIds = teamLookup.teamIdsForLeague(league.id());
     for (var franchiseId : franchiseIds) {
       markSearching(league.id(), franchiseId, LeaguePhase.HIRING_HEAD_COACH);
     }
 
     autofill.autofill(league.id(), LeaguePhase.HIRING_HEAD_COACH, 3);
 
-    var firstHire = candidates.findById(topCandidate.id()).orElseThrow().hiredByFranchiseId();
-    var secondHire = candidates.findById(secondCandidate.id()).orElseThrow().hiredByFranchiseId();
+    var firstHire = candidates.findById(topCandidate.id()).orElseThrow().hiredByTeamId();
+    var secondHire = candidates.findById(secondCandidate.id()).orElseThrow().hiredByTeamId();
     assertThat(firstHire).isPresent();
     assertThat(secondHire).isPresent();
     assertThat(firstHire.get()).isNotEqualTo(secondHire.get());
@@ -213,8 +209,7 @@ class BestScoutedHiringAutofillTests {
 
   private void markSearching(long leagueId, long franchiseId, LeaguePhase phase) {
     hiringStates.upsert(
-        new FranchiseHiringState(
-            0L, leagueId, franchiseId, phase, HiringStep.SEARCHING, List.of(), List.of()));
+        new TeamHiringState(0L, franchiseId, phase, HiringStep.SEARCHING, List.of(), List.of()));
   }
 
   private League createLeagueFor(String ownerSubject) {

@@ -29,8 +29,8 @@
 		</p>
 
 		<section class="space-y-3">
-			<details th:each="tree : ${view.franchises()}"
-			         th:open="${tree.isViewerFranchise()}"
+			<details th:each="tree : ${view.teams()}"
+			         th:open="${tree.isViewerTeam()}"
 			         class="bg-white border border-slate-200 rounded shadow-sm">
 				<summary class="cursor-pointer px-4 py-3 flex items-center justify-between">
 					<span class="font-medium" th:text="${tree.franchise().name()}">Franchise</span>

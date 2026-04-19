@@ -52,9 +52,9 @@ class JooqCandidateRepository implements CandidateRepository {
   }
 
   @Override
-  public boolean markHired(long candidateId, long franchiseId) {
+  public boolean markHired(long candidateId, long teamId) {
     return dsl.update(CANDIDATES)
-            .set(CANDIDATES.HIRED_BY_FRANCHISE_ID, franchiseId)
+            .set(CANDIDATES.HIRED_BY_TEAM_ID, teamId)
             .where(CANDIDATES.ID.eq(candidateId))
             .execute()
         > 0;
@@ -72,7 +72,7 @@ class JooqCandidateRepository implements CandidateRepository {
         r.get(CANDIDATES.EXPERIENCE_BY_ROLE).data(),
         r.get(CANDIDATES.HIDDEN_ATTRS).data(),
         r.get(CANDIDATES.SCOUTED_ATTRS).data(),
-        Optional.ofNullable(r.get(CANDIDATES.HIRED_BY_FRANCHISE_ID)),
+        Optional.ofNullable(r.get(CANDIDATES.HIRED_BY_TEAM_ID)),
         Optional.ofNullable(r.get(CANDIDATES.SCOUT_BRANCH)).map(ScoutBranch::valueOf));
   }
 }

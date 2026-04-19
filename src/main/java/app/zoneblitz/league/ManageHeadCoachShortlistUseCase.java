@@ -13,16 +13,16 @@ class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
   private final CandidatePoolRepository pools;
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
-  private final FranchiseHiringStateRepository hiringStates;
-  private final FranchiseInterviewRepository interviews;
+  private final TeamHiringStateRepository hiringStates;
+  private final TeamInterviewRepository interviews;
 
   ManageHeadCoachShortlistUseCase(
       LeagueRepository leagues,
       CandidatePoolRepository pools,
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
-      FranchiseHiringStateRepository hiringStates,
-      FranchiseInterviewRepository interviews) {
+      TeamHiringStateRepository hiringStates,
+      TeamInterviewRepository interviews) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
@@ -71,17 +71,15 @@ class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
     if (candidate.isEmpty() || candidate.get().poolId() != maybePool.get().id()) {
       return new ShortlistResult.UnknownCandidate(candidateId);
     }
-    var franchiseId = league.userFranchise().id();
-    var existing = hiringStates.find(leagueId, franchiseId, phase);
-    var currentIds = existing.map(FranchiseHiringState::shortlist).orElse(List.of());
-    var interviewingIds =
-        existing.map(FranchiseHiringState::interviewingCandidateIds).orElse(List.of());
+    var teamId = league.userTeamId();
+    var existing = hiringStates.find(teamId, phase);
+    var currentIds = existing.map(TeamHiringState::shortlist).orElse(List.of());
+    var interviewingIds = existing.map(TeamHiringState::interviewingCandidateIds).orElse(List.of());
     var updatedIds = transform.apply(currentIds);
     hiringStates.upsert(
-        new FranchiseHiringState(
-            existing.map(FranchiseHiringState::id).orElse(0L),
-            leagueId,
-            franchiseId,
+        new TeamHiringState(
+            existing.map(TeamHiringState::id).orElse(0L),
+            teamId,
             phase,
             HiringStep.SEARCHING,
             updatedIds,
@@ -92,7 +90,7 @@ class ManageHeadCoachShortlistUseCase implements ManageHeadCoachShortlist {
             .map(c -> preferences.findByCandidateId(c.id()))
             .flatMap(java.util.Optional::stream)
             .toList();
-    var interviewHistory = interviews.findAllFor(leagueId, franchiseId, phase);
+    var interviewHistory = interviews.findAllFor(teamId, phase);
     var view =
         HeadCoachHiringViewModel.assemble(
             league,

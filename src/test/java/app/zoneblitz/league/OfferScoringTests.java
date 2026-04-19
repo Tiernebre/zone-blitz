@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test;
 
 class OfferScoringTests {
 
-  private static final FranchiseProfile NE_LARGE_COLD =
-      new FranchiseProfile(
+  private static final TeamProfile NE_LARGE_COLD =
+      new TeamProfile(
           1L,
           MarketSize.LARGE,
           Geography.NE,
@@ -19,8 +19,8 @@ class OfferScoringTests {
           new BigDecimal("50.00"),
           "WEST_COAST");
 
-  private static final FranchiseProfile SE_LARGE_WARM =
-      new FranchiseProfile(
+  private static final TeamProfile SE_LARGE_WARM =
+      new TeamProfile(
           2L,
           MarketSize.LARGE,
           Geography.SE,
@@ -101,7 +101,7 @@ class OfferScoringTests {
     var prefs = CandidateTestData.preferencesFor(1L);
     var offer = fullyMatchingOffer();
     var a =
-        new FranchiseProfile(
+        new TeamProfile(
             10L,
             MarketSize.LARGE,
             Geography.NE,
@@ -112,7 +112,7 @@ class OfferScoringTests {
             new BigDecimal("50.00"),
             "BALANCED");
     var b =
-        new FranchiseProfile(
+        new TeamProfile(
             11L,
             MarketSize.LARGE,
             Geography.NE,
