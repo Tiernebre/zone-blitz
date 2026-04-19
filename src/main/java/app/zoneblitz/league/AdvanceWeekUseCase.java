@@ -1,5 +1,15 @@
 package app.zoneblitz.league;
 
+import app.zoneblitz.league.hiring.OfferResolver;
+import app.zoneblitz.league.phase.AdvancePhase;
+import app.zoneblitz.league.phase.AdvancePhaseResult;
+import app.zoneblitz.league.phase.HiringPhaseAutofill;
+import app.zoneblitz.league.phase.HiringStep;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.phase.LeaguePhases;
+import app.zoneblitz.league.team.CpuTeamStrategy;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
+import app.zoneblitz.league.team.TeamLookup;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -11,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class AdvanceWeekUseCase implements AdvanceWeek {
+public class AdvanceWeekUseCase implements AdvanceWeek {
 
   private static final Logger log = LoggerFactory.getLogger(AdvanceWeekUseCase.class);
 
@@ -23,7 +33,7 @@ class AdvanceWeekUseCase implements AdvanceWeek {
   private final AdvancePhase advancePhase;
   private final Map<LeaguePhase, CpuTeamStrategy> cpuStrategies;
 
-  AdvanceWeekUseCase(
+  public AdvanceWeekUseCase(
       LeagueRepository leagues,
       OfferResolver offerResolver,
       TeamLookup teams,

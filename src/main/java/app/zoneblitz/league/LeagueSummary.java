@@ -1,5 +1,7 @@
 package app.zoneblitz.league;
 
+import app.zoneblitz.league.franchise.Franchise;
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.time.Instant;
 
 /** A league paired with the requesting user's controlled franchise, for home-page listing. */

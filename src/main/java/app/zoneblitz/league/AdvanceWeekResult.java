@@ -1,5 +1,6 @@
 package app.zoneblitz.league;
 
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.Optional;
 
 public sealed interface AdvanceWeekResult {

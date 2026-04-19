@@ -1,5 +1,9 @@
 package app.zoneblitz.league;
 
+import app.zoneblitz.league.franchise.ListFranchises;
+import app.zoneblitz.league.phase.AdvancePhase;
+import app.zoneblitz.league.phase.AdvancePhaseResult;
+import app.zoneblitz.league.phase.LeaguePhase;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.slf4j.Logger;
@@ -17,7 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.server.ResponseStatusException;
 
 @Controller
-class LeagueController {
+public class LeagueController {
 
   private static final Logger log = LoggerFactory.getLogger(LeagueController.class);
 
@@ -28,7 +32,7 @@ class LeagueController {
   private final DeleteLeague deleteLeague;
   private final AdvancePhase advancePhase;
 
-  LeagueController(
+  public LeagueController(
       ListLeaguesForUser listLeagues,
       ListFranchises listFranchises,
       CreateLeague createLeague,

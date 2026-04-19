@@ -2,6 +2,12 @@ package app.zoneblitz.league;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.zoneblitz.league.franchise.FranchiseRepository;
+import app.zoneblitz.league.franchise.JooqFranchiseRepository;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.team.JooqTeamRepository;
+import app.zoneblitz.league.team.TeamDraft;
+import app.zoneblitz.league.team.TeamRepository;
 import app.zoneblitz.support.PostgresTestcontainer;
 import java.util.List;
 import java.util.Optional;

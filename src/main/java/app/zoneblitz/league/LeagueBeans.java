@@ -1,11 +1,27 @@
 package app.zoneblitz.league;
 
+import app.zoneblitz.league.hiring.CandidateOfferRepository;
+import app.zoneblitz.league.hiring.CandidatePoolRepository;
+import app.zoneblitz.league.hiring.CandidatePoolType;
+import app.zoneblitz.league.hiring.CandidatePreferencesRepository;
+import app.zoneblitz.league.hiring.CandidateRandomSources;
+import app.zoneblitz.league.hiring.CandidateRepository;
+import app.zoneblitz.league.hiring.CoordinatorGenerator;
+import app.zoneblitz.league.hiring.CpuHiringStrategy;
+import app.zoneblitz.league.hiring.DirectorOfScoutingGenerator;
+import app.zoneblitz.league.hiring.HeadCoachGenerator;
+import app.zoneblitz.league.hiring.PositionCoachGenerator;
+import app.zoneblitz.league.hiring.ScoutCandidateGenerator;
+import app.zoneblitz.league.hiring.TeamInterviewRepository;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.team.CpuTeamStrategy;
+import app.zoneblitz.league.team.TeamHiringStateRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /** Wiring for league-feature beans that are not themselves {@code @Component}-annotated. */
 @Configuration
-class LeagueBeans {
+public class LeagueBeans {
 
   @Bean
   HeadCoachGenerator headCoachGenerator() {

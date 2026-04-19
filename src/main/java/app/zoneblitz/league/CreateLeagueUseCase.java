@@ -1,5 +1,9 @@
 package app.zoneblitz.league;
 
+import app.zoneblitz.league.franchise.FranchiseRepository;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.team.TeamDraft;
+import app.zoneblitz.league.team.TeamRepository;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
@@ -7,13 +11,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class CreateLeagueUseCase implements CreateLeague {
+public class CreateLeagueUseCase implements CreateLeague {
 
   private final LeagueRepository leagues;
   private final FranchiseRepository franchises;
   private final TeamRepository teams;
 
-  CreateLeagueUseCase(
+  public CreateLeagueUseCase(
       LeagueRepository leagues, FranchiseRepository franchises, TeamRepository teams) {
     this.leagues = leagues;
     this.franchises = franchises;

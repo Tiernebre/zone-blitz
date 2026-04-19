@@ -3,6 +3,10 @@ package app.zoneblitz.league;
 import static app.zoneblitz.jooq.Tables.TEAMS;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.zoneblitz.league.franchise.FranchiseRepository;
+import app.zoneblitz.league.franchise.JooqFranchiseRepository;
+import app.zoneblitz.league.phase.LeaguePhase;
+import app.zoneblitz.league.team.JooqTeamRepository;
 import app.zoneblitz.support.PostgresTestcontainer;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.BeforeEach;

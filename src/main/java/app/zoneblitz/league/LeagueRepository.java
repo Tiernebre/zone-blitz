@@ -1,9 +1,10 @@
 package app.zoneblitz.league;
 
+import app.zoneblitz.league.phase.LeaguePhase;
 import java.util.List;
 import java.util.Optional;
 
-interface LeagueRepository {
+public interface LeagueRepository {
 
   League insert(String ownerSubject, String name, LeaguePhase phase, LeagueSettings settings);
 
