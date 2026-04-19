@@ -100,9 +100,20 @@ public final class GameSimEmulator {
     var narrator = PlayNarrator.defaultNarrator();
 
     System.out.println("Zone Blitz emulator — seed=" + seed);
-    simulator
-        .simulate(inputs)
-        .forEach(event -> System.out.println(narrator.narrate(event, context)));
+    var summary = simulator.summarize(inputs);
+    summary.events().forEach(event -> System.out.println(narrator.narrate(event, context)));
+    if (!summary.snapCounts().isEmpty()) {
+      System.out.println();
+      System.out.println("Snap counts:");
+      summary.snapCounts().entrySet().stream()
+          .sorted(java.util.Map.Entry.<PlayerId, Integer>comparingByValue().reversed())
+          .forEach(
+              entry ->
+                  System.out.printf(
+                      "  %-24s %3d%n",
+                      playerNames.getOrDefault(entry.getKey(), entry.getKey().toString()),
+                      entry.getValue()));
+    }
   }
 
   private static Team buildTeam(String label, int idSeed, NameGenerator names, RandomSource rng) {

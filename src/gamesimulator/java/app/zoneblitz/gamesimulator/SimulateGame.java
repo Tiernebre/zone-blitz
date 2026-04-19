@@ -15,4 +15,14 @@ public interface SimulateGame {
    * lazily. Events carry monotonically increasing {@code sequence} values starting at 0.
    */
   Stream<PlayEvent> simulate(GameInputs inputs);
+
+  /**
+   * Simulate the supplied game and return both the event stream (collected) and post-game
+   * accumulated stats (snap counts, etc.) derived from the terminal {@link GameState}. The default
+   * implementation collects {@link #simulate} and returns an empty stats bundle; engines that track
+   * snap participation override to surface the real numbers.
+   */
+  default GameSummary summarize(GameInputs inputs) {
+    return new GameSummary(simulate(inputs).toList(), java.util.Map.of());
+  }
 }
