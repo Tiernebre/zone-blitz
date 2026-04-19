@@ -36,6 +36,8 @@ import java.util.Random;
 import java.util.UUID;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 /**
  * Axis-by-axis talent sweep: runs short-game samples across a range of offense/defense talent gaps
@@ -51,6 +53,7 @@ import org.junit.jupiter.api.Test;
  * while still averaging out per-game variance enough to surface curve distortions.
  */
 @Tag("calibration")
+@Execution(ExecutionMode.CONCURRENT)
 class TalentAxisSweepCalibrationTests {
 
   private static final int GAMES_PER_PAIR = 1_000;

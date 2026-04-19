@@ -10,7 +10,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
+@Execution(ExecutionMode.CONCURRENT)
 class BandSamplerCalibrationTests {
 
   private final BandSampler sampler = new DefaultBandSampler();
