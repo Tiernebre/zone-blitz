@@ -44,6 +44,7 @@ class LeagueControllerTests {
   @MockitoBean CreateLeague createLeague;
   @MockitoBean GetLeague getLeague;
   @MockitoBean DeleteLeague deleteLeague;
+  @MockitoBean AdvancePhase advancePhase;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
@@ -88,6 +89,7 @@ class LeagueControllerTests {
             "Dynasty",
             "sub-1",
             LeaguePhase.INITIAL_SETUP,
+            1,
             LeagueSettings.defaults(),
             Instant.now());
     given(createLeague.create(eq("sub-1"), eq("Dynasty"), anyLong()))
@@ -112,6 +114,7 @@ class LeagueControllerTests {
             42L,
             "Dynasty",
             LeaguePhase.INITIAL_SETUP,
+            1,
             Instant.now(),
             new Franchise(
                 1L,
@@ -157,6 +160,7 @@ class LeagueControllerTests {
             42L,
             "Dynasty",
             LeaguePhase.INITIAL_SETUP,
+            1,
             Instant.now(),
             new Franchise(
                 1L,
@@ -210,6 +214,52 @@ class LeagueControllerTests {
   @Test
   void delete_requiresCsrf() throws Exception {
     mvc.perform(post("/leagues/42/delete").with(oauth2Login())).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void advancePhase_whenAdvanced_redirectsToDashboard() throws Exception {
+    given(advancePhase.advance(42L, "sub-1"))
+        .willReturn(
+            new AdvancePhaseResult.Advanced(
+                42L, LeaguePhase.INITIAL_SETUP, LeaguePhase.HIRING_HEAD_COACH));
+
+    mvc.perform(
+            post("/leagues/42/phase/advance")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/leagues/42"));
+
+    verify(advancePhase).advance(42L, "sub-1");
+  }
+
+  @Test
+  void advancePhase_whenNotFound_returns404() throws Exception {
+    given(advancePhase.advance(42L, "sub-1")).willReturn(new AdvancePhaseResult.NotFound(42L));
+
+    mvc.perform(
+            post("/leagues/42/phase/advance")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void advancePhase_whenNoNextPhase_returns409() throws Exception {
+    given(advancePhase.advance(42L, "sub-1"))
+        .willReturn(new AdvancePhaseResult.NoNextPhase(42L, LeaguePhase.HIRING_HEAD_COACH));
+
+    mvc.perform(
+            post("/leagues/42/phase/advance")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void advancePhase_requiresCsrf() throws Exception {
+    mvc.perform(post("/leagues/42/phase/advance").with(oauth2Login()))
+        .andExpect(status().isForbidden());
   }
 
   @Test

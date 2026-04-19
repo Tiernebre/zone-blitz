@@ -13,5 +13,22 @@ interface LeagueRepository {
 
   Optional<LeagueSummary> findSummaryByIdAndOwner(long id, String ownerSubject);
 
+  Optional<League> findById(long id);
+
+  /**
+   * Update the phase and reset {@code phase_week} to 1.
+   *
+   * @return true if a row was updated, false if the league does not exist.
+   */
+  boolean updatePhaseAndResetWeek(long id, LeaguePhase phase);
+
+  /**
+   * Increment {@code phase_week} by 1.
+   *
+   * @return the new {@code phase_week} value wrapped in {@link Optional}, or empty if the league
+   *     does not exist.
+   */
+  Optional<Integer> incrementPhaseWeek(long id);
+
   boolean deleteByIdAndOwner(long id, String ownerSubject);
 }

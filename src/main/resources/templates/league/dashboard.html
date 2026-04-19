@@ -87,6 +87,21 @@
 
 		<main class="flex-1 p-8">
 			<h1 class="text-3xl font-bold" th:text="${league.leagueName()}">League name</h1>
+			<section th:if="${league.phase().name() == 'INITIAL_SETUP'}"
+			         class="mt-6 max-w-2xl bg-white border border-slate-200 rounded p-6 shadow-sm">
+				<h2 class="text-xl font-semibold text-slate-900">Welcome to your league</h2>
+				<p class="mt-2 text-slate-700">
+					Your franchise is ready. Next up: hire a Head Coach to lead the team.
+				</p>
+				<form th:action="@{'/leagues/' + ${league.leagueId()} + '/phase/advance'}"
+				      method="post"
+				      class="mt-4">
+					<button type="submit"
+					        class="inline-flex items-center gap-2 px-4 py-2 rounded bg-slate-900 text-white font-medium hover:bg-slate-800 cursor-pointer">
+						Advance to staff hiring
+					</button>
+				</form>
+			</section>
 		</main>
 	</div>
 	<script>
