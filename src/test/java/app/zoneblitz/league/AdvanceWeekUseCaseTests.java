@@ -106,25 +106,39 @@ class AdvanceWeekUseCaseTests {
   @Test
   void advance_incrementsPhaseWeekAndReturnsTicked() {
     var league = createLeagueFor("sub-1");
+    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
 
     var result = advanceWeek.advance(league.id(), "sub-1");
 
     assertThat(result)
         .isEqualTo(
             new AdvanceWeekResult.Ticked(
-                league.id(), LeaguePhase.INITIAL_SETUP, 2, Optional.empty()));
+                league.id(), LeaguePhase.HIRING_HEAD_COACH, 2, Optional.empty()));
     assertThat(leagues.findById(league.id()).orElseThrow().phaseWeek()).isEqualTo(2);
   }
 
   @Test
   void advance_repeatedTicks_keepIncrementing() {
     var league = createLeagueFor("sub-1");
+    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
 
-    advanceWeek.advance(league.id(), "sub-1");
     advanceWeek.advance(league.id(), "sub-1");
     var result = advanceWeek.advance(league.id(), "sub-1");
 
-    assertThat(((AdvanceWeekResult.Ticked) result).phaseWeek()).isEqualTo(4);
+    assertThat(((AdvanceWeekResult.Ticked) result).phaseWeek()).isEqualTo(3);
+    assertThat(((AdvanceWeekResult.Ticked) result).transitionedTo()).isEmpty();
+  }
+
+  @Test
+  void advance_fromInitialSetup_transitionsToHeadCoachHiring() {
+    var league = createLeagueFor("sub-1");
+
+    var result = advanceWeek.advance(league.id(), "sub-1");
+
+    var ticked = (AdvanceWeekResult.Ticked) result;
+    assertThat(ticked.phase()).isEqualTo(LeaguePhase.HIRING_HEAD_COACH);
+    assertThat(ticked.phaseWeek()).isEqualTo(1);
+    assertThat(ticked.transitionedTo()).contains(LeaguePhase.HIRING_HEAD_COACH);
   }
 
   @Test
@@ -137,6 +151,7 @@ class AdvanceWeekUseCaseTests {
   @Test
   void advance_invokesOfferResolverBeforeIncrementingWeek() {
     var league = createLeagueFor("sub-1");
+    leagues.updatePhaseAndResetWeek(league.id(), LeaguePhase.HIRING_HEAD_COACH);
     var seen = new java.util.concurrent.atomic.AtomicInteger(-1);
     OfferResolver capturingResolver = (leagueId, phase, weekAtResolve) -> seen.set(weekAtResolve);
     var useCase =

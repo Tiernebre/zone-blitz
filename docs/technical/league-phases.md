@@ -232,9 +232,9 @@ Per-phase dashboard views, composed from HTMX fragments. Separate URLs for full 
 
 | Phase | Page | Fragments |
 |---|---|---|
-| `INITIAL_SETUP` | `/leagues/{id}` (dashboard) | Intro card, `POST /leagues/{id}/phase/advance`. |
-| `HIRING_HEAD_COACH` / `HIRING_DIRECTOR_OF_SCOUTING` | `/leagues/{id}/hiring/{role}` | Candidate pool table, shortlist panel, active interview card, active negotiation card, week counter, `POST /leagues/{id}/week/advance`. |
-| `ASSEMBLING_STAFF` | `/leagues/{id}/staff-recap` | League-wide staff hire recap, `POST /leagues/{id}/phase/advance`. |
+| `INITIAL_SETUP` | `/leagues/{id}` (dashboard) | Intro card, `POST /leagues/{id}/advance` (runs a week tick; INITIAL_SETUP transitions immediately). |
+| `HIRING_HEAD_COACH` / `HIRING_DIRECTOR_OF_SCOUTING` | `/leagues/{id}/hiring/{role}` | Candidate pool table, shortlist panel, active interview card, active negotiation card, week counter, `POST /leagues/{id}/advance`. |
+| `ASSEMBLING_STAFF` | `/leagues/{id}/staff-recap` | League-wide staff hire recap, `POST /leagues/{id}/advance`. |
 
 Dashboard (`/leagues/{id}`) is the default landing; it redirects or composes the active phase's view based on `league.phase`.
 

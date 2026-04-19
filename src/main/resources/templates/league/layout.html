@@ -118,7 +118,7 @@
 					</p>
 				</div>
 				<form th:unless="${phaseName == 'COMPLETE'}"
-				      th:action="@{'/leagues/' + ${league.leagueId()} + '/phase/advance'}"
+				      th:action="@{'/leagues/' + ${league.leagueId()} + '/advance'}"
 				      method="post"
 				      class="shrink-0">
 					<button type="submit"

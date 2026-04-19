@@ -102,7 +102,9 @@ public class AdvanceWeekUseCase implements AdvanceWeek {
   }
 
   private boolean shouldComplete(long leagueId, LeaguePhase phase, int resolvedAtWeek) {
-    return allTeamsHired(leagueId, phase) || overCap(phase, resolvedAtWeek);
+    return phase == LeaguePhase.INITIAL_SETUP
+        || allTeamsHired(leagueId, phase)
+        || overCap(phase, resolvedAtWeek);
   }
 
   private boolean allTeamsHired(long leagueId, LeaguePhase phase) {

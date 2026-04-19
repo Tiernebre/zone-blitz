@@ -1,8 +1,6 @@
 package app.zoneblitz.league;
 
 import app.zoneblitz.league.franchise.ListFranchises;
-import app.zoneblitz.league.phase.AdvancePhase;
-import app.zoneblitz.league.phase.AdvancePhaseResult;
 import app.zoneblitz.league.phase.LeaguePhase;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -30,7 +28,7 @@ public class LeagueController {
   private final CreateLeague createLeague;
   private final GetLeague getLeague;
   private final DeleteLeague deleteLeague;
-  private final AdvancePhase advancePhase;
+  private final AdvanceWeek advanceWeek;
 
   public LeagueController(
       ListLeaguesForUser listLeagues,
@@ -38,13 +36,13 @@ public class LeagueController {
       CreateLeague createLeague,
       GetLeague getLeague,
       DeleteLeague deleteLeague,
-      AdvancePhase advancePhase) {
+      AdvanceWeek advanceWeek) {
     this.listLeagues = listLeagues;
     this.listFranchises = listFranchises;
     this.createLeague = createLeague;
     this.getLeague = getLeague;
     this.deleteLeague = deleteLeague;
-    this.advancePhase = advancePhase;
+    this.advanceWeek = advanceWeek;
   }
 
   @GetMapping("/")
@@ -77,23 +75,22 @@ public class LeagueController {
     return "league/settings";
   }
 
-  @PostMapping("/leagues/{id}/phase/advance")
-  String advancePhase(@AuthenticationPrincipal OAuth2User principal, @PathVariable long id) {
+  @PostMapping("/leagues/{id}/advance")
+  String advance(@AuthenticationPrincipal OAuth2User principal, @PathVariable long id) {
     var ownerSubject = principal.<String>getAttribute("sub");
-    var result = advancePhase.advance(id, ownerSubject);
+    var result = advanceWeek.advance(id, ownerSubject);
     return switch (result) {
-      case AdvancePhaseResult.Advanced advanced -> {
+      case AdvanceWeekResult.Ticked ticked -> {
         log.info(
-            "league phase advanced id={} from={} to={}",
-            advanced.leagueId(),
-            advanced.from(),
-            advanced.to());
-        yield "redirect:" + landingPathFor(id, advanced.to());
+            "league week advanced id={} phase={} week={} transitionedTo={}",
+            ticked.leagueId(),
+            ticked.phase(),
+            ticked.phaseWeek(),
+            ticked.transitionedTo().map(Enum::name).orElse("none"));
+        yield "redirect:" + landingPathFor(id, ticked.phase());
       }
-      case AdvancePhaseResult.NotFound ignored ->
+      case AdvanceWeekResult.NotFound ignored ->
           throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-      case AdvancePhaseResult.NoNextPhase ignored ->
-          throw new ResponseStatusException(HttpStatus.CONFLICT);
     };
   }
 

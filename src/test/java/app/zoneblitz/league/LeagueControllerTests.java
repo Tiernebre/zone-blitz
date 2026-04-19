@@ -20,8 +20,6 @@ import app.zoneblitz.league.franchise.Franchise;
 import app.zoneblitz.league.franchise.ListFranchises;
 import app.zoneblitz.league.geography.City;
 import app.zoneblitz.league.geography.State;
-import app.zoneblitz.league.phase.AdvancePhase;
-import app.zoneblitz.league.phase.AdvancePhaseResult;
 import app.zoneblitz.league.phase.LeaguePhase;
 import java.time.Instant;
 import java.util.List;
@@ -53,7 +51,7 @@ class LeagueControllerTests {
   @MockitoBean CreateLeague createLeague;
   @MockitoBean GetLeague getLeague;
   @MockitoBean DeleteLeague deleteLeague;
-  @MockitoBean AdvancePhase advancePhase;
+  @MockitoBean AdvanceWeek advanceWeek;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
@@ -231,31 +229,34 @@ class LeagueControllerTests {
   }
 
   @Test
-  void advancePhase_whenAdvancedToHeadCoach_redirectsToHeadCoachHiring() throws Exception {
-    given(advancePhase.advance(42L, "sub-1"))
+  void advance_whenTickStaysInHeadCoach_redirectsToHeadCoachHiring() throws Exception {
+    given(advanceWeek.advance(42L, "sub-1"))
         .willReturn(
-            new AdvancePhaseResult.Advanced(
-                42L, LeaguePhase.INITIAL_SETUP, LeaguePhase.HIRING_HEAD_COACH));
+            new AdvanceWeekResult.Ticked(42L, LeaguePhase.HIRING_HEAD_COACH, 2, Optional.empty()));
 
     mvc.perform(
-            post("/leagues/42/phase/advance")
+            post("/leagues/42/advance")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
                 .with(csrf()))
         .andExpect(status().is3xxRedirection())
         .andExpect(redirectedUrl("/leagues/42/hiring/head-coach"));
 
-    verify(advancePhase).advance(42L, "sub-1");
+    verify(advanceWeek).advance(42L, "sub-1");
   }
 
   @Test
-  void advancePhase_whenAdvancedToDirectorOfScouting_redirectsToDirectorHiring() throws Exception {
-    given(advancePhase.advance(42L, "sub-1"))
+  void advance_whenTickTransitionsToDirectorOfScouting_redirectsToDirectorHiring()
+      throws Exception {
+    given(advanceWeek.advance(42L, "sub-1"))
         .willReturn(
-            new AdvancePhaseResult.Advanced(
-                42L, LeaguePhase.HIRING_HEAD_COACH, LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING));
+            new AdvanceWeekResult.Ticked(
+                42L,
+                LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING,
+                1,
+                Optional.of(LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING)));
 
     mvc.perform(
-            post("/leagues/42/phase/advance")
+            post("/leagues/42/advance")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
                 .with(csrf()))
         .andExpect(status().is3xxRedirection())
@@ -263,14 +264,14 @@ class LeagueControllerTests {
   }
 
   @Test
-  void advancePhase_whenAdvancedToAssemblingStaff_redirectsToStaffRecap() throws Exception {
-    given(advancePhase.advance(42L, "sub-1"))
+  void advance_whenTickTransitionsToAssemblingStaff_redirectsToStaffRecap() throws Exception {
+    given(advanceWeek.advance(42L, "sub-1"))
         .willReturn(
-            new AdvancePhaseResult.Advanced(
-                42L, LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING, LeaguePhase.ASSEMBLING_STAFF));
+            new AdvanceWeekResult.Ticked(
+                42L, LeaguePhase.ASSEMBLING_STAFF, 1, Optional.of(LeaguePhase.ASSEMBLING_STAFF)));
 
     mvc.perform(
-            post("/leagues/42/phase/advance")
+            post("/leagues/42/advance")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
                 .with(csrf()))
         .andExpect(status().is3xxRedirection())
@@ -278,14 +279,14 @@ class LeagueControllerTests {
   }
 
   @Test
-  void advancePhase_whenAdvancedToComplete_redirectsToDashboard() throws Exception {
-    given(advancePhase.advance(42L, "sub-1"))
+  void advance_whenTickTransitionsToComplete_redirectsToDashboard() throws Exception {
+    given(advanceWeek.advance(42L, "sub-1"))
         .willReturn(
-            new AdvancePhaseResult.Advanced(
-                42L, LeaguePhase.ASSEMBLING_STAFF, LeaguePhase.COMPLETE));
+            new AdvanceWeekResult.Ticked(
+                42L, LeaguePhase.COMPLETE, 1, Optional.of(LeaguePhase.COMPLETE)));
 
     mvc.perform(
-            post("/leagues/42/phase/advance")
+            post("/leagues/42/advance")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
                 .with(csrf()))
         .andExpect(status().is3xxRedirection())
@@ -293,32 +294,19 @@ class LeagueControllerTests {
   }
 
   @Test
-  void advancePhase_whenNotFound_returns404() throws Exception {
-    given(advancePhase.advance(42L, "sub-1")).willReturn(new AdvancePhaseResult.NotFound(42L));
+  void advance_whenNotFound_returns404() throws Exception {
+    given(advanceWeek.advance(42L, "sub-1")).willReturn(new AdvanceWeekResult.NotFound(42L));
 
     mvc.perform(
-            post("/leagues/42/phase/advance")
+            post("/leagues/42/advance")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
                 .with(csrf()))
         .andExpect(status().isNotFound());
   }
 
   @Test
-  void advancePhase_whenNoNextPhase_returns409() throws Exception {
-    given(advancePhase.advance(42L, "sub-1"))
-        .willReturn(new AdvancePhaseResult.NoNextPhase(42L, LeaguePhase.HIRING_HEAD_COACH));
-
-    mvc.perform(
-            post("/leagues/42/phase/advance")
-                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
-                .with(csrf()))
-        .andExpect(status().isConflict());
-  }
-
-  @Test
-  void advancePhase_requiresCsrf() throws Exception {
-    mvc.perform(post("/leagues/42/phase/advance").with(oauth2Login()))
-        .andExpect(status().isForbidden());
+  void advance_requiresCsrf() throws Exception {
+    mvc.perform(post("/leagues/42/advance").with(oauth2Login())).andExpect(status().isForbidden());
   }
 
   @Test
