@@ -9,6 +9,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,6 +26,7 @@ import app.zoneblitz.league.phase.LeaguePhase;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -135,7 +137,10 @@ class LeagueControllerTests {
     mvc.perform(get("/leagues/42").with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
         .andExpect(status().isOk())
         .andExpect(view().name("league/dashboard"))
-        .andExpect(model().attribute("league", summary));
+        .andExpect(model().attribute("league", summary))
+        .andExpect(content().string(Matchers.containsString("All Leagues")))
+        .andExpect(content().string(Matchers.containsString("id=\"profile-toggle\"")))
+        .andExpect(content().string(Matchers.containsString("id=\"profile-menu\"")));
   }
 
   @Test
@@ -226,7 +231,7 @@ class LeagueControllerTests {
   }
 
   @Test
-  void advancePhase_whenAdvanced_redirectsToDashboard() throws Exception {
+  void advancePhase_whenAdvancedToHeadCoach_redirectsToHeadCoachHiring() throws Exception {
     given(advancePhase.advance(42L, "sub-1"))
         .willReturn(
             new AdvancePhaseResult.Advanced(
@@ -237,9 +242,54 @@ class LeagueControllerTests {
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
                 .with(csrf()))
         .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/leagues/42"));
+        .andExpect(redirectedUrl("/leagues/42/hiring/head-coach"));
 
     verify(advancePhase).advance(42L, "sub-1");
+  }
+
+  @Test
+  void advancePhase_whenAdvancedToDirectorOfScouting_redirectsToDirectorHiring() throws Exception {
+    given(advancePhase.advance(42L, "sub-1"))
+        .willReturn(
+            new AdvancePhaseResult.Advanced(
+                42L, LeaguePhase.HIRING_HEAD_COACH, LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING));
+
+    mvc.perform(
+            post("/leagues/42/phase/advance")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/leagues/42/hiring/director-of-scouting"));
+  }
+
+  @Test
+  void advancePhase_whenAdvancedToAssemblingStaff_redirectsToStaffRecap() throws Exception {
+    given(advancePhase.advance(42L, "sub-1"))
+        .willReturn(
+            new AdvancePhaseResult.Advanced(
+                42L, LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING, LeaguePhase.ASSEMBLING_STAFF));
+
+    mvc.perform(
+            post("/leagues/42/phase/advance")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/leagues/42/staff-recap"));
+  }
+
+  @Test
+  void advancePhase_whenAdvancedToComplete_redirectsToDashboard() throws Exception {
+    given(advancePhase.advance(42L, "sub-1"))
+        .willReturn(
+            new AdvancePhaseResult.Advanced(
+                42L, LeaguePhase.ASSEMBLING_STAFF, LeaguePhase.COMPLETE));
+
+    mvc.perform(
+            post("/leagues/42/phase/advance")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/leagues/42"));
   }
 
   @Test

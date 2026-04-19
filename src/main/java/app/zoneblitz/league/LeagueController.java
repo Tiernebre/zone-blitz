@@ -62,15 +62,6 @@ public class LeagueController {
         getLeague
             .get(id, principal.getAttribute("sub"))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    if (league.phase() == LeaguePhase.HIRING_HEAD_COACH) {
-      return "redirect:/leagues/" + id + "/hiring/head-coach";
-    }
-    if (league.phase() == LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING) {
-      return "redirect:/leagues/" + id + "/hiring/director-of-scouting";
-    }
-    if (league.phase() == LeaguePhase.ASSEMBLING_STAFF) {
-      return "redirect:/leagues/" + id + "/staff-recap";
-    }
     model.addAttribute("league", league);
     return "league/dashboard";
   }
@@ -97,12 +88,21 @@ public class LeagueController {
             advanced.leagueId(),
             advanced.from(),
             advanced.to());
-        yield "redirect:/leagues/" + id;
+        yield "redirect:" + landingPathFor(id, advanced.to());
       }
       case AdvancePhaseResult.NotFound ignored ->
           throw new ResponseStatusException(HttpStatus.NOT_FOUND);
       case AdvancePhaseResult.NoNextPhase ignored ->
           throw new ResponseStatusException(HttpStatus.CONFLICT);
+    };
+  }
+
+  private static String landingPathFor(long id, LeaguePhase phase) {
+    return switch (phase) {
+      case HIRING_HEAD_COACH -> "/leagues/" + id + "/hiring/head-coach";
+      case HIRING_DIRECTOR_OF_SCOUTING -> "/leagues/" + id + "/hiring/director-of-scouting";
+      case ASSEMBLING_STAFF -> "/leagues/" + id + "/staff-recap";
+      case INITIAL_SETUP, COMPLETE -> "/leagues/" + id;
     };
   }
 

@@ -1,125 +1,46 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-	<meta charset="UTF-8">
-	<title th:text="${league.leagueName() + ' — Zone Blitz'}">League — Zone Blitz</title>
-	<script>
-		if (localStorage.getItem('sidebar-collapsed') === '1') {
-			document.documentElement.classList.add('sidebar-collapsed');
-		}
-	</script>
-	<link rel="stylesheet" th:href="@{/css/app.css}">
-	<style>
-		.sidebar { width: 15rem; transition: width 150ms ease; }
-		html.sidebar-collapsed .sidebar { width: 4rem; }
-		html.sidebar-collapsed .sidebar-label { display: none; }
-		html.sidebar-collapsed .sidebar-toggle-icon { transform: rotate(180deg); }
-		html.sidebar-collapsed .sidebar-nav-item { justify-content: center; padding: 0; width: 2.75rem; height: 2.75rem; margin-left: auto; margin-right: auto; }
-		#profile-toggle { anchor-name: --profile-anchor; }
-			#profile-menu {
-				margin: 0;
-				inset: auto;
-				position: fixed;
-				position-anchor: --profile-anchor;
-				bottom: calc(anchor(top) + 4px);
-				left: anchor(left);
-			}
-	</style>
-	<script th:src="@{/webjars/htmx.org/2.0.4/dist/htmx.min.js}" defer></script>
-</head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
-	<div class="flex min-h-screen">
-		<aside class="sidebar bg-slate-900 text-slate-100 flex flex-col">
-			<div class="flex items-center gap-2 p-2 border-b border-slate-800">
-				<span class="sidebar-label font-semibold truncate flex-1 pl-2"
-				      th:text="${league.leagueName()}">League name</span>
-				<button type="button"
-				        id="sidebar-toggle"
-				        class="flex items-center justify-center size-11 rounded text-slate-300 hover:bg-slate-800 shrink-0 cursor-pointer">
-					<svg th:replace="~{icons :: chevron-left(cls='size-5 sidebar-toggle-icon transition-transform')}"></svg>
-				</button>
-			</div>
-			<nav class="flex flex-col p-2 gap-1 text-sm flex-1">
-				<a th:href="@{'/leagues/' + ${league.leagueId()}}"
-				   class="sidebar-nav-item flex items-center gap-2 px-3 py-2 rounded bg-slate-800 text-white font-medium">
-					<svg th:replace="~{icons :: home(cls='size-4 shrink-0')}"></svg>
-					<span class="sidebar-label">Home</span>
-				</a>
-				<a th:href="@{'/leagues/' + ${league.leagueId()} + '/settings'}"
-				   class="sidebar-nav-item flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-800 text-slate-300">
-					<svg th:replace="~{icons :: cog(cls='size-4 shrink-0')}"></svg>
-					<span class="sidebar-label">Settings</span>
-				</a>
-			</nav>
-			<div class="p-2 border-t border-slate-800 relative">
-				<a th:href="@{/}"
-				   class="sidebar-nav-item flex items-center gap-2 px-3 py-2 rounded hover:bg-slate-800 text-slate-300 text-sm mb-1">
-					<svg th:replace="~{icons :: arrow-left(cls='size-4 shrink-0')}"></svg>
-					<span class="sidebar-label">All Leagues</span>
-				</a>
-				<button type="button"
-				        id="profile-toggle"
-				        popovertarget="profile-menu"
-				        class="sidebar-nav-item flex items-center gap-2 w-full px-3 py-2 rounded hover:bg-slate-800 text-slate-200 text-sm cursor-pointer">
-					<svg th:replace="~{icons :: user-circle(cls='size-5 shrink-0')}"></svg>
-					<span class="sidebar-label truncate">Profile</span>
-				</button>
-				<div id="profile-menu" popover
-				     class="min-w-48 bg-slate-800 rounded shadow-lg py-1 text-sm">
-					<form th:action="@{/logout}" method="post">
-						<button type="submit"
-						        class="w-full text-left px-3 py-2 hover:bg-slate-700 text-slate-200 cursor-pointer">
-							Sign Out
-						</button>
-					</form>
-					<form th:action="@{/account/delete}" method="post"
-					      onsubmit="return confirm('Delete your account? This cannot be undone.');">
-						<button type="submit"
-						        class="w-full text-left px-3 py-2 hover:bg-slate-700 text-red-400 cursor-pointer">
-							Delete Account
-						</button>
-					</form>
-				</div>
-			</div>
-		</aside>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{league/layout :: shell(
+          league=${league},
+          activeNav='home',
+          pageTitle=${league.leagueName() + ' — Zone Blitz'},
+          includeHtmx=false,
+          content=~{:: #page-content})}">
+<body>
+	<div id="page-content"
+	     th:with="phaseName=${league.phase().name()}">
+		<h1 class="text-3xl font-bold" th:text="${league.leagueName()}">League name</h1>
 
-		<main class="flex-1 p-8">
-			<h1 class="text-3xl font-bold" th:text="${league.leagueName()}">League name</h1>
-			<section th:if="${league.phase().name() == 'INITIAL_SETUP'}"
-			         class="mt-6 max-w-2xl bg-white border border-slate-200 rounded p-6 shadow-sm">
-				<h2 class="text-xl font-semibold text-slate-900">Welcome to your league</h2>
-				<p class="mt-2 text-slate-700">
-					Your franchise is ready. Next up: hire a Head Coach to lead the team.
-				</p>
-				<form th:action="@{'/leagues/' + ${league.leagueId()} + '/phase/advance'}"
-				      method="post"
-				      class="mt-4">
-					<button type="submit"
-					        class="inline-flex items-center gap-2 px-4 py-2 rounded bg-slate-900 text-white font-medium hover:bg-slate-800 cursor-pointer">
-						Advance to staff hiring
-					</button>
-				</form>
-			</section>
-		</main>
+		<section th:if="${phaseName == 'INITIAL_SETUP'}"
+		         class="mt-6 max-w-2xl bg-white border border-slate-200 rounded p-6 shadow-sm">
+			<h2 class="text-xl font-semibold text-slate-900">Welcome to your league</h2>
+			<p class="mt-2 text-slate-700">
+				Your franchise is ready. Next up: hire a Head Coach to lead the team.
+			</p>
+			<form th:action="@{'/leagues/' + ${league.leagueId()} + '/phase/advance'}"
+			      method="post"
+			      class="mt-4">
+				<button type="submit"
+				        class="inline-flex items-center gap-2 px-4 py-2 rounded bg-slate-900 text-white font-medium hover:bg-slate-800 cursor-pointer">
+					Advance to staff hiring
+				</button>
+			</form>
+		</section>
+
+		<section th:if="${phaseName == 'HIRING_HEAD_COACH' or phaseName == 'HIRING_DIRECTOR_OF_SCOUTING' or phaseName == 'ASSEMBLING_STAFF'}"
+		         th:with="staffHiringHref=${phaseName == 'HIRING_HEAD_COACH' ? '/leagues/' + league.leagueId() + '/hiring/head-coach' : (phaseName == 'HIRING_DIRECTOR_OF_SCOUTING' ? '/leagues/' + league.leagueId() + '/hiring/director-of-scouting' : '/leagues/' + league.leagueId() + '/staff-recap')},
+		                  phaseLabel=${phaseName == 'HIRING_HEAD_COACH' ? 'Hiring Head Coach' : (phaseName == 'HIRING_DIRECTOR_OF_SCOUTING' ? 'Hiring Director of Scouting' : 'Assembling Staff')}"
+		         class="mt-6 max-w-2xl bg-white border border-slate-200 rounded p-6 shadow-sm">
+			<p class="text-xs font-medium uppercase tracking-wide text-slate-500" th:text="${phaseLabel}">Phase</p>
+			<h2 class="mt-1 text-xl font-semibold text-slate-900">Continue staff hiring</h2>
+			<p class="mt-2 text-slate-700">
+				Pick up where you left off in the staff hiring flow.
+			</p>
+			<a th:href="@{${staffHiringHref}}"
+			   class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded bg-slate-900 text-white font-medium hover:bg-slate-800">
+				Continue staff hiring
+			</a>
+		</section>
 	</div>
-	<script>
-		(() => {
-			const html = document.documentElement;
-			const btn = document.getElementById('sidebar-toggle');
-			const sync = () => {
-				const collapsed = html.classList.contains('sidebar-collapsed');
-				btn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
-				btn.setAttribute('aria-expanded', String(!collapsed));
-			};
-			btn.addEventListener('click', () => {
-				const collapsed = html.classList.toggle('sidebar-collapsed');
-				localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0');
-				sync();
-			});
-			sync();
-		})();
-	</script>
 </body>
 </html>

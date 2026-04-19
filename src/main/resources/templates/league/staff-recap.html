@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-	<meta charset="UTF-8">
-	<title th:text="${view.league().leagueName() + ' — Staff Recap — Zone Blitz'}">Staff Recap — Zone Blitz</title>
-	<meta name="_csrf" th:content="${_csrf.token}">
-	<meta name="_csrf_header" th:content="${_csrf.headerName}">
-	<link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
-	<main class="max-w-5xl mx-auto p-6 space-y-4">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{league/layout :: shell(
+          league=${view.league()},
+          activeNav='staff-hiring',
+          pageTitle=${view.league().leagueName() + ' — Staff Recap — Zone Blitz'},
+          includeHtmx=false,
+          content=~{:: #page-content})}">
+<body>
+	<div id="page-content" class="space-y-4">
 		<header class="flex items-center justify-between">
 			<div>
 				<h1 class="text-2xl font-bold" th:text="${view.league().leagueName()}">League</h1>
@@ -58,6 +57,6 @@
 				</ul>
 			</details>
 		</section>
-	</main>
+	</div>
 </body>
 </html>
