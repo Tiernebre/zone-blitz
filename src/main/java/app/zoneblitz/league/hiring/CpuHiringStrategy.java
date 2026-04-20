@@ -83,6 +83,64 @@ public class CpuHiringStrategy implements CpuTeamStrategy {
     return phase;
   }
 
+  /**
+   * Decide how a CPU team responds to a candidate-driven counter-offer. Mirrors the human path
+   * handled by {@link MatchCounterOffer} / {@link DeclineCounterOffer}: match the competing terms
+   * (transition back to {@link OfferStatus#ACTIVE}) when the candidate is a strong fit and the
+   * budget can absorb the APY delta, otherwise walk ({@link OfferStatus#REJECTED}).
+   *
+   * <p>Heuristic reuses the same preference-fit signal the CPU used when it placed the original
+   * offer: a LUKEWARM-or-better fit plus a budget that can absorb the {@code competingApy -
+   * currentApy} delta is enough to match. Walk otherwise.
+   */
+  void respondToCounter(
+      long leagueId,
+      long teamId,
+      int phaseDay,
+      CandidateOffer counterPendingOffer,
+      CandidateOffer competingOffer,
+      StaffBudget budget) {
+    var prefs = preferences.findByCandidateId(counterPendingOffer.candidateId());
+    var profile = teamProfiles.forTeam(teamId);
+    if (prefs.isEmpty() || profile.isEmpty()) {
+      offers.resolve(counterPendingOffer.id(), OfferStatus.REJECTED);
+      log.info(
+          "cpu counter walk — missing prefs/profile leagueId={} teamId={} offerId={}",
+          leagueId,
+          teamId,
+          counterPendingOffer.id());
+      return;
+    }
+    var fit = fitScore(profile.get(), prefs.get());
+    var competingTerms = OfferTermsJson.fromJson(competingOffer.terms());
+    var currentTerms = OfferTermsJson.fromJson(counterPendingOffer.terms());
+    var competingApyCents = competingTerms.compensation().movePointRight(2).longValueExact();
+    var currentApyCents = currentTerms.compensation().movePointRight(2).longValueExact();
+    var deltaCents = competingApyCents - currentApyCents;
+    var canAffordDelta = deltaCents <= 0 || budget.canAfford(deltaCents);
+    if (fit >= InterestScoring.LUKEWARM_THRESHOLD && canAffordDelta) {
+      offers.acceptCounter(
+          counterPendingOffer.id(), OfferTermsJson.toJson(competingTerms), phaseDay);
+      log.info(
+          "cpu counter matched leagueId={} teamId={} offerId={} competingOfferId={} day={}",
+          leagueId,
+          teamId,
+          counterPendingOffer.id(),
+          competingOffer.id(),
+          phaseDay);
+      return;
+    }
+    offers.resolve(counterPendingOffer.id(), OfferStatus.REJECTED);
+    log.info(
+        "cpu counter walked leagueId={} teamId={} offerId={} fit={} canAffordDelta={} day={}",
+        leagueId,
+        teamId,
+        counterPendingOffer.id(),
+        fit,
+        canAffordDelta,
+        phaseDay);
+  }
+
   @Override
   public void execute(long leagueId, long teamId, int phaseDay) {
     var existing = hiringStates.find(teamId, phase());

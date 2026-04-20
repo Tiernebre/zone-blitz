@@ -140,6 +140,7 @@ class LeagueControllerTests {
             "sub-1",
             LeaguePhase.INITIAL_SETUP,
             1,
+            1,
             LeagueSettings.defaults(),
             Instant.now());
     given(createLeague.create(eq("sub-1"), eq("Dynasty"), anyLong()))

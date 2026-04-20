@@ -110,17 +110,8 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
             teamLookup,
             profiles,
             rngs);
-    var resolver =
-        new PreferenceScoringOfferResolver(
-            offers,
-            candidates,
-            pools,
-            preferences,
-            profiles,
-            hiringStates,
-            staff,
-            teamLookup,
-            rngs);
+    var budgets = new JooqStaffBudgetRepository(dsl);
+    var staffContracts = new JooqStaffContractRepository(dsl);
     var hcCpu =
         new CpuHiringStrategy(
             LeaguePhase.HIRING_HEAD_COACH,
@@ -143,6 +134,21 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
             hiringStates,
             interviews,
             profiles);
+    var resolver =
+        new PreferenceScoringOfferResolver(
+            offers,
+            candidates,
+            pools,
+            preferences,
+            profiles,
+            hiringStates,
+            staff,
+            teamLookup,
+            rngs,
+            budgets,
+            staffContracts,
+            leagues,
+            List.of(hcCpu, dosCpu));
 
     advanceDay =
         new AdvanceDayUseCase(

@@ -3,12 +3,14 @@ package app.zoneblitz.league.hiring;
 import app.zoneblitz.league.AdvanceDay;
 import app.zoneblitz.league.AdvanceDayResult;
 import app.zoneblitz.league.LeagueRepository;
+import app.zoneblitz.league.LeagueSummary;
 import app.zoneblitz.league.phase.HiringPhases;
 import app.zoneblitz.league.phase.HiringStep;
 import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.phase.LeaguePhases;
 import app.zoneblitz.league.staff.NewTeamStaffMember;
 import app.zoneblitz.league.staff.StaffRole;
+import app.zoneblitz.league.staff.TeamStaffMember;
 import app.zoneblitz.league.staff.TeamStaffRepository;
 import app.zoneblitz.league.team.TeamHiringState;
 import app.zoneblitz.league.team.TeamHiringStateRepository;
@@ -31,6 +33,7 @@ public class HireCandidateUseCase implements HireCandidate {
   private final CandidateOfferRepository offers;
   private final TeamHiringStateRepository hiringStates;
   private final TeamStaffRepository staff;
+  private final StaffContractRepository staffContracts;
   private final AdvanceDay advanceDay;
 
   public HireCandidateUseCase(
@@ -40,6 +43,7 @@ public class HireCandidateUseCase implements HireCandidate {
       CandidateOfferRepository offers,
       TeamHiringStateRepository hiringStates,
       TeamStaffRepository staff,
+      StaffContractRepository staffContracts,
       AdvanceDay advanceDay) {
     this.leagues = leagues;
     this.pools = pools;
@@ -47,6 +51,7 @@ public class HireCandidateUseCase implements HireCandidate {
     this.offers = offers;
     this.hiringStates = hiringStates;
     this.staff = staff;
+    this.staffContracts = staffContracts;
     this.advanceDay = advanceDay;
   }
 
@@ -87,7 +92,7 @@ public class HireCandidateUseCase implements HireCandidate {
     for (var other : offers.findActiveForCandidate(candidateId)) {
       offers.resolve(other.id(), OfferStatus.REJECTED);
     }
-    upsertHired(teamId, phase, candidateId, league.phaseDay());
+    upsertHired(teamId, phase, candidateId, league.phaseDay(), offer.get(), league);
     log.info(
         "user hire leagueId={} teamId={} candidateId={} offerId={} day={}",
         leagueId,
@@ -118,7 +123,13 @@ public class HireCandidateUseCase implements HireCandidate {
     }
   }
 
-  private void upsertHired(long teamId, LeaguePhase phase, long candidateId, int dayAtResolve) {
+  private void upsertHired(
+      long teamId,
+      LeaguePhase phase,
+      long candidateId,
+      int dayAtResolve,
+      CandidateOffer offer,
+      LeagueSummary league) {
     var existing = hiringStates.find(teamId, phase);
     hiringStates.upsert(
         new TeamHiringState(
@@ -127,9 +138,15 @@ public class HireCandidateUseCase implements HireCandidate {
             phase,
             HiringStep.HIRED,
             existing.map(TeamHiringState::interviewingCandidateIds).orElse(List.of())));
-    staff.insert(
-        new NewTeamStaffMember(
-            teamId, candidateId, staffRoleFor(phase), Optional.empty(), phase, dayAtResolve));
+    TeamStaffMember staffMember =
+        staff.insert(
+            new NewTeamStaffMember(
+                teamId, candidateId, staffRoleFor(phase), Optional.empty(), phase, dayAtResolve));
+    var terms = OfferTermsJson.fromJson(offer.terms());
+    var contract =
+        StaffContractFactory.fromTerms(
+            teamId, candidateId, staffMember.id(), terms, league.season());
+    staffContracts.insert(contract);
   }
 
   private static StaffRole staffRoleFor(LeaguePhase phase) {

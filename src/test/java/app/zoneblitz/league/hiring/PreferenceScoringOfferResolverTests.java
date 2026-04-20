@@ -48,9 +48,13 @@ class PreferenceScoringOfferResolverTests {
   private JooqCandidateOfferRepository offers;
   private JooqTeamHiringStateRepository hiringStates;
   private JooqTeamStaffRepository staff;
+  private JooqStaffBudgetRepository budgets;
+  private JooqStaffContractRepository staffContracts;
   private TeamProfiles profiles;
   private CandidateRandomSources rngs;
   private OfferResolver resolver;
+  private CpuHiringStrategy hcCpuStrategy;
+  private JooqTeamInterviewRepository interviews;
   private CreateLeague createLeague;
   private HiringHeadCoachTransitionHandler entryHandler;
   private TeamLookup teams;
@@ -67,11 +71,37 @@ class PreferenceScoringOfferResolverTests {
     offers = new JooqCandidateOfferRepository(dsl);
     hiringStates = new JooqTeamHiringStateRepository(dsl);
     staff = new JooqTeamStaffRepository(dsl);
+    budgets = new JooqStaffBudgetRepository(dsl);
+    staffContracts = new JooqStaffContractRepository(dsl);
+    interviews = new JooqTeamInterviewRepository(dsl);
     profiles = new CityTeamProfiles(dsl, franchises);
     rngs = (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal());
+    hcCpuStrategy =
+        new CpuHiringStrategy(
+            LeaguePhase.HIRING_HEAD_COACH,
+            CandidatePoolType.HEAD_COACH,
+            pools,
+            candidates,
+            preferences,
+            offers,
+            hiringStates,
+            interviews,
+            profiles);
     resolver =
         new PreferenceScoringOfferResolver(
-            offers, candidates, pools, preferences, profiles, hiringStates, staff, teams, rngs);
+            offers,
+            candidates,
+            pools,
+            preferences,
+            profiles,
+            hiringStates,
+            staff,
+            teams,
+            rngs,
+            budgets,
+            staffContracts,
+            leagues,
+            List.of(hcCpuStrategy));
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
     entryHandler =
         new HiringHeadCoachTransitionHandler(
@@ -149,6 +179,325 @@ class PreferenceScoringOfferResolverTests {
     var reloaded = offers.findById(offer.id()).orElseThrow();
     assertThat(reloaded.status()).isEqualTo(OfferStatus.ACTIVE);
     assertThat(reloaded.stance()).contains(OfferStance.RENEGOTIATE);
+  }
+
+  @Test
+  void resolve_counterPendingExpired_rejectsOffer() {
+    var ctx = seedLeague();
+    dominateComp(ctx.candidateId);
+    var leadingOffer =
+        offers.insertActive(ctx.candidateId, ctx.cpuTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+    var preferredOffer =
+        offers.insertActive(ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+    offers.flipToCounterPending(preferredOffer.id(), leadingOffer.id(), 1);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 5);
+
+    assertThat(offers.findById(preferredOffer.id()).orElseThrow().status())
+        .isEqualTo(OfferStatus.REJECTED);
+  }
+
+  @Test
+  void resolve_counterPendingNotYetExpired_staysPending() {
+    var ctx = seedLeague();
+    dominateComp(ctx.candidateId);
+    var leadingOffer =
+        offers.insertActive(ctx.candidateId, ctx.cpuTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+    var preferredOffer =
+        offers.insertActive(ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+    offers.flipToCounterPending(preferredOffer.id(), leadingOffer.id(), 10);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 5);
+
+    assertThat(offers.findById(preferredOffer.id()).orElseThrow().status())
+        .isEqualTo(OfferStatus.COUNTER_PENDING);
+  }
+
+  @Test
+  void resolve_cpuMatchesCounter_ifBudgetAllowsAndStanceAggressive() {
+    var ctx = seedLeague();
+    preferCpuTeamFit(ctx.candidateId, ctx.cpuTeamId);
+    var userLeadingOffer =
+        offers.insertActive(ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+    var cpuPreferredOffer =
+        offers.insertActive(ctx.candidateId, ctx.cpuTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+    offers.flipToCounterPending(cpuPreferredOffer.id(), userLeadingOffer.id(), 10);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
+
+    var reloaded = offers.findById(cpuPreferredOffer.id()).orElseThrow();
+    assertThat(reloaded.status()).isEqualTo(OfferStatus.ACTIVE);
+    assertThat(reloaded.stance()).contains(OfferStance.PENDING);
+  }
+
+  @Test
+  void resolve_cpuWalksCounter_ifBudgetInsufficient() {
+    var ctx = seedLeague();
+    dominateComp(ctx.candidateId);
+    dsl.update(app.zoneblitz.jooq.Tables.TEAMS)
+        .set(app.zoneblitz.jooq.Tables.TEAMS.STAFF_BUDGET_CENTS, 100L)
+        .where(app.zoneblitz.jooq.Tables.TEAMS.ID.eq(ctx.cpuTeamId))
+        .execute();
+    var userLeadingOffer =
+        offers.insertActive(ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+    var cpuPreferredOffer =
+        offers.insertActive(
+            ctx.candidateId, ctx.cpuTeamId, OfferTermsJson.toJson(lowCompOffer()), 1);
+    offers.flipToCounterPending(cpuPreferredOffer.id(), userLeadingOffer.id(), 10);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
+
+    assertThat(offers.findById(cpuPreferredOffer.id()).orElseThrow().status())
+        .isEqualTo(OfferStatus.REJECTED);
+  }
+
+  @Test
+  void resolve_preferredTeamCloseToLeader_flipsToCounterPending() {
+    var ctx = seedLeague();
+    var distinctCpuTeam = findDistinctCpuTeam(ctx);
+    preferCpuTeamFit(ctx.candidateId, distinctCpuTeam);
+    hiringStates.upsert(
+        new TeamHiringState(
+            0L, distinctCpuTeam, LeaguePhase.HIRING_HEAD_COACH, HiringStep.SEARCHING, List.of()));
+    var userLeading =
+        offers.insertActive(
+            ctx.candidateId,
+            ctx.userTeamId,
+            OfferTermsJson.toJson(termsWithComp("10500000.00")),
+            1);
+    var cpuPreferred =
+        offers.insertActive(
+            ctx.candidateId,
+            distinctCpuTeam,
+            OfferTermsJson.toJson(termsWithComp("10000000.00")),
+            1);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
+
+    var reloaded = offers.findById(cpuPreferred.id()).orElseThrow();
+    assertThat(reloaded.status()).isEqualTo(OfferStatus.COUNTER_PENDING);
+    assertThat(reloaded.competingOfferId()).contains(userLeading.id());
+    assertThat(reloaded.counterDeadlineDay()).contains(4);
+  }
+
+  @Test
+  void resolve_preferredTeamBeyondMargin_doesNotFlip() {
+    var ctx = seedLeague();
+    var distinctCpuTeam = findDistinctCpuTeam(ctx);
+    preferCpuTeamFit(ctx.candidateId, distinctCpuTeam);
+    offers.insertActive(
+        ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(termsWithComp("20000000.00")), 1);
+    var cpuPreferred =
+        offers.insertActive(
+            ctx.candidateId,
+            distinctCpuTeam,
+            OfferTermsJson.toJson(termsWithComp("5000000.00")),
+            1);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
+
+    assertThat(offers.findById(cpuPreferred.id()).orElseThrow().status())
+        .isEqualTo(OfferStatus.ACTIVE);
+  }
+
+  @Test
+  void resolve_idempotent_noChangesOnSecondRunSameDay() {
+    // Preferred = user team so cpuRespondToCounters does not run against it and leaves the
+    // counter untouched across repeat ticks.
+    var ctx = seedLeague();
+    var distinctCpuTeam = findDistinctCpuTeam(ctx);
+    preferUserTeamFit(ctx.candidateId, ctx.userTeamId);
+    offers.insertActive(
+        ctx.candidateId, distinctCpuTeam, OfferTermsJson.toJson(termsWithComp("10500000.00")), 1);
+    var userPreferred =
+        offers.insertActive(
+            ctx.candidateId,
+            ctx.userTeamId,
+            OfferTermsJson.toJson(termsWithComp("10000000.00")),
+            1);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
+    var afterFirst = offers.findById(userPreferred.id()).orElseThrow();
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
+    var afterSecond = offers.findById(userPreferred.id()).orElseThrow();
+
+    assertThat(afterFirst.status()).isEqualTo(OfferStatus.COUNTER_PENDING);
+    assertThat(afterSecond.status()).isEqualTo(afterFirst.status());
+    assertThat(afterSecond.counterDeadlineDay()).isEqualTo(afterFirst.counterDeadlineDay());
+    assertThat(afterSecond.competingOfferId()).isEqualTo(afterFirst.competingOfferId());
+  }
+
+  private void preferUserTeamFit(long candidateId, long userTeamId) {
+    var profile = profiles.forTeam(userTeamId).orElseThrow();
+    dsl.update(app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES)
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.COMPENSATION_WEIGHT,
+            new BigDecimal("0.900"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.CONTRACT_LENGTH_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.GUARANTEED_MONEY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.MARKET_SIZE_WEIGHT,
+            new BigDecimal("0.033"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.GEOGRAPHY_WEIGHT,
+            new BigDecimal("0.033"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.CLIMATE_WEIGHT, new BigDecimal("0.034"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.FRANCHISE_PRESTIGE_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.COMPETITIVE_WINDOW_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.ROLE_SCOPE_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.STAFF_CONTINUITY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.SCHEME_ALIGNMENT_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.OWNER_STABILITY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.FACILITY_QUALITY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.COMPENSATION_TARGET,
+            new BigDecimal("15000000.00"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.MARKET_SIZE_TARGET,
+            profile.marketSize().name())
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.GEOGRAPHY_TARGET,
+            profile.geography().name())
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.CLIMATE_TARGET,
+            profile.climate().name())
+        .where(app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.CANDIDATE_ID.eq(candidateId))
+        .execute();
+  }
+
+  @Test
+  void resolve_walkedCounter_leadingOfferWins() {
+    var ctx = seedLeague();
+    dominateComp(ctx.candidateId);
+    var userLeading =
+        offers.insertActive(ctx.candidateId, ctx.userTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+    var cpuPreferred =
+        offers.insertActive(ctx.candidateId, ctx.cpuTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+    offers.flipToCounterPending(cpuPreferred.id(), userLeading.id(), 1);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 5);
+
+    assertThat(offers.findById(cpuPreferred.id()).orElseThrow().status())
+        .isEqualTo(OfferStatus.REJECTED);
+    assertThat(offers.findById(userLeading.id()).orElseThrow().status())
+        .isEqualTo(OfferStatus.ACTIVE);
+  }
+
+  @Test
+  void resolve_matchedCounter_reResolvesAndPicksPreferredTeam() {
+    var ctx = seedLeague();
+    var cpuTeam2 = teams.cpuTeamIdsForLeague(ctx.leagueId).get(1);
+    preferCpuTeamFit(ctx.candidateId, cpuTeam2);
+    hiringStates.upsert(
+        new TeamHiringState(
+            0L, cpuTeam2, LeaguePhase.HIRING_HEAD_COACH, HiringStep.SEARCHING, List.of()));
+    var leader =
+        offers.insertActive(ctx.candidateId, ctx.cpuTeamId, OfferTermsJson.toJson(goodTerms()), 1);
+    var preferred =
+        offers.insertActive(ctx.candidateId, cpuTeam2, OfferTermsJson.toJson(goodTerms()), 1);
+    offers.flipToCounterPending(preferred.id(), leader.id(), 10);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 2);
+    assertThat(offers.findById(preferred.id()).orElseThrow().status())
+        .isEqualTo(OfferStatus.ACTIVE);
+
+    resolver.resolve(ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, 4);
+    assertThat(candidates.findById(ctx.candidateId).orElseThrow().hiredByTeamId()).isPresent();
+  }
+
+  private long findDistinctCpuTeam(Ctx ctx) {
+    var userProfile = profiles.forTeam(ctx.userTeamId).orElseThrow();
+    return teams.cpuTeamIdsForLeague(ctx.leagueId).stream()
+        .filter(
+            t -> {
+              var p = profiles.forTeam(t).orElseThrow();
+              return p.geography() != userProfile.geography()
+                  || p.climate() != userProfile.climate()
+                  || p.marketSize() != userProfile.marketSize();
+            })
+        .findFirst()
+        .orElseThrow();
+  }
+
+  private void preferCpuTeamFit(long candidateId, long cpuTeamId) {
+    var profile = profiles.forTeam(cpuTeamId).orElseThrow();
+    dsl.update(app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES)
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.COMPENSATION_WEIGHT,
+            new BigDecimal("0.900"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.CONTRACT_LENGTH_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.GUARANTEED_MONEY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.MARKET_SIZE_WEIGHT,
+            new BigDecimal("0.033"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.GEOGRAPHY_WEIGHT,
+            new BigDecimal("0.033"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.CLIMATE_WEIGHT, new BigDecimal("0.034"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.FRANCHISE_PRESTIGE_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.COMPETITIVE_WINDOW_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.ROLE_SCOPE_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.STAFF_CONTINUITY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.SCHEME_ALIGNMENT_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.OWNER_STABILITY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.FACILITY_QUALITY_WEIGHT,
+            new BigDecimal("0.000"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.COMPENSATION_TARGET,
+            new BigDecimal("15000000.00"))
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.MARKET_SIZE_TARGET,
+            profile.marketSize().name())
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.GEOGRAPHY_TARGET,
+            profile.geography().name())
+        .set(
+            app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.CLIMATE_TARGET,
+            profile.climate().name())
+        .where(app.zoneblitz.jooq.Tables.CANDIDATE_PREFERENCES.CANDIDATE_ID.eq(candidateId))
+        .execute();
+  }
+
+  private static OfferTerms termsWithComp(String comp) {
+    return new OfferTerms(
+        new BigDecimal(comp), 6, new BigDecimal("0.95"), RoleScope.HIGH, StaffContinuity.BRING_OWN);
   }
 
   @Test

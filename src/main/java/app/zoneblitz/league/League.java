@@ -9,5 +9,6 @@ public record League(
     String ownerSubject,
     LeaguePhase phase,
     int phaseDay,
+    int season,
     LeagueSettings settings,
     Instant createdAt) {}

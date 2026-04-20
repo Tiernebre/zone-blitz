@@ -39,6 +39,7 @@ public class JooqLeagueRepository implements LeagueRepository {
                 LEAGUES.OWNER_SUBJECT,
                 LEAGUES.PHASE,
                 LEAGUES.PHASE_DAY,
+                LEAGUES.SEASON,
                 LEAGUES.TEAM_COUNT,
                 LEAGUES.SEASON_GAMES,
                 LEAGUES.CREATED_AT)
@@ -49,6 +50,7 @@ public class JooqLeagueRepository implements LeagueRepository {
         record.getOwnerSubject(),
         LeaguePhase.valueOf(record.getPhase()),
         record.getPhaseDay(),
+        record.getSeason(),
         new LeagueSettings(record.getTeamCount(), record.getSeasonGames()),
         record.getCreatedAt().toInstant());
   }
@@ -158,6 +160,7 @@ public class JooqLeagueRepository implements LeagueRepository {
             LEAGUES.OWNER_SUBJECT,
             LEAGUES.PHASE,
             LEAGUES.PHASE_DAY,
+            LEAGUES.SEASON,
             LEAGUES.TEAM_COUNT,
             LEAGUES.SEASON_GAMES,
             LEAGUES.CREATED_AT)
@@ -171,6 +174,7 @@ public class JooqLeagueRepository implements LeagueRepository {
                     r.get(LEAGUES.OWNER_SUBJECT),
                     LeaguePhase.valueOf(r.get(LEAGUES.PHASE)),
                     r.get(LEAGUES.PHASE_DAY),
+                    r.get(LEAGUES.SEASON),
                     new LeagueSettings(r.get(LEAGUES.TEAM_COUNT), r.get(LEAGUES.SEASON_GAMES)),
                     r.get(LEAGUES.CREATED_AT).toInstant()));
   }
