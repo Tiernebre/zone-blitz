@@ -12,31 +12,32 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 /**
- * Lightweight placeholder generator for coordinator candidates (OC, DC, ST). Reuses the HC band
- * file as a pricing anchor — coordinators earn a fraction of HC salaries — so no new band resource
- * is required for v1 of {@link LeaguePhase#ASSEMBLING_STAFF}. Specialty sampling is biased by the
- * coordinator kind (OC favors offensive positions, DC defensive, ST special teams).
+ * Lightweight placeholder generator for coordinator candidates (OC, DC, ST). Draws salaries from
+ * per-role bands in {@code staff-market.json} — coordinator pay is now anchored directly on
+ * coordinator market data rather than a fraction of HC pay — for v1 of {@link
+ * LeaguePhase#ASSEMBLING_STAFF}. Specialty sampling is biased by the coordinator kind (OC favors
+ * offensive positions, DC defensive, ST special teams).
  *
  * <p>Follows the hidden-info contract: true rating sampled independently; price signals derived
  * from perceived features only.
  */
 public final class CoordinatorGenerator {
 
-  private static final double COORDINATOR_SALARY_FRACTION = 0.30;
   private static final double TRUE_RATING_MEAN = 60.0;
   private static final double TRUE_RATING_STD = 10.0;
   private static final double GUARANTEED_MONEY_FLOOR = 0.60;
   private static final double GUARANTEED_MONEY_CEIL = 0.90;
+  private static final long SALARY_FLOOR = 400_000L;
 
-  private final HeadCoachMarketBands bands;
+  private final StaffMarketBands staffBands;
   private final NameGenerator names;
 
   public CoordinatorGenerator(NameGenerator names) {
-    this(HeadCoachMarketBands.loadFromClasspath(), names);
+    this(StaffMarketBands.loadFromClasspath(), names);
   }
 
-  public CoordinatorGenerator(HeadCoachMarketBands bands, NameGenerator names) {
-    this.bands = Objects.requireNonNull(bands, "bands");
+  public CoordinatorGenerator(StaffMarketBands staffBands, NameGenerator names) {
+    this.staffBands = Objects.requireNonNull(staffBands, "staffBands");
     this.names = Objects.requireNonNull(names, "names");
   }
 
@@ -69,7 +70,7 @@ public final class CoordinatorGenerator {
 
     var trueRating = clamp(TRUE_RATING_MEAN + TRUE_RATING_STD * rng.nextGaussian(), 20.0, 99.0);
 
-    var compensation = perceivedCompensation(age, totalExperience, rng);
+    var compensation = perceivedCompensation(kind, age, totalExperience, rng);
     var contractLength = 2 + (int) Math.round(rng.nextDouble() * 2);
     var guaranteedMoney =
         BigDecimal.valueOf(
@@ -149,12 +150,14 @@ public final class CoordinatorGenerator {
     return Math.min(draw, career);
   }
 
-  private BigDecimal perceivedCompensation(int age, int totalExperience, RandomSource rng) {
-    var hcBase = bands.salaryP10() + rng.nextDouble() * (bands.salaryP50() - bands.salaryP10());
+  private BigDecimal perceivedCompensation(
+      CandidateKind kind, int age, int totalExperience, RandomSource rng) {
+    var salary = staffBands.salaryFor(kind);
+    var base = salary.p10() + rng.nextDouble() * (salary.p50() - salary.p10());
     var ageMultiplier = 0.85 + Math.min(Math.abs(age - 48), 15) * -0.005;
     var experienceMultiplier = 0.9 + Math.min(totalExperience, 20) * 0.01;
-    var value = hcBase * COORDINATOR_SALARY_FRACTION * ageMultiplier * experienceMultiplier;
-    var rounded = Math.round(Math.max(400_000, value) / 10_000.0) * 10_000L;
+    var value = base * ageMultiplier * experienceMultiplier;
+    var rounded = Math.round(Math.max(SALARY_FLOOR, value) / 10_000.0) * 10_000L;
     return BigDecimal.valueOf(rounded).setScale(2, RoundingMode.HALF_UP);
   }
 

@@ -12,27 +12,28 @@ import java.util.stream.IntStream;
 
 /**
  * Lightweight placeholder generator for position-coach candidates. Specialty matches the coached
- * position by construction (a QB coach has {@link SpecialtyPosition#QB} specialty). Reuses the HC
- * band file as a pricing anchor — position coaches earn a fraction of HC salaries — per {@code
+ * position by construction (a QB coach has {@link SpecialtyPosition#QB} specialty). Draws salaries
+ * from the {@code POSITION_COACH} entry in {@code staff-market.json} — anchored directly on
+ * position-coach market data rather than a fraction of HC pay — per {@code
  * docs/technical/league-phases.md} v1.
  */
 public final class PositionCoachGenerator {
 
-  private static final double POSITION_COACH_SALARY_FRACTION = 0.10;
   private static final double TRUE_RATING_MEAN = 58.0;
   private static final double TRUE_RATING_STD = 10.0;
   private static final double GUARANTEED_MONEY_FLOOR = 0.50;
   private static final double GUARANTEED_MONEY_CEIL = 0.85;
+  private static final long SALARY_FLOOR = 250_000L;
 
-  private final HeadCoachMarketBands bands;
+  private final StaffMarketBands staffBands;
   private final NameGenerator names;
 
   public PositionCoachGenerator(NameGenerator names) {
-    this(HeadCoachMarketBands.loadFromClasspath(), names);
+    this(StaffMarketBands.loadFromClasspath(), names);
   }
 
-  public PositionCoachGenerator(HeadCoachMarketBands bands, NameGenerator names) {
-    this.bands = Objects.requireNonNull(bands, "bands");
+  public PositionCoachGenerator(StaffMarketBands staffBands, NameGenerator names) {
+    this.staffBands = Objects.requireNonNull(staffBands, "staffBands");
     this.names = Objects.requireNonNull(names, "names");
   }
 
@@ -62,10 +63,9 @@ public final class PositionCoachGenerator {
 
     var trueRating = clamp(TRUE_RATING_MEAN + TRUE_RATING_STD * rng.nextGaussian(), 20.0, 99.0);
 
-    var hcBase = bands.salaryP10() + rng.nextDouble() * (bands.salaryP50() - bands.salaryP10());
-    var compRaw =
-        Math.max(
-            250_000, hcBase * POSITION_COACH_SALARY_FRACTION * (0.85 + rng.nextDouble() * 0.3));
+    var salary = staffBands.salaryFor(CandidateKind.POSITION_COACH);
+    var base = salary.p10() + rng.nextDouble() * (salary.p50() - salary.p10());
+    var compRaw = Math.max(SALARY_FLOOR, base * (0.85 + rng.nextDouble() * 0.3));
     var compensation =
         BigDecimal.valueOf(Math.round(compRaw / 10_000.0) * 10_000L)
             .setScale(2, RoundingMode.HALF_UP);

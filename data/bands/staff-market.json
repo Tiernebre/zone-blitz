@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-04-20",
+  "source": "docs/product/proposals/staff-market-counter-offers.md calibration round 2",
+  "roles": {
+    "HEAD_COACH": {
+      "contract_length_years": { "min": 3, "mode": 5, "max": 6, "distribution": "triangular" },
+      "guarantee_pct": { "min": 0.95, "typical": 1.00, "max": 1.00, "distribution": "triangular" },
+      "salary_annual_usd": { "p10": 5500000, "p50": 8500000, "p90": 14000000, "ceiling": 20000000 }
+    },
+    "OFFENSIVE_COORDINATOR": {
+      "contract_length_years": { "min": 2, "mode": 3, "max": 4, "distribution": "triangular" },
+      "guarantee_pct": { "min": 0.40, "typical": 0.60, "max": 0.80, "distribution": "triangular" },
+      "salary_annual_usd": { "p10": 1500000, "p50": 2300000, "p90": 4000000, "ceiling": 6500000 }
+    },
+    "DEFENSIVE_COORDINATOR": {
+      "contract_length_years": { "min": 2, "mode": 3, "max": 4, "distribution": "triangular" },
+      "guarantee_pct": { "min": 0.40, "typical": 0.60, "max": 0.80, "distribution": "triangular" },
+      "salary_annual_usd": { "p10": 1500000, "p50": 2300000, "p90": 4000000, "ceiling": 6500000 }
+    },
+    "SPECIAL_TEAMS_COORDINATOR": {
+      "contract_length_years": { "min": 1, "mode": 2, "max": 3, "distribution": "triangular" },
+      "guarantee_pct": { "min": 0.30, "typical": 0.50, "max": 0.70, "distribution": "triangular" },
+      "salary_annual_usd": { "p10": 800000, "p50": 1500000, "p90": 2500000, "ceiling": 3500000 }
+    },
+    "POSITION_COACH": {
+      "contract_length_years": { "min": 1, "mode": 2, "max": 3, "distribution": "triangular" },
+      "guarantee_pct": { "min": 0.20, "typical": 0.35, "max": 0.60, "distribution": "triangular" },
+      "salary_annual_usd": { "p10": 450000, "p50": 750000, "p90": 1200000, "ceiling": 1800000 }
+    },
+    "DIRECTOR_OF_SCOUTING": {
+      "contract_length_years": { "min": 2, "mode": 3, "max": 4, "distribution": "triangular" },
+      "guarantee_pct": { "min": 0.35, "typical": 0.55, "max": 0.75, "distribution": "triangular" },
+      "salary_annual_usd": { "p10": 300000, "p50": 475000, "p90": 800000, "ceiling": 1200000 }
+    },
+    "SCOUT": {
+      "contract_length_years": { "min": 1, "mode": 2, "max": 3, "distribution": "triangular" },
+      "guarantee_pct": { "min": 0.10, "typical": 0.30, "max": 0.50, "distribution": "triangular" },
+      "salary_annual_usd": { "p10": 50000, "p50": 120000, "p90": 250000, "ceiling": 400000 }
+    }
+  }
+}
