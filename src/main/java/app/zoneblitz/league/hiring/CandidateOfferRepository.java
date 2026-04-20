@@ -40,8 +40,9 @@ public interface CandidateOfferRepository {
   void setStance(long offerId, OfferStance stance);
 
   /**
-   * Transition the offer from {@link OfferStatus#ACTIVE} to the given terminal status. Clears
-   * stance. Returns true when a row was updated.
+   * Transition the offer from a non-terminal status ({@link OfferStatus#ACTIVE} or {@link
+   * OfferStatus#COUNTER_PENDING}) to the given terminal status. Clears stance and counter metadata.
+   * Returns true when a row was updated.
    */
   boolean resolve(long offerId, OfferStatus status);
 

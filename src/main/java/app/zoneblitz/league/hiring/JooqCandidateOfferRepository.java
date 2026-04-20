@@ -125,8 +125,14 @@ public class JooqCandidateOfferRepository implements CandidateOfferRepository {
     return dsl.update(CANDIDATE_OFFERS)
             .set(CANDIDATE_OFFERS.STATUS, status.name())
             .setNull(CANDIDATE_OFFERS.STANCE)
+            .setNull(CANDIDATE_OFFERS.COMPETING_OFFER_ID)
+            .setNull(CANDIDATE_OFFERS.COUNTER_DEADLINE_DAY)
             .where(CANDIDATE_OFFERS.ID.eq(offerId))
-            .and(CANDIDATE_OFFERS.STATUS.eq(OfferStatus.ACTIVE.name()))
+            .and(
+                CANDIDATE_OFFERS
+                    .STATUS
+                    .eq(OfferStatus.ACTIVE.name())
+                    .or(CANDIDATE_OFFERS.STATUS.eq(OfferStatus.COUNTER_PENDING.name())))
             .execute()
         > 0;
   }
