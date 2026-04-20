@@ -44,4 +44,36 @@ public interface CandidateOfferRepository {
    * stance. Returns true when a row was updated.
    */
   boolean resolve(long offerId, OfferStatus status);
+
+  /**
+   * All offers for a team that are still in play: status {@link OfferStatus#ACTIVE} or {@link
+   * OfferStatus#COUNTER_PENDING}. Used for budget accounting and UI listings that need to surface
+   * counter-pending offers alongside live ones.
+   */
+  List<CandidateOffer> findOutstandingForTeam(long teamId);
+
+  /**
+   * All offers in a league (joined via team) currently in {@link OfferStatus#COUNTER_PENDING}. Used
+   * by the resolver sweep to expire dead counters and ask the CPU to respond.
+   */
+  List<CandidateOffer> findCounterPendingForLeague(long leagueId);
+
+  /**
+   * Transition an offer from {@link OfferStatus#ACTIVE} to {@link OfferStatus#COUNTER_PENDING},
+   * recording the competing offer's id and the response deadline (in phase days). Stance is
+   * cleared. The offer must currently be {@code ACTIVE}.
+   *
+   * @return the updated offer.
+   */
+  CandidateOffer flipToCounterPending(long offerId, long competingOfferId, int deadlineDay);
+
+  /**
+   * Accept the counter on a {@link OfferStatus#COUNTER_PENDING} offer: set new terms, clear the
+   * counter metadata, return to {@link OfferStatus#ACTIVE} with stance {@link OfferStance#PENDING},
+   * bump {@code revision_count}, and set {@code submitted_at_day = currentDay} so the next resolver
+   * tick re-scores the offer.
+   *
+   * @return the updated offer.
+   */
+  CandidateOffer acceptCounter(long offerId, String newTermsJson, int currentDay);
 }

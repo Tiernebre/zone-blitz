@@ -150,7 +150,9 @@ class HiringHeadCoachControllerTests {
                     1,
                     OfferStatus.ACTIVE,
                     Optional.of(OfferStance.PENDING),
-                    0)));
+                    0,
+                    Optional.empty(),
+                    Optional.empty())));
 
     mvc.perform(
             post("/leagues/42/hiring/head-coach/offer/7")

@@ -131,6 +131,73 @@ public class JooqCandidateOfferRepository implements CandidateOfferRepository {
         > 0;
   }
 
+  @Override
+  public List<CandidateOffer> findOutstandingForTeam(long teamId) {
+    return dsl.selectFrom(CANDIDATE_OFFERS)
+        .where(CANDIDATE_OFFERS.TEAM_ID.eq(teamId))
+        .and(
+            CANDIDATE_OFFERS
+                .STATUS
+                .eq(OfferStatus.ACTIVE.name())
+                .or(CANDIDATE_OFFERS.STATUS.eq(OfferStatus.COUNTER_PENDING.name())))
+        .orderBy(CANDIDATE_OFFERS.SUBMITTED_AT_DAY.asc(), CANDIDATE_OFFERS.ID.asc())
+        .fetch(this::map);
+  }
+
+  @Override
+  public List<CandidateOffer> findCounterPendingForLeague(long leagueId) {
+    return dsl.select(CANDIDATE_OFFERS.fields())
+        .from(CANDIDATE_OFFERS)
+        .join(TEAMS)
+        .on(TEAMS.ID.eq(CANDIDATE_OFFERS.TEAM_ID))
+        .where(TEAMS.LEAGUE_ID.eq(leagueId))
+        .and(CANDIDATE_OFFERS.STATUS.eq(OfferStatus.COUNTER_PENDING.name()))
+        .orderBy(CANDIDATE_OFFERS.SUBMITTED_AT_DAY.asc(), CANDIDATE_OFFERS.ID.asc())
+        .fetch(this::map);
+  }
+
+  @Override
+  public CandidateOffer flipToCounterPending(long offerId, long competingOfferId, int deadlineDay) {
+    var record =
+        dsl.update(CANDIDATE_OFFERS)
+            .set(CANDIDATE_OFFERS.STATUS, OfferStatus.COUNTER_PENDING.name())
+            .setNull(CANDIDATE_OFFERS.STANCE)
+            .set(CANDIDATE_OFFERS.COMPETING_OFFER_ID, competingOfferId)
+            .set(CANDIDATE_OFFERS.COUNTER_DEADLINE_DAY, deadlineDay)
+            .where(CANDIDATE_OFFERS.ID.eq(offerId))
+            .and(CANDIDATE_OFFERS.STATUS.eq(OfferStatus.ACTIVE.name()))
+            .returning(CANDIDATE_OFFERS.fields())
+            .fetchOne();
+    if (record == null) {
+      throw new IllegalStateException(
+          "offer " + offerId + " is not ACTIVE; cannot flip to COUNTER_PENDING");
+    }
+    return map(record);
+  }
+
+  @Override
+  public CandidateOffer acceptCounter(long offerId, String newTermsJson, int currentDay) {
+    Objects.requireNonNull(newTermsJson, "newTermsJson");
+    var record =
+        dsl.update(CANDIDATE_OFFERS)
+            .set(CANDIDATE_OFFERS.STATUS, OfferStatus.ACTIVE.name())
+            .set(CANDIDATE_OFFERS.STANCE, OfferStance.PENDING.name())
+            .set(CANDIDATE_OFFERS.TERMS, JSONB.valueOf(newTermsJson))
+            .set(CANDIDATE_OFFERS.SUBMITTED_AT_DAY, currentDay)
+            .set(CANDIDATE_OFFERS.REVISION_COUNT, CANDIDATE_OFFERS.REVISION_COUNT.plus(1))
+            .setNull(CANDIDATE_OFFERS.COMPETING_OFFER_ID)
+            .setNull(CANDIDATE_OFFERS.COUNTER_DEADLINE_DAY)
+            .where(CANDIDATE_OFFERS.ID.eq(offerId))
+            .and(CANDIDATE_OFFERS.STATUS.eq(OfferStatus.COUNTER_PENDING.name()))
+            .returning(CANDIDATE_OFFERS.fields())
+            .fetchOne();
+    if (record == null) {
+      throw new IllegalStateException(
+          "offer " + offerId + " is not COUNTER_PENDING; cannot accept counter");
+    }
+    return map(record);
+  }
+
   private CandidateOffer map(org.jooq.Record r) {
     var stanceStr = r.get(CANDIDATE_OFFERS.STANCE);
     return new CandidateOffer(
@@ -141,6 +208,8 @@ public class JooqCandidateOfferRepository implements CandidateOfferRepository {
         r.get(CANDIDATE_OFFERS.SUBMITTED_AT_DAY),
         OfferStatus.valueOf(r.get(CANDIDATE_OFFERS.STATUS)),
         stanceStr == null ? Optional.empty() : Optional.of(OfferStance.valueOf(stanceStr)),
-        r.get(CANDIDATE_OFFERS.REVISION_COUNT));
+        r.get(CANDIDATE_OFFERS.REVISION_COUNT),
+        Optional.ofNullable(r.get(CANDIDATE_OFFERS.COMPETING_OFFER_ID)),
+        Optional.ofNullable(r.get(CANDIDATE_OFFERS.COUNTER_DEADLINE_DAY)));
   }
 }
