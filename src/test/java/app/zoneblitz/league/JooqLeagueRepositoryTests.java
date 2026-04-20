@@ -53,7 +53,8 @@ class JooqLeagueRepositoryTests {
         league.id(),
         List.of(
             new TeamDraft(minutemen.id(), Optional.of("sub-1")),
-            new TeamDraft(pickOther(minutemen.id()), Optional.empty())));
+            new TeamDraft(pickOther(minutemen.id()), Optional.empty())),
+        0L);
 
     var summaries = leagues.findSummariesFor("sub-1");
 
@@ -79,10 +80,10 @@ class JooqLeagueRepositoryTests {
   void findSummariesFor_onlyReturnsCallersLeagues() {
     var franchise = franchises.listAll().getFirst();
     var mine = leagues.insert("me", "Mine", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
-    teams.insertAll(mine.id(), List.of(new TeamDraft(franchise.id(), Optional.of("me"))));
+    teams.insertAll(mine.id(), List.of(new TeamDraft(franchise.id(), Optional.of("me"))), 0L);
     var theirs =
         leagues.insert("them", "Theirs", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
-    teams.insertAll(theirs.id(), List.of(new TeamDraft(franchise.id(), Optional.of("them"))));
+    teams.insertAll(theirs.id(), List.of(new TeamDraft(franchise.id(), Optional.of("them"))), 0L);
 
     assertThat(leagues.findSummariesFor("me"))
         .singleElement()
@@ -94,7 +95,7 @@ class JooqLeagueRepositoryTests {
     var franchise = franchises.listAll().getFirst();
     var league =
         leagues.insert("sub-1", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
-    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("sub-1"))));
+    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("sub-1"))), 0L);
 
     var summary = leagues.findSummaryByIdAndOwner(league.id(), "sub-1");
 
@@ -106,7 +107,7 @@ class JooqLeagueRepositoryTests {
     var franchise = franchises.listAll().getFirst();
     var league =
         leagues.insert("owner", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
-    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("owner"))));
+    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("owner"))), 0L);
 
     assertThat(leagues.findSummaryByIdAndOwner(league.id(), "someone-else")).isEmpty();
   }
@@ -121,7 +122,7 @@ class JooqLeagueRepositoryTests {
     var franchise = franchises.listAll().getFirst();
     var league =
         leagues.insert("sub-1", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
-    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("sub-1"))));
+    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("sub-1"))), 0L);
 
     assertThat(leagues.deleteByIdAndOwner(league.id(), "sub-1")).isTrue();
     assertThat(leagues.findSummaryByIdAndOwner(league.id(), "sub-1")).isEmpty();
@@ -137,7 +138,7 @@ class JooqLeagueRepositoryTests {
     var franchise = franchises.listAll().getFirst();
     var league =
         leagues.insert("owner", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults());
-    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("owner"))));
+    teams.insertAll(league.id(), List.of(new TeamDraft(franchise.id(), Optional.of("owner"))), 0L);
 
     assertThat(leagues.deleteByIdAndOwner(league.id(), "someone-else")).isFalse();
     assertThat(leagues.findSummaryByIdAndOwner(league.id(), "owner")).isPresent();

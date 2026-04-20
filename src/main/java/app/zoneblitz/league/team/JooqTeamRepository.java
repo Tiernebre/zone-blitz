@@ -16,11 +16,15 @@ public class JooqTeamRepository implements TeamRepository {
   }
 
   @Override
-  public void insertAll(long leagueId, List<TeamDraft> drafts) {
+  public void insertAll(long leagueId, List<TeamDraft> drafts, long staffBudgetCents) {
     var insert =
-        dsl.insertInto(TEAMS).columns(TEAMS.LEAGUE_ID, TEAMS.FRANCHISE_ID, TEAMS.OWNER_SUBJECT);
+        dsl.insertInto(TEAMS)
+            .columns(
+                TEAMS.LEAGUE_ID, TEAMS.FRANCHISE_ID, TEAMS.OWNER_SUBJECT, TEAMS.STAFF_BUDGET_CENTS);
     for (var draft : drafts) {
-      insert = insert.values(leagueId, draft.franchiseId(), draft.ownerSubject().orElse(null));
+      insert =
+          insert.values(
+              leagueId, draft.franchiseId(), draft.ownerSubject().orElse(null), staffBudgetCents);
     }
     insert.execute();
   }

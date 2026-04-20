@@ -99,6 +99,7 @@ class HiringDirectorOfScoutingControllerTests {
             "Dynasty",
             LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING,
             1,
+            1,
             Instant.now(),
             100L,
             franchise);

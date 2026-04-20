@@ -52,7 +52,7 @@ class JooqStaffContractRepositoryTests {
     candidateId = candidateRepo.insert(CandidateTestData.newHeadCoach(pool.id())).id();
     var listed = franchises.listAll();
     teamRepo.insertAll(
-        league.id(), List.of(new TeamDraft(listed.get(0).id(), Optional.of("sub-1"))));
+        league.id(), List.of(new TeamDraft(listed.get(0).id(), Optional.of("sub-1"))), 0L);
     teamId =
         dsl.select(TEAMS.ID).from(TEAMS).where(TEAMS.LEAGUE_ID.eq(league.id())).fetchOne(TEAMS.ID);
     teamStaffId =

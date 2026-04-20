@@ -66,7 +66,8 @@ class JooqStaffBudgetRepositoryTests {
         league.id(),
         List.of(
             new TeamDraft(listed.get(0).id(), Optional.of("sub-1")),
-            new TeamDraft(listed.get(1).id(), Optional.empty())));
+            new TeamDraft(listed.get(1).id(), Optional.empty())),
+        0L);
     var teamIds =
         dsl.select(TEAMS.ID)
             .from(TEAMS)

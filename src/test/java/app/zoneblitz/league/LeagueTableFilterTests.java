@@ -131,6 +131,7 @@ class LeagueTableFilterTests {
         name,
         phase,
         1,
+        1,
         created,
         100L + id,
         new Franchise(id, franchiseName, new City(id, cityName, state), "#000000", "#ffffff"));

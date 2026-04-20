@@ -13,6 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CreateLeagueUseCase implements CreateLeague {
 
+  /**
+   * Seed value applied to every team's {@code staff_budget_cents} at league creation. V1 of the
+   * staff-market economy gives all eight teams an equal pool — ${@value} / 100 dollars ($25M) —
+   * sized so median role salaries × expected staff headcount ≈ budget, per {@code
+   * docs/product/proposals/staff-market-counter-offers.md}.
+   */
+  static final long STAFF_BUDGET_CENTS_DEFAULT = 2_500_000_000L;
+
   private final LeagueRepository leagues;
   private final FranchiseRepository franchises;
   private final TeamRepository teams;
@@ -48,7 +56,7 @@ public class CreateLeagueUseCase implements CreateLeague {
         drafts.add(new TeamDraft(other.id(), Optional.empty()));
       }
     }
-    teams.insertAll(league.id(), drafts);
+    teams.insertAll(league.id(), drafts, STAFF_BUDGET_CENTS_DEFAULT);
 
     return new CreateLeagueResult.Created(league);
   }

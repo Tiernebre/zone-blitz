@@ -1,5 +1,6 @@
 package app.zoneblitz.league.hiring;
 
+import static app.zoneblitz.jooq.Tables.TEAMS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.league.CreateLeague;
@@ -67,7 +68,9 @@ class MakeOfferUseCaseTests {
             hiringStates,
             new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
             (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
-    makeOffer = new MakeOfferUseCase(leagues, pools, candidates, offers, hiringStates, interviews);
+    var budgets = new JooqStaffBudgetRepository(dsl);
+    makeOffer =
+        new MakeOfferUseCase(leagues, pools, candidates, offers, hiringStates, interviews, budgets);
   }
 
   @Test
@@ -181,6 +184,69 @@ class MakeOfferUseCaseTests {
   }
 
   @Test
+  void offer_budgetExceeded_returnsInsufficientBudget() {
+    var ctx = seedLeagueInPhase("sub-1");
+    seedInterview(ctx, InterviewInterest.INTERESTED);
+    advanceToOffersOpen(ctx.leagueId);
+    setBudget(ctx.userTeamId, 5_000_000_00L);
+
+    var result = makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms(8_500_000));
+
+    assertThat(result).isInstanceOf(MakeOfferResult.InsufficientBudget.class);
+    var insufficient = (MakeOfferResult.InsufficientBudget) result;
+    assertThat(insufficient.teamId()).isEqualTo(ctx.userTeamId);
+    assertThat(insufficient.availableCents()).isEqualTo(5_000_000_00L);
+    assertThat(insufficient.requiredCents()).isEqualTo(8_500_000_00L);
+    assertThat(offers.findActiveForCandidate(ctx.firstCandidateId)).isEmpty();
+  }
+
+  @Test
+  void offer_exactlyAtBudgetLimit_returnsCreated() {
+    var ctx = seedLeagueInPhase("sub-1");
+    seedInterview(ctx, InterviewInterest.INTERESTED);
+    advanceToOffersOpen(ctx.leagueId);
+    setBudget(ctx.userTeamId, 8_500_000_00L);
+
+    var result = makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms(8_500_000));
+
+    assertThat(result).isInstanceOf(MakeOfferResult.Created.class);
+    assertThat(offers.findActiveForCandidate(ctx.firstCandidateId)).hasSize(1);
+  }
+
+  @Test
+  void offer_withExistingActiveOfferOnOtherCandidate_reducesAvailableBudget() {
+    var ctx = seedLeagueInPhase("sub-1");
+    seedInterview(ctx, InterviewInterest.INTERESTED);
+    var pool =
+        new JooqCandidatePoolRepository(dsl)
+            .findByLeaguePhaseAndType(
+                ctx.leagueId, LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH)
+            .orElseThrow();
+    var poolCandidates = candidates.findAllByPoolId(pool.id());
+    var secondCandidateId = poolCandidates.get(1).id();
+    interviews.insert(
+        new NewTeamInterview(
+            ctx.userTeamId,
+            secondCandidateId,
+            LeaguePhase.HIRING_HEAD_COACH,
+            1,
+            1,
+            InterviewInterest.INTERESTED));
+    advanceToOffersOpen(ctx.leagueId);
+    setBudget(ctx.userTeamId, 15_000_000_00L);
+    var firstResult =
+        makeOffer.offer(ctx.leagueId, ctx.firstCandidateId, "sub-1", terms(8_500_000));
+    assertThat(firstResult).isInstanceOf(MakeOfferResult.Created.class);
+
+    var secondResult = makeOffer.offer(ctx.leagueId, secondCandidateId, "sub-1", terms(8_500_000));
+
+    assertThat(secondResult).isInstanceOf(MakeOfferResult.InsufficientBudget.class);
+    var insufficient = (MakeOfferResult.InsufficientBudget) secondResult;
+    assertThat(insufficient.availableCents()).isEqualTo(6_500_000_00L);
+    assertThat(insufficient.requiredCents()).isEqualTo(8_500_000_00L);
+  }
+
+  @Test
   void offer_whenPhaseNotHiringHeadCoach_returnsNotFound() {
     var league = createLeagueFor("sub-1");
 
@@ -230,12 +296,20 @@ class MakeOfferUseCaseTests {
   }
 
   private static OfferTerms terms() {
+    return terms(8_500_000);
+  }
+
+  private static OfferTerms terms(long compensationDollars) {
     return new OfferTerms(
-        new BigDecimal("8500000.00"),
+        BigDecimal.valueOf(compensationDollars).setScale(2),
         5,
         new BigDecimal("0.85"),
         RoleScope.HIGH,
         StaffContinuity.BRING_OWN);
+  }
+
+  private void setBudget(long teamId, long cents) {
+    dsl.update(TEAMS).set(TEAMS.STAFF_BUDGET_CENTS, cents).where(TEAMS.ID.eq(teamId)).execute();
   }
 
   private record Ctx(long leagueId, long firstCandidateId, long userTeamId, long otherTeamId) {}

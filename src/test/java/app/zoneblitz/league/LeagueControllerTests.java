@@ -72,6 +72,7 @@ class LeagueControllerTests {
                     "Alpha",
                     LeaguePhase.INITIAL_SETUP,
                     1,
+                    1,
                     Instant.parse("2025-01-01T00:00:00Z"),
                     100L,
                     new Franchise(
@@ -84,6 +85,7 @@ class LeagueControllerTests {
                     2L,
                     "Zeta",
                     LeaguePhase.COMPLETE,
+                    1,
                     1,
                     Instant.parse("2025-03-01T00:00:00Z"),
                     200L,
@@ -163,6 +165,7 @@ class LeagueControllerTests {
             "Dynasty",
             LeaguePhase.INITIAL_SETUP,
             1,
+            1,
             Instant.now(),
             100L,
             new Franchise(
@@ -212,6 +215,7 @@ class LeagueControllerTests {
             42L,
             "Dynasty",
             LeaguePhase.INITIAL_SETUP,
+            1,
             1,
             Instant.now(),
             100L,

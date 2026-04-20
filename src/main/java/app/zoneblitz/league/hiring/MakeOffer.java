@@ -2,9 +2,9 @@ package app.zoneblitz.league.hiring;
 
 /**
  * Use case: a franchise submits an offer to a Head Coach candidate. One offer per (franchise,
- * candidate) at a time — re-submitting while an {@link OfferStatus#ACTIVE} offer exists returns
- * {@link MakeOfferResult.ActiveOfferExists}. Offer is resolved at the next day tick by {@link
- * OfferResolver}.
+ * candidate) at a time — re-submitting while an {@link OfferStatus#ACTIVE} offer exists revises the
+ * existing offer in place and returns {@link MakeOfferResult.Created}. Offer is resolved at the
+ * next day tick by {@link OfferResolver}.
  */
 public interface MakeOffer {
 
@@ -30,10 +30,12 @@ public interface MakeOffer {
    *           already hired by any franchise.
    *       <li>{@link MakeOfferResult.AlreadyHired} — caller's franchise has already hired a HC in
    *           this league.
-   *       <li>{@link MakeOfferResult.ActiveOfferExists} — caller already has an active offer on
-   *           this candidate.
    *       <li>{@link MakeOfferResult.OffersNotYetOpen} — current phase day is inside the
    *           interview-only window ({@code phaseDay < OFFERS_OPEN_ON_DAY}).
+   *       <li>{@link MakeOfferResult.InsufficientBudget} — this offer's APY plus the team's
+   *           already-committed staff salary for the current season would exceed {@code
+   *           teams.staff_budget_cents}. Offer is not persisted; caller should surface the cap
+   *           breach to the user.
    *     </ul>
    */
   MakeOfferResult offer(long leagueId, long candidateId, String ownerSubject, OfferTerms terms);

@@ -123,6 +123,11 @@ public class HiringHeadCoachController {
               HttpStatus.CONFLICT,
               "Offers open on day %d (currently day %d)"
                   .formatted(notYet.offersOpenOnDay(), notYet.phaseDay()));
+      case MakeOfferResult.InsufficientBudget budget ->
+          throw new ResponseStatusException(
+              HttpStatus.CONFLICT,
+              "Offer exceeds staff budget: $%d available, $%d required"
+                  .formatted(budget.availableCents() / 100, budget.requiredCents() / 100));
     };
   }
 

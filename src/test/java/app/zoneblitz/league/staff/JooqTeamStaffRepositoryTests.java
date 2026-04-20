@@ -51,7 +51,7 @@ class JooqTeamStaffRepositoryTests {
             .insert("sub-1", "Dynasty", LeaguePhase.INITIAL_SETUP, LeagueSettings.defaults())
             .id();
     var franchiseId = franchises.listAll().getFirst().id();
-    teamRepo.insertAll(leagueId, List.of(new TeamDraft(franchiseId, Optional.of("sub-1"))));
+    teamRepo.insertAll(leagueId, List.of(new TeamDraft(franchiseId, Optional.of("sub-1"))), 0L);
     teamId =
         dsl.select(TEAMS.ID).from(TEAMS).where(TEAMS.LEAGUE_ID.eq(leagueId)).fetchOne(TEAMS.ID);
     poolId =

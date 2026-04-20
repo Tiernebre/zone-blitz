@@ -62,6 +62,22 @@ class CreateLeagueUseCaseTests {
   }
 
   @Test
+  void create_whenValid_seedsStaffBudgetCentsOnEveryTeam() {
+    var franchiseId = franchises.listAll().getFirst().id();
+
+    var result = createLeague.create("sub-1", "Dynasty", franchiseId);
+
+    var leagueId = ((CreateLeagueResult.Created) result).league().id();
+    var budgets =
+        dsl.select(TEAMS.STAFF_BUDGET_CENTS)
+            .from(TEAMS)
+            .where(TEAMS.LEAGUE_ID.eq(leagueId))
+            .fetch(TEAMS.STAFF_BUDGET_CENTS);
+    assertThat(budgets).hasSize(8);
+    assertThat(budgets).allMatch(b -> b == 2_500_000_000L);
+  }
+
+  @Test
   void create_trimsLeadingAndTrailingWhitespaceFromName() {
     var franchiseId = franchises.listAll().getFirst().id();
 

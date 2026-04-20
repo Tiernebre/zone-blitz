@@ -21,6 +21,7 @@ public class MakeOfferUseCase implements MakeOffer {
   private final CandidateOfferRepository offers;
   private final TeamHiringStateRepository hiringStates;
   private final TeamInterviewRepository interviews;
+  private final StaffBudgetRepository budgets;
 
   public MakeOfferUseCase(
       LeagueRepository leagues,
@@ -28,13 +29,15 @@ public class MakeOfferUseCase implements MakeOffer {
       CandidateRepository candidates,
       CandidateOfferRepository offers,
       TeamHiringStateRepository hiringStates,
-      TeamInterviewRepository interviews) {
+      TeamInterviewRepository interviews,
+      StaffBudgetRepository budgets) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
     this.offers = offers;
     this.hiringStates = hiringStates;
     this.interviews = interviews;
+    this.budgets = budgets;
   }
 
   @Override
@@ -85,7 +88,22 @@ public class MakeOfferUseCase implements MakeOffer {
     if (phaseDay < MakeOffer.OFFERS_OPEN_ON_DAY) {
       return new MakeOfferResult.OffersNotYetOpen(phaseDay, MakeOffer.OFFERS_OPEN_ON_DAY);
     }
+
+    var apyCents = terms.compensation().movePointRight(2).longValueExact();
+    var budget = budgets.committed(teamId, league.season());
     var existing = offers.findActiveForTeamAndCandidate(teamId, candidateId);
+    var existingApyCents =
+        existing
+            .map(o -> OfferTermsJson.fromJson(o.terms()))
+            .map(t -> t.compensation().movePointRight(2).longValueExact())
+            .orElse(0L);
+    var projectedCommitted = budget.committedCents() - existingApyCents + apyCents;
+    if (projectedCommitted > budget.budgetCents()) {
+      var available =
+          Math.max(0L, budget.budgetCents() - (budget.committedCents() - existingApyCents));
+      return new MakeOfferResult.InsufficientBudget(teamId, available, apyCents);
+    }
+
     if (existing.isPresent()) {
       if (existing.get().revisionCount() >= StanceEvaluator.REVISION_CAP) {
         return new MakeOfferResult.RevisionCapReached(candidateId, existing.get().revisionCount());

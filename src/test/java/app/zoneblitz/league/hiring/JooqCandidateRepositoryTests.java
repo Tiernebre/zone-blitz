@@ -49,7 +49,8 @@ class JooqCandidateRepositoryTests {
         pools.insert(league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH).id();
     teamRepo.insertAll(
         league.id(),
-        List.of(new TeamDraft(franchises.listAll().getFirst().id(), Optional.of("sub-1"))));
+        List.of(new TeamDraft(franchises.listAll().getFirst().id(), Optional.of("sub-1"))),
+        0L);
     teamId =
         dsl.select(TEAMS.ID).from(TEAMS).where(TEAMS.LEAGUE_ID.eq(league.id())).fetchOne(TEAMS.ID);
   }
