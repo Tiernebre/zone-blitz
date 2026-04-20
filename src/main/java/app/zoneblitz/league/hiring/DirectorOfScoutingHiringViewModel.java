@@ -138,7 +138,8 @@ public final class DirectorOfScoutingHiringViewModel {
             stance,
             offer.revisionCount(),
             StanceEvaluator.REVISION_CAP,
-            hint));
+            hint,
+            Optional.empty()));
   }
 
   private static int experienceFor(String experienceByRoleJson, String role) {

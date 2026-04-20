@@ -59,9 +59,18 @@ class ViewHeadCoachHiringUseCaseTests {
     var offers = new JooqCandidateOfferRepository(dsl);
     var profiles = new app.zoneblitz.league.team.CityTeamProfiles(dsl, franchises);
     var leagueHires = new JooqLeagueHires(dsl);
+    var budgets = new JooqStaffBudgetRepository(dsl);
     useCase =
         new ViewHeadCoachHiringUseCase(
-            leagues, pools, candidates, preferences, interviews, offers, profiles, leagueHires);
+            leagues,
+            pools,
+            candidates,
+            preferences,
+            interviews,
+            offers,
+            profiles,
+            leagueHires,
+            budgets);
   }
 
   @Test

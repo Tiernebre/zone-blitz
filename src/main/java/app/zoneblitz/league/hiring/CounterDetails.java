@@ -11,7 +11,7 @@ import java.util.Objects;
  * <p>{@link #daysRemaining()} may be zero or negative when the resolver has not yet swept the
  * window closed — the counter is effectively expired but still visible in that intra-tick gap.
  */
-record CounterDetails(
+public record CounterDetails(
     long competingOfferId,
     BigDecimal competingCompensation,
     int competingContractYears,
@@ -19,12 +19,12 @@ record CounterDetails(
     int deadlineDay,
     int currentDay) {
 
-  CounterDetails {
+  public CounterDetails {
     Objects.requireNonNull(competingCompensation, "competingCompensation");
     Objects.requireNonNull(competingGuaranteedMoneyPct, "competingGuaranteedMoneyPct");
   }
 
-  int daysRemaining() {
+  public int daysRemaining() {
     return deadlineDay - currentDay;
   }
 }

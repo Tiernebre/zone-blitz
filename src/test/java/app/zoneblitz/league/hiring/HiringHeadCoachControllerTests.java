@@ -45,6 +45,8 @@ class HiringHeadCoachControllerTests {
   @MockitoBean StartInterview startInterview;
   @MockitoBean MakeOffer makeOffer;
   @MockitoBean HireCandidate hireCandidate;
+  @MockitoBean MatchCounterOffer matchCounterOffer;
+  @MockitoBean DeclineCounterOffer declineCounterOffer;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
@@ -244,6 +246,129 @@ class HiringHeadCoachControllerTests {
     var league =
         new LeagueSummary(
             42L, "Dynasty", LeaguePhase.HIRING_HEAD_COACH, 1, 1, Instant.now(), 100L, franchise);
-    return new HeadCoachHiringView(league, List.of(), List.of(), List.of(), 0, 5);
+    return new HeadCoachHiringView(
+        league,
+        List.of(),
+        List.of(),
+        List.of(),
+        0,
+        5,
+        new StaffBudget(100L, 1, 25_000_000_00L, 0L));
+  }
+
+  @Test
+  void matchCounter_whenValid_rendersCombinedFragment() throws Exception {
+    given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
+    given(matchCounterOffer.match(42L, 9L, "sub-1"))
+        .willReturn(
+            new MatchCounterOfferResult.Matched(
+                new CandidateOffer(
+                    9L,
+                    7L,
+                    100L,
+                    "{}",
+                    1,
+                    OfferStatus.ACTIVE,
+                    Optional.of(OfferStance.PENDING),
+                    1,
+                    Optional.empty(),
+                    Optional.empty())));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/counter/9/match")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(view().name("league/hiring/head-coach-fragments :: combined"));
+
+    verify(matchCounterOffer).match(42L, 9L, "sub-1");
+  }
+
+  @Test
+  void matchCounter_whenInsufficientBudget_returns409() throws Exception {
+    given(matchCounterOffer.match(42L, 9L, "sub-1"))
+        .willReturn(new MatchCounterOfferResult.InsufficientBudget(100L, 0L, 100_000_00L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/counter/9/match")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void matchCounter_whenNotCounterPending_returns409() throws Exception {
+    given(matchCounterOffer.match(42L, 9L, "sub-1"))
+        .willReturn(new MatchCounterOfferResult.NotCounterPending(9L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/counter/9/match")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void matchCounter_whenDeadlineExpired_returns422() throws Exception {
+    given(matchCounterOffer.match(42L, 9L, "sub-1"))
+        .willReturn(new MatchCounterOfferResult.DeadlineExpired(9L, 4, 6));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/counter/9/match")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isUnprocessableEntity());
+  }
+
+  @Test
+  void matchCounter_whenNotFound_returns404() throws Exception {
+    given(matchCounterOffer.match(42L, 9L, "sub-1"))
+        .willReturn(new MatchCounterOfferResult.NotFound(42L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/counter/9/match")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void declineCounter_whenValid_rendersCombinedFragment() throws Exception {
+    given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
+    given(declineCounterOffer.decline(42L, 9L, "sub-1"))
+        .willReturn(new DeclineCounterOfferResult.Declined(9L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/counter/9/decline")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(view().name("league/hiring/head-coach-fragments :: combined"));
+
+    verify(declineCounterOffer).decline(42L, 9L, "sub-1");
+  }
+
+  @Test
+  void declineCounter_whenNotCounterPending_returns409() throws Exception {
+    given(declineCounterOffer.decline(42L, 9L, "sub-1"))
+        .willReturn(new DeclineCounterOfferResult.NotCounterPending(9L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/counter/9/decline")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void declineCounter_whenNotFound_returns404() throws Exception {
+    given(declineCounterOffer.decline(42L, 9L, "sub-1"))
+        .willReturn(new DeclineCounterOfferResult.NotFound(42L));
+
+    mvc.perform(
+            post("/leagues/42/hiring/head-coach/counter/9/decline")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
+                .with(csrf()))
+        .andExpect(status().isNotFound());
   }
 }

@@ -30,7 +30,8 @@ public record HeadCoachCandidateView(
     BigDecimal guaranteedMoneyTarget,
     Optional<InterviewInterest> interest,
     Optional<OfferView> offer,
-    Optional<String> hiredByFranchise) {
+    Optional<String> hiredByFranchise,
+    long remainingBudgetCents) {
 
   public HeadCoachCandidateView {
     Objects.requireNonNull(name, "name");

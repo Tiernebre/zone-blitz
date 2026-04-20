@@ -29,7 +29,10 @@ public final class HeadCoachHiringViewModel {
       List<CandidateOffer> teamOffers,
       Optional<TeamProfile> teamProfile,
       List<LeagueHire> leagueHires,
-      int interviewCapacity) {
+      int interviewCapacity,
+      StaffBudget budget,
+      int currentDay,
+      Map<Long, CandidateOffer> competingOffersById) {
     var prefsByCandidate =
         preferences.stream()
             .collect(
@@ -53,7 +56,10 @@ public final class HeadCoachHiringViewModel {
                         interestByCandidate,
                         offerByCandidate,
                         franchiseByTeamId,
-                        teamProfile.orElse(null)))
+                        teamProfile.orElse(null),
+                        budget,
+                        currentDay,
+                        competingOffersById))
             .toList();
     var poolRows = rows.stream().filter(r -> !r.hiredAway()).toList();
     var activeInterviewRows =
@@ -64,7 +70,13 @@ public final class HeadCoachHiringViewModel {
                     .thenComparing(r -> r.interest().orElseThrow()))
             .toList();
     return new HeadCoachHiringView(
-        league, poolRows, activeInterviewRows, leagueHires, interviewsToday, interviewCapacity);
+        league,
+        poolRows,
+        activeInterviewRows,
+        leagueHires,
+        interviewsToday,
+        interviewCapacity,
+        budget);
   }
 
   private static Map<Long, InterviewInterest> interestByCandidate(List<TeamInterview> interviews) {
@@ -93,12 +105,15 @@ public final class HeadCoachHiringViewModel {
       Map<Long, InterviewInterest> interestByCandidate,
       Map<Long, CandidateOffer> offerByCandidate,
       Map<Long, String> franchiseByTeamId,
-      TeamProfile teamProfile) {
+      TeamProfile teamProfile,
+      StaffBudget budget,
+      int currentDay,
+      Map<Long, CandidateOffer> competingOffersById) {
     var prefs = prefsById.get(candidate.id());
     var interest = Optional.ofNullable(interestByCandidate.get(candidate.id()));
     var offer =
         Optional.ofNullable(offerByCandidate.get(candidate.id()))
-            .flatMap(o -> toOfferView(o, prefs, teamProfile));
+            .flatMap(o -> toOfferView(o, prefs, teamProfile, currentDay, competingOffersById));
     var hiredByFranchise =
         candidate.hiredByTeamId().map(franchiseByTeamId::get).filter(java.util.Objects::nonNull);
     return new HeadCoachCandidateView(
@@ -116,11 +131,16 @@ public final class HeadCoachHiringViewModel {
         prefs == null ? BigDecimal.ZERO : prefs.guaranteedMoneyTarget(),
         interest,
         offer,
-        hiredByFranchise);
+        hiredByFranchise,
+        budget.availableCents());
   }
 
   private static Optional<OfferView> toOfferView(
-      CandidateOffer offer, CandidatePreferences prefs, TeamProfile teamProfile) {
+      CandidateOffer offer,
+      CandidatePreferences prefs,
+      TeamProfile teamProfile,
+      int currentDay,
+      Map<Long, CandidateOffer> competingOffersById) {
     if (prefs == null || teamProfile == null) {
       return Optional.empty();
     }
@@ -130,6 +150,24 @@ public final class HeadCoachHiringViewModel {
         stance == OfferStance.PENDING
             ? Optional.<String>empty()
             : StanceEvaluator.evaluate(terms, teamProfile, prefs).hint();
+    Optional<CounterDetails> counterDetails = Optional.empty();
+    if (offer.status() == OfferStatus.COUNTER_PENDING
+        && offer.competingOfferId().isPresent()
+        && offer.counterDeadlineDay().isPresent()) {
+      var competing = competingOffersById.get(offer.competingOfferId().get());
+      if (competing != null) {
+        var competingTerms = OfferTermsJson.fromJson(competing.terms());
+        counterDetails =
+            Optional.of(
+                new CounterDetails(
+                    competing.id(),
+                    competingTerms.compensation(),
+                    competingTerms.contractLengthYears(),
+                    competingTerms.guaranteedMoneyPct(),
+                    offer.counterDeadlineDay().get(),
+                    currentDay));
+      }
+    }
     return Optional.of(
         new OfferView(
             offer.id(),
@@ -139,7 +177,8 @@ public final class HeadCoachHiringViewModel {
             stance,
             offer.revisionCount(),
             StanceEvaluator.REVISION_CAP,
-            hint));
+            hint,
+            counterDetails));
   }
 
   private static int experienceFor(String experienceByRoleJson, String role) {

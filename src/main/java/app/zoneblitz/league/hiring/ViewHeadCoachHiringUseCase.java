@@ -3,7 +3,9 @@ package app.zoneblitz.league.hiring;
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.team.TeamProfiles;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
   private final CandidateOfferRepository offers;
   private final TeamProfiles teamProfiles;
   private final LeagueHires leagueHires;
+  private final StaffBudgetRepository budgets;
 
   public ViewHeadCoachHiringUseCase(
       LeagueRepository leagues,
@@ -29,7 +32,8 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
       TeamInterviewRepository interviews,
       CandidateOfferRepository offers,
       TeamProfiles teamProfiles,
-      LeagueHires leagueHires) {
+      LeagueHires leagueHires,
+      StaffBudgetRepository budgets) {
     this.leagues = leagues;
     this.pools = pools;
     this.candidates = candidates;
@@ -38,6 +42,7 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
     this.offers = offers;
     this.teamProfiles = teamProfiles;
     this.leagueHires = leagueHires;
+    this.budgets = budgets;
   }
 
   @Override
@@ -54,11 +59,12 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
     }
     var teamId = league.userTeamId();
     var phase = LeaguePhase.HIRING_HEAD_COACH;
+    var budget = budgets.committed(teamId, league.season());
     var pool = pools.findByLeaguePhaseAndType(leagueId, phase, CandidatePoolType.HEAD_COACH);
     if (pool.isEmpty()) {
       return Optional.of(
           new HeadCoachHiringView(
-              league, List.of(), List.of(), List.of(), 0, StartInterview.DAILY_CAPACITY));
+              league, List.of(), List.of(), List.of(), 0, StartInterview.DAILY_CAPACITY, budget));
     }
     var rows = candidates.findAllByPoolId(pool.get().id());
     var prefs =
@@ -67,7 +73,8 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
             .flatMap(Optional::stream)
             .toList();
     var interviewHistory = interviews.findAllFor(teamId, phase);
-    var teamOffers = offers.findActiveForTeam(teamId);
+    var teamOffers = offers.findOutstandingForTeam(teamId);
+    var competingOffersById = resolveCompetingOffers(teamOffers);
     var profile = teamProfiles.forTeam(teamId);
     var board = leagueHires.forLeaguePool(leagueId, teamId, pool.get().id());
     return Optional.of(
@@ -79,6 +86,22 @@ public class ViewHeadCoachHiringUseCase implements ViewHeadCoachHiring {
             teamOffers,
             profile,
             board,
-            StartInterview.DAILY_CAPACITY));
+            StartInterview.DAILY_CAPACITY,
+            budget,
+            league.phaseDay(),
+            competingOffersById));
+  }
+
+  private Map<Long, CandidateOffer> resolveCompetingOffers(List<CandidateOffer> teamOffers) {
+    Map<Long, CandidateOffer> byId = new HashMap<>();
+    for (var offer : teamOffers) {
+      if (offer.status() == OfferStatus.COUNTER_PENDING && offer.competingOfferId().isPresent()) {
+        var competingId = offer.competingOfferId().get();
+        if (!byId.containsKey(competingId)) {
+          offers.findById(competingId).ifPresent(c -> byId.put(competingId, c));
+        }
+      }
+    }
+    return byId;
   }
 }

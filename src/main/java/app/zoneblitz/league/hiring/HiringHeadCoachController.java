@@ -28,16 +28,22 @@ public class HiringHeadCoachController {
   private final StartInterview startInterview;
   private final MakeOffer makeOffer;
   private final HireCandidate hireCandidate;
+  private final MatchCounterOffer matchCounterOffer;
+  private final DeclineCounterOffer declineCounterOffer;
 
   public HiringHeadCoachController(
       ViewHeadCoachHiring viewHiring,
       StartInterview startInterview,
       MakeOffer makeOffer,
-      HireCandidate hireCandidate) {
+      HireCandidate hireCandidate,
+      MatchCounterOffer matchCounterOffer,
+      DeclineCounterOffer declineCounterOffer) {
     this.viewHiring = viewHiring;
     this.startInterview = startInterview;
     this.makeOffer = makeOffer;
     this.hireCandidate = hireCandidate;
+    this.matchCounterOffer = matchCounterOffer;
+    this.declineCounterOffer = declineCounterOffer;
   }
 
   @GetMapping("/leagues/{id}/hiring/head-coach")
@@ -163,6 +169,62 @@ public class HiringHeadCoachController {
               HttpStatus.CONFLICT, "Candidate has not agreed to an offer yet");
       case HireCandidateResult.AlreadyHired ignored ->
           throw new ResponseStatusException(HttpStatus.CONFLICT);
+    };
+  }
+
+  @PostMapping("/leagues/{id}/hiring/head-coach/counter/{offerId}/match")
+  String matchCounter(
+      @AuthenticationPrincipal OAuth2User principal,
+      @PathVariable long id,
+      @PathVariable long offerId,
+      Model model) {
+    var result = matchCounterOffer.match(id, offerId, principal.getAttribute("sub"));
+    return switch (result) {
+      case MatchCounterOfferResult.Matched matched -> {
+        log.info(
+            "counter matched leagueId={} offerId={} revision={}",
+            id,
+            matched.offer().id(),
+            matched.offer().revisionCount());
+        model.addAttribute("view", resolveView(principal, id));
+        yield "league/hiring/head-coach-fragments :: combined";
+      }
+      case MatchCounterOfferResult.NotFound ignored ->
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      case MatchCounterOfferResult.NotCounterPending ignored ->
+          throw new ResponseStatusException(
+              HttpStatus.CONFLICT, "Offer is not in a counter-pending state");
+      case MatchCounterOfferResult.InsufficientBudget budget ->
+          throw new ResponseStatusException(
+              HttpStatus.CONFLICT,
+              "Match exceeds staff budget: $%d available, $%d required"
+                  .formatted(budget.availableCents() / 100, budget.requiredCents() / 100));
+      case MatchCounterOfferResult.DeadlineExpired expired ->
+          throw new ResponseStatusException(
+              HttpStatus.UNPROCESSABLE_ENTITY,
+              "Counter deadline passed on day %d (currently day %d)"
+                  .formatted(expired.deadlineDay(), expired.currentDay()));
+    };
+  }
+
+  @PostMapping("/leagues/{id}/hiring/head-coach/counter/{offerId}/decline")
+  String declineCounter(
+      @AuthenticationPrincipal OAuth2User principal,
+      @PathVariable long id,
+      @PathVariable long offerId,
+      Model model) {
+    var result = declineCounterOffer.decline(id, offerId, principal.getAttribute("sub"));
+    return switch (result) {
+      case DeclineCounterOfferResult.Declined declined -> {
+        log.info("counter declined leagueId={} offerId={}", id, declined.offerId());
+        model.addAttribute("view", resolveView(principal, id));
+        yield "league/hiring/head-coach-fragments :: combined";
+      }
+      case DeclineCounterOfferResult.NotFound ignored ->
+          throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+      case DeclineCounterOfferResult.NotCounterPending ignored ->
+          throw new ResponseStatusException(
+              HttpStatus.CONFLICT, "Offer is not in a counter-pending state");
     };
   }
 

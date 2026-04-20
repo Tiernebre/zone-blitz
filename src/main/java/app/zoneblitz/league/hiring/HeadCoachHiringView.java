@@ -11,10 +11,12 @@ public record HeadCoachHiringView(
     List<HeadCoachCandidateView> activeInterviews,
     List<LeagueHire> leagueHires,
     int interviewsToday,
-    int interviewCapacity) {
+    int interviewCapacity,
+    StaffBudget budget) {
 
   public HeadCoachHiringView {
     Objects.requireNonNull(league, "league");
+    Objects.requireNonNull(budget, "budget");
     pool = List.copyOf(pool);
     activeInterviews = List.copyOf(activeInterviews);
     leagueHires = List.copyOf(leagueHires);
