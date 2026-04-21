@@ -91,7 +91,11 @@ public class MakeOfferUseCase implements MakeOffer {
 
     var apyCents = terms.compensation().movePointRight(2).longValueExact();
     var budget = budgets.committed(teamId, league.season());
-    var existing = offers.findActiveForTeamAndCandidate(teamId, candidateId);
+    var outstanding = offers.findOutstandingForTeamAndCandidate(teamId, candidateId);
+    if (outstanding.isPresent() && outstanding.get().status() == OfferStatus.COUNTER_PENDING) {
+      return new MakeOfferResult.CounterPendingOutstanding(candidateId, outstanding.get().id());
+    }
+    var existing = outstanding;
     var existingApyCents =
         existing
             .map(o -> OfferTermsJson.fromJson(o.terms()))

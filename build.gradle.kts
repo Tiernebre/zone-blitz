@@ -124,8 +124,39 @@ jooq {
     }
 }
 
+// Treat the Flyway migration directory as the sole input for both flywayMigrate and
+// generateJooq. Without this, both tasks are never UP-TO-DATE and every recompile (including
+// Spring DevTools dev reloads) re-hits Postgres and re-runs the jOOQ generator — slow at best,
+// hung at worst if the DB is unreachable or holding a lock. With declared inputs, Gradle skips
+// both when migrations haven't changed since the last successful run.
+val flywayMigrations =
+    fileTree("src/main/resources/db/migration") { include("**/*.sql") }
+
+tasks.named("flywayMigrate") {
+    inputs
+        .files(flywayMigrations)
+        .withPropertyName("flywayMigrations")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.upToDateWhen { true }
+}
+
 tasks.named("generateJooq") {
     dependsOn("flywayMigrate")
+    inputs
+        .files(flywayMigrations)
+        .withPropertyName("flywayMigrations")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
+// Opt-in escape hatch for dev loops: `-PskipJooq=true` (or env var SKIP_JOOQ=true) skips both
+// tasks entirely, so a pure-Java iteration doesn't need a live Postgres at all.
+val skipJooq =
+    providers.gradleProperty("skipJooq").orNull == "true" ||
+        providers.environmentVariable("SKIP_JOOQ").orNull == "true"
+
+if (skipJooq) {
+    tasks.named("flywayMigrate") { enabled = false }
+    tasks.named("generateJooq") { enabled = false }
 }
 
 tasks.named("compileJava") {

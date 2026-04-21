@@ -147,9 +147,12 @@ class StaffAssemblyE2ETest {
     assertThat(page.locator("details[open]").locator("li")).hasCount(EXPECTED_SEATS_PER_FRANCHISE);
     assertThat(page.locator("details[open] summary").getByText("22 staff")).isVisible();
 
-    // Advance out of ASSEMBLING_STAFF into COMPLETE through the header form.
+    // Advance out of ASSEMBLING_STAFF into EXPANSION_DRAFT_SCOUTING.
     page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Advance")).click();
+    assertThat(page).hasURL(Pattern.compile(".*/leagues/\\d+$"));
 
+    // Advance out of EXPANSION_DRAFT_SCOUTING into COMPLETE.
+    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Advance")).click();
     assertThat(page).hasURL(Pattern.compile(".*/leagues/\\d+$"));
     assertThat(page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Advance")))
         .hasCount(0);

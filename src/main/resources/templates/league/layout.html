@@ -63,6 +63,12 @@
 					<svg th:replace="~{icons :: user-circle(cls='size-4 shrink-0')}"></svg>
 					<span class="sidebar-label">Staff Hiring</span>
 				</a>
+				<a th:href="@{'/leagues/' + ${league.leagueId()} + '/coaching-staff'}"
+				   th:classappend="${activeNav == 'coaching-staff'} ? 'bg-slate-800 text-white font-medium' : 'hover:bg-slate-800 text-slate-300'"
+				   class="sidebar-nav-item flex items-center gap-2 px-3 py-2 rounded">
+					<svg th:replace="~{icons :: users(cls='size-4 shrink-0')}"></svg>
+					<span class="sidebar-label">Front Office Staff</span>
+				</a>
 				<a th:href="@{'/leagues/' + ${league.leagueId()} + '/settings'}"
 				   th:classappend="${activeNav == 'settings'} ? 'bg-slate-800 text-white font-medium' : 'hover:bg-slate-800 text-slate-300'"
 				   class="sidebar-nav-item flex items-center gap-2 px-3 py-2 rounded">
@@ -103,11 +109,7 @@
 		</aside>
 
 		<div class="flex-1 flex flex-col h-screen min-w-0"
-		     th:with="phaseLabel=${phaseName == 'INITIAL_SETUP' ? 'Initial Setup'
-		                         : (phaseName == 'HIRING_HEAD_COACH' ? 'Hiring Head Coach'
-		                         : (phaseName == 'HIRING_DIRECTOR_OF_SCOUTING' ? 'Hiring Director of Scouting'
-		                         : (phaseName == 'ASSEMBLING_STAFF' ? 'Assembling Staff'
-		                         : 'Complete')))}">
+		     th:with="phaseLabel=${league.phase().displayName()}">
 			<header class="shrink-0 bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between gap-4">
 				<div class="min-w-0">
 					<h1 class="text-2xl font-bold text-slate-900 truncate" th:text="${pageHeading}">Page</h1>

@@ -28,7 +28,9 @@ public final class LeagueTableFilter {
       var needle = q.q().toLowerCase(Locale.ROOT);
       var nameHit = row.leagueName().toLowerCase(Locale.ROOT).contains(needle);
       var franchiseHit = franchiseDisplay.toLowerCase(Locale.ROOT).contains(needle);
-      var phaseHit = row.phase().name().toLowerCase(Locale.ROOT).contains(needle);
+      var phaseHit =
+          row.phase().name().toLowerCase(Locale.ROOT).contains(needle)
+              || row.phase().displayName().toLowerCase(Locale.ROOT).contains(needle);
       if (!(nameHit || franchiseHit || phaseHit)) {
         return false;
       }

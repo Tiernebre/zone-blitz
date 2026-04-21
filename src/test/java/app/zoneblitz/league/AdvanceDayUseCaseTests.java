@@ -399,7 +399,8 @@ class AdvanceDayUseCaseTests {
         case INITIAL_SETUP -> LeaguePhase.HIRING_HEAD_COACH;
         case HIRING_HEAD_COACH -> LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING;
         case HIRING_DIRECTOR_OF_SCOUTING -> LeaguePhase.ASSEMBLING_STAFF;
-        case ASSEMBLING_STAFF -> LeaguePhase.COMPLETE;
+        case ASSEMBLING_STAFF -> LeaguePhase.EXPANSION_DRAFT_SCOUTING;
+        case EXPANSION_DRAFT_SCOUTING -> LeaguePhase.COMPLETE;
         case COMPLETE -> LeaguePhase.COMPLETE;
       };
     }

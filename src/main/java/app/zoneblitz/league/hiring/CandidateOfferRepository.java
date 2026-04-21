@@ -18,6 +18,13 @@ public interface CandidateOfferRepository {
   /** Find the active offer, if any, a team has outstanding on a specific candidate. */
   Optional<CandidateOffer> findActiveForTeamAndCandidate(long teamId, long candidateId);
 
+  /**
+   * Find the <em>outstanding</em> offer, if any, a team has on a specific candidate — ACTIVE or
+   * COUNTER_PENDING. This matches the DB-level {@code candidate_offers_one_outstanding_per_team}
+   * uniqueness constraint, which is what callers must respect before inserting a new offer.
+   */
+  Optional<CandidateOffer> findOutstandingForTeamAndCandidate(long teamId, long candidateId);
+
   /** All offers on a candidate, ordered by submission day ascending. */
   List<CandidateOffer> findAllForCandidate(long candidateId);
 

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{league/layout :: shell(
+          league=${view.league()},
+          activeNav='coaching-staff',
+          pageHeading='Front Office Staff',
+          pageTitle=${view.league().leagueName() + ' — Front Office Staff — Zone Blitz'},
+          includeHtmx=false,
+          content=~{:: #page-content})}">
+<body>
+	<div id="page-content" class="space-y-6">
+		<p class="text-sm text-slate-700">
+			Your franchise's staff org chart. Empty seats fill as you progress through the hiring phases.
+		</p>
+
+		<section class="bg-white border border-slate-200 rounded p-4 shadow-sm">
+			<h2 class="text-lg font-semibold text-slate-900 mb-3">Coaching</h2>
+
+			<div th:with="seat=${view.headCoach()}"
+			     th:classappend="${seat.filled()} ? ' bg-indigo-50 border-indigo-300' : ' bg-slate-50 border-slate-200 border-dashed'"
+			     class="border rounded px-4 py-3 max-w-md mx-auto mb-4">
+				<div class="text-xs font-medium text-slate-600 tracking-wide"
+				     th:text="${seat.role().displayName()}">HEAD_COACH</div>
+				<div th:if="${seat.filled()}"
+				     class="text-base font-semibold text-slate-900"
+				     th:text="${seat.occupant().get().firstName() + ' ' + seat.occupant().get().lastName()}">
+					Name
+				</div>
+				<div th:if="${seat.filled()}"
+				     class="text-xs text-slate-700"
+				     th:text="${seat.occupant().get().archetype().displayName()} + ' · ' + ${seat.occupant().get().specialtyPosition().name()}">
+					Archetype · Specialty
+				</div>
+				<div th:unless="${seat.filled()}" class="text-sm italic text-slate-500">Not yet hired</div>
+			</div>
+
+			<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+				<div th:each="group : ${view.coordinatorGroups()}" class="space-y-2">
+					<div th:with="seat=${group.coordinator()}"
+					     th:classappend="${seat.filled()} ? ' bg-indigo-50 border-indigo-300' : ' bg-slate-50 border-slate-200 border-dashed'"
+					     class="border rounded px-3 py-2">
+						<div class="text-xs font-medium text-slate-600 tracking-wide"
+						     th:text="${seat.role().displayName()}">COORD</div>
+						<div th:if="${seat.filled()}"
+						     class="text-sm font-semibold text-slate-900"
+						     th:text="${seat.occupant().get().firstName() + ' ' + seat.occupant().get().lastName()}">
+							Name
+						</div>
+						<div th:unless="${seat.filled()}" class="text-xs italic text-slate-500">Not yet hired</div>
+					</div>
+					<ul class="space-y-1 pl-4 border-l border-slate-200">
+						<li th:each="coach : ${group.positionCoaches()}"
+						    th:classappend="${coach.filled()} ? ' bg-white' : ' bg-slate-50 border-dashed'"
+						    class="border border-slate-200 rounded px-2 py-1">
+							<div class="text-xs font-medium text-slate-600"
+							     th:text="${coach.role().displayName()}">COACH</div>
+							<div th:if="${coach.filled()}"
+							     class="text-sm text-slate-900"
+							     th:text="${coach.occupant().get().firstName() + ' ' + coach.occupant().get().lastName()}">
+								Name
+							</div>
+							<div th:unless="${coach.filled()}" class="text-xs italic text-slate-500">Not yet hired</div>
+						</li>
+						<li th:if="${#lists.isEmpty(group.positionCoaches())}"
+						    class="text-xs italic text-slate-500">No position coaches report here.</li>
+					</ul>
+				</div>
+			</div>
+		</section>
+
+		<section class="bg-white border border-slate-200 rounded p-4 shadow-sm">
+			<h2 class="text-lg font-semibold text-slate-900 mb-3">Scouting</h2>
+
+			<div th:with="seat=${view.directorOfScouting()}"
+			     th:classappend="${seat.filled()} ? ' bg-indigo-50 border-indigo-300' : ' bg-slate-50 border-slate-200 border-dashed'"
+			     class="border rounded px-4 py-3 max-w-md mx-auto mb-4">
+				<div class="text-xs font-medium text-slate-600 tracking-wide"
+				     th:text="${seat.role().displayName()}">DIRECTOR_OF_SCOUTING</div>
+				<div th:if="${seat.filled()}"
+				     class="text-base font-semibold text-slate-900"
+				     th:text="${seat.occupant().get().firstName() + ' ' + seat.occupant().get().lastName()}">
+					Name
+				</div>
+				<div th:if="${seat.filled()}"
+				     class="text-xs text-slate-700"
+				     th:text="${seat.occupant().get().archetype().displayName()}">
+					Archetype
+				</div>
+				<div th:unless="${seat.filled()}" class="text-sm italic text-slate-500">Not yet hired</div>
+			</div>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<div>
+					<h3 class="text-sm font-semibold text-slate-800 mb-2">College scouts</h3>
+					<ul class="space-y-1">
+						<li th:each="seat : ${view.collegeScouts()}"
+						    class="border border-slate-200 rounded px-2 py-1 bg-white">
+							<div class="text-sm text-slate-900"
+							     th:text="${seat.occupant().get().firstName() + ' ' + seat.occupant().get().lastName()}">
+								Name
+							</div>
+						</li>
+						<li th:if="${#lists.isEmpty(view.collegeScouts())}"
+						    class="text-xs italic text-slate-500">No college scouts yet.</li>
+					</ul>
+				</div>
+				<div>
+					<h3 class="text-sm font-semibold text-slate-800 mb-2">Pro scouts</h3>
+					<ul class="space-y-1">
+						<li th:each="seat : ${view.proScouts()}"
+						    class="border border-slate-200 rounded px-2 py-1 bg-white">
+							<div class="text-sm text-slate-900"
+							     th:text="${seat.occupant().get().firstName() + ' ' + seat.occupant().get().lastName()}">
+								Name
+							</div>
+						</li>
+						<li th:if="${#lists.isEmpty(view.proScouts())}"
+						    class="text-xs italic text-slate-500">No pro scouts yet.</li>
+					</ul>
+				</div>
+			</div>
+		</section>
+	</div>
+</body>
+</html>

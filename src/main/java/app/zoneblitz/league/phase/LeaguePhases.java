@@ -14,7 +14,7 @@ import java.util.Optional;
  * <ul>
  *   <li>{@link LeaguePhase#HIRING_HEAD_COACH} — max 21 days.
  *   <li>{@link LeaguePhase#HIRING_DIRECTOR_OF_SCOUTING} — max 21 days.
- *   <li>{@link LeaguePhase#ASSEMBLING_STAFF} — max 7 days.
+ *   <li>{@link LeaguePhase#ASSEMBLING_STAFF} — max 1 day (automated; one Advance tick exits).
  *   <li>{@link LeaguePhase#INITIAL_SETUP} — no cap; user-advanced explicitly.
  * </ul>
  */
@@ -25,13 +25,14 @@ public final class LeaguePhases {
           LeaguePhase.INITIAL_SETUP, LeaguePhase.HIRING_HEAD_COACH,
           LeaguePhase.HIRING_HEAD_COACH, LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING,
           LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING, LeaguePhase.ASSEMBLING_STAFF,
-          LeaguePhase.ASSEMBLING_STAFF, LeaguePhase.COMPLETE);
+          LeaguePhase.ASSEMBLING_STAFF, LeaguePhase.EXPANSION_DRAFT_SCOUTING,
+          LeaguePhase.EXPANSION_DRAFT_SCOUTING, LeaguePhase.COMPLETE);
 
   private static final Map<LeaguePhase, Integer> MAX_DAYS =
       Map.of(
           LeaguePhase.HIRING_HEAD_COACH, 21,
           LeaguePhase.HIRING_DIRECTOR_OF_SCOUTING, 21,
-          LeaguePhase.ASSEMBLING_STAFF, 7);
+          LeaguePhase.ASSEMBLING_STAFF, 1);
 
   private LeaguePhases() {}
 

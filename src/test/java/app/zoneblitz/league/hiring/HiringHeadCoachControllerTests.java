@@ -8,6 +8,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -198,8 +199,7 @@ class HiringHeadCoachControllerTests {
   }
 
   @Test
-  void hire_whenHired_rendersCombinedFragment() throws Exception {
-    given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
+  void hire_whenHired_redirectsToSummary() throws Exception {
     given(hireCandidate.hire(42L, 7L, "sub-1")).willReturn(new HireCandidateResult.Hired(7L, 100L));
 
     mvc.perform(
@@ -207,7 +207,7 @@ class HiringHeadCoachControllerTests {
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1")))
                 .with(csrf()))
         .andExpect(status().isOk())
-        .andExpect(view().name("league/hiring/head-coach-fragments :: combined"));
+        .andExpect(header().string("HX-Redirect", "/leagues/42/hiring/head-coach/summary"));
 
     verify(hireCandidate).hire(42L, 7L, "sub-1");
   }

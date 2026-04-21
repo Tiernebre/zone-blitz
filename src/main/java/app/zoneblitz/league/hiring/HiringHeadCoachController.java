@@ -48,8 +48,18 @@ public class HiringHeadCoachController {
 
   @GetMapping("/leagues/{id}/hiring/head-coach")
   String page(@AuthenticationPrincipal OAuth2User principal, @PathVariable long id, Model model) {
-    model.addAttribute("view", resolveView(principal, id));
+    var view = resolveView(principal, id);
+    if (userHasHired(view)) {
+      return "redirect:/leagues/" + id + "/hiring/head-coach/summary";
+    }
+    model.addAttribute("view", view);
     return "league/hiring/head-coach";
+  }
+
+  private static boolean userHasHired(HeadCoachHiringView view) {
+    var userTeamId = view.league().userTeamId();
+    return view.leagueHires().stream()
+        .anyMatch(h -> h.teamId() == userTeamId && h.hire().isPresent());
   }
 
   @GetMapping("/leagues/{id}/hiring/head-coach/pool")
@@ -134,6 +144,10 @@ public class HiringHeadCoachController {
               HttpStatus.CONFLICT,
               "Offer exceeds staff budget: $%d available, $%d required"
                   .formatted(budget.availableCents() / 100, budget.requiredCents() / 100));
+      case MakeOfferResult.CounterPendingOutstanding ignored ->
+          throw new ResponseStatusException(
+              HttpStatus.CONFLICT,
+              "Candidate has an outstanding counter — match or decline it before revising");
     };
   }
 
@@ -152,13 +166,8 @@ public class HiringHeadCoachController {
             id,
             hired.candidateId(),
             hired.teamId());
-        var maybeView = viewHiring.view(id, principal.getAttribute("sub"));
-        if (maybeView.isEmpty()) {
-          response.setHeader("HX-Redirect", "/leagues/" + id);
-          yield "";
-        }
-        model.addAttribute("view", maybeView.get());
-        yield "league/hiring/head-coach-fragments :: combined";
+        response.setHeader("HX-Redirect", "/leagues/" + id + "/hiring/head-coach/summary");
+        yield "league/hiring/head-coach-fragments :: redirecting";
       }
       case HireCandidateResult.NotFound ignored ->
           throw new ResponseStatusException(HttpStatus.NOT_FOUND);

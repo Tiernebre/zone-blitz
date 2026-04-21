@@ -65,6 +65,29 @@ public class AdvanceDayUseCase implements AdvanceDay {
     return tickOnce(leagueId, league.phase(), league.phaseDay(), ownerSubject);
   }
 
+  @Override
+  @Transactional
+  public AdvanceDayResult tickKeepingPhase(long leagueId, String ownerSubject) {
+    Objects.requireNonNull(ownerSubject, "ownerSubject");
+
+    var maybeLeague = leagues.findSummaryByIdAndOwner(leagueId, ownerSubject);
+    if (maybeLeague.isEmpty()) {
+      return new AdvanceDayResult.NotFound(leagueId);
+    }
+    var league = maybeLeague.get();
+    var phase = league.phase();
+    var phaseDay = league.phaseDay();
+
+    runCpuStrategies(leagueId, phase, phaseDay);
+    offerResolver.resolve(leagueId, phase, phaseDay);
+    var newDay =
+        leagues
+            .incrementPhaseDay(leagueId)
+            .orElseThrow(() -> new IllegalStateException("league disappeared mid-transaction"));
+    log.info("league day advanced (phase kept) id={} phase={} day={}", leagueId, phase, newDay);
+    return new AdvanceDayResult.Ticked(leagueId, phase, newDay, Optional.empty());
+  }
+
   /**
    * Run a single day tick against the supplied phase/day state. Public within the package so {@code
    * HireCandidateUseCase} can fast-forward remaining days of a phase after a user hire.
@@ -129,7 +152,7 @@ public class AdvanceDayUseCase implements AdvanceDay {
         }
         yield true;
       }
-      case INITIAL_SETUP, ASSEMBLING_STAFF, COMPLETE -> false;
+      case INITIAL_SETUP, EXPANSION_DRAFT_SCOUTING, ASSEMBLING_STAFF, COMPLETE -> false;
     };
   }
 

@@ -132,7 +132,7 @@ public class LeagueController {
       case HIRING_HEAD_COACH -> "/leagues/" + id + "/hiring/head-coach";
       case HIRING_DIRECTOR_OF_SCOUTING -> "/leagues/" + id + "/hiring/director-of-scouting";
       case ASSEMBLING_STAFF -> "/leagues/" + id + "/staff-recap";
-      case INITIAL_SETUP, COMPLETE -> "/leagues/" + id;
+      case INITIAL_SETUP, EXPANSION_DRAFT_SCOUTING, COMPLETE -> "/leagues/" + id;
     };
   }
 

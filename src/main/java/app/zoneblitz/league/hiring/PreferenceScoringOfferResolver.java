@@ -393,7 +393,7 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
     return switch (phase) {
       case HIRING_HEAD_COACH -> StaffRole.HEAD_COACH;
       case HIRING_DIRECTOR_OF_SCOUTING -> StaffRole.DIRECTOR_OF_SCOUTING;
-      case INITIAL_SETUP, ASSEMBLING_STAFF, COMPLETE ->
+      case INITIAL_SETUP, EXPANSION_DRAFT_SCOUTING, ASSEMBLING_STAFF, COMPLETE ->
           throw new IllegalStateException("no staff role for non-hiring phase " + phase);
     };
   }
@@ -402,7 +402,7 @@ public class PreferenceScoringOfferResolver implements OfferResolver {
     return switch (phase) {
       case HIRING_HEAD_COACH -> Optional.of(CandidatePoolType.HEAD_COACH);
       case HIRING_DIRECTOR_OF_SCOUTING -> Optional.of(CandidatePoolType.DIRECTOR_OF_SCOUTING);
-      case INITIAL_SETUP, ASSEMBLING_STAFF, COMPLETE -> Optional.empty();
+      case INITIAL_SETUP, EXPANSION_DRAFT_SCOUTING, ASSEMBLING_STAFF, COMPLETE -> Optional.empty();
     };
   }
 }

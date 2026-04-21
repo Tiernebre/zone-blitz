@@ -17,4 +17,12 @@ public interface AdvanceDay {
    *     owned by {@code ownerSubject}.
    */
   AdvanceDayResult advance(long leagueId, String ownerSubject);
+
+  /**
+   * Run a single-day tick without advancing the phase. Runs CPU strategies and offer resolution and
+   * increments {@code phase_day}, but never transitions to the next phase — even when every team is
+   * resolved or the cap has been hit. Used by the post-user-hire fast-forward so the summary page
+   * has a stable landing without silently rolling past the phase behind the user's back.
+   */
+  AdvanceDayResult tickKeepingPhase(long leagueId, String ownerSubject);
 }

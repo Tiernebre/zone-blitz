@@ -40,6 +40,8 @@ class HiringDirectorOfScoutingControllerTests {
   @MockitoBean StartInterview startInterview;
   @MockitoBean MakeOffer makeOffer;
   @MockitoBean HireCandidate hireCandidate;
+  @MockitoBean MatchCounterOffer matchCounterOffer;
+  @MockitoBean DeclineCounterOffer declineCounterOffer;
   @MockitoBean ClientRegistrationRepository clientRegistrationRepository;
 
   @Test
@@ -103,6 +105,13 @@ class HiringDirectorOfScoutingControllerTests {
             Instant.now(),
             100L,
             franchise);
-    return new DirectorOfScoutingHiringView(league, List.of(), List.of(), List.of(), 0, 5);
+    return new DirectorOfScoutingHiringView(
+        league,
+        List.of(),
+        List.of(),
+        List.of(),
+        0,
+        5,
+        new StaffBudget(100L, 1, 25_000_000_00L, 0L));
   }
 }

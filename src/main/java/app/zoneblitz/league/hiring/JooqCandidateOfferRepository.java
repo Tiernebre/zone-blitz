@@ -53,6 +53,20 @@ public class JooqCandidateOfferRepository implements CandidateOfferRepository {
   }
 
   @Override
+  public Optional<CandidateOffer> findOutstandingForTeamAndCandidate(
+      long teamId, long candidateId) {
+    return dsl.selectFrom(CANDIDATE_OFFERS)
+        .where(CANDIDATE_OFFERS.TEAM_ID.eq(teamId))
+        .and(CANDIDATE_OFFERS.CANDIDATE_ID.eq(candidateId))
+        .and(
+            CANDIDATE_OFFERS
+                .STATUS
+                .eq(OfferStatus.ACTIVE.name())
+                .or(CANDIDATE_OFFERS.STATUS.eq(OfferStatus.COUNTER_PENDING.name())))
+        .fetchOptional(this::map);
+  }
+
+  @Override
   public List<CandidateOffer> findAllForCandidate(long candidateId) {
     return dsl.selectFrom(CANDIDATE_OFFERS)
         .where(CANDIDATE_OFFERS.CANDIDATE_ID.eq(candidateId))

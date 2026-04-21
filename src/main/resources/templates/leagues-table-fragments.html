@@ -32,7 +32,7 @@
 					<option value="">All</option>
 					<option th:each="p : ${T(app.zoneblitz.league.phase.LeaguePhase).values()}"
 					        th:value="${p.name()}"
-					        th:text="${p.name()}"
+					        th:text="${p.displayName()}"
 					        th:selected="${query.phase() == p.name()}"></option>
 				</select>
 			</label>
@@ -113,7 +113,7 @@
 								<span th:text="${league.userFranchise().city().name() + ' ' + league.userFranchise().name()}">Team</span>
 							</span>
 						</td>
-						<td class="px-4 py-2 text-slate-600" th:text="${league.phase()}">PHASE</td>
+						<td class="px-4 py-2 text-slate-600" th:text="${league.phase().displayName()}">Phase</td>
 						<td class="px-4 py-2 text-slate-500"
 						    th:text="${#temporals.format(league.createdAt(), 'yyyy-MM-dd')}">date</td>
 						<td class="px-4 py-2 text-right">

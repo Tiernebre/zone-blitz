@@ -66,15 +66,35 @@ class HireCandidateUseCaseTests {
     CandidateRandomSources rngs =
         (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal());
     AdvanceDay noopAdvance =
-        (id, sub) ->
-            new AdvanceDayResult.Ticked(
+        new AdvanceDay() {
+          @Override
+          public AdvanceDayResult advance(long id, String sub) {
+            return new AdvanceDayResult.Ticked(
                 id,
                 LeaguePhase.ASSEMBLING_STAFF,
                 1,
                 java.util.Optional.of(LeaguePhase.ASSEMBLING_STAFF));
+          }
+
+          @Override
+          public AdvanceDayResult tickKeepingPhase(long id, String sub) {
+            return new AdvanceDayResult.Ticked(
+                id, LeaguePhase.HIRING_HEAD_COACH, 2, java.util.Optional.empty());
+          }
+        };
+    app.zoneblitz.league.phase.HiringPhaseAutofill noopAutofill = (lid, p, d) -> {};
     useCase =
         new HireCandidateUseCase(
-            leagues, pools, candidates, offers, hiringStates, staff, staffContracts, noopAdvance);
+            leagues,
+            pools,
+            candidates,
+            offers,
+            hiringStates,
+            staff,
+            staffContracts,
+            noopAdvance,
+            teams,
+            noopAutofill);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
     entryHandler =
         new HiringHeadCoachTransitionHandler(

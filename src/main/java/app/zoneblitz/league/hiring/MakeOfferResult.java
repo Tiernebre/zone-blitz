@@ -26,4 +26,11 @@ public sealed interface MakeOfferResult {
 
   record InsufficientBudget(long teamId, long availableCents, long requiredCents)
       implements MakeOfferResult {}
+
+  /**
+   * The team already has a COUNTER_PENDING offer outstanding on this candidate — the user must
+   * match or decline the counter before submitting another offer. Prevents violating the {@code
+   * candidate_offers_one_outstanding_per_team} uniqueness constraint.
+   */
+  record CounterPendingOutstanding(long candidateId, long offerId) implements MakeOfferResult {}
 }

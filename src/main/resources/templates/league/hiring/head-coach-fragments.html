@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
+	<!-- Empty body: used when the response body is irrelevant because HX-Redirect is set. -->
+	<div th:fragment="redirecting"></div>
+
 	<!-- Combined swap target: pool + Your candidates panel + league board re-rendered together after mutations. -->
 	<div th:fragment="combined" id="hiring-regions" class="space-y-4">
 		<div th:insert="~{league/hiring/head-coach-fragments :: league-board}"></div>
@@ -209,7 +212,7 @@
 							Hire
 						</button>
 
-						<button th:if="${(not row.hasOffer() or row.offer().get().canRevise()) and not (row.hasOffer() and row.offer().get().isCounterPending())}"
+						<button th:if="${(not row.hasOffer() or row.offer().get().canRevise()) and not (row.hasOffer() and row.offer().get().isCounterPending()) and not (row.hasOffer() and row.offer().get().isAgreed())}"
 						        type="button"
 						        th:attr="data-toggle-form='hc-offer-form-' + ${row.id()}"
 						        th:disabled="${not view.offersOpen()}"
@@ -226,7 +229,7 @@
 					     class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1"
 					     th:text="'Offers open on day ' + ${view.offersOpenOnDay()} + ' (currently day ' + ${view.league().phaseDay()} + ') — interview-only window.'"></div>
 
-					<th:block th:if="${view.offersOpen() and (not row.hasOffer() or row.offer().get().canRevise()) and not (row.hasOffer() and row.offer().get().isCounterPending())}"
+					<th:block th:if="${view.offersOpen() and (not row.hasOffer() or row.offer().get().canRevise()) and not (row.hasOffer() and row.offer().get().isCounterPending()) and not (row.hasOffer() and row.offer().get().isAgreed())}"
 					          th:insert="~{league/hiring/offer-form-fragments :: form(row=${row}, leagueId=${view.league().leagueId()}, rolePath='head-coach', idPrefix='hc')}"></th:block>
 				</th:block>
 			</li>
