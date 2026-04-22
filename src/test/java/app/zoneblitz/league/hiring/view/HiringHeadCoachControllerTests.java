@@ -31,7 +31,6 @@ import app.zoneblitz.league.hiring.OfferStance;
 import app.zoneblitz.league.hiring.OfferStatus;
 import app.zoneblitz.league.hiring.StaffBudget;
 import app.zoneblitz.league.hiring.StartInterview;
-import app.zoneblitz.league.hiring.ViewHeadCoachHiring;
 import app.zoneblitz.league.phase.LeaguePhase;
 import java.time.Instant;
 import java.util.List;

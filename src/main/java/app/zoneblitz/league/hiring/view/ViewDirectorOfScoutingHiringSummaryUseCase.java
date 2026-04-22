@@ -2,7 +2,6 @@ package app.zoneblitz.league.hiring.view;
 
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.hiring.CandidatePoolType;
-import app.zoneblitz.league.hiring.ViewDirectorOfScoutingHiringSummary;
 import app.zoneblitz.league.hiring.candidates.CandidatePoolRepository;
 import app.zoneblitz.league.hiring.hire.LeagueHires;
 import app.zoneblitz.league.phase.LeaguePhase;

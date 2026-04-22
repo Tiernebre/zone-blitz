@@ -7,10 +7,10 @@ import java.util.Objects;
  * A slice of the leagues table for a given {@link LeagueTableQuery}: the filtered, sorted, and
  * paginated rows plus the totals needed to render pagination controls.
  */
-public record LeagueTablePage(
+record LeagueTablePage(
     List<LeagueSummary> rows, int totalRows, int filteredRows, LeagueTableQuery query) {
 
-  public LeagueTablePage {
+  LeagueTablePage {
     Objects.requireNonNull(query, "query");
     rows = List.copyOf(rows);
   }

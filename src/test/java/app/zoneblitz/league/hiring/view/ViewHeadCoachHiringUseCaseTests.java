@@ -10,7 +10,6 @@ import app.zoneblitz.league.JooqLeagueRepository;
 import app.zoneblitz.league.League;
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.franchise.JooqFranchiseRepository;
-import app.zoneblitz.league.hiring.ViewHeadCoachHiring;
 import app.zoneblitz.league.hiring.candidates.JooqCandidatePoolRepository;
 import app.zoneblitz.league.hiring.candidates.JooqCandidatePreferencesRepository;
 import app.zoneblitz.league.hiring.candidates.JooqCandidateRepository;

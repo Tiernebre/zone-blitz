@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 /** Composite page/fragment view-model for the HIRING_DIRECTOR_OF_SCOUTING page. */
-public record DirectorOfScoutingHiringView(
+record DirectorOfScoutingHiringView(
     LeagueSummary league,
     List<DirectorOfScoutingCandidateView> pool,
     List<DirectorOfScoutingCandidateView> activeInterviews,
@@ -17,7 +17,7 @@ public record DirectorOfScoutingHiringView(
     int interviewCapacity,
     StaffBudget budget) {
 
-  public DirectorOfScoutingHiringView {
+  DirectorOfScoutingHiringView {
     Objects.requireNonNull(league, "league");
     Objects.requireNonNull(budget, "budget");
     pool = List.copyOf(pool);

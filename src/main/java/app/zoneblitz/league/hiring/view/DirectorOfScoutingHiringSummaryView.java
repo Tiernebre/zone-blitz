@@ -9,9 +9,9 @@ import java.util.Objects;
  * View-model for the post-hire DoS summary page. {@code hires} contains one row per team in the
  * league with the team's DoS hire attached, ordered with the viewer's team first.
  */
-public record DirectorOfScoutingHiringSummaryView(LeagueSummary league, List<LeagueHire> hires) {
+record DirectorOfScoutingHiringSummaryView(LeagueSummary league, List<LeagueHire> hires) {
 
-  public DirectorOfScoutingHiringSummaryView {
+  DirectorOfScoutingHiringSummaryView {
     Objects.requireNonNull(league, "league");
     hires = List.copyOf(hires);
   }

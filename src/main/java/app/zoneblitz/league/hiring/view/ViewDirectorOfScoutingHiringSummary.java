@@ -1,6 +1,5 @@
-package app.zoneblitz.league.hiring;
+package app.zoneblitz.league.hiring.view;
 
-import app.zoneblitz.league.hiring.view.DirectorOfScoutingHiringSummaryView;
 import java.util.Optional;
 
 /**
@@ -8,9 +7,9 @@ import java.util.Optional;
  * the user hires their DoS. Parallel to {@link ViewHeadCoachHiringSummary}: the page is accessible
  * while the league is still in the DoS hiring phase (CPU hiring has been fast-forwarded to
  * completion) and lets the user review the league-wide DoS slate before explicitly advancing into
- * the {@link app.zoneblitz.league.phase.LeaguePhase#EXPANSION_DRAFT_SCOUTING} phase.
+ * the {@code EXPANSION_DRAFT_SCOUTING} phase. Consumed only by hiring-view controllers.
  */
-public interface ViewDirectorOfScoutingHiringSummary {
+interface ViewDirectorOfScoutingHiringSummary {
 
   /**
    * @return the summary view, or {@link Optional#empty()} when the league does not exist, is not

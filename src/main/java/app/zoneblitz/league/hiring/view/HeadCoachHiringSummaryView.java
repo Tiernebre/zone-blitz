@@ -9,9 +9,9 @@ import java.util.Objects;
  * View-model for the post-hire summary page. {@code hires} contains one row per team in the league
  * with the team's HC hire attached, ordered with the viewer's team first.
  */
-public record HeadCoachHiringSummaryView(LeagueSummary league, List<LeagueHire> hires) {
+record HeadCoachHiringSummaryView(LeagueSummary league, List<LeagueHire> hires) {
 
-  public HeadCoachHiringSummaryView {
+  HeadCoachHiringSummaryView {
     Objects.requireNonNull(league, "league");
     hires = List.copyOf(hires);
   }

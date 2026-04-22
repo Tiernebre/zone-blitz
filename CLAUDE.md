@@ -81,6 +81,8 @@ Allowed when genuinely stateless: `final class`, private constructor, static met
 ### Naming
 
 - No `*Impl` suffix. Ever. Name implementations by their distinguishing trait: `JooqPlayerRepository`, `HttpEmailSender`, `InMemoryPlayerRepository`, `FakeClock`. `Default*` only as a last resort.
+- **Use-case implementations take the `*UseCase` suffix** — e.g. `MakeOffer` (interface) + `MakeOfferUseCase` (impl). Use cases are the one place where the "distinguishing trait" is nothing more than "the implementation of this use case"; the consistent suffix makes it obvious at a glance. Applies to any class that implements a feature-public use-case interface and carries `@Service`.
+- For non-use-case interfaces, continue naming by distinguishing trait — `CpuHiringStrategy` implements `CpuTeamStrategy`, `CityTeamProfiles` implements `TeamProfiles`, `BestFitHiringAutofill` implements `HiringPhaseAutofill`. Never `*UseCase`.
 - No `*Manager`, `*Helper` — they're a smell that SRP was skipped. Actual utility classes are fine.
 - Booleans: `isActive`, `hasPenalty`, `canPromote`.
 - Collections: plural (`players`), never `playerList` / `playerCollection`.
@@ -331,7 +333,7 @@ AssertJ everywhere. `assertThat(...)`.
 
 ### Test naming
 
-`methodUnderTest_condition_expectedOutcome`. Example: `findById_whenMissing_returnsEmpty`.
+`methodUnderTest_condition_expectedOutcome`. Example: `findById_whenMissing_returnsEmpty`. Enforced by the `testMethods_followUnderscoreNamingConvention` ArchUnit rule, which requires every `@Test` / `@ParameterizedTest` / `@RepeatedTest` method to contain at least one underscore — a floor that catches camelCase-sentence offenders like `createdLeagueAppearsInTable` while still allowing the full three-segment form.
 
 ### Test data builders
 

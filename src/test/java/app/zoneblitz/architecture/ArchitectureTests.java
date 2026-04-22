@@ -1,5 +1,6 @@
 package app.zoneblitz.architecture;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -12,7 +13,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
 
 /**
  * Executable architecture guardrails — see {@code docs/technical/agent-friendliness-audit.md}
@@ -27,6 +30,12 @@ class ArchitectureTests {
   private static final JavaClasses PRODUCTION_CLASSES =
       new ClassFileImporter()
           .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+          .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_JARS)
+          .importPackages("app.zoneblitz..");
+
+  private static final JavaClasses TEST_CLASSES =
+      new ClassFileImporter()
+          .withImportOption(ImportOption.Predefined.ONLY_INCLUDE_TESTS)
           .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_JARS)
           .importPackages("app.zoneblitz..");
 
@@ -139,7 +148,9 @@ class ArchitectureTests {
    * Hiring sub-packages ({@code candidates}, {@code generation}, {@code interview}, {@code offer},
    * {@code hire}, {@code view}) are feature-internal. Only the outer {@code
    * app.zoneblitz.league.hiring} package is the public API — use-case interfaces, sealed {@code
-   * *Result} unions, and shared records.
+   * *Result} unions, and shared records. The {@code view/} sub-package is fully internal: its
+   * controllers, view models, and page use-case interfaces are consumed only inside {@code view/}
+   * itself.
    *
    * <p>Cross-feature consumers reach hiring through public seams at the package root: {@link
    * app.zoneblitz.league.hiring.OfferResolver}, {@link
@@ -212,5 +223,37 @@ class ArchitectureTests {
   @Test
   void classFileImporter_findsProductionClasses() {
     assertThat(PRODUCTION_CLASSES).isNotEmpty();
+  }
+
+  /**
+   * Test methods follow {@code methodUnderTest_condition_expectedOutcome} (at minimum an identifier
+   * with at least one underscore). This is a floor, not a ceiling — {@code foo_bar} passes, but the
+   * intent is three underscore-separated segments. The floor still flags the worst offenders
+   * (camelCase sentences), which was the pattern before the audit.
+   *
+   * <p>Applies to {@code @Test}, {@code @ParameterizedTest}, and {@code @RepeatedTest}. See
+   * CLAUDE.md "Test naming" and {@code docs/technical/agent-friendliness-audit.md} item 6.
+   */
+  @Test
+  void testMethods_followUnderscoreNamingConvention() {
+    var rule =
+        methods()
+            .that()
+            .areAnnotatedWith(Test.class)
+            .or()
+            .areAnnotatedWith(ParameterizedTest.class)
+            .or()
+            .areAnnotatedWith(RepeatedTest.class)
+            .should()
+            .haveNameMatching("^[a-z][a-zA-Z0-9]+_[a-zA-Z0-9_]+$")
+            .because(
+                "Test method names must follow methodUnderTest_condition_expectedOutcome."
+                    + " See CLAUDE.md 'Test naming'.");
+    rule.check(TEST_CLASSES);
+  }
+
+  @Test
+  void classFileImporter_findsTestClasses() {
+    assertThat(TEST_CLASSES).isNotEmpty();
   }
 }

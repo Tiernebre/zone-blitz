@@ -17,7 +17,6 @@ import app.zoneblitz.league.hiring.MakeOffer;
 import app.zoneblitz.league.hiring.MatchCounterOffer;
 import app.zoneblitz.league.hiring.StaffBudget;
 import app.zoneblitz.league.hiring.StartInterview;
-import app.zoneblitz.league.hiring.ViewDirectorOfScoutingHiring;
 import app.zoneblitz.league.phase.LeaguePhase;
 import java.time.Instant;
 import java.util.List;

@@ -9,11 +9,11 @@ import java.util.Locale;
  * small (tens, low hundreds at the tail), so doing this in-memory over the already-loaded summary
  * list keeps the query layer untouched while proving the HTMX table pattern.
  */
-public final class LeagueTableFilter {
+final class LeagueTableFilter {
 
   private LeagueTableFilter() {}
 
-  public static LeagueTablePage apply(List<LeagueSummary> all, LeagueTableQuery query) {
+  static LeagueTablePage apply(List<LeagueSummary> all, LeagueTableQuery query) {
     var filtered =
         all.stream().filter(row -> matches(row, query)).sorted(comparatorFor(query)).toList();
     var fromIndex = Math.min((query.page() - 1) * query.pageSize(), filtered.size());

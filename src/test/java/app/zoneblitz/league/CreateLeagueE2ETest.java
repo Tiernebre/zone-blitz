@@ -63,7 +63,7 @@ class CreateLeagueE2ETest {
   }
 
   @Test
-  void authenticatedUserCreatesLeagueAndLandsOnDashboard() {
+  void createLeague_whenAuthenticated_landsOnDashboard() {
     var subject = "e2e-user-" + System.nanoTime();
     signIn(subject);
 
@@ -90,7 +90,7 @@ class CreateLeagueE2ETest {
   }
 
   @Test
-  void createdLeagueAppearsInAllLeaguesTable() {
+  void allLeaguesTable_afterCreate_showsNewLeague() {
     signIn("e2e-user-" + System.nanoTime());
 
     var leagueName = "Dynasty " + System.nanoTime();
@@ -107,7 +107,7 @@ class CreateLeagueE2ETest {
   }
 
   @Test
-  void deletingLeagueFromTableRemovesItFromTheList() {
+  void deleteLeague_fromAllLeaguesTable_removesLeague() {
     signIn("e2e-user-" + System.nanoTime());
 
     var leagueName = "Doomed " + System.nanoTime();
@@ -127,7 +127,7 @@ class CreateLeagueE2ETest {
   }
 
   @Test
-  void deletingLeagueFromSettingsPageRemovesItFromTheList() {
+  void deleteLeague_fromSettingsPage_removesLeague() {
     signIn("e2e-user-" + System.nanoTime());
 
     var leagueName = "Settings Delete " + System.nanoTime();

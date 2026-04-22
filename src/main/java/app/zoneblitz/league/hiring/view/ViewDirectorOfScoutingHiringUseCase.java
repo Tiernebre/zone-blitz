@@ -5,7 +5,6 @@ import app.zoneblitz.league.hiring.CandidateOffer;
 import app.zoneblitz.league.hiring.CandidatePoolType;
 import app.zoneblitz.league.hiring.OfferStatus;
 import app.zoneblitz.league.hiring.StartInterview;
-import app.zoneblitz.league.hiring.ViewDirectorOfScoutingHiring;
 import app.zoneblitz.league.hiring.candidates.CandidatePoolRepository;
 import app.zoneblitz.league.hiring.candidates.CandidatePreferencesRepository;
 import app.zoneblitz.league.hiring.candidates.CandidateRepository;

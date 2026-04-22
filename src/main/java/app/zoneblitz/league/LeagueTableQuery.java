@@ -11,7 +11,7 @@ import java.util.Objects;
  * <p>Used by the page endpoint (to render initial state from a bookmarked URL) and the fragment
  * endpoint (to re-render the table on filter/sort/paginate interactions).
  */
-public record LeagueTableQuery(
+record LeagueTableQuery(
     String q,
     String name,
     String franchise,
@@ -36,7 +36,7 @@ public record LeagueTableQuery(
     DESC
   }
 
-  public LeagueTableQuery {
+  LeagueTableQuery {
     q = nullToEmpty(q).trim();
     name = nullToEmpty(name).trim();
     franchise = nullToEmpty(franchise).trim();

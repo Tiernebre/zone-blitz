@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class DeleteLeagueUseCase implements DeleteLeague {
+class DeleteLeagueUseCase implements DeleteLeague {
 
   private final LeagueRepository leagues;
 
-  public DeleteLeagueUseCase(LeagueRepository leagues) {
+  DeleteLeagueUseCase(LeagueRepository leagues) {
     this.leagues = leagues;
   }
 

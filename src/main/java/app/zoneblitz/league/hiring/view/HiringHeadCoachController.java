@@ -10,7 +10,6 @@ import app.zoneblitz.league.hiring.MakeOfferResult;
 import app.zoneblitz.league.hiring.MatchCounterOffer;
 import app.zoneblitz.league.hiring.MatchCounterOfferResult;
 import app.zoneblitz.league.hiring.StartInterview;
-import app.zoneblitz.league.hiring.ViewHeadCoachHiring;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

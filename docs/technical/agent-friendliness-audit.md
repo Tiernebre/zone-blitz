@@ -14,19 +14,13 @@ Most of the plan landed the same day the audit was written, in one bundled PR. *
 | 2. Split `hiring/` into sub-feature packages | **shipped** — `candidates/`, `generation/`, `interview/`, `offer/`, `hire/`, `view/` |
 | 3. Per-feature READMEs + `package-info.java` | **shipped** — hiring (+6 sub-pkg), phase, staff, team, gamesimulator |
 | 4. Generator interfaces + `CpuTeamStrategy` consumer typing | **shipped** — 3 new interfaces; `PreferenceScoringOfferResolver` fixed |
-| 5. ArchUnit guardrails | **shipped** — 7 live rules in `src/test/java/app/zoneblitz/architecture/`; 2 `@Disabled` with TODOs |
-| 6. Test data builders + test naming rule | **partial** — 5 builders added (`TeamDraft`, `TeamHiringState`, `OfferTerms`, `NewTeamStaffMember`, `TeamProfile`); naming-pattern enforcement still pending |
+| 5. ArchUnit guardrails | **shipped** — 9 live rules in `src/test/java/app/zoneblitz/architecture/`, including test-name enforcement; no `@Disabled` remain |
+| 6. Test data builders + test naming rule | **shipped** — 5 builders added earlier; `testMethods_followUnderscoreNamingConvention` ArchUnit rule enforces `methodUnderTest_condition_expectedOutcome` (minimum: at least one underscore) |
 | 7. Real repo root `README.md` | **shipped** — ~60-line onramp |
 | 8. "How to add X" playbooks | **shipped** — `add-a-use-case`, `add-a-league-phase`, `add-a-sim-seam` under `docs/playbooks/` |
-| 9. Smaller tidies (impl naming, `league/` root watch) | **deferred** |
+| 9. Smaller tidies (impl naming, `league/` root watch) | **shipped** — `CLAUDE.md` "Naming" documents the `*UseCase`-suffix convention; `league/` root dropped from 24→16 public types by hiding `*UseCase` impls, controller, repository adapter, `LeagueBeans`, and the three `LeagueTable*` records |
 
-Three cross-feature leaks deliberately punted from the hiring refactor (tracked by the `hiringInternals_areNotImportedByOtherPackages` `@Disabled` ArchUnit rule):
-
-- `AdvanceDayUseCase` imports `offer.OfferResolver`.
-- `HiringHeadCoachTransitionHandler`, `HiringDirectorOfScoutingTransitionHandler`, `HiringAssemblingStaffTransitionHandler` import `candidates.CandidatePoolRepository` / `CandidateRepository` / `CandidatePreferencesRepository` for phase-entry pool generation and hired-candidate lookups.
-- `BestFitHiringAutofill` imports `InterestScoring`, `OfferScoring`, `OfferStance`, `OfferTermsJson`, `PreferenceScoringOfferResolver`.
-
-Each of these needs a hiring-public use-case seam (e.g. `GenerateCandidatePool`, `FindHiredCandidate`, `HiringAutofillStrategy`) before the ArchUnit rule can be enabled. Out of scope for the initial refactor pass.
+The three cross-feature leaks originally punted from the hiring refactor (listed in the `hiringInternals_areNotImportedByOtherPackages` rule) were **closed in the follow-up pass** — each replaced with a hiring-public use-case seam: `OfferResolver`, `GenerateCandidatePool` / `FindCandidate` / `AssembleStaff`, and `BestFitHiringAutofill` moved into `hiring/hire/`. The ArchUnit rule is now live (not `@Disabled`), enforcing the boundary going forward. The `view/` sub-package is now fully internal — its use-case interfaces, view models, and page records all live and stay inside `view/`, with no cross-package consumers.
 
 ---
 

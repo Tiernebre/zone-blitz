@@ -5,11 +5,11 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GetLeagueUseCase implements GetLeague {
+class GetLeagueUseCase implements GetLeague {
 
   private final LeagueRepository repository;
 
-  public GetLeagueUseCase(LeagueRepository repository) {
+  GetLeagueUseCase(LeagueRepository repository) {
     this.repository = repository;
   }
 

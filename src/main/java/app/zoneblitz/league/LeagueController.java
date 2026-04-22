@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 @Controller
-public class LeagueController {
+class LeagueController {
 
   private static final Logger log = LoggerFactory.getLogger(LeagueController.class);
 
@@ -31,7 +31,7 @@ public class LeagueController {
   private final DeleteLeague deleteLeague;
   private final AdvanceDay advanceDay;
 
-  public LeagueController(
+  LeagueController(
       ListLeaguesForUser listLeagues,
       ListFranchises listFranchises,
       CreateLeague createLeague,

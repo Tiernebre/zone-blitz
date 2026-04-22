@@ -1,6 +1,5 @@
 package app.zoneblitz.league.staff;
 
-import app.zoneblitz.league.LeagueController;
 import app.zoneblitz.league.phase.LeaguePhase;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,8 +12,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Web entry for the {@link LeaguePhase#ASSEMBLING_STAFF} recap page. The page is read-only; the
- * single user action — advance to the next phase — is wired through {@link
- * LeagueController#advancePhase} which every phase dashboard shares.
+ * single user action — advance to the next phase — is wired through the shared {@code
+ * /leagues/{id}/advance} endpoint in the league feature's controller, which every phase dashboard
+ * shares.
  */
 @Controller
 public class StaffRecapController {
