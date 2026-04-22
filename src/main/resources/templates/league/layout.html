@@ -69,6 +69,12 @@
 					<svg th:replace="~{icons :: users(cls='size-4 shrink-0')}"></svg>
 					<span class="sidebar-label">Front Office Staff</span>
 				</a>
+				<a th:href="@{'/leagues/' + ${league.leagueId()} + '/staff-cap'}"
+				   th:classappend="${activeNav == 'staff-cap'} ? 'bg-slate-800 text-white font-medium' : 'hover:bg-slate-800 text-slate-300'"
+				   class="sidebar-nav-item flex items-center gap-2 px-3 py-2 rounded">
+					<svg th:replace="~{icons :: banknotes(cls='size-4 shrink-0')}"></svg>
+					<span class="sidebar-label">Staff Salary Cap</span>
+				</a>
 				<a th:href="@{'/leagues/' + ${league.leagueId()} + '/settings'}"
 				   th:classappend="${activeNav == 'settings'} ? 'bg-slate-800 text-white font-medium' : 'hover:bg-slate-800 text-slate-300'"
 				   class="sidebar-nav-item flex items-center gap-2 px-3 py-2 rounded">
