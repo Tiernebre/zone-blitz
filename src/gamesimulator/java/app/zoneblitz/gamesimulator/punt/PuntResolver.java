@@ -11,9 +11,8 @@ import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Team;
 
 /**
- * Resolves a punt from the current spot. Produces a {@link PlayEvent.Punt} and reports the yard
- * line (in the receiving team's frame, i.e. yards from the receiver's own goal line) where the
- * defending team takes over for the next snap.
+ * Resolves a punt from the current spot. Produces a {@link PlayEvent.Punt} and reports which side
+ * takes over next and where.
  */
 public interface PuntResolver {
 
@@ -42,8 +41,10 @@ public interface PuntResolver {
       RandomSource rng);
 
   /**
-   * The punt event plus the yard line the next snap will spot at, expressed in the frame of the
-   * team receiving the punt (yards from their own goal).
+   * The punt event plus the side and yard line that will spot the next snap. {@code
+   * nextSpotYardLine} is expressed in {@code nextPossession}'s own frame (yards from their own goal
+   * line). For typical outcomes the receiving team takes over; for a muff recovered by the kicking
+   * team, {@code nextPossession} equals {@code kickingSide}.
    */
-  record Resolved(PlayEvent.Punt event, int receivingTakeoverYardLine) {}
+  record Resolved(PlayEvent.Punt event, Side nextPossession, int nextSpotYardLine) {}
 }

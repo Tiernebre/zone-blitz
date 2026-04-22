@@ -17,7 +17,7 @@ import app.zoneblitz.gamesimulator.playcalling.BaselineDefensiveCallSelector;
 import app.zoneblitz.gamesimulator.playcalling.TendencyPlayCaller;
 import app.zoneblitz.gamesimulator.punt.BandPuntResolver;
 import app.zoneblitz.gamesimulator.resolver.DispatchingPlayResolver;
-import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver;
+import app.zoneblitz.gamesimulator.resolver.pass.HailMaryPassResolver;
 import app.zoneblitz.gamesimulator.resolver.run.MatchupRunResolver;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
@@ -59,7 +59,7 @@ public final class GameSimEmulator {
     var sampler = new DefaultBandSampler();
     var resolver =
         new DispatchingPlayResolver(
-            MatchupPassResolver.load(repo, sampler), MatchupRunResolver.load(repo, sampler));
+            HailMaryPassResolver.load(repo, sampler), MatchupRunResolver.load(repo, sampler));
 
     var simulator =
         new GameSimulator(

@@ -99,7 +99,7 @@ class EnvironmentalPuntResolverTests {
             new SplittableRandomSource(123L));
 
     assertThat(decorated.event().grossYards()).isEqualTo(base.event().grossYards());
-    assertThat(decorated.receivingTakeoverYardLine()).isEqualTo(base.receivingTakeoverYardLine());
+    assertThat(decorated.nextSpotYardLine()).isEqualTo(base.nextSpotYardLine());
     assertThat(decorated.event().result()).isEqualTo(base.event().result());
   }
 

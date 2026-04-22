@@ -88,6 +88,13 @@ public final class EnvironmentalPuntResolver implements PuntResolver {
             baseEvent.returner(),
             baseEvent.returnYards(),
             baseEvent.result());
-    return new Resolved(adjusted, takeover);
+    // Weather shortens the kick; if the kicking team recovered a muff upstream, preserve that
+    // possession decision and just adjust the reported gross. Otherwise receiving takes over at the
+    // weather-adjusted takeover spot.
+    var receivingSide = kickingSide == Side.HOME ? Side.AWAY : Side.HOME;
+    if (base.nextPossession() != receivingSide) {
+      return new Resolved(adjusted, base.nextPossession(), base.nextSpotYardLine());
+    }
+    return new Resolved(adjusted, receivingSide, takeover);
   }
 }

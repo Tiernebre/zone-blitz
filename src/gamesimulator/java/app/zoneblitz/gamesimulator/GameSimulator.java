@@ -56,10 +56,13 @@ final class GameSimulator implements SimulateGame {
   private static final long DEFENSIVE_CALL_KEY = 0xDEFE_7155L;
   private static final long TD_KICKOFF_KEY = 0x5C01DL;
   private static final long DEF_TD_KICKOFF_KEY = 0x5C02DL;
+  private static final long SAFETY_KICKOFF_KEY = 0x5C04DL;
+  private static final long FOURTH_DOWN_SPLIT_KEY = 0x4D04_4D04L;
 
   /**
-   * After a safety, the conceding team free-kicks from their own 20 and we model it as a direct
-   * spot of the ball for the scoring team at their own 20. Simplification flagged as a follow-up.
+   * After a safety, the conceding team free-kicks from their own 20. The post-safety kickoff is now
+   * routed through {@link ScoringSequencer#emitKickoff}; this constant is retained only as the
+   * landing spot stamped on the {@link PlayEvent.Safety} audit event.
    */
   private static final int SAFETY_FREE_KICK_SPOT = 20;
 
@@ -79,6 +82,7 @@ final class GameSimulator implements SimulateGame {
   private final SpecialTeams specialTeams;
   private final PeriodController period;
   private final InjuryEmitter injuries;
+  private final FourthDownPolicy fourthDownPolicy = new AggressionFourthDownPolicy();
 
   GameSimulator(
       PlayCaller caller,
@@ -321,11 +325,20 @@ final class GameSimulator implements SimulateGame {
         case SPIKE -> EndOfHalfPlays.runSpike(out, state, inputs, seq, root, gameKey);
       };
     }
-    if (SpecialTeams.shouldAttemptFieldGoal(state)) {
-      return specialTeams.runFieldGoal(out, state, inputs, seq, root, gameKey, fieldGoal);
-    }
-    if (SpecialTeams.shouldPunt(state)) {
-      return specialTeams.runPunt(out, state, inputs, seq, root, gameKey, punt);
+    if (state.downAndDistance().down() == 4) {
+      var policyRng = root.split(gameKey ^ FOURTH_DOWN_SPLIT_KEY ^ ((long) seq[0] << 8));
+      var decision = fourthDownPolicy.decide(state, offenseCoachForDecision, policyRng);
+      switch (decision) {
+        case ATTEMPT_FIELD_GOAL -> {
+          return specialTeams.runFieldGoal(out, state, inputs, seq, root, gameKey, fieldGoal);
+        }
+        case PUNT -> {
+          return specialTeams.runPunt(out, state, inputs, seq, root, gameKey, punt);
+        }
+        case GO_FOR_IT -> {
+          // Fall through to normal scrimmage snap — DownProgression handles turnover on downs.
+        }
+      }
     }
 
     var snapRng = root.split(gameKey ^ ((long) seq[0] << 32));
@@ -455,7 +468,14 @@ final class GameSimulator implements SimulateGame {
       if (state.phase() == GameState.Phase.FINAL) {
         return state;
       }
-      return state.withPossessionAndSpot(defenseSide, freeKickSpot);
+      // Conceding (was-offense) team free-kicks; scoring (was-defense) team receives.
+      return scoring.emitKickoff(
+          out,
+          state,
+          inputs,
+          defenseSide,
+          seq,
+          root.split(gameKey ^ sequence ^ SAFETY_KICKOFF_KEY));
     }
     if (advance.turnover() != SnapAdvance.Turnover.NONE) {
       state = state.withScore(scoreAfter).withClock(clockAfter);

@@ -87,6 +87,7 @@ public final class DistanceCurvePuntResolver implements PuntResolver {
     Objects.requireNonNull(scoreAfter, "scoreAfter");
     Objects.requireNonNull(rng, "rng");
 
+    var receivingSide = kickingSide == Side.HOME ? Side.AWAY : Side.HOME;
     var losYardLine = preSnapSpot.yardLine();
     var gross = grossSampler.sample(losYardLine, rng);
     var landing = losYardLine + gross;
@@ -156,7 +157,7 @@ public final class DistanceCurvePuntResolver implements PuntResolver {
             returner,
             returnYards,
             result);
-    return new Resolved(event, receivingTakeoverYardLine);
+    return new Resolved(event, receivingSide, receivingTakeoverYardLine);
   }
 
   private static PlayerId pickPunter(Team team) {

@@ -17,7 +17,7 @@ import app.zoneblitz.gamesimulator.personnel.BaselinePersonnelSelector;
 import app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector;
 import app.zoneblitz.gamesimulator.punt.BandPuntResolver;
 import app.zoneblitz.gamesimulator.resolver.DispatchingPlayResolver;
-import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver;
+import app.zoneblitz.gamesimulator.resolver.pass.HailMaryPassResolver;
 import app.zoneblitz.gamesimulator.resolver.run.MatchupRunResolver;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.CoachId;
@@ -77,7 +77,7 @@ class HomeFieldAdvantageIntegrationTests {
     var sampler = new DefaultBandSampler();
     var resolver =
         new DispatchingPlayResolver(
-            MatchupPassResolver.load(repo, sampler), MatchupRunResolver.load(repo, sampler));
+            HailMaryPassResolver.load(repo, sampler), MatchupRunResolver.load(repo, sampler));
     var clockModel = BandClockModel.load(repo, sampler);
     var personnel = new BaselinePersonnelSelector();
     var kickoff = new TouchbackKickoffResolver();

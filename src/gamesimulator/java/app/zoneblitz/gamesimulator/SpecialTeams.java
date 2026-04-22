@@ -21,15 +21,9 @@ final class SpecialTeams {
   private static final long POST_FG_KICKOFF_KEY = 0x5C03DL;
 
   /**
-   * Inside this many yards of the opposing goal line a 4th down triggers a field-goal attempt.
-   * Value 63 corresponds to the opponent's 37-yard line, i.e. a kick of {@code (100 - 63) + 17 =
-   * 54} yards — the baseline edge of reasonable make probability.
-   */
-  private static final int FIELD_GOAL_MIN_YARD_LINE = 63;
-
-  /**
-   * After a safety, the conceding team free-kicks from their own 20 and we model it as a direct
-   * spot of the ball for the scoring team at their own 20. Simplification flagged as a follow-up.
+   * Fallback takeover spot when a missed field goal resolver does not report a specific recovery
+   * yard line — defensing team starts at their own 20. Used as a safety net for legacy FG resolvers
+   * that don't populate the optional takeover field.
    */
   private static final int FAILED_FG_FALLBACK_YARD_LINE = 20;
 
@@ -37,16 +31,6 @@ final class SpecialTeams {
 
   SpecialTeams(ScoringSequencer scoring) {
     this.scoring = Objects.requireNonNull(scoring, "scoring");
-  }
-
-  static boolean shouldAttemptFieldGoal(GameState state) {
-    return state.downAndDistance().down() == 4
-        && state.spot().yardLine() >= FIELD_GOAL_MIN_YARD_LINE;
-  }
-
-  static boolean shouldPunt(GameState state) {
-    return state.downAndDistance().down() == 4
-        && state.spot().yardLine() < FIELD_GOAL_MIN_YARD_LINE;
   }
 
   GameState runFieldGoal(
@@ -129,6 +113,6 @@ final class SpecialTeams {
       return state;
     }
     return state.withPossessionAndSpot(
-        defenseSide, new FieldPosition(resolved.receivingTakeoverYardLine()));
+        resolved.nextPossession(), new FieldPosition(resolved.nextSpotYardLine()));
   }
 }

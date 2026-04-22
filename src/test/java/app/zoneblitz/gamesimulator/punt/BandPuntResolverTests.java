@@ -54,12 +54,14 @@ class BandPuntResolverTests {
   @Test
   void resolve_touchbackOutcome_spotsDefenseAtReceiverTwenty() {
     var resolver =
-        new BandPuntResolver(new FixedSampler(45, 8), FLAT_45, FLAT_8, 0.0, 1.0, 0.0, 0.0, 0.0);
+        new BandPuntResolver(
+            new FixedSampler(45, 8), FLAT_45, FLAT_8, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
     var resolved = resolve(resolver, 30);
 
     assertThat(resolved.event().result()).isEqualTo(PuntResult.TOUCHBACK);
-    assertThat(resolved.receivingTakeoverYardLine()).isEqualTo(20);
+    assertThat(resolved.nextPossession()).isEqualTo(Side.AWAY);
+    assertThat(resolved.nextSpotYardLine()).isEqualTo(20);
     assertThat(resolved.event().returner()).isEmpty();
     assertThat(resolved.event().returnYards()).isZero();
     // Touchback forces reported gross to at least reach the end zone.
@@ -69,13 +71,14 @@ class BandPuntResolverTests {
   @Test
   void resolve_fairCatchOutcome_spotsDefenseAtLandingWithReturner() {
     var resolver =
-        new BandPuntResolver(new FixedSampler(45, 8), FLAT_45, FLAT_8, 0.0, 0.0, 1.0, 0.0, 0.0);
+        new BandPuntResolver(
+            new FixedSampler(45, 8), FLAT_45, FLAT_8, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
 
     var resolved = resolve(resolver, 30);
 
     assertThat(resolved.event().result()).isEqualTo(PuntResult.FAIR_CATCH);
     // LOS 30 + gross 45 → landing 75 → receiver frame 25; no return.
-    assertThat(resolved.receivingTakeoverYardLine()).isEqualTo(25);
+    assertThat(resolved.nextSpotYardLine()).isEqualTo(25);
     assertThat(resolved.event().returnYards()).isZero();
     assertThat(resolved.event().returner()).contains(RETURNER_ID);
   }
@@ -83,13 +86,14 @@ class BandPuntResolverTests {
   @Test
   void resolve_returnedOutcome_addsReturnYardsToLandingSpot() {
     var resolver =
-        new BandPuntResolver(new FixedSampler(45, 8), FLAT_45, FLAT_8, 0.0, 0.0, 0.0, 0.0, 0.0);
+        new BandPuntResolver(
+            new FixedSampler(45, 8), FLAT_45, FLAT_8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
     var resolved = resolve(resolver, 30);
 
     assertThat(resolved.event().result()).isEqualTo(PuntResult.RETURNED);
     // landing recv = 25, return = 8 → takeover at recv 33.
-    assertThat(resolved.receivingTakeoverYardLine()).isEqualTo(33);
+    assertThat(resolved.nextSpotYardLine()).isEqualTo(33);
     assertThat(resolved.event().returnYards()).isEqualTo(8);
     assertThat(resolved.event().returner()).contains(RETURNER_ID);
   }
@@ -97,13 +101,14 @@ class BandPuntResolverTests {
   @Test
   void resolve_blockedOutcome_spotsDefenseBehindKickingLos() {
     var resolver =
-        new BandPuntResolver(new FixedSampler(45, 8), FLAT_45, FLAT_8, 1.0, 0.0, 0.0, 0.0, 0.0);
+        new BandPuntResolver(
+            new FixedSampler(45, 8), FLAT_45, FLAT_8, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
     var resolved = resolve(resolver, 30);
 
     assertThat(resolved.event().result()).isEqualTo(PuntResult.BLOCKED);
     // Recovery at los-5 = 25 → receiver frame = 75.
-    assertThat(resolved.receivingTakeoverYardLine()).isEqualTo(75);
+    assertThat(resolved.nextSpotYardLine()).isEqualTo(75);
     assertThat(resolved.event().grossYards()).isZero();
     assertThat(resolved.event().returner()).isEmpty();
   }
@@ -111,7 +116,8 @@ class BandPuntResolverTests {
   @Test
   void resolve_downedOutcome_hasNoReturner() {
     var resolver =
-        new BandPuntResolver(new FixedSampler(60, 8), FLAT_60, FLAT_8, 0.0, 0.0, 0.0, 1.0, 0.0);
+        new BandPuntResolver(
+            new FixedSampler(60, 8), FLAT_60, FLAT_8, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
 
     var resolved = resolve(resolver, 25);
 
@@ -119,7 +125,36 @@ class BandPuntResolverTests {
     assertThat(resolved.event().returner()).isEmpty();
     assertThat(resolved.event().returnYards()).isZero();
     // landing = 85, recv = 15.
-    assertThat(resolved.receivingTakeoverYardLine()).isEqualTo(15);
+    assertThat(resolved.nextSpotYardLine()).isEqualTo(15);
+  }
+
+  @Test
+  void resolve_muffRecoveredByReceivingTeam_receivingTakesOverAtLandingSpot() {
+    var resolver =
+        new BandPuntResolver(
+            new FixedSampler(45, 8), FLAT_45, FLAT_8, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+    var resolved = resolve(resolver, 30);
+
+    assertThat(resolved.event().result()).isEqualTo(PuntResult.MUFFED);
+    assertThat(resolved.nextPossession()).isEqualTo(Side.AWAY);
+    // LOS 30 + gross 45 → landing 75 → receiver frame 25.
+    assertThat(resolved.nextSpotYardLine()).isEqualTo(25);
+    assertThat(resolved.event().returner()).contains(RETURNER_ID);
+  }
+
+  @Test
+  void resolve_muffRecoveredByKickingTeam_kickingRetainsPossession() {
+    var resolver =
+        new BandPuntResolver(
+            new FixedSampler(45, 8), FLAT_45, FLAT_8, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0);
+
+    var resolved = resolve(resolver, 30);
+
+    assertThat(resolved.event().result()).isEqualTo(PuntResult.MUFFED);
+    assertThat(resolved.nextPossession()).isEqualTo(Side.HOME);
+    // Kicking team recovers at landing spot in their frame: LOS 30 + gross 45 = 75.
+    assertThat(resolved.nextSpotYardLine()).isEqualTo(75);
   }
 
   @Test
@@ -127,7 +162,7 @@ class BandPuntResolverTests {
     assertThatThrownBy(
             () ->
                 new BandPuntResolver(
-                    new FixedSampler(45, 8), FLAT_45, FLAT_8, 0.3, 0.3, 0.3, 0.3, 0.3))
+                    new FixedSampler(45, 8), FLAT_45, FLAT_8, 0.3, 0.3, 0.3, 0.3, 0.3, 0.0, 0.0))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("sum");
   }
@@ -155,7 +190,7 @@ class BandPuntResolverTests {
       counts.merge(resolved.event().result(), 1, Integer::sum);
       totalGross += resolved.event().grossYards();
     }
-    // All non-muffed outcomes should appear at least a few times over 10k draws.
+    // All band-driven outcomes should appear at least a few times over 10k draws.
     assertThat(counts.keySet())
         .contains(
             PuntResult.TOUCHBACK,
@@ -163,7 +198,10 @@ class BandPuntResolverTests {
             PuntResult.DOWNED,
             PuntResult.OUT_OF_BOUNDS,
             PuntResult.BLOCKED,
+            PuntResult.MUFFED,
             PuntResult.RETURNED);
+    // Muff rate per band is ~3.17%; with 10k trials expect ~317.
+    assertThat(counts.getOrDefault(PuntResult.MUFFED, 0)).isBetween(200, 450);
     // Band median gross is 47; the empirical mean should land in the same neighborhood.
     var meanGross = totalGross / (double) trials;
     assertThat(meanGross).isBetween(40.0, 55.0);

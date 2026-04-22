@@ -59,7 +59,7 @@ class DistanceCurvePuntResolverTests {
     assertThat(resolved.event().returner()).isEmpty();
     assertThat(resolved.event().returnYards()).isZero();
     assertThat(resolved.event().grossYards()).isEqualTo(70);
-    assertThat(resolved.receivingTakeoverYardLine()).isEqualTo(20);
+    assertThat(resolved.nextSpotYardLine()).isEqualTo(20);
   }
 
   @Test
@@ -81,7 +81,7 @@ class DistanceCurvePuntResolverTests {
 
     assertThat(resolved.event().result())
         .isIn(PuntResult.DOWNED, PuntResult.FAIR_CATCH, PuntResult.RETURNED);
-    assertThat(resolved.receivingTakeoverYardLine()).isLessThanOrEqualTo(15);
+    assertThat(resolved.nextSpotYardLine()).isLessThanOrEqualTo(15);
     assertThat(resolved.event().grossYards()).isEqualTo(65);
   }
 
@@ -105,7 +105,7 @@ class DistanceCurvePuntResolverTests {
     assertThat(resolved.event().result()).isNotEqualTo(PuntResult.TOUCHBACK);
     var expectedFloor = 30;
     var expectedCeiling = 30 + 14;
-    assertThat(resolved.receivingTakeoverYardLine()).isBetween(expectedFloor, expectedCeiling);
+    assertThat(resolved.nextSpotYardLine()).isBetween(expectedFloor, expectedCeiling);
     assertThat(resolved.event().grossYards()).isEqualTo(45);
   }
 
