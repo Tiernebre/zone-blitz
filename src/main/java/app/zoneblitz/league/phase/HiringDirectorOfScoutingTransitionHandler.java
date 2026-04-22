@@ -1,13 +1,13 @@
 package app.zoneblitz.league.phase;
 
 import app.zoneblitz.league.LeagueRepository;
-import app.zoneblitz.league.hiring.CandidatePoolRepository;
+import app.zoneblitz.league.hiring.CandidateGenerator;
 import app.zoneblitz.league.hiring.CandidatePoolType;
-import app.zoneblitz.league.hiring.CandidatePreferencesRepository;
 import app.zoneblitz.league.hiring.CandidateRandomSources;
-import app.zoneblitz.league.hiring.CandidateRepository;
-import app.zoneblitz.league.hiring.DirectorOfScoutingGenerator;
 import app.zoneblitz.league.hiring.NewCandidate;
+import app.zoneblitz.league.hiring.candidates.CandidatePoolRepository;
+import app.zoneblitz.league.hiring.candidates.CandidatePreferencesRepository;
+import app.zoneblitz.league.hiring.candidates.CandidateRepository;
 import app.zoneblitz.league.team.TeamHiringState;
 import app.zoneblitz.league.team.TeamHiringStateRepository;
 import app.zoneblitz.league.team.TeamLookup;
@@ -39,7 +39,7 @@ public class HiringDirectorOfScoutingTransitionHandler implements PhaseTransitio
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
   private final TeamHiringStateRepository hiringStates;
-  private final DirectorOfScoutingGenerator generator;
+  private final CandidateGenerator generator;
   private final CandidateRandomSources rngs;
 
   public HiringDirectorOfScoutingTransitionHandler(
@@ -49,7 +49,8 @@ public class HiringDirectorOfScoutingTransitionHandler implements PhaseTransitio
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
       TeamHiringStateRepository hiringStates,
-      DirectorOfScoutingGenerator generator,
+      @org.springframework.beans.factory.annotation.Qualifier("directorOfScoutingGenerator")
+          CandidateGenerator generator,
       CandidateRandomSources rngs) {
     this.leagues = leagues;
     this.teams = teams;

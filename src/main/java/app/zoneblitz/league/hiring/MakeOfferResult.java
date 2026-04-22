@@ -1,5 +1,7 @@
 package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.hiring.offer.StanceEvaluator;
+
 /**
  * Sealed outcome of {@link MakeOffer#offer}. {@code Created} covers both initial submissions and
  * revisions to an existing ACTIVE offer; callers don't need to branch. {@code RevisionCapReached}

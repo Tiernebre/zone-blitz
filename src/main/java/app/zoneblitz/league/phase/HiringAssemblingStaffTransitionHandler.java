@@ -4,17 +4,17 @@ import app.zoneblitz.league.hiring.Candidate;
 import app.zoneblitz.league.hiring.CandidateArchetype;
 import app.zoneblitz.league.hiring.CandidateKind;
 import app.zoneblitz.league.hiring.CandidatePool;
-import app.zoneblitz.league.hiring.CandidatePoolRepository;
 import app.zoneblitz.league.hiring.CandidatePoolType;
-import app.zoneblitz.league.hiring.CandidatePreferencesRepository;
 import app.zoneblitz.league.hiring.CandidateRandomSources;
-import app.zoneblitz.league.hiring.CandidateRepository;
-import app.zoneblitz.league.hiring.CoordinatorGenerator;
+import app.zoneblitz.league.hiring.CoordinatorCandidateGenerator;
 import app.zoneblitz.league.hiring.GeneratedCandidate;
 import app.zoneblitz.league.hiring.NewCandidate;
-import app.zoneblitz.league.hiring.PositionCoachGenerator;
+import app.zoneblitz.league.hiring.PositionCoachCandidateGenerator;
 import app.zoneblitz.league.hiring.ScoutBranch;
-import app.zoneblitz.league.hiring.ScoutCandidateGenerator;
+import app.zoneblitz.league.hiring.ScoutCandidatePoolGenerator;
+import app.zoneblitz.league.hiring.candidates.CandidatePoolRepository;
+import app.zoneblitz.league.hiring.candidates.CandidatePreferencesRepository;
+import app.zoneblitz.league.hiring.candidates.CandidateRepository;
 import app.zoneblitz.league.staff.NewTeamStaffMember;
 import app.zoneblitz.league.staff.SpecialtyPosition;
 import app.zoneblitz.league.staff.StaffRole;
@@ -75,9 +75,9 @@ public class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHa
   private final CandidateRepository candidates;
   private final CandidatePreferencesRepository preferences;
   private final TeamStaffRepository staff;
-  private final CoordinatorGenerator coordinatorGenerator;
-  private final PositionCoachGenerator positionCoachGenerator;
-  private final ScoutCandidateGenerator scoutGenerator;
+  private final CoordinatorCandidateGenerator coordinatorGenerator;
+  private final PositionCoachCandidateGenerator positionCoachGenerator;
+  private final ScoutCandidatePoolGenerator scoutGenerator;
   private final CandidateRandomSources rngs;
 
   public HiringAssemblingStaffTransitionHandler(
@@ -86,9 +86,9 @@ public class HiringAssemblingStaffTransitionHandler implements PhaseTransitionHa
       CandidateRepository candidates,
       CandidatePreferencesRepository preferences,
       TeamStaffRepository staff,
-      CoordinatorGenerator coordinatorGenerator,
-      PositionCoachGenerator positionCoachGenerator,
-      ScoutCandidateGenerator scoutGenerator,
+      CoordinatorCandidateGenerator coordinatorGenerator,
+      PositionCoachCandidateGenerator positionCoachGenerator,
+      ScoutCandidatePoolGenerator scoutGenerator,
       CandidateRandomSources rngs) {
     this.teams = Objects.requireNonNull(teams, "teams");
     this.pools = Objects.requireNonNull(pools, "pools");

@@ -4,12 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.league.franchise.JooqFranchiseRepository;
 import app.zoneblitz.league.hiring.CandidateRandomSources;
-import app.zoneblitz.league.hiring.HeadCoachGenerator;
-import app.zoneblitz.league.hiring.JooqCandidateOfferRepository;
-import app.zoneblitz.league.hiring.JooqCandidatePoolRepository;
-import app.zoneblitz.league.hiring.JooqCandidatePreferencesRepository;
-import app.zoneblitz.league.hiring.JooqCandidateRepository;
-import app.zoneblitz.league.hiring.OfferResolver;
+import app.zoneblitz.league.hiring.candidates.JooqCandidatePoolRepository;
+import app.zoneblitz.league.hiring.candidates.JooqCandidatePreferencesRepository;
+import app.zoneblitz.league.hiring.candidates.JooqCandidateRepository;
+import app.zoneblitz.league.hiring.generation.HeadCoachGenerator;
+import app.zoneblitz.league.hiring.offer.JooqCandidateOfferRepository;
+import app.zoneblitz.league.hiring.offer.OfferResolver;
 import app.zoneblitz.league.phase.AdvancePhase;
 import app.zoneblitz.league.phase.AdvancePhaseResult;
 import app.zoneblitz.league.phase.AdvancePhaseUseCase;

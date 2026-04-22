@@ -2,7 +2,7 @@ package app.zoneblitz.league.staff;
 
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.hiring.Candidate;
-import app.zoneblitz.league.hiring.CandidateRepository;
+import app.zoneblitz.league.hiring.candidates.CandidateRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

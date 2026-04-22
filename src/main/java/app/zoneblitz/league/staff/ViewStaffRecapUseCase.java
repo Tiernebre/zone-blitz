@@ -4,7 +4,7 @@ import static app.zoneblitz.jooq.Tables.TEAMS;
 
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.franchise.FranchiseRepository;
-import app.zoneblitz.league.hiring.CandidateRepository;
+import app.zoneblitz.league.hiring.candidates.CandidateRepository;
 import app.zoneblitz.league.team.TeamLookup;
 import java.util.ArrayList;
 import java.util.Objects;

@@ -1,5 +1,6 @@
 package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.hiring.candidates.CandidateRepository;
 import app.zoneblitz.league.staff.SpecialtyPosition;
 import java.util.Objects;
 import java.util.Optional;

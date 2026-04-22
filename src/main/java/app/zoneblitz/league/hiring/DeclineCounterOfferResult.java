@@ -1,7 +1,7 @@
 package app.zoneblitz.league.hiring;
 
 /** Sealed outcome of {@link DeclineCounterOffer#decline}. */
-sealed interface DeclineCounterOfferResult {
+public sealed interface DeclineCounterOfferResult {
 
   record Declined(long offerId) implements DeclineCounterOfferResult {}
 

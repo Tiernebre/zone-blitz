@@ -1,5 +1,6 @@
 package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.hiring.candidates.CandidatePreferencesDraft;
 import java.util.Objects;
 
 /**

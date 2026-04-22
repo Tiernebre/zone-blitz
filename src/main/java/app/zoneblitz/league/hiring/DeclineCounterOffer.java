@@ -5,7 +5,7 @@ package app.zoneblitz.league.hiring;
  * the offer to {@link OfferStatus#REJECTED}. Budget is never checked — declining frees commitment,
  * never uses it.
  */
-interface DeclineCounterOffer {
+public interface DeclineCounterOffer {
 
   /**
    * Decline the counter on {@code offerId}.

@@ -89,6 +89,7 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:1.20.4")
     testImplementation("org.testcontainers:postgresql:1.20.4")
     testImplementation("com.microsoft.playwright:playwright:1.49.0")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.1")
     testImplementation("org.assertj:assertj-core")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

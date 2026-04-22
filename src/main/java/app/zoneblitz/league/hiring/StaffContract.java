@@ -9,7 +9,7 @@ import java.util.Optional;
  * endSeason} (e.g. coach fired); remaining guaranteed money continues to count as dead cap through
  * {@code endSeason}.
  */
-record StaffContract(
+public record StaffContract(
     long id,
     long teamId,
     long candidateId,
@@ -21,7 +21,7 @@ record StaffContract(
     int endSeason,
     Optional<Integer> terminatedAtSeason) {
 
-  StaffContract {
+  public StaffContract {
     Objects.requireNonNull(terminatedAtSeason, "terminatedAtSeason");
     if (apyCents <= 0) {
       throw new IllegalArgumentException("apyCents must be > 0");

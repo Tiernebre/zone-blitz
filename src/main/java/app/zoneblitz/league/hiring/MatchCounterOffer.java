@@ -5,7 +5,7 @@ package app.zoneblitz.league.hiring;
  * terms onto their own offer. The offer returns to {@link OfferStatus#ACTIVE} with stance {@link
  * OfferStance#PENDING} so the next resolver tick re-scores it against the updated terms.
  */
-interface MatchCounterOffer {
+public interface MatchCounterOffer {
 
   /**
    * Match the competing offer on {@code offerId}.

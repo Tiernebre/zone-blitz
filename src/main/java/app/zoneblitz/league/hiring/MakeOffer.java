@@ -1,5 +1,7 @@
 package app.zoneblitz.league.hiring;
 
+import app.zoneblitz.league.hiring.offer.OfferResolver;
+
 /**
  * Use case: a franchise submits an offer to a Head Coach candidate. One offer per (franchise,
  * candidate) at a time — re-submitting while an {@link OfferStatus#ACTIVE} offer exists revises the
