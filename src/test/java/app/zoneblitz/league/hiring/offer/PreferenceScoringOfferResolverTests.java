@@ -12,6 +12,7 @@ import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.franchise.JooqFranchiseRepository;
 import app.zoneblitz.league.hiring.CandidatePoolType;
 import app.zoneblitz.league.hiring.CandidateRandomSources;
+import app.zoneblitz.league.hiring.OfferResolver;
 import app.zoneblitz.league.hiring.OfferStance;
 import app.zoneblitz.league.hiring.OfferStatus;
 import app.zoneblitz.league.hiring.OfferTerms;
@@ -87,7 +88,7 @@ class PreferenceScoringOfferResolverTests {
     budgets = new JooqStaffBudgetRepository(dsl);
     staffContracts = new JooqStaffContractRepository(dsl);
     interviews = new JooqTeamInterviewRepository(dsl);
-    profiles = new CityTeamProfiles(dsl, franchises);
+    profiles = new CityTeamProfiles(teams, franchises);
     rngs = (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal());
     hcCpuStrategy =
         new CpuHiringStrategy(
@@ -116,16 +117,15 @@ class PreferenceScoringOfferResolverTests {
             leagues,
             List.of(hcCpuStrategy));
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
+    var generatePool =
+        new app.zoneblitz.league.hiring.candidates.GenerateCandidatePoolUseCase(
+            pools, candidates, preferences, rngs);
     entryHandler =
         new HiringHeadCoachTransitionHandler(
-            leagues,
             teams,
-            pools,
-            candidates,
-            preferences,
+            generatePool,
             hiringStates,
-            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
-            rngs);
+            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()));
   }
 
   @Test

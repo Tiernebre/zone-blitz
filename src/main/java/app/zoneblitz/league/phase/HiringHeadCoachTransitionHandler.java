@@ -1,13 +1,8 @@
 package app.zoneblitz.league.phase;
 
-import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.hiring.CandidateGenerator;
 import app.zoneblitz.league.hiring.CandidatePoolType;
-import app.zoneblitz.league.hiring.CandidateRandomSources;
-import app.zoneblitz.league.hiring.NewCandidate;
-import app.zoneblitz.league.hiring.candidates.CandidatePoolRepository;
-import app.zoneblitz.league.hiring.candidates.CandidatePreferencesRepository;
-import app.zoneblitz.league.hiring.candidates.CandidateRepository;
+import app.zoneblitz.league.hiring.GenerateCandidatePool;
 import app.zoneblitz.league.team.TeamHiringState;
 import app.zoneblitz.league.team.TeamHiringStateRepository;
 import app.zoneblitz.league.team.TeamLookup;
@@ -18,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Phase-entry hook for {@link LeaguePhase#HIRING_HEAD_COACH}. On entry: generate the league-wide HC
- * candidate pool (if not already present), persist candidates + preferences, and initialize each
+ * candidate pool (if not already present) via {@link GenerateCandidatePool}, and initialize each
  * team's hiring sub-state to {@link HiringStep#SEARCHING} with empty shortlist/interview lists.
  *
  * <p>Idempotent: re-entry of a phase that already has a pool is a no-op so autofill/recovery paths
@@ -31,33 +26,21 @@ public class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler 
 
   private static final int POOL_SIZE_PER_TEAM = 2;
 
-  private final LeagueRepository leagues;
   private final TeamLookup teams;
-  private final CandidatePoolRepository pools;
-  private final CandidateRepository candidates;
-  private final CandidatePreferencesRepository preferences;
+  private final GenerateCandidatePool generatePool;
   private final TeamHiringStateRepository hiringStates;
   private final CandidateGenerator generator;
-  private final CandidateRandomSources rngs;
 
   public HiringHeadCoachTransitionHandler(
-      LeagueRepository leagues,
       TeamLookup teams,
-      CandidatePoolRepository pools,
-      CandidateRepository candidates,
-      CandidatePreferencesRepository preferences,
+      GenerateCandidatePool generatePool,
       TeamHiringStateRepository hiringStates,
       @org.springframework.beans.factory.annotation.Qualifier("headCoachGenerator")
-          CandidateGenerator generator,
-      CandidateRandomSources rngs) {
-    this.leagues = leagues;
+          CandidateGenerator generator) {
     this.teams = teams;
-    this.pools = pools;
-    this.candidates = candidates;
-    this.preferences = preferences;
+    this.generatePool = generatePool;
     this.hiringStates = hiringStates;
     this.generator = generator;
-    this.rngs = rngs;
   }
 
   @Override
@@ -67,51 +50,19 @@ public class HiringHeadCoachTransitionHandler implements PhaseTransitionHandler 
 
   @Override
   public void onEntry(long leagueId) {
-    if (pools
-        .findByLeaguePhaseAndType(leagueId, phase(), CandidatePoolType.HEAD_COACH)
-        .isPresent()) {
-      log.debug("HC pool already present for league={}; entry is a no-op", leagueId);
-      return;
-    }
-    var league =
-        leagues
-            .findById(leagueId)
-            .orElseThrow(() -> new IllegalStateException("league missing: " + leagueId));
     var teamIds = teams.teamIdsForLeague(leagueId);
     var poolSize = Math.max(1, teamIds.size() * POOL_SIZE_PER_TEAM);
-
-    var pool = pools.insert(leagueId, phase(), CandidatePoolType.HEAD_COACH);
-    var rng = rngs.forLeaguePhase(leagueId, phase());
-    var generated = generator.generate(poolSize, rng);
-    for (var g : generated) {
-      var withPool = attachPool(g.candidate(), pool.id());
-      var saved = candidates.insert(withPool);
-      preferences.insert(g.preferences().withCandidateId(saved.id()));
+    var created =
+        generatePool.generateIfAbsent(
+            leagueId, phase(), CandidatePoolType.HEAD_COACH, generator, poolSize);
+    if (!created) {
+      log.debug("HC pool already present for league={}; entry is a no-op", leagueId);
+      return;
     }
     for (var teamId : teamIds) {
       hiringStates.upsert(
           new TeamHiringState(0L, teamId, phase(), HiringStep.SEARCHING, List.of()));
     }
-    log.info(
-        "hiring head-coach pool generated leagueId={} poolId={} size={} teams={}",
-        league.id(),
-        pool.id(),
-        generated.size(),
-        teamIds.size());
-  }
-
-  private static NewCandidate attachPool(NewCandidate candidate, long poolId) {
-    return new NewCandidate(
-        poolId,
-        candidate.kind(),
-        candidate.specialtyPosition(),
-        candidate.archetype(),
-        candidate.firstName(),
-        candidate.lastName(),
-        candidate.age(),
-        candidate.totalExperienceYears(),
-        candidate.experienceByRole(),
-        candidate.hiddenAttrs(),
-        candidate.scoutBranch());
+    log.info("hiring head-coach entry completed leagueId={} teams={}", leagueId, teamIds.size());
   }
 }

@@ -1,6 +1,6 @@
 package app.zoneblitz.league;
 
-import app.zoneblitz.league.hiring.offer.OfferResolver;
+import app.zoneblitz.league.hiring.OfferResolver;
 import app.zoneblitz.league.phase.AdvancePhase;
 import app.zoneblitz.league.phase.AdvancePhaseResult;
 import app.zoneblitz.league.phase.HiringPhaseAutofill;

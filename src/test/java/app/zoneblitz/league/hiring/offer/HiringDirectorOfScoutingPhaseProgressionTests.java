@@ -1,4 +1,4 @@
-package app.zoneblitz.league.hiring;
+package app.zoneblitz.league.hiring.offer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -12,22 +12,23 @@ import app.zoneblitz.league.JooqLeagueRepository;
 import app.zoneblitz.league.League;
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.franchise.JooqFranchiseRepository;
+import app.zoneblitz.league.hiring.CandidatePoolType;
+import app.zoneblitz.league.hiring.CandidateRandomSources;
 import app.zoneblitz.league.hiring.candidates.CandidatePoolRepository;
 import app.zoneblitz.league.hiring.candidates.CandidateRepository;
+import app.zoneblitz.league.hiring.candidates.GenerateCandidatePoolUseCase;
 import app.zoneblitz.league.hiring.candidates.JooqCandidatePoolRepository;
 import app.zoneblitz.league.hiring.candidates.JooqCandidatePreferencesRepository;
 import app.zoneblitz.league.hiring.candidates.JooqCandidateRepository;
 import app.zoneblitz.league.hiring.generation.DirectorOfScoutingGenerator;
 import app.zoneblitz.league.hiring.generation.HeadCoachGenerator;
+import app.zoneblitz.league.hiring.hire.BestFitHiringAutofill;
 import app.zoneblitz.league.hiring.hire.CpuHiringStrategy;
 import app.zoneblitz.league.hiring.hire.JooqStaffBudgetRepository;
 import app.zoneblitz.league.hiring.hire.JooqStaffContractRepository;
 import app.zoneblitz.league.hiring.interview.JooqTeamInterviewRepository;
-import app.zoneblitz.league.hiring.offer.JooqCandidateOfferRepository;
-import app.zoneblitz.league.hiring.offer.PreferenceScoringOfferResolver;
 import app.zoneblitz.league.phase.AdvancePhase;
 import app.zoneblitz.league.phase.AdvancePhaseUseCase;
-import app.zoneblitz.league.phase.BestFitHiringAutofill;
 import app.zoneblitz.league.phase.HiringDirectorOfScoutingTransitionHandler;
 import app.zoneblitz.league.phase.HiringHeadCoachTransitionHandler;
 import app.zoneblitz.league.phase.HiringStep;
@@ -82,33 +83,26 @@ class HiringDirectorOfScoutingPhaseProgressionTests {
     var staff = new JooqTeamStaffRepository(dsl);
     hiringStates = new JooqTeamHiringStateRepository(dsl);
     var interviews = new JooqTeamInterviewRepository(dsl);
-    var profiles = new CityTeamProfiles(dsl, franchises);
+    var profiles = new CityTeamProfiles(teamLookup, franchises);
     CandidateRandomSources rngs =
         (leagueId, phase) -> new FakeRandomSource(leagueId * 31 + phase.ordinal());
 
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
+    var generatePool = new GenerateCandidatePoolUseCase(pools, candidates, preferences, rngs);
 
     var hcHandler =
         new HiringHeadCoachTransitionHandler(
-            leagues,
             teamLookup,
-            pools,
-            candidates,
-            preferences,
+            generatePool,
             hiringStates,
-            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
-            rngs);
+            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()));
     var dosHandler =
         new HiringDirectorOfScoutingTransitionHandler(
-            leagues,
             teamLookup,
-            pools,
-            candidates,
-            preferences,
+            generatePool,
             hiringStates,
             new DirectorOfScoutingGenerator(
-                app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
-            rngs);
+                app.zoneblitz.names.CuratedNameGenerator.maleDefaults()));
 
     advancePhase = new AdvancePhaseUseCase(leagues, List.of(hcHandler, dosHandler));
 

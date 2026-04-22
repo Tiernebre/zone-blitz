@@ -25,4 +25,10 @@ public interface TeamLookup {
    * team (the one whose {@code owner_subject} is non-null); empty if none.
    */
   Optional<Long> userTeamIdForLeague(long leagueId);
+
+  /**
+   * Resolve the franchise id a team belongs to. Returns empty when the team id does not match any
+   * row — callers typically treat the absence as a skip rather than an error.
+   */
+  Optional<Long> findFranchiseIdByTeamId(long teamId);
 }

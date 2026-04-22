@@ -17,6 +17,7 @@ import app.zoneblitz.league.hiring.CandidateRandomSources;
 import app.zoneblitz.league.hiring.candidates.CandidatePoolRepository;
 import app.zoneblitz.league.hiring.candidates.CandidatePreferencesRepository;
 import app.zoneblitz.league.hiring.candidates.CandidateRepository;
+import app.zoneblitz.league.hiring.candidates.GenerateCandidatePoolUseCase;
 import app.zoneblitz.league.hiring.candidates.JooqCandidatePoolRepository;
 import app.zoneblitz.league.hiring.candidates.JooqCandidatePreferencesRepository;
 import app.zoneblitz.league.hiring.candidates.JooqCandidateRepository;
@@ -60,16 +61,14 @@ class HiringHeadCoachTransitionHandlerTests {
     preferences = new JooqCandidatePreferencesRepository(dsl);
     hiringStates = new JooqTeamHiringStateRepository(dsl);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
+    var rngs = new SeededRandomSources();
+    var generatePool = new GenerateCandidatePoolUseCase(pools, candidates, preferences, rngs);
     handler =
         new HiringHeadCoachTransitionHandler(
-            leagues,
             teams,
-            pools,
-            candidates,
-            preferences,
+            generatePool,
             hiringStates,
-            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
-            new SeededRandomSources());
+            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()));
   }
 
   @Test

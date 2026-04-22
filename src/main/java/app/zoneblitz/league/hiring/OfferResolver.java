@@ -1,6 +1,5 @@
-package app.zoneblitz.league.hiring.offer;
+package app.zoneblitz.league.hiring;
 
-import app.zoneblitz.league.hiring.OfferStatus;
 import app.zoneblitz.league.phase.HiringStep;
 import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.staff.TeamStaffMember;

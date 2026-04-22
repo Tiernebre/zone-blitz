@@ -1,4 +1,4 @@
-package app.zoneblitz.league.phase;
+package app.zoneblitz.league.hiring.hire;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,6 +27,9 @@ import app.zoneblitz.league.hiring.candidates.JooqCandidatePoolRepository;
 import app.zoneblitz.league.hiring.candidates.JooqCandidatePreferencesRepository;
 import app.zoneblitz.league.hiring.candidates.JooqCandidateRepository;
 import app.zoneblitz.league.hiring.offer.JooqCandidateOfferRepository;
+import app.zoneblitz.league.phase.HiringPhaseAutofill;
+import app.zoneblitz.league.phase.HiringStep;
+import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.staff.JooqTeamStaffRepository;
 import app.zoneblitz.league.staff.SpecialtyPosition;
 import app.zoneblitz.league.staff.StaffRole;

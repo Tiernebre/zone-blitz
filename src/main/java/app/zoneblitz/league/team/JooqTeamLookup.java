@@ -45,4 +45,12 @@ public class JooqTeamLookup implements TeamLookup {
         .limit(1)
         .fetchOptional(TEAMS.ID);
   }
+
+  @Override
+  public Optional<Long> findFranchiseIdByTeamId(long teamId) {
+    return dsl.select(TEAMS.FRANCHISE_ID)
+        .from(TEAMS)
+        .where(TEAMS.ID.eq(teamId))
+        .fetchOptional(TEAMS.FRANCHISE_ID);
+  }
 }

@@ -12,16 +12,15 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
  * Executable architecture guardrails — see {@code docs/technical/agent-friendliness-audit.md}
  * section "Install ArchUnit as an executable architecture guard".
  *
- * <p>Rules only stay live if they already pass on {@code main}. Rules we want eventually but that
- * fail today are kept visible via {@link Disabled} with a {@code TODO} pointing at the refactor
- * that unblocks them, so the intent does not get lost.
+ * <p>Rules only stay live if they already pass on {@code main}. When a rule needs to be added but
+ * cannot yet pass, prefer to keep the code in main clean and bring the rule in with the refactor
+ * that makes it pass, rather than committing a {@code @Disabled} annotation.
  */
 class ArchitectureTests {
 
@@ -112,19 +111,19 @@ class ArchitectureTests {
   }
 
   /**
-   * TODO(audit#5): two legitimate non-{@code Jooq*} classes currently reach into generated jOOQ —
-   * {@code ViewStaffRecapUseCase} (raw DSL JOIN) and {@code CityTeamProfiles} (seed lookup). Enable
-   * once those queries are extracted behind repository interfaces.
+   * Generated jOOQ types must stay inside the repository layer. Any production class outside {@code
+   * app.zoneblitz.jooq..} whose name does not start with {@code Jooq} is banned from importing
+   * {@code app.zoneblitz.jooq.*}. The generated code itself is excluded (generated classes
+   * reference each other).
    */
   @Test
-  @Disabled(
-      "TODO(audit#5): enable after ViewStaffRecapUseCase and CityTeamProfiles are refactored"
-          + " behind repository interfaces")
   void generatedJooq_isOnlyImportedByJooqPrefixedClasses() {
     var rule =
         noClasses()
             .that()
             .resideInAPackage("app.zoneblitz..")
+            .and()
+            .resideOutsideOfPackage("app.zoneblitz.jooq..")
             .and()
             .haveSimpleNameNotStartingWith("Jooq")
             .should()
@@ -142,31 +141,14 @@ class ArchitectureTests {
    * app.zoneblitz.league.hiring} package is the public API — use-case interfaces, sealed {@code
    * *Result} unions, and shared records.
    *
-   * <p>The hiring sub-package split and visibility reduction landed (see {@code
-   * docs/technical/agent-friendliness-audit.md}). The rule is kept disabled because several
-   * legitimate cross-feature consumers still import hiring-internal repositories directly, and
-   * refactoring those to go through use-case interfaces is out of scope for this pass:
-   *
-   * <ul>
-   *   <li>{@code league.AdvanceDayUseCase} depends on {@code offer.OfferResolver}.
-   *   <li>{@code league.phase.Hiring*TransitionHandler} (HeadCoach, DirectorOfScouting,
-   *       AssemblingStaff) depends on {@code candidates.CandidatePoolRepository}, {@code
-   *       CandidateRepository}, {@code CandidatePreferencesRepository} for phase-entry pool
-   *       generation and candidate persistence.
-   *   <li>{@code league.phase.BestFitHiringAutofill} pulls in {@code offer.InterestScoring /
-   *       OfferScoring / OfferStance / OfferTermsJson / PreferenceScoringOfferResolver} (original
-   *       audit smell).
-   *   <li>{@code league.staff.ViewStaffRecapUseCase} and {@code ViewCoachingStaffOrgChartUseCase}
-   *       use {@code candidates.CandidateRepository} directly to fetch hired candidates.
-   * </ul>
-   *
-   * Follow-up: promote hiring-public use cases for "generate candidate pool for phase" and "fetch
-   * hired candidate by id," then enable this rule.
+   * <p>Cross-feature consumers reach hiring through public seams at the package root: {@link
+   * app.zoneblitz.league.hiring.OfferResolver}, {@link
+   * app.zoneblitz.league.hiring.GenerateCandidatePool}, {@link
+   * app.zoneblitz.league.hiring.FindCandidate}, and {@link
+   * app.zoneblitz.league.hiring.AssembleStaff} — never into {@code candidates/}, {@code offer/},
+   * {@code hire/}, or the other sub-packages.
    */
   @Test
-  @Disabled(
-      "TODO(audit#1-2): enable after phase handlers + staff view use cases stop importing"
-          + " hiring-internal repositories directly (see Javadoc for the full list).")
   void hiringInternals_areNotImportedByOtherPackages() {
     var rule =
         noClasses()

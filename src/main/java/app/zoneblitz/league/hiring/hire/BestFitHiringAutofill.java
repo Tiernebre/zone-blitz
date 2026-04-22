@@ -1,4 +1,4 @@
-package app.zoneblitz.league.phase;
+package app.zoneblitz.league.hiring.hire;
 
 import app.zoneblitz.league.hiring.Candidate;
 import app.zoneblitz.league.hiring.CandidateOffer;
@@ -11,10 +11,11 @@ import app.zoneblitz.league.hiring.OfferTerms;
 import app.zoneblitz.league.hiring.candidates.CandidatePoolRepository;
 import app.zoneblitz.league.hiring.candidates.CandidatePreferencesRepository;
 import app.zoneblitz.league.hiring.candidates.CandidateRepository;
-import app.zoneblitz.league.hiring.hire.InterestScoring;
 import app.zoneblitz.league.hiring.offer.CandidateOfferRepository;
 import app.zoneblitz.league.hiring.offer.OfferTermsJson;
-import app.zoneblitz.league.hiring.offer.PreferenceScoringOfferResolver;
+import app.zoneblitz.league.phase.HiringPhaseAutofill;
+import app.zoneblitz.league.phase.HiringStep;
+import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.staff.NewTeamStaffMember;
 import app.zoneblitz.league.staff.StaffRole;
 import app.zoneblitz.league.staff.TeamStaffMember;
@@ -35,13 +36,13 @@ import org.springframework.stereotype.Component;
 /**
  * Default {@link HiringPhaseAutofill}: ranks remaining candidates per-team by preference-fit score
  * and assigns the top fit to each unresolved team. Hidden ratings are never consulted — same rule
- * as {@link app.zoneblitz.league.hiring.CpuHiringStrategy}. Ties are broken first by candidate id,
- * then — if still tied — by a deterministic seeded RNG split per-team.
+ * as {@link CpuHiringStrategy}. Ties are broken first by candidate id, then — if still tied — by a
+ * deterministic seeded RNG split per-team.
  *
  * <p>Default terms mirror the candidate's preference targets so the synthetic offer scores a
  * perfect fit. The hire wiring (mark candidate hired, upsert hiring state to {@link
  * HiringStep#HIRED}, insert {@link TeamStaffMember}, create an {@link OfferStatus#ACCEPTED} offer
- * row) matches the flow in {@link PreferenceScoringOfferResolver}.
+ * row) matches the flow in the hiring offer resolver.
  */
 @Component
 public class BestFitHiringAutofill implements HiringPhaseAutofill {

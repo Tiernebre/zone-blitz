@@ -1,15 +1,12 @@
 package app.zoneblitz.league.staff;
 
-import static app.zoneblitz.jooq.Tables.TEAMS;
-
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.franchise.FranchiseRepository;
-import app.zoneblitz.league.hiring.candidates.CandidateRepository;
+import app.zoneblitz.league.hiring.FindCandidate;
 import app.zoneblitz.league.team.TeamLookup;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
-import org.jooq.DSLContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,22 +17,19 @@ public class ViewStaffRecapUseCase implements ViewStaffRecap {
   private final TeamLookup teams;
   private final FranchiseRepository franchises;
   private final TeamStaffRepository staff;
-  private final CandidateRepository candidates;
-  private final DSLContext dsl;
+  private final FindCandidate candidates;
 
   public ViewStaffRecapUseCase(
       LeagueRepository leagues,
       TeamLookup teams,
       FranchiseRepository franchises,
       TeamStaffRepository staff,
-      CandidateRepository candidates,
-      DSLContext dsl) {
+      FindCandidate candidates) {
     this.leagues = leagues;
     this.teams = teams;
     this.franchises = franchises;
     this.staff = staff;
     this.candidates = candidates;
-    this.dsl = dsl;
   }
 
   @Override
@@ -51,11 +45,7 @@ public class ViewStaffRecapUseCase implements ViewStaffRecap {
 
     var trees = new ArrayList<StaffRecapView.TeamStaffTree>();
     for (var teamId : teams.teamIdsForLeague(leagueId)) {
-      var franchiseId =
-          dsl.select(TEAMS.FRANCHISE_ID)
-              .from(TEAMS)
-              .where(TEAMS.ID.eq(teamId))
-              .fetchOptional(TEAMS.FRANCHISE_ID);
+      var franchiseId = teams.findFranchiseIdByTeamId(teamId);
       if (franchiseId.isEmpty()) {
         continue;
       }

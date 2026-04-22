@@ -65,16 +65,17 @@ class StartInterviewUseCaseTests {
     hiringStates = new JooqTeamHiringStateRepository(dsl);
     interviews = new JooqTeamInterviewRepository(dsl);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
+    app.zoneblitz.league.hiring.CandidateRandomSources rngs =
+        (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal());
+    var generatePool =
+        new app.zoneblitz.league.hiring.candidates.GenerateCandidatePoolUseCase(
+            pools, candidates, preferences, rngs);
     entryHandler =
         new HiringHeadCoachTransitionHandler(
-            leagues,
             teams,
-            pools,
-            candidates,
-            preferences,
+            generatePool,
             hiringStates,
-            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
-            (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
+            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()));
     TeamProfiles teamProfiles = teamId -> Optional.of(fixedProfile(teamId));
     useCase =
         new StartInterviewUseCase(

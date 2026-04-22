@@ -18,6 +18,13 @@ The types below are the feature's contract. Anything in the sub-packages (`candi
 - `ViewDirectorOfScoutingHiring` — load the DoS hiring page view-model. Returns `Optional<DirectorOfScoutingHiringView>`.
 - `ViewDirectorOfScoutingHiringSummary` — load the post-DoS summary page. Returns `Optional<DirectorOfScoutingHiringSummaryView>`.
 
+### Cross-feature seams (how other features reach hiring)
+
+- `OfferResolver` — per-day tick that resolves active offers. Consumed by `league.AdvanceDayUseCase`.
+- `GenerateCandidatePool` — phase-entry pool generation (idempotent on re-entry). Consumed by `league.phase.Hiring*TransitionHandler`.
+- `AssembleStaff` — programmatic subordinate-staff assembly at `ASSEMBLING_STAFF` phase entry. Consumed by `league.phase.HiringAssemblingStaffTransitionHandler`.
+- `FindCandidate` — lookup a single candidate by id. Consumed by `league.staff.ViewStaffRecapUseCase` and `ViewCoachingStaffOrgChartUseCase` for hired-candidate rendering.
+
 ### Seams (consumed across sub-packages and by phase handlers)
 
 - `CandidateGenerator` — generate a pool for a given phase (one implementation per candidate kind; lives in `generation/`).
@@ -41,11 +48,11 @@ The types below are the feature's contract. Anything in the sub-packages (`candi
 
 Each sub-package is flat and package-private. The outer package is the public surface; cross-cutting types (records, enums, use-case interfaces) live there.
 
-- `candidates/` — candidate, pool, and preferences persistence (`CandidateRepository`, `CandidatePoolRepository`, `CandidatePreferencesRepository`, their `Jooq*` adapters, `SplittableCandidateRandomSources`, `CandidatePreferencesDraft`).
+- `candidates/` — candidate, pool, and preferences persistence (`CandidateRepository`, `CandidatePoolRepository`, `CandidatePreferencesRepository`, their `Jooq*` adapters, `SplittableCandidateRandomSources`, `CandidatePreferencesDraft`, plus `GenerateCandidatePoolUseCase` and `FindCandidateUseCase` behind their outer-package interfaces).
 - `generation/` — pool generators (`HeadCoachGenerator`, `DirectorOfScoutingGenerator`, `CoordinatorGenerator`, `PositionCoachGenerator`, `ScoutCandidateGenerator`), market-band files (`HeadCoachMarketBands`, `ScoutMarketBands`, `StaffMarketBands`), and salary/guarantee/contract-length bands plus `StaffPreferencesFactory`.
 - `interview/` — `StartInterviewUseCase`, `TeamInterview`, `TeamInterviewRepository` + `Jooq` adapter, `NewTeamInterview`.
-- `offer/` — `MakeOfferUseCase`, `MatchCounterOfferUseCase`, `DeclineCounterOfferUseCase`, `OfferResolver` + `PreferenceScoringOfferResolver`, `OfferScoring`, `StanceEvaluator`, `OfferTermsJson`, `CandidateOfferRepository` + `Jooq` adapter.
-- `hire/` — `HireCandidateUseCase`, `CpuHiringStrategy` (`CpuTeamStrategy` for hiring phases), `InterestScoring`, `StaffContractFactory`, `NewStaffContract`, `StaffContractRepository`, `StaffBudgetRepository`, `LeagueHires`, and their `Jooq` adapters.
+- `offer/` — `MakeOfferUseCase`, `MatchCounterOfferUseCase`, `DeclineCounterOfferUseCase`, `PreferenceScoringOfferResolver` (implements the outer-package `OfferResolver`), `OfferScoring`, `StanceEvaluator`, `OfferTermsJson`, `CandidateOfferRepository` + `Jooq` adapter.
+- `hire/` — `HireCandidateUseCase`, `AssembleStaffUseCase`, `BestFitHiringAutofill`, `CpuHiringStrategy` (`CpuTeamStrategy` for hiring phases), `InterestScoring`, `StaffContractFactory`, `NewStaffContract`, `StaffContractRepository`, `StaffBudgetRepository`, `LeagueHires`, and their `Jooq` adapters.
 - `view/` — `HiringHeadCoachController`, `HiringDirectorOfScoutingController`, `HeadCoachHiringSummaryController`, `DirectorOfScoutingHiringSummaryController`, the matching `*HiringView` / `*CandidateView` records, `*ViewModel` assemblers, `*UseCase` implementations of the `View*` interfaces, and `MakeOfferForm`.
 
 ## Extending
@@ -71,12 +78,6 @@ Builders: `StaffContractBuilder` in `hire/`, `OfferTermsBuilder` in `offer/`. Ad
 - [`docs/technical/league-phases.md`](../../../../../../../docs/technical/league-phases.md) — phase state machine, hiring sub-state, preference scoring schema.
 - [`CLAUDE.md`](../../../../../../../CLAUDE.md) — project-wide conventions.
 
-## Known seams to tighten
+## Boundary guard
 
-The hiring-internal ArchUnit rule `hiringInternals_areNotImportedByOtherPackages` in [`ArchitectureTests.java`](../../../../../../../src/test/java/app/zoneblitz/architecture/ArchitectureTests.java) is `@Disabled` because three legitimate cross-feature consumers still reach into sub-packages:
-
-- `league.AdvanceDayUseCase` depends on `offer.OfferResolver`.
-- `league.phase.Hiring*TransitionHandler` (HeadCoach, DirectorOfScouting, AssemblingStaff) depends on `candidates.CandidatePoolRepository`, `CandidateRepository`, `CandidatePreferencesRepository` for phase-entry pool generation.
-- `league.phase.BestFitHiringAutofill` pulls in `offer.InterestScoring / OfferScoring / OfferStance / OfferTermsJson / PreferenceScoringOfferResolver`.
-
-Follow-up: promote hiring-public use cases for "generate candidate pool for phase" and "fetch hired candidate by id"; then enable the rule.
+The ArchUnit rule `hiringInternals_areNotImportedByOtherPackages` in [`ArchitectureTests.java`](../../../../../../../src/test/java/app/zoneblitz/architecture/ArchitectureTests.java) enforces the sub-package boundary. Cross-feature consumers must go through the four outer-package seams — `OfferResolver`, `GenerateCandidatePool`, `AssembleStaff`, `FindCandidate` — plus the public use-case interfaces and shared records. Any new outer-package seam required by a consumer should be added here rather than by opening a sub-package import.

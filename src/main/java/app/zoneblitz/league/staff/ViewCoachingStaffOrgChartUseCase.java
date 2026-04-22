@@ -2,7 +2,7 @@ package app.zoneblitz.league.staff;
 
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.hiring.Candidate;
-import app.zoneblitz.league.hiring.candidates.CandidateRepository;
+import app.zoneblitz.league.hiring.FindCandidate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +27,10 @@ class ViewCoachingStaffOrgChartUseCase implements ViewCoachingStaffOrgChart {
 
   private final LeagueRepository leagues;
   private final TeamStaffRepository staff;
-  private final CandidateRepository candidates;
+  private final FindCandidate candidates;
 
   ViewCoachingStaffOrgChartUseCase(
-      LeagueRepository leagues, TeamStaffRepository staff, CandidateRepository candidates) {
+      LeagueRepository leagues, TeamStaffRepository staff, FindCandidate candidates) {
     this.leagues = leagues;
     this.staff = staff;
     this.candidates = candidates;

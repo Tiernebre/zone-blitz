@@ -108,16 +108,15 @@ class HireCandidateUseCaseTests {
             teams,
             noopAutofill);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
+    var generatePool =
+        new app.zoneblitz.league.hiring.candidates.GenerateCandidatePoolUseCase(
+            pools, candidates, preferences, rngs);
     entryHandler =
         new HiringHeadCoachTransitionHandler(
-            leagues,
             teams,
-            pools,
-            candidates,
-            preferences,
+            generatePool,
             hiringStates,
-            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
-            rngs);
+            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()));
   }
 
   @Test

@@ -5,6 +5,7 @@ import app.zoneblitz.league.hiring.Candidate;
 import app.zoneblitz.league.hiring.CandidateOffer;
 import app.zoneblitz.league.hiring.CandidatePoolType;
 import app.zoneblitz.league.hiring.CandidateRandomSources;
+import app.zoneblitz.league.hiring.OfferResolver;
 import app.zoneblitz.league.hiring.OfferStance;
 import app.zoneblitz.league.hiring.OfferStatus;
 import app.zoneblitz.league.hiring.candidates.CandidatePoolRepository;

@@ -1,7 +1,5 @@
 package app.zoneblitz.league.team;
 
-import static app.zoneblitz.jooq.Tables.TEAMS;
-
 import app.zoneblitz.league.franchise.FranchiseRepository;
 import app.zoneblitz.league.geography.Climate;
 import app.zoneblitz.league.geography.Geography;
@@ -10,7 +8,6 @@ import app.zoneblitz.league.hiring.CompetitiveWindow;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
-import org.jooq.DSLContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,22 +41,18 @@ public class CityTeamProfiles implements TeamProfiles {
   private static final CityAttrs FALLBACK =
       new CityAttrs(MarketSize.MEDIUM, Geography.MW, Climate.NEUTRAL);
 
-  private final DSLContext dsl;
+  private final TeamLookup teams;
   private final FranchiseRepository franchises;
 
-  public CityTeamProfiles(DSLContext dsl, FranchiseRepository franchises) {
-    this.dsl = dsl;
+  public CityTeamProfiles(TeamLookup teams, FranchiseRepository franchises) {
+    this.teams = teams;
     this.franchises = franchises;
   }
 
   @Override
   public Optional<TeamProfile> forTeam(long teamId) {
-    var franchiseId =
-        dsl.select(TEAMS.FRANCHISE_ID)
-            .from(TEAMS)
-            .where(TEAMS.ID.eq(teamId))
-            .fetchOptional(TEAMS.FRANCHISE_ID);
-    return franchiseId
+    return teams
+        .findFranchiseIdByTeamId(teamId)
         .flatMap(franchises::findById)
         .map(
             f -> {

@@ -73,20 +73,19 @@ class CpuHiringStrategyTests {
     hiringStates = new JooqTeamHiringStateRepository(dsl);
     interviews = new JooqTeamInterviewRepository(dsl);
     new JooqTeamStaffRepository(dsl);
-    TeamProfiles profiles = new CityTeamProfiles(dsl, franchiseRepo);
+    TeamProfiles profiles = new CityTeamProfiles(teamLookup, franchiseRepo);
     CandidateRandomSources rngs =
         (leagueId, phase) -> new FakeRandomSource(leagueId * 31 + phase.ordinal());
     createLeague = new CreateLeagueUseCase(leagues, franchiseRepo, teamRepo);
+    var generatePool =
+        new app.zoneblitz.league.hiring.candidates.GenerateCandidatePoolUseCase(
+            pools, candidates, preferences, rngs);
     entryHandler =
         new HiringHeadCoachTransitionHandler(
-            leagues,
             teamLookup,
-            pools,
-            candidates,
-            preferences,
+            generatePool,
             hiringStates,
-            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
-            rngs);
+            new HeadCoachGenerator(app.zoneblitz.names.CuratedNameGenerator.maleDefaults()));
     strategy =
         new CpuHiringStrategy(
             LeaguePhase.HIRING_HEAD_COACH,

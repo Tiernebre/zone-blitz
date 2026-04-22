@@ -1,4 +1,4 @@
-package app.zoneblitz.league.phase;
+package app.zoneblitz.league.hiring.hire;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -11,6 +11,7 @@ import app.zoneblitz.league.JooqLeagueRepository;
 import app.zoneblitz.league.League;
 import app.zoneblitz.league.LeagueRepository;
 import app.zoneblitz.league.franchise.JooqFranchiseRepository;
+import app.zoneblitz.league.hiring.AssembleStaff;
 import app.zoneblitz.league.hiring.CandidateArchetype;
 import app.zoneblitz.league.hiring.CandidateKind;
 import app.zoneblitz.league.hiring.CandidatePoolType;
@@ -27,6 +28,7 @@ import app.zoneblitz.league.hiring.candidates.JooqCandidateRepository;
 import app.zoneblitz.league.hiring.generation.CoordinatorGenerator;
 import app.zoneblitz.league.hiring.generation.PositionCoachGenerator;
 import app.zoneblitz.league.hiring.generation.ScoutCandidateGenerator;
+import app.zoneblitz.league.phase.LeaguePhase;
 import app.zoneblitz.league.staff.JooqTeamStaffRepository;
 import app.zoneblitz.league.staff.NewTeamStaffMember;
 import app.zoneblitz.league.staff.SpecialtyPosition;
@@ -47,7 +49,7 @@ import org.springframework.context.annotation.Import;
 
 @JooqTest
 @Import(PostgresTestcontainer.class)
-class HiringAssemblingStaffTransitionHandlerTests {
+class AssembleStaffUseCaseTests {
 
   @Autowired DSLContext dsl;
 
@@ -58,7 +60,7 @@ class HiringAssemblingStaffTransitionHandlerTests {
   private CandidatePreferencesRepository preferences;
   private TeamStaffRepository staffRepo;
   private TeamLookup teams;
-  private HiringAssemblingStaffTransitionHandler handler;
+  private AssembleStaff assembleStaff;
 
   @BeforeEach
   void setUp() {
@@ -71,8 +73,8 @@ class HiringAssemblingStaffTransitionHandlerTests {
     preferences = new JooqCandidatePreferencesRepository(dsl);
     staffRepo = new JooqTeamStaffRepository(dsl);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
-    handler =
-        new HiringAssemblingStaffTransitionHandler(
+    assembleStaff =
+        new AssembleStaffUseCase(
             teams,
             pools,
             candidates,
@@ -85,16 +87,11 @@ class HiringAssemblingStaffTransitionHandlerTests {
   }
 
   @Test
-  void phase_isAssemblingStaff() {
-    assertThat(handler.phase()).isEqualTo(LeaguePhase.ASSEMBLING_STAFF);
-  }
-
-  @Test
-  void onEntry_everyFranchiseHasTwelveCoachesAndEightScouts() {
+  void assemble_everyFranchiseHasTwelveCoachesAndEightScouts() {
     var league = createLeagueFor("sub-1");
     seedHcAndDosForEveryFranchise(league.id());
 
-    handler.onEntry(league.id());
+    assembleStaff.assemble(league.id());
 
     for (var franchiseId : teams.teamIdsForLeague(league.id())) {
       var hires = staffRepo.findAllForTeam(franchiseId);
@@ -117,11 +114,11 @@ class HiringAssemblingStaffTransitionHandlerTests {
   }
 
   @Test
-  void onEntry_coversEveryNonScoutRole() {
+  void assemble_coversEveryNonScoutRole() {
     var league = createLeagueFor("sub-1");
     seedHcAndDosForEveryFranchise(league.id());
 
-    handler.onEntry(league.id());
+    assembleStaff.assemble(league.id());
 
     for (var franchiseId : teams.teamIdsForLeague(league.id())) {
       var roles =
@@ -146,11 +143,11 @@ class HiringAssemblingStaffTransitionHandlerTests {
   }
 
   @Test
-  void onEntry_scoutBranchIsSetForScoutsAndUnsetForCoaches() {
+  void assemble_scoutBranchIsSetForScoutsAndUnsetForCoaches() {
     var league = createLeagueFor("sub-1");
     seedHcAndDosForEveryFranchise(league.id());
 
-    handler.onEntry(league.id());
+    assembleStaff.assemble(league.id());
 
     var franchiseId = teams.teamIdsForLeague(league.id()).getFirst();
     var hires = staffRepo.findAllForTeam(franchiseId);
@@ -170,11 +167,11 @@ class HiringAssemblingStaffTransitionHandlerTests {
   }
 
   @Test
-  void onEntry_candidatesAreMarkedHiredAndInCorrectPools() {
+  void assemble_candidatesAreMarkedHiredAndInCorrectPools() {
     var league = createLeagueFor("sub-1");
     seedHcAndDosForEveryFranchise(league.id());
 
-    handler.onEntry(league.id());
+    assembleStaff.assemble(league.id());
 
     var coordinatorPool =
         pools
@@ -202,15 +199,15 @@ class HiringAssemblingStaffTransitionHandlerTests {
   }
 
   @Test
-  void onEntry_isIdempotentPerFranchise() {
+  void assemble_isIdempotentPerFranchise() {
     var league = createLeagueFor("sub-1");
     seedHcAndDosForEveryFranchise(league.id());
 
-    handler.onEntry(league.id());
+    assembleStaff.assemble(league.id());
     var firstFranchiseId = teams.teamIdsForLeague(league.id()).getFirst();
     var firstRunSize = staffRepo.findAllForTeam(firstFranchiseId).size();
 
-    handler.onEntry(league.id());
+    assembleStaff.assemble(league.id());
 
     var secondRunSize = staffRepo.findAllForTeam(firstFranchiseId).size();
     assertThat(secondRunSize).isEqualTo(firstRunSize);

@@ -54,20 +54,21 @@ class ViewDirectorOfScoutingHiringUseCaseTests {
     var preferences = new JooqCandidatePreferencesRepository(dsl);
     var hiringStates = new JooqTeamHiringStateRepository(dsl);
     createLeague = new CreateLeagueUseCase(leagues, franchises, teamRepo);
+    app.zoneblitz.league.hiring.CandidateRandomSources rngs =
+        (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal());
+    var generatePool =
+        new app.zoneblitz.league.hiring.candidates.GenerateCandidatePoolUseCase(
+            pools, candidates, preferences, rngs);
     entryHandler =
         new HiringDirectorOfScoutingTransitionHandler(
-            leagues,
             teams,
-            pools,
-            candidates,
-            preferences,
+            generatePool,
             hiringStates,
             new DirectorOfScoutingGenerator(
-                app.zoneblitz.names.CuratedNameGenerator.maleDefaults()),
-            (leagueId, phase) -> new FakeRandomSource(leagueId + phase.ordinal()));
+                app.zoneblitz.names.CuratedNameGenerator.maleDefaults()));
     var interviews = new JooqTeamInterviewRepository(dsl);
     var offers = new JooqCandidateOfferRepository(dsl);
-    var profiles = new app.zoneblitz.league.team.CityTeamProfiles(dsl, franchises);
+    var profiles = new app.zoneblitz.league.team.CityTeamProfiles(teams, franchises);
     var leagueHires = new JooqLeagueHires(dsl);
     var budgets = new JooqStaffBudgetRepository(dsl);
     useCase =
