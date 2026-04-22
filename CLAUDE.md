@@ -399,9 +399,20 @@ Common commands:
 ./gradlew generateJooq       # regenerate jOOQ sources (requires DB up)
 ./gradlew tailwindBuild      # rebuild Tailwind CSS
 docker compose up            # start Postgres + anything else
+
+./verify                     # spotlessApply → spotlessCheck → test (pre-done check)
+./db-reset                   # wipe Postgres, rerun Flyway, regenerate jOOQ
+./dev                        # bootRun + tailwind watch in one terminal
 ```
 
-**Always run `./gradlew spotlessApply` after writing Java code, and `./gradlew spotlessCheck` before claiming a task done.** Formatting drift breaks the build.
+**Always run `./gradlew spotlessApply` after writing Java code, and `./gradlew spotlessCheck` before claiming a task done.** Formatting drift breaks the build. `./verify` chains both plus the test suite.
+
+## Orientation
+
+- [`docs/technical/feature-map.md`](docs/technical/feature-map.md) — one-screen index of features, their public use cases, and the cross-feature seams that link them. Start here for "where does X live?".
+- [`docs/technical/test-infra.md`](docs/technical/test-infra.md) — pointer map to `PostgresTestcontainer`, existing fakes, and slice-test recipes. Start here before hand-rolling a fixture.
+- [`src/test/java/app/zoneblitz/BUILDERS.md`](src/test/java/app/zoneblitz/BUILDERS.md) — available test data builders.
+- Per-feature READMEs under `src/main/java/app/zoneblitz/league/{hiring,phase,staff,team}/` and `src/gamesimulator/.../gamesimulator/README.md`.
 
 ---
 

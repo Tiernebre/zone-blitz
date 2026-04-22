@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Nuke local Postgres (tmpfs data vanishes on `down`), bring it back healthy,
+# re-run Flyway, and regenerate jOOQ sources. Use when migrations change or
+# jOOQ types drift from the schema.
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+docker compose down
+docker compose up -d postgres
+
+# Wait for the healthcheck to go green before hitting Flyway.
+until docker compose ps --format json postgres | grep -q '"Health":"healthy"'; do
+  sleep 1
+done
+
+./gradlew flywayMigrate generateJooq

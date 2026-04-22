@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Pre-done check: auto-format, fail on any remaining drift, run the full test suite.
+# Run this before declaring a task done. Passes any extra args to `gradle test`
+# (e.g. `./verify --tests '*HiringBeansTests*'`).
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+./gradlew spotlessApply
+./gradlew spotlessCheck test "$@"
