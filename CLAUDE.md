@@ -411,6 +411,8 @@ docker compose up            # start Postgres + anything else
 
 - [`docs/technical/feature-map.md`](docs/technical/feature-map.md) — one-screen index of features, their public use cases, and the cross-feature seams that link them. Start here for "where does X live?".
 - [`docs/technical/test-infra.md`](docs/technical/test-infra.md) — pointer map to `PostgresTestcontainer`, existing fakes, and slice-test recipes. Start here before hand-rolling a fixture.
+- [`docs/technical/calibration-cheatsheet.md`](docs/technical/calibration-cheatsheet.md) — paste-ready `nflreadr` / Big Data Bowl snippets for ad-hoc NFL queries.
+- [`docs/playbooks/`](docs/playbooks/) — step-by-step recipes: `add-a-use-case.md`, `add-a-cross-feature-seam.md`, `add-a-sim-seam.md`, `add-a-league-phase.md`.
 - [`src/test/java/app/zoneblitz/BUILDERS.md`](src/test/java/app/zoneblitz/BUILDERS.md) — available test data builders.
 - Per-feature READMEs under `src/main/java/app/zoneblitz/league/{hiring,phase,staff,team}/` and `src/gamesimulator/.../gamesimulator/README.md`.
 
@@ -423,4 +425,4 @@ For simulation calibration questions (real NFL distributions, tracking-data prio
 - **`nflfastr` skill** — play-by-play stats via `nflreadr` (R). Completion %, YPC, 4th-down go rates, penalty counts, positional stat concentration.
 - **`bigdatabowl` skill** — 10Hz player tracking data. Routes, coverages, pressure, formations, time-to-throw.
 
-Prefer these over guessing numbers when calibrating sim models.
+Prefer these over guessing numbers when calibrating sim models. [`docs/technical/calibration-cheatsheet.md`](docs/technical/calibration-cheatsheet.md) has paste-ready snippets for both.
