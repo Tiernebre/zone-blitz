@@ -178,15 +178,10 @@ class ArchitectureTests {
     rule.check(PRODUCTION_CLASSES);
   }
 
-  /**
-   * CLAUDE.md hard ceiling is 500 LOC, but {@code GameSimulator.java} is 540 and {@code
-   * GameState.java} is 414. Threshold sits at 550 until those two are split — see {@code
-   * docs/technical/agent-friendliness-audit.md}.
-   */
-  // TODO(audit#5): drop ceiling to 500 once GameSimulator.java is split.
+  /** CLAUDE.md hard ceiling: 500 LOC per production Java file. Extract freely. */
   @Test
   void productionFiles_stayUnderLineCountCeiling() throws IOException {
-    var ceiling = 550L;
+    var ceiling = 500L;
     var sourceRoots =
         List.of(
             Path.of("src/main/java/app/zoneblitz"),
