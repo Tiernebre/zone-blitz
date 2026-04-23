@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,6 +36,7 @@ public final class PositionCoachGenerator implements PositionCoachCandidateGener
   private final StaffMarketBands staffBands;
   private final NameGenerator names;
 
+  @Autowired
   public PositionCoachGenerator(NameGenerator names) {
     this(StaffMarketBands.loadFromClasspath(), names);
   }

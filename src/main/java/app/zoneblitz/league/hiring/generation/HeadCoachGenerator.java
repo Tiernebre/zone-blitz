@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,6 +41,7 @@ public final class HeadCoachGenerator implements CandidateGenerator {
   private final HeadCoachMarketBands bands;
   private final NameGenerator names;
 
+  @Autowired
   public HeadCoachGenerator(NameGenerator names) {
     this(HeadCoachMarketBands.loadFromClasspath(), names);
   }

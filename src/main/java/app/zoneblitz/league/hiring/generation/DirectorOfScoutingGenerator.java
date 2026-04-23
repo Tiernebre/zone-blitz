@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,6 +46,7 @@ public final class DirectorOfScoutingGenerator implements CandidateGenerator {
   private final ScoutMarketBands bands;
   private final NameGenerator names;
 
+  @Autowired
   public DirectorOfScoutingGenerator(NameGenerator names) {
     this(ScoutMarketBands.loadFromClasspath(), names);
   }

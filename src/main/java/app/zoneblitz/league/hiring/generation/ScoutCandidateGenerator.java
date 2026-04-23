@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,6 +36,7 @@ public final class ScoutCandidateGenerator implements ScoutCandidatePoolGenerato
   private final ScoutMarketBands bands;
   private final NameGenerator names;
 
+  @Autowired
   public ScoutCandidateGenerator(NameGenerator names) {
     this(ScoutMarketBands.loadFromClasspath(), names);
   }
