@@ -66,9 +66,26 @@ public final class MatchupPassResolver implements PassResolver {
 
   private static final long PRESSURE_SPLIT_KEY = 0x3333_eeffL;
 
+  /**
+   * Completion-yards percentile-shift coefficient layered on top of the band's own gamma. A
+   * positive matchup shift (talent advantage, bust-prone coverage shell) pushes the sampled
+   * percentile up, fattening the explosive-completion tail. Applied only to {@code
+   * completion_yards}; sack-yards, scramble-yards, and interception-return-yards keep their
+   * loaded-from-JSON gamma (currently zero) so those distributions remain unaffected.
+   *
+   * <p>Hand-tuned against {@code TalentAxisSweepCalibrationTests}: at {@code 0.04} the explosive
+   * tail moves meaningfully but the win-rate step between adjacent talent pairs stays inside the
+   * 30pp smoothness envelope. At saturation shift ±0.6 the uniform-draw input moves by {@code
+   * ±0.024} percentile points — about a yard of mean swing on the completion ladder, which matches
+   * the shell-level YPA spread seen in 2020-24 pbp. Baseline parity (shift = 0) is preserved
+   * because the shift multiplies by zero.
+   */
+  private static final double DEFAULT_EXPLOSIVE_GAMMA = 0.04;
+
   private final BandSampler sampler;
   private final PassRoleAssigner roleAssigner;
   private final PassMatchupShift matchupShift;
+  private final SituationalPassShift situationalShift;
   private final CoverageShellSampler shellSampler;
   private final TargetSelector targetSelector;
   private final PressureModel pressureModel;
@@ -90,9 +107,38 @@ public final class MatchupPassResolver implements PassResolver {
       DistributionalBand sackYards,
       DistributionalBand scrambleYards,
       DistributionalBand interceptionReturnYards) {
+    this(
+        sampler,
+        roleAssigner,
+        matchupShift,
+        SituationalPassShift.ZERO,
+        shellSampler,
+        targetSelector,
+        pressureModel,
+        outcomeMix,
+        completionYards,
+        sackYards,
+        scrambleYards,
+        interceptionReturnYards);
+  }
+
+  MatchupPassResolver(
+      BandSampler sampler,
+      PassRoleAssigner roleAssigner,
+      PassMatchupShift matchupShift,
+      SituationalPassShift situationalShift,
+      CoverageShellSampler shellSampler,
+      TargetSelector targetSelector,
+      PressureModel pressureModel,
+      RateBand<PassOutcomeKind> outcomeMix,
+      DistributionalBand completionYards,
+      DistributionalBand sackYards,
+      DistributionalBand scrambleYards,
+      DistributionalBand interceptionReturnYards) {
     this.sampler = Objects.requireNonNull(sampler, "sampler");
     this.roleAssigner = Objects.requireNonNull(roleAssigner, "roleAssigner");
     this.matchupShift = Objects.requireNonNull(matchupShift, "matchupShift");
+    this.situationalShift = Objects.requireNonNull(situationalShift, "situationalShift");
     this.shellSampler = Objects.requireNonNull(shellSampler, "shellSampler");
     this.targetSelector = Objects.requireNonNull(targetSelector, "targetSelector");
     this.pressureModel = Objects.requireNonNull(pressureModel, "pressureModel");
@@ -113,7 +159,14 @@ public final class MatchupPassResolver implements PassResolver {
     var loadedMix = repo.loadRate(PASSING_PLAYS, "bands.outcome_mix", PassOutcomeKind.class);
     var outcomeMix = new RateBand<>(loadedMix.baseProbabilities(), DEFAULT_BETAS);
 
-    var completionYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.completion_yards");
+    var loadedCompletionYards =
+        repo.loadDistribution(PASSING_PLAYS, "bands.yardage.completion_yards");
+    var completionYards =
+        new DistributionalBand(
+            loadedCompletionYards.min(),
+            loadedCompletionYards.max(),
+            loadedCompletionYards.percentileLadder(),
+            DEFAULT_EXPLOSIVE_GAMMA);
     var sackYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.sack_yards");
     var scrambleYards = repo.loadDistribution(PASSING_PLAYS, "bands.yardage.scramble_yards");
     var interceptionReturnYards =
@@ -125,6 +178,7 @@ public final class MatchupPassResolver implements PassResolver {
         sampler,
         new PositionBasedPassRoleAssigner(),
         composite,
+        new DownDistancePassShift(),
         shellSampler,
         new ScoreBasedTargetSelector(),
         new QbPressureEscape(),
@@ -156,7 +210,8 @@ public final class MatchupPassResolver implements PassResolver {
     var context = new PassMatchupContext(call.passConcept(), roles, call.formation(), shell);
     var shift = matchupShift.compute(context, rng);
     var target = resolveTarget(call, roles, qbPlayer, qb, rng);
-    var outcome = sampler.sampleRate(outcomeMix, shift, rng);
+    var offsets = situationalShift.compute(state);
+    var outcome = sampler.sampleRate(outcomeMix, shift, offsets, rng);
 
     return switch (outcome) {
       case COMPLETE -> {

@@ -29,10 +29,20 @@ public final class BandPenaltyModel implements PenaltyModel {
   /** Maximum linear rate shift at the discipline extremes (mean discipline 0 or 100). */
   private static final double MAX_SHIFT = 0.4;
 
+  /**
+   * Down + distance threshold past which a snap is treated as an "obvious pass" situation for
+   * penalty-rate modulation. Matches the nflfastR convention used in pbp analyses: 3rd/4th and 7+.
+   */
+  private static final int OBVIOUS_PASS_MIN_DOWN = 3;
+
+  private static final int OBVIOUS_PASS_MIN_YARDS_TO_GO = 7;
+
   @Override
   public Optional<PenaltyDraw.PreSnap> preSnap(
       GameState state, OffensivePersonnel offense, DefensivePersonnel defense, RandomSource rng) {
-    var drawn = drawInBucket(Bucket.PRE_SNAP, state.possession(), offense, defense, rng);
+    var drawn =
+        drawInBucket(
+            Bucket.PRE_SNAP, state.possession(), isObviousPass(state), offense, defense, rng);
     if (drawn.isEmpty()) {
       return Optional.empty();
     }
@@ -50,7 +60,9 @@ public final class BandPenaltyModel implements PenaltyModel {
       OffensivePersonnel offense,
       DefensivePersonnel defense,
       RandomSource rng) {
-    var drawn = drawInBucket(Bucket.DURING, state.possession(), offense, defense, rng);
+    var drawn =
+        drawInBucket(
+            Bucket.DURING, state.possession(), isObviousPass(state), offense, defense, rng);
     if (drawn.isEmpty()) {
       return Optional.empty();
     }
@@ -63,7 +75,7 @@ public final class BandPenaltyModel implements PenaltyModel {
   @Override
   public Optional<PenaltyDraw.PostPlay> postPlay(
       Side offenseSide, OffensivePersonnel offense, DefensivePersonnel defense, RandomSource rng) {
-    var drawn = drawInBucket(Bucket.POST_PLAY, offenseSide, offense, defense, rng);
+    var drawn = drawInBucket(Bucket.POST_PLAY, offenseSide, false, offense, defense, rng);
     if (drawn.isEmpty()) {
       return Optional.empty();
     }
@@ -76,6 +88,7 @@ public final class BandPenaltyModel implements PenaltyModel {
   private Optional<Drawn> drawInBucket(
       Bucket bucket,
       Side offenseSide,
+      boolean obviousPass,
       OffensivePersonnel offense,
       DefensivePersonnel defense,
       RandomSource rng) {
@@ -92,6 +105,9 @@ public final class BandPenaltyModel implements PenaltyModel {
         continue;
       }
       var r = s.rate() * (s.offenseProb() * offenseFactor + (1 - s.offenseProb()) * defenseFactor);
+      if (obviousPass) {
+        r *= s.obviousPassMultiplier();
+      }
       adjusted[i] = r;
       total += r;
     }
@@ -125,6 +141,11 @@ public final class BandPenaltyModel implements PenaltyModel {
     var mean = unit.stream().mapToInt(p -> p.tendencies().discipline()).average().orElse(50.0);
     var shift = (50.0 - mean) / 50.0 * MAX_SHIFT;
     return Math.max(1 - MAX_SHIFT, Math.min(1 + MAX_SHIFT, 1 + shift));
+  }
+
+  private static boolean isObviousPass(GameState state) {
+    var dd = state.downAndDistance();
+    return dd.down() >= OBVIOUS_PASS_MIN_DOWN && dd.yardsToGo() >= OBVIOUS_PASS_MIN_YARDS_TO_GO;
   }
 
   private static Side other(Side side) {

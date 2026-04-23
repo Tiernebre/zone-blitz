@@ -2,6 +2,7 @@ package app.zoneblitz.gamesimulator.band;
 
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public final class DefaultBandSampler implements BandSampler {
 
@@ -16,6 +17,12 @@ public final class DefaultBandSampler implements BandSampler {
 
   @Override
   public <T> T sampleRate(RateBand<T> band, double matchupShift, RandomSource rng) {
+    return sampleRate(band, matchupShift, Map.of(), rng);
+  }
+
+  @Override
+  public <T> T sampleRate(
+      RateBand<T> band, double matchupShift, Map<T, Double> logitOffsets, RandomSource rng) {
     var shift = saturate(matchupShift);
     var shifted = new LinkedHashMap<T, Double>(band.baseProbabilities().size());
     var total = 0.0;
@@ -23,7 +30,8 @@ public final class DefaultBandSampler implements BandSampler {
       var outcome = entry.getKey();
       var pBase = clamp(entry.getValue(), EPSILON, 1.0 - EPSILON);
       var beta = band.matchupCoefficients().getOrDefault(outcome, 0.0);
-      var shiftedLogit = logit(pBase) + beta * shift;
+      var offset = logitOffsets.getOrDefault(outcome, 0.0);
+      var shiftedLogit = logit(pBase) + beta * shift + offset;
       var pShifted = sigmoid(shiftedLogit);
       shifted.put(outcome, pShifted);
       total += pShifted;

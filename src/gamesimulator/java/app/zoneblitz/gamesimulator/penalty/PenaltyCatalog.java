@@ -30,28 +30,45 @@ final class PenaltyCatalog {
    * @param yards observed mean accepted yardage (not the rulebook nominal — half-distance and
    *     spot-foul enforcement skew the empirical mean)
    * @param offenseProb probability the foul is called against the offense (remainder is defense)
+   * @param obviousPassMultiplier multiplicative scalar applied to the base rate on obvious-pass
+   *     downs (3rd/4th and 7+). {@code 1.0} = no situational dependence. Pass-pro and coverage
+   *     fouls (holding, PI, illegal contact, RTP) spike in these situations in real pbp; pre-snap
+   *     fouls rise more modestly due to noise and snap-count tension.
    */
-  record Spec(PenaltyType type, Bucket bucket, double rate, int yards, double offenseProb) {}
+  record Spec(
+      PenaltyType type,
+      Bucket bucket,
+      double rate,
+      int yards,
+      double offenseProb,
+      double obviousPassMultiplier) {
+    Spec(PenaltyType type, Bucket bucket, double rate, int yards, double offenseProb) {
+      this(type, bucket, rate, yards, offenseProb, 1.0);
+    }
+  }
 
   private static final List<Spec> SPECS =
       List.of(
-          new Spec(PenaltyType.HOLDING_OFFENSE, Bucket.DURING, 0.01607, 10, 0.89),
-          new Spec(PenaltyType.FALSE_START, Bucket.PRE_SNAP, 0.01601, 5, 1.0),
-          new Spec(PenaltyType.PASS_INTERFERENCE_DEFENSE, Bucket.DURING, 0.00767, 16, 0.0),
-          new Spec(PenaltyType.HOLDING_DEFENSE, Bucket.DURING, 0.00482, 5, 0.0),
+          // Pass-pro and coverage fouls — dominant signal on obvious-pass downs.
+          new Spec(PenaltyType.HOLDING_OFFENSE, Bucket.DURING, 0.01607, 10, 0.89, 1.7),
+          new Spec(PenaltyType.PASS_INTERFERENCE_DEFENSE, Bucket.DURING, 0.00767, 16, 0.0, 1.5),
+          new Spec(PenaltyType.HOLDING_DEFENSE, Bucket.DURING, 0.00482, 5, 0.0, 1.4),
+          new Spec(PenaltyType.ILLEGAL_CONTACT, Bucket.DURING, 0.00161, 5, 0.0, 1.6),
+          new Spec(PenaltyType.ILLEGAL_USE_OF_HANDS, Bucket.DURING, 0.00165, 6, 0.25, 1.3),
+          new Spec(PenaltyType.PASS_INTERFERENCE_OFFENSE, Bucket.DURING, 0.00186, 10, 1.0, 1.4),
+          new Spec(PenaltyType.ROUGHING_THE_PASSER, Bucket.DURING, 0.00301, 13, 0.0, 1.4),
+          // Pre-snap — noise and snap-count tension lift false start and formation issues.
+          new Spec(PenaltyType.FALSE_START, Bucket.PRE_SNAP, 0.01601, 5, 1.0, 1.3),
+          new Spec(PenaltyType.ILLEGAL_FORMATION, Bucket.PRE_SNAP, 0.00188, 5, 0.82, 1.2),
+          new Spec(PenaltyType.DELAY_OF_GAME, Bucket.PRE_SNAP, 0.00416, 5, 1.0, 1.1),
+          new Spec(PenaltyType.OFFSIDE, Bucket.PRE_SNAP, 0.00421, 5, 0.05, 1.2),
+          new Spec(PenaltyType.NEUTRAL_ZONE_INFRACTION, Bucket.PRE_SNAP, 0.00290, 5, 0.0, 1.2),
+          new Spec(PenaltyType.ENCROACHMENT, Bucket.PRE_SNAP, 0.00093, 5, 0.0, 1.2),
+          // Situation-neutral or play-type-driven — hold at 1.0.
           new Spec(PenaltyType.UNNECESSARY_ROUGHNESS, Bucket.DURING, 0.00442, 13, 0.21),
-          new Spec(PenaltyType.DELAY_OF_GAME, Bucket.PRE_SNAP, 0.00416, 5, 1.0),
-          new Spec(PenaltyType.OFFSIDE, Bucket.PRE_SNAP, 0.00421, 5, 0.05),
-          new Spec(PenaltyType.ROUGHING_THE_PASSER, Bucket.DURING, 0.00301, 13, 0.0),
-          new Spec(PenaltyType.NEUTRAL_ZONE_INFRACTION, Bucket.PRE_SNAP, 0.00290, 5, 0.0),
           new Spec(PenaltyType.FACE_MASK, Bucket.DURING, 0.00207, 14, 0.23),
-          new Spec(PenaltyType.ILLEGAL_FORMATION, Bucket.PRE_SNAP, 0.00188, 5, 0.82),
-          new Spec(PenaltyType.PASS_INTERFERENCE_OFFENSE, Bucket.DURING, 0.00186, 10, 1.0),
           new Spec(PenaltyType.ILLEGAL_BLOCK_IN_THE_BACK, Bucket.DURING, 0.00170, 9, 0.57),
-          new Spec(PenaltyType.ILLEGAL_USE_OF_HANDS, Bucket.DURING, 0.00165, 6, 0.25),
-          new Spec(PenaltyType.ILLEGAL_CONTACT, Bucket.DURING, 0.00161, 5, 0.0),
           new Spec(PenaltyType.TWELVE_MEN_ON_FIELD, Bucket.PRE_SNAP, 0.00133, 5, 0.22),
-          new Spec(PenaltyType.ENCROACHMENT, Bucket.PRE_SNAP, 0.00093, 5, 0.0),
           new Spec(PenaltyType.ILLEGAL_SHIFT, Bucket.PRE_SNAP, 0.00094, 5, 1.0),
           new Spec(PenaltyType.UNSPORTSMANLIKE_CONDUCT, Bucket.POST_PLAY, 0.00079, 15, 0.56),
           new Spec(PenaltyType.TAUNTING, Bucket.POST_PLAY, 0.00057, 15, 0.54),

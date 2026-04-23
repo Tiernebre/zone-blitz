@@ -73,6 +73,84 @@ class MatchupPassResolverCalibrationTests {
   }
 
   @Test
+  void resolve_thirdAndLong_raisesSacksAndInterceptionsOverBaseline() {
+    var resolver = MatchupPassResolver.load(repo, sampler);
+    var baseline = sampleCountsAt(resolver, 77L, GameState.initial());
+    var obviousPass =
+        sampleCountsAt(
+            resolver, 77L, app.zoneblitz.gamesimulator.TestGameStates.neutral(3, 10, 25));
+
+    assertThat(obviousPass.get(PassOutcomeKind.SACK))
+        .as("3rd-and-long lifts SACK probability (DownDistancePassShift +1.0 logit)")
+        .isGreaterThan((int) (baseline.get(PassOutcomeKind.SACK) * 1.4));
+    assertThat(obviousPass.get(PassOutcomeKind.INTERCEPTION))
+        .as("3rd-and-long lifts INTERCEPTION probability (+0.4 logit)")
+        .isGreaterThan(baseline.get(PassOutcomeKind.INTERCEPTION));
+    // Completions must remain the dominant outcome — the shift targets sacks/picks, not a uniform
+    // suppression of offense. A scalar negative shift would depress completions; offsets don't.
+    assertThat(obviousPass.get(PassOutcomeKind.COMPLETE))
+        .as("offsets on SACK/INT must not collapse completion share to a blowout")
+        .isGreaterThan(TRIALS / 2);
+  }
+
+  private EnumMap<PassOutcomeKind, Integer> sampleCountsAt(
+      MatchupPassResolver resolver, long seed, GameState fixedState) {
+    var rng = new SplittableRandomSource(seed);
+    var counts = new EnumMap<PassOutcomeKind, Integer>(PassOutcomeKind.class);
+    for (var kind : PassOutcomeKind.values()) {
+      counts.put(kind, 0);
+    }
+    for (var i = 0; i < TRIALS; i++) {
+      counts.merge(
+          classify(resolver.resolve(PASS_CALL, fixedState, offense, defense, rng)),
+          1,
+          Integer::sum);
+    }
+    return counts;
+  }
+
+  @Test
+  void resolve_positiveShift_fattensExplosiveCompletionTail() {
+    // Force every sample to COMPLETE so we isolate the completion-yards distribution.
+    // With explosiveGamma > 0 applied in load(), a positive matchup shift must push the sampled
+    // yardage toward higher percentiles — fattening the 20+ yard explosive tail. A shift of 0
+    // reproduces the ladder exactly; the calibration mean assertion pins that separately.
+    var completionYards =
+        repo.loadDistribution("passing-plays.json", "bands.yardage.completion_yards");
+    // Mirror the load() gamma so this test exercises the production configuration.
+    var boostedCompletionYards =
+        new app.zoneblitz.gamesimulator.band.DistributionalBand(
+            completionYards.min(), completionYards.max(), completionYards.percentileLadder(), 0.04);
+    var resolver =
+        new MatchupPassResolver(
+            sampler,
+            new PositionBasedPassRoleAssigner(),
+            (ctx, rng) -> 2.0,
+            BandCoverageShellSampler.load(repo),
+            new ScoreBasedTargetSelector(),
+            PressureModel.ALWAYS_SACK,
+            forcedKind(PassOutcomeKind.COMPLETE),
+            boostedCompletionYards,
+            repo.loadDistribution("passing-plays.json", "bands.yardage.sack_yards"),
+            repo.loadDistribution("passing-plays.json", "bands.yardage.scramble_yards"),
+            repo.loadDistribution("passing-plays.json", "bands.yardage.interception_return_yards"));
+    var yards = sampleYards(resolver, 301L, MatchupPassResolverCalibrationTests::completionYards);
+
+    var explosiveCount = 0;
+    for (var y : yards) {
+      if (y >= 20) {
+        explosiveCount++;
+      }
+    }
+    var explosiveRate = (double) explosiveCount / yards.length;
+    // Baseline p90 is 22 yards ⇒ baseline 20+ yard rate ≈ 0.10. With gamma=0.04 and saturated
+    // shift ≈ 0.6, the uniform-draw input lifts by ~0.024, pushing the 20+ rate toward ~0.12.
+    assertThat(explosiveRate)
+        .as("positive matchup shift with explosive gamma must raise 20+ yard completion rate")
+        .isGreaterThan(0.115);
+  }
+
+  @Test
   void resolve_negativeShift_reducesCompletionsAndIncreasesSacks() {
     var zero = sampleCounts(loadedResolver(PassMatchupShift.ZERO), 22L);
     var suppressed = sampleCounts(loadedResolver((ctx, rng) -> -2.0), 22L);
