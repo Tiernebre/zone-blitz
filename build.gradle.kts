@@ -125,21 +125,14 @@ jooq {
     }
 }
 
-// Treat the Flyway migration directory as the sole input for both flywayMigrate and
-// generateJooq. Without this, both tasks are never UP-TO-DATE and every recompile (including
-// Spring DevTools dev reloads) re-hits Postgres and re-runs the jOOQ generator — slow at best,
-// hung at worst if the DB is unreachable or holding a lock. With declared inputs, Gradle skips
-// both when migrations haven't changed since the last successful run.
+// Declare the Flyway migration directory as an input for generateJooq so Gradle skips
+// jOOQ code generation (and its DB hit) when migrations haven't changed and the generated
+// sources are still on disk. flywayMigrate is left uncached: it's a cheap schema-history
+// query when the DB is already migrated, and caching it as UP-TO-DATE silently breaks
+// generateJooq whenever the Postgres volume is recreated under a stable migration set
+// (fresh container → empty schema → jOOQ emits nothing → compileJava can't find Tables).
 val flywayMigrations =
     fileTree("src/main/resources/db/migration") { include("**/*.sql") }
-
-tasks.named("flywayMigrate") {
-    inputs
-        .files(flywayMigrations)
-        .withPropertyName("flywayMigrations")
-        .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.upToDateWhen { true }
-}
 
 tasks.named("generateJooq") {
     dependsOn("flywayMigrate")
