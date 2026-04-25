@@ -7,6 +7,7 @@ import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.roster.Coach;
 import java.util.Optional;
 
 /**
@@ -23,16 +24,24 @@ public interface PenaltyModel {
   /**
    * Draw a dead-ball pre-snap foul. Called before the offensive resolver runs. If present, the snap
    * does not execute: the penalty is enforced, the down is replayed, and a small amount of clock
-   * ticks.
+   * ticks. Offensive and defensive coach {@link Coach#quality()} {@code preparation} scales rates
+   * for the matching side — pre-snap fouls are the canonical preparation signal.
    *
    * @param state pre-snap game state (spot, down/distance, clock, possession)
    * @param offense offensive personnel that would have taken the snap
    * @param defense defensive personnel that would have taken the snap
+   * @param offenseCoach coach of the side on offense
+   * @param defenseCoach coach of the side on defense
    * @param rng random source scoped to this snap
    * @return a draw, or empty if no foul fires this snap
    */
   Optional<PenaltyDraw.PreSnap> preSnap(
-      GameState state, OffensivePersonnel offense, DefensivePersonnel defense, RandomSource rng);
+      GameState state,
+      OffensivePersonnel offense,
+      DefensivePersonnel defense,
+      Coach offenseCoach,
+      Coach defenseCoach,
+      RandomSource rng);
 
   /**
    * Draw a live-ball foul committed during the snap. The caller retains the resolved {@link

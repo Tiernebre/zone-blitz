@@ -5,12 +5,13 @@ import app.zoneblitz.gamesimulator.roster.Coach;
 import java.util.Objects;
 
 /**
- * Baseline 4th-down policy driven by field position, distance, coach aggression, and score/time
- * context. Designed to land on a league-average ~15-20% go-for-it rate when coach aggression is 50
- * (neutral), skewing higher as aggression rises, and swinging further toward GO late in the game
- * when the offense trails.
+ * 4th-down policy that blends a tendency-driven go rate (field position, distance, coach
+ * aggression) with an EV-optimal reference from a {@link FourthDownEvTable}, weighted by the
+ * coach's {@link app.zoneblitz.gamesimulator.roster.CoachQuality#decisionQuality()}. A {@code
+ * decisionQuality = 0} coach calls it purely on style; a {@code decisionQuality = 100} coach
+ * follows the chart. Desperation (late 4th, trailing badly) adds on top of the blend.
  *
- * <p>Field-position buckets:
+ * <p>Tendency field-position buckets:
  *
  * <ul>
  *   <li>Opp red zone (yardLine &gt;= 80) and short (dist &lt;= 3): strong GO lean; fall back to FG
@@ -29,6 +30,16 @@ public final class AggressionFourthDownPolicy implements FourthDownPolicy {
   private static final int RED_ZONE_YARD_LINE = 80;
   private static final int MIDFIELD = 50;
 
+  private final FourthDownEvTable evTable;
+
+  public AggressionFourthDownPolicy() {
+    this(new StaticFourthDownEvTable());
+  }
+
+  AggressionFourthDownPolicy(FourthDownEvTable evTable) {
+    this.evTable = Objects.requireNonNull(evTable, "evTable");
+  }
+
   @Override
   public Decision decide(GameState state, Coach offenseCoach, RandomSource rng) {
     Objects.requireNonNull(state, "state");
@@ -42,11 +53,15 @@ public final class AggressionFourthDownPolicy implements FourthDownPolicy {
     var yardLine = state.spot().yardLine();
     var distance = state.downAndDistance().yardsToGo();
     var aggression = offenseCoach.offense().aggression();
+    var decisionQuality = offenseCoach.quality().decisionQuality();
     var desperation = desperationBoost(state, offenseCoach);
-    var goProb = baselineGoProbability(yardLine, distance);
-    goProb += (aggression - 50) / 100.0 * 0.3;
-    goProb += desperation;
-    goProb = Math.max(0.0, Math.min(1.0, goProb));
+
+    var tendencyProb = baselineGoProbability(yardLine, distance) + (aggression - 50) / 100.0 * 0.3;
+    var evProb = evTable.evOptimalGoProbability(yardLine, distance);
+    var qWeight = decisionQuality / 100.0;
+    var blended = (1.0 - qWeight) * tendencyProb + qWeight * evProb;
+
+    var goProb = Math.max(0.0, Math.min(1.0, blended + desperation));
 
     if (rng.nextDouble() < goProb) {
       return Decision.GO_FOR_IT;

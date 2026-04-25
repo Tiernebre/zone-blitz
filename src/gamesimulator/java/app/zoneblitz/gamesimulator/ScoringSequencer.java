@@ -24,6 +24,7 @@ final class ScoringSequencer {
 
   private static final long PAT_SPLIT_KEY = 0xFA77_7777L;
   private static final long TWO_POINT_SPLIT_KEY = 0xFB77_7777L;
+  private static final long TWO_POINT_DECISION_SPLIT_KEY = 0xFC77_7777L;
 
   private final ClockModel clockModel;
   private final KickoffResolver kickoffResolver;
@@ -52,7 +53,10 @@ final class ScoringSequencer {
       int[] seq,
       SplittableRandomSource root,
       long key) {
-    if (twoPointPolicy.goForTwo(state.score(), scoringSide, state.clock())) {
+    var scoringCoach = scoringSide == Side.HOME ? inputs.homeCoach() : inputs.awayCoach();
+    var decisionRng = root.split(key ^ TWO_POINT_DECISION_SPLIT_KEY);
+    if (twoPointPolicy.goForTwo(
+        state.score(), scoringSide, state.clock(), scoringCoach, decisionRng)) {
       return emitTwoPointAttempt(out, state, inputs, scoringSide, seq, root, key);
     }
     var sequence = seq[0]++;

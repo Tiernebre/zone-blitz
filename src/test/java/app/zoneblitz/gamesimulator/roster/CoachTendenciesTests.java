@@ -43,10 +43,11 @@ class CoachTendenciesTests {
   }
 
   @Test
-  void coachAverage_buildsNeutralCoachWithBothSides() {
+  void coachAverage_buildsNeutralCoachWithAllComponents() {
     var c = Coach.average(new CoachId(new java.util.UUID(1L, 2L)), "Neutral");
 
     assertThat(c.offense()).isEqualTo(CoachTendencies.average());
     assertThat(c.defense()).isEqualTo(DefensiveCoachTendencies.average());
+    assertThat(c.quality()).isEqualTo(CoachQuality.average());
   }
 }

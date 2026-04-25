@@ -223,7 +223,7 @@ class GameSimulatorTests {
             new DistanceCurvePuntResolver(),
             new NoPenaltyModel(),
             app.zoneblitz.gamesimulator.playcalling.DefensiveCallSelector.neutral(),
-            (score, side, clock) -> true,
+            (score, side, clock, scoringCoach, rng) -> true,
             new app.zoneblitz.gamesimulator.scoring.FlatRateTwoPointResolver(1.0, 0.0),
             HomeFieldModel.neutral(),
             TimeoutDecider.never());

@@ -10,6 +10,7 @@ import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.Player;
 import java.util.List;
 import java.util.Optional;
@@ -22,12 +23,19 @@ import java.util.Optional;
  *
  * <p>Per-player {@code discipline} shifts the rate linearly around the league-average baseline:
  * unit mean of 50 leaves rates unchanged, mean of 100 cuts them by {@link #MAX_SHIFT}, mean of 0
- * raises them by the same fraction.
+ * raises them by the same fraction. For pre-snap draws, each side's {@link Coach#quality()} {@code
+ * preparation} layers on top of player discipline as a second multiplier — preparation of 50 is
+ * neutral, 100 cuts pre-snap rates by {@link #MAX_PREP_SHIFT}, 0 raises them by the same fraction.
+ * Only pre-snap penalties are preparation-sensitive; live-ball and post-play fouls remain driven by
+ * player discipline alone.
  */
 public final class BandPenaltyModel implements PenaltyModel {
 
   /** Maximum linear rate shift at the discipline extremes (mean discipline 0 or 100). */
   private static final double MAX_SHIFT = 0.4;
+
+  /** Maximum linear rate shift at the coach-preparation extremes (preparation 0 or 100). */
+  private static final double MAX_PREP_SHIFT = 0.8;
 
   /**
    * Down + distance threshold past which a snap is treated as an "obvious pass" situation for
@@ -39,10 +47,24 @@ public final class BandPenaltyModel implements PenaltyModel {
 
   @Override
   public Optional<PenaltyDraw.PreSnap> preSnap(
-      GameState state, OffensivePersonnel offense, DefensivePersonnel defense, RandomSource rng) {
+      GameState state,
+      OffensivePersonnel offense,
+      DefensivePersonnel defense,
+      Coach offenseCoach,
+      Coach defenseCoach,
+      RandomSource rng) {
+    var offensePrep = preparationFactor(offenseCoach);
+    var defensePrep = preparationFactor(defenseCoach);
     var drawn =
         drawInBucket(
-            Bucket.PRE_SNAP, state.possession(), isObviousPass(state), offense, defense, rng);
+            Bucket.PRE_SNAP,
+            state.possession(),
+            isObviousPass(state),
+            offense,
+            defense,
+            offensePrep,
+            defensePrep,
+            rng);
     if (drawn.isEmpty()) {
       return Optional.empty();
     }
@@ -62,7 +84,14 @@ public final class BandPenaltyModel implements PenaltyModel {
       RandomSource rng) {
     var drawn =
         drawInBucket(
-            Bucket.DURING, state.possession(), isObviousPass(state), offense, defense, rng);
+            Bucket.DURING,
+            state.possession(),
+            isObviousPass(state),
+            offense,
+            defense,
+            1.0,
+            1.0,
+            rng);
     if (drawn.isEmpty()) {
       return Optional.empty();
     }
@@ -75,7 +104,7 @@ public final class BandPenaltyModel implements PenaltyModel {
   @Override
   public Optional<PenaltyDraw.PostPlay> postPlay(
       Side offenseSide, OffensivePersonnel offense, DefensivePersonnel defense, RandomSource rng) {
-    var drawn = drawInBucket(Bucket.POST_PLAY, offenseSide, false, offense, defense, rng);
+    var drawn = drawInBucket(Bucket.POST_PLAY, offenseSide, false, offense, defense, 1.0, 1.0, rng);
     if (drawn.isEmpty()) {
       return Optional.empty();
     }
@@ -91,9 +120,11 @@ public final class BandPenaltyModel implements PenaltyModel {
       boolean obviousPass,
       OffensivePersonnel offense,
       DefensivePersonnel defense,
+      double offensePrepFactor,
+      double defensePrepFactor,
       RandomSource rng) {
-    var offenseFactor = disciplineFactor(offense.players());
-    var defenseFactor = disciplineFactor(defense.players());
+    var offenseFactor = disciplineFactor(offense.players()) * offensePrepFactor;
+    var defenseFactor = disciplineFactor(defense.players()) * defensePrepFactor;
     var specs = PenaltyCatalog.inBucket(bucket);
 
     var adjusted = new double[specs.size()];
@@ -141,6 +172,11 @@ public final class BandPenaltyModel implements PenaltyModel {
     var mean = unit.stream().mapToInt(p -> p.tendencies().discipline()).average().orElse(50.0);
     var shift = (50.0 - mean) / 50.0 * MAX_SHIFT;
     return Math.max(1 - MAX_SHIFT, Math.min(1 + MAX_SHIFT, 1 + shift));
+  }
+
+  private static double preparationFactor(Coach coach) {
+    var shift = (50.0 - coach.quality().preparation()) / 50.0 * MAX_PREP_SHIFT;
+    return Math.max(1 - MAX_PREP_SHIFT, Math.min(1 + MAX_PREP_SHIFT, 1 + shift));
   }
 
   private static boolean isObviousPass(GameState state) {

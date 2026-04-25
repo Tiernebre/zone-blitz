@@ -10,6 +10,9 @@ import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.CoachId;
+import app.zoneblitz.gamesimulator.roster.CoachQuality;
+import app.zoneblitz.gamesimulator.roster.CoachTendencies;
+import app.zoneblitz.gamesimulator.roster.DefensiveCoachTendencies;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -77,6 +80,52 @@ class TendencyTimeoutDeciderTests {
     var result = decider.decide(state, HOME_COACH, AWAY_COACH, new ConstantRandomSource(0.999));
 
     assertThat(result).isEmpty();
+  }
+
+  @Test
+  void decide_highQualityTrailingDefense_firesWhereNeutralWouldNot() {
+    // Neutral clockAwareness=50 → fireRate = 0.45 * 1.0 = 0.45.
+    // Neutral quality=50 → multiplier 1.0; high quality=100 → multiplier 1.2; rate = 0.54.
+    // RNG 0.50 is above 0.45 (neutral doesn't fire) but below 0.54 (high quality fires).
+    var state = stateWith(4, 90, new Score(7, 14), Side.AWAY);
+    var highQualityHome = coachWithQuality(100);
+    var rng = new ConstantRandomSource(0.50);
+
+    assertThat(decider.decide(state, HOME_COACH, AWAY_COACH, rng)).isEmpty();
+    assertThat(decider.decide(state, highQualityHome, AWAY_COACH, rng)).contains(Side.HOME);
+  }
+
+  @Test
+  void decide_lowQualityTiedLateSecondQuarter_wastesTimeout() {
+    // Tied Q2 final 2 minutes: no legitimate window (not tied-late-Q4, no trailing side).
+    // Quality=0 → wrongWindowFireRate = 0.02. RNG 0.01 < 0.02 → wastes a timeout.
+    var state = stateWith(2, 90, new Score(14, 14), Side.AWAY);
+    var dumbHome = coachWithQuality(0);
+    var dumbAway = coachWithQuality(0);
+
+    var result = decider.decide(state, dumbHome, dumbAway, new ConstantRandomSource(0.01));
+
+    // Defense-side is consulted first in the wrong-window branch.
+    assertThat(result).contains(Side.HOME);
+  }
+
+  @Test
+  void decide_neutralQualityTiedLateSecondQuarter_doesNotWasteTimeout() {
+    // Same wrong-window situation but neutral quality=50 → wrongWindowFireRate = 0.
+    var state = stateWith(2, 90, new Score(14, 14), Side.AWAY);
+
+    var result = decider.decide(state, HOME_COACH, AWAY_COACH, new ConstantRandomSource(0.001));
+
+    assertThat(result).isEmpty();
+  }
+
+  private static Coach coachWithQuality(int decisionQuality) {
+    return new Coach(
+        new CoachId(new UUID(13L, decisionQuality)),
+        "Q-" + decisionQuality,
+        CoachTendencies.average(),
+        DefensiveCoachTendencies.average(),
+        new CoachQuality(decisionQuality, 50));
   }
 
   private static GameState stateWith(int quarter, int seconds, Score score, Side possession) {

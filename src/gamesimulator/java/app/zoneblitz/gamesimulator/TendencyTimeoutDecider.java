@@ -20,11 +20,20 @@ import java.util.Optional;
  * A tied-game final two minutes of Q4 also triggers defense-side usage (two-minute-drill prep).
  * Per-snap fire probability targets roughly league-average 5-7 combined timeouts per game at the
  * neutral (50) clock-awareness setting.
+ *
+ * <p>Coach {@link app.zoneblitz.gamesimulator.roster.CoachQuality#decisionQuality()} layers on top
+ * of clockAwareness: in a legitimate clock-management window it scales the fire rate by {@code 1 ±
+ * 0.2} around neutral (so a quality-100 coach is 20% more reliable than a neutral coach, a
+ * quality-0 coach 20% less). Outside any legitimate window (tied late-Q2, tied OT, etc.) a
+ * low-quality coach has a small chance of wasting a timeout — up to 2% per-snap at quality=0, zero
+ * at quality≥50.
  */
 public final class TendencyTimeoutDecider implements TimeoutDecider {
 
   private static final int LATE_HALF_SECONDS = 120;
   private static final double BASE_FIRE_RATE = 0.45;
+  private static final double CORRECT_WINDOW_MAX_SHIFT = 0.2;
+  private static final double WRONG_WINDOW_MAX_RATE = 0.02;
 
   @Override
   public Optional<Side> decide(
@@ -45,17 +54,38 @@ public final class TendencyTimeoutDecider implements TimeoutDecider {
     // Defense-side first: losing defense needs the clock more than a losing offense does, since
     // the offense already owns the ball. This mirrors real NFL late-game timeout ordering.
     if (defenseTrailing && state.timeoutsFor(defense) > 0) {
-      if (roll(rng, fireRate(defenseCoach.offense().clockAwareness()))) {
+      var rate =
+          fireRate(defenseCoach.offense().clockAwareness())
+              * correctWindowMultiplier(defenseCoach.quality().decisionQuality());
+      if (roll(rng, rate)) {
         return Optional.of(defense);
       }
     }
     if (tiedLateFourth && state.timeoutsFor(defense) > 0) {
-      if (roll(rng, fireRate(defenseCoach.offense().clockAwareness()) * 0.5)) {
+      var rate =
+          fireRate(defenseCoach.offense().clockAwareness())
+              * 0.5
+              * correctWindowMultiplier(defenseCoach.quality().decisionQuality());
+      if (roll(rng, rate)) {
         return Optional.of(defense);
       }
     }
     if (offenseTrailing && state.timeoutsFor(offense) > 0) {
-      if (roll(rng, fireRate(offenseCoach.offense().clockAwareness()) * 0.6)) {
+      var rate =
+          fireRate(offenseCoach.offense().clockAwareness())
+              * 0.6
+              * correctWindowMultiplier(offenseCoach.quality().decisionQuality());
+      if (roll(rng, rate)) {
+        return Optional.of(offense);
+      }
+    }
+    if (!defenseTrailing && !offenseTrailing && !tiedLateFourth) {
+      if (state.timeoutsFor(defense) > 0
+          && roll(rng, wrongWindowFireRate(defenseCoach.quality().decisionQuality()))) {
+        return Optional.of(defense);
+      }
+      if (state.timeoutsFor(offense) > 0
+          && roll(rng, wrongWindowFireRate(offenseCoach.quality().decisionQuality()))) {
         return Optional.of(offense);
       }
     }
@@ -80,6 +110,15 @@ public final class TendencyTimeoutDecider implements TimeoutDecider {
   private static double fireRate(int clockAwareness) {
     var factor = 0.5 + (clockAwareness / 100.0);
     return BASE_FIRE_RATE * factor;
+  }
+
+  private static double correctWindowMultiplier(int decisionQuality) {
+    return 1.0 + (decisionQuality - 50) / 50.0 * CORRECT_WINDOW_MAX_SHIFT;
+  }
+
+  private static double wrongWindowFireRate(int decisionQuality) {
+    var shortfall = Math.max(0, 50 - decisionQuality);
+    return shortfall / 50.0 * WRONG_WINDOW_MAX_RATE;
   }
 
   private static boolean roll(RandomSource rng, double probability) {

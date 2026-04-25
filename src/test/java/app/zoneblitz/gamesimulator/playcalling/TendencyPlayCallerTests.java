@@ -8,6 +8,7 @@ import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.CoachId;
+import app.zoneblitz.gamesimulator.roster.CoachQuality;
 import app.zoneblitz.gamesimulator.roster.CoachTendencies;
 import app.zoneblitz.gamesimulator.roster.DefensiveCoachTendencies;
 import java.util.UUID;
@@ -70,7 +71,8 @@ class TendencyPlayCallerTests {
         new CoachId(new UUID(7L, 7L)),
         "Neutral",
         CoachTendencies.average(),
-        DefensiveCoachTendencies.average());
+        DefensiveCoachTendencies.average(),
+        CoachQuality.average());
   }
 
   private static Coach withPassHeaviness(int value) {
@@ -79,7 +81,8 @@ class TendencyPlayCallerTests {
         new CoachId(new UUID(7L, value)),
         "Test-" + value,
         offense,
-        DefensiveCoachTendencies.average());
+        DefensiveCoachTendencies.average(),
+        CoachQuality.average());
   }
 
   private static GameState state(int down, int dist, int yardLine, int quarter, int seconds) {

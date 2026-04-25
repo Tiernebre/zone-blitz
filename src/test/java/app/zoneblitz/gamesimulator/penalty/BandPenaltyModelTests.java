@@ -10,6 +10,12 @@ import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
+import app.zoneblitz.gamesimulator.roster.Coach;
+import app.zoneblitz.gamesimulator.roster.CoachId;
+import app.zoneblitz.gamesimulator.roster.CoachQuality;
+import app.zoneblitz.gamesimulator.roster.CoachTendencies;
+import app.zoneblitz.gamesimulator.roster.DefensiveCoachTendencies;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -25,13 +31,17 @@ class BandPenaltyModelTests {
   private final GameState state = GameState.initial();
   private final OffensivePersonnel offense = TestPersonnel.baselineOffense();
   private final DefensivePersonnel defense = TestPersonnel.baselineDefense();
+  private final Coach neutralOffCoach = coachWithPreparation(50, 0xA);
+  private final Coach neutralDefCoach = coachWithPreparation(50, 0xB);
 
   @Test
   void preSnap_aggregateRate_matchesCatalogWithinTolerance() {
     var root = new SplittableRandomSource(0xC0FFEEL);
     var hits = 0;
     for (var i = 0; i < DRAWS; i++) {
-      if (model.preSnap(state, offense, defense, root.split(i)).isPresent()) {
+      if (model
+          .preSnap(state, offense, defense, neutralOffCoach, neutralDefCoach, root.split(i))
+          .isPresent()) {
         hits++;
       }
     }
@@ -93,14 +103,38 @@ class BandPenaltyModelTests {
   }
 
   private double drainPreSnap(long seed, GameState s) {
+    return drainPreSnap(seed, s, neutralOffCoach, neutralDefCoach);
+  }
+
+  private double drainPreSnap(long seed, GameState s, Coach offCoach, Coach defCoach) {
     var root = new SplittableRandomSource(seed);
     var hits = 0;
     for (var i = 0; i < DRAWS; i++) {
-      if (model.preSnap(s, offense, defense, root.split(i)).isPresent()) {
+      if (model.preSnap(s, offense, defense, offCoach, defCoach, root.split(i)).isPresent()) {
         hits++;
       }
     }
     return (double) hits / DRAWS;
+  }
+
+  @Test
+  void preSnap_flawlessOffenseCoach_cutsAggregateRateBelowBaseline() {
+    var baseline = drainPreSnap(0xC0FFEEL, state);
+    var flawless = coachWithPreparation(100, 0xC);
+    var withFlawlessOffense = drainPreSnap(0xC0FFEEL, state, flawless, neutralDefCoach);
+
+    // MAX_PREP_SHIFT=0.8 on the offense slice of pre-snap rates pulls the aggregate meaningfully
+    // below the neutral baseline.
+    assertThat(withFlawlessOffense).isLessThan(baseline - 0.005);
+  }
+
+  @Test
+  void preSnap_unpreparedOffenseCoach_raisesAggregateRateAboveBaseline() {
+    var baseline = drainPreSnap(0xC0FFEEL, state);
+    var unprepared = coachWithPreparation(0, 0xD);
+    var withUnpreparedOffense = drainPreSnap(0xC0FFEEL, state, unprepared, neutralDefCoach);
+
+    assertThat(withUnpreparedOffense).isGreaterThan(baseline + 0.005);
   }
 
   @Test
@@ -115,5 +149,15 @@ class BandPenaltyModelTests {
     // Catalog post-play total ≈ 0.00136/play — rare, so wider relative tolerance.
     var rate = (double) hits / DRAWS;
     assertThat(rate).isBetween(0.0008, 0.0025);
+  }
+
+  private static Coach coachWithPreparation(int preparation, long idBits) {
+    var quality = new CoachQuality(50, preparation);
+    return new Coach(
+        new CoachId(new UUID(12L, idBits)),
+        "Prep-" + preparation,
+        CoachTendencies.average(),
+        DefensiveCoachTendencies.average(),
+        quality);
   }
 }

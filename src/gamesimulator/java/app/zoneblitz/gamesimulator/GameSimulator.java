@@ -364,7 +364,13 @@ final class GameSimulator implements SimulateGame {
     }
 
     var preSnapPenalty =
-        penaltyModel.preSnap(state, offPersonnel, defPersonnel, snapRng.split(PENALTY_PRE_KEY));
+        penaltyModel.preSnap(
+            state,
+            offPersonnel,
+            defPersonnel,
+            offenseCoach,
+            defenseCoach,
+            snapRng.split(PENALTY_PRE_KEY));
     if (preSnapPenalty.isPresent()) {
       return PenaltyEmitter.emitPreSnap(
           out, state, preSnapPenalty.get(), seq, inputs.gameId(), offenseSide);
