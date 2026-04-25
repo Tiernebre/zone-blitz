@@ -1,0 +1,29 @@
+{
+  "position": "K",
+  "_comment": "Single component — kickers vary on power-vs-accuracy but it's continuous, not bimodal. Lots at floor (irrelevant for kickers).",
+  "components": [
+    {
+      "weight": 1.0,
+      "name": "kicker",
+      "means": {
+        "speed": 35, "acceleration": 40, "agility": 45, "strength": 50, "power": 60,
+        "stamina": 60, "explosiveness": 55,
+        "kickPower": 70, "kickAccuracy": 75,
+        "composure": 75, "clutch": 78, "consistency": 75, "discipline": 70,
+        "toughness": 50, "motor": 60, "footballIq": 60, "processing": 60
+      },
+      "stddevs": {
+        "speed": 7, "acceleration": 7, "agility": 8, "strength": 9, "power": 9,
+        "stamina": 9, "explosiveness": 8,
+        "kickPower": 10, "kickAccuracy": 10,
+        "composure": 10, "clutch": 10, "consistency": 10, "discipline": 9,
+        "toughness": 9, "motor": 9, "footballIq": 9, "processing": 9
+      },
+      "correlations": [
+        ["kickPower", "power", 0.5],
+        ["composure", "clutch", 0.6],
+        ["kickAccuracy", "consistency", 0.4]
+      ]
+    }
+  ]
+}

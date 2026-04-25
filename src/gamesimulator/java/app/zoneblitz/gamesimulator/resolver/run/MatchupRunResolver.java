@@ -12,10 +12,13 @@ import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.resolver.BaselineFumbleRecoveryModel;
 import app.zoneblitz.gamesimulator.resolver.FumbleRecoveryModel;
-import app.zoneblitz.gamesimulator.resolver.PositionBasedRunRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.resolver.RunRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.SchemeAwareRunRoleAssigner;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.role.SchemeFitRoleAssigner;
+import app.zoneblitz.gamesimulator.scheme.BuiltinSchemeCatalog;
+import app.zoneblitz.gamesimulator.scheme.OffensiveSchemeId;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
@@ -30,10 +33,10 @@ import java.util.Optional;
  * STUFF} instead of merely sliding one aggregate ladder.
  *
  * <p>With {@link RunMatchupShift#ZERO} (or average-attribute rosters under {@link
- * ClampedRunMatchupShift}) the resolver reproduces the shipped outcome-mix rates and per-bucket
- * ladder percentiles — baseline parity is a structural invariant of the resolver, not a wiring
- * accident. Carrier identity is decided pre-snap by the {@link RunRoleAssigner}; tackler identity
- * is deferred until run-defender assignment separates first-level from second-level defenders.
+ * RoleMatchupRunShift}) the resolver reproduces the shipped outcome-mix rates and per-bucket ladder
+ * percentiles — baseline parity is a structural invariant of the resolver, not a wiring accident.
+ * Carrier identity is decided pre-snap by the {@link RunRoleAssigner}; tackler identity is deferred
+ * until run-defender assignment separates first-level from second-level defenders.
  *
  * <p>{@link RunOutcomeKind} is an engine-internal sampling classifier. Consumers see only {@link
  * RunOutcome.Run} with its {@code yards} field — a stuff reads as a {@code -2}-yard run, a
@@ -133,15 +136,16 @@ public final class MatchupRunResolver implements RunResolver {
     var boxSampler = BandBoxCountSampler.load(repo);
     var composite =
         new CompositeRunMatchupShift(
-            new ClampedRunMatchupShift(), new BoxCountRunShift(boxSampler), new GoalLineRunShift());
+            new RoleMatchupRunShift(), new BoxCountRunShift(boxSampler), new GoalLineRunShift());
 
     var fumbleRecoveryModel =
         new BaselineFumbleRecoveryModel(
             BaselineFumbleRecoveryModel.DEFAULT_DEFENSE_RECOVERY_RATE, sampler, fumbleReturnYards);
 
+    var defaultOffenseScheme = new BuiltinSchemeCatalog().offense(OffensiveSchemeId.WEST_COAST);
     return new MatchupRunResolver(
         sampler,
-        new PositionBasedRunRoleAssigner(),
+        new SchemeAwareRunRoleAssigner(new SchemeFitRoleAssigner(defaultOffenseScheme)),
         composite,
         outcomeMix,
         yardsByKind,

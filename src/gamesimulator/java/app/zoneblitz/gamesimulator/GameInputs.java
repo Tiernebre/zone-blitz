@@ -8,6 +8,10 @@ import app.zoneblitz.gamesimulator.environment.Weather;
 import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.Team;
+import app.zoneblitz.gamesimulator.scheme.BuiltinSchemeCatalog;
+import app.zoneblitz.gamesimulator.scheme.DefaultSchemeResolver;
+import app.zoneblitz.gamesimulator.scheme.ResolvedScheme;
+import app.zoneblitz.gamesimulator.scheme.SchemeResolver;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -27,9 +31,14 @@ public record GameInputs(
     Team away,
     Coach homeCoach,
     Coach awayCoach,
+    ResolvedScheme homeScheme,
+    ResolvedScheme awayScheme,
     PreGameContext preGameContext,
     GameType gameType,
     Optional<Long> seed) {
+
+  private static final SchemeResolver DEFAULT_SCHEME_RESOLVER =
+      new DefaultSchemeResolver(new BuiltinSchemeCatalog());
 
   public GameInputs {
     Objects.requireNonNull(gameId, "gameId");
@@ -37,13 +46,43 @@ public record GameInputs(
     Objects.requireNonNull(away, "away");
     Objects.requireNonNull(homeCoach, "homeCoach");
     Objects.requireNonNull(awayCoach, "awayCoach");
+    Objects.requireNonNull(homeScheme, "homeScheme");
+    Objects.requireNonNull(awayScheme, "awayScheme");
     Objects.requireNonNull(preGameContext, "preGameContext");
     Objects.requireNonNull(gameType, "gameType");
     Objects.requireNonNull(seed, "seed");
   }
 
   /**
-   * Convenience constructor that defaults {@link #gameType()} to {@link GameType#REGULAR_SEASON}.
+   * Backward-compatible constructor that resolves schemes from the supplied coaches via the
+   * built-in {@link DefaultSchemeResolver}. New call sites should resolve schemes explicitly so the
+   * catalog and resolver stay swappable; this overload exists so legacy fixtures don't break.
+   */
+  public GameInputs(
+      GameId gameId,
+      Team home,
+      Team away,
+      Coach homeCoach,
+      Coach awayCoach,
+      PreGameContext preGameContext,
+      GameType gameType,
+      Optional<Long> seed) {
+    this(
+        gameId,
+        home,
+        away,
+        homeCoach,
+        awayCoach,
+        DEFAULT_SCHEME_RESOLVER.resolve(homeCoach, homeCoach, homeCoach),
+        DEFAULT_SCHEME_RESOLVER.resolve(awayCoach, awayCoach, awayCoach),
+        preGameContext,
+        gameType,
+        seed);
+  }
+
+  /**
+   * Convenience constructor that defaults {@link #gameType()} to {@link GameType#REGULAR_SEASON}
+   * and resolves schemes from coaches.
    */
   public GameInputs(
       GameId gameId,

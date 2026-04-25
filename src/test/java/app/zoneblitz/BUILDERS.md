@@ -16,6 +16,10 @@ build; import via `static <pkg>.<Record>Builder.a<Record>`.
 | `TeamProfile` | `TeamProfileBuilder.aTeamProfile()` | `app.zoneblitz.league.team` |
 | `OfferTerms` | `OfferTermsBuilder.anOfferTerms()` | `app.zoneblitz.league.hiring` |
 | `NewTeamStaffMember` | `NewTeamStaffMemberBuilder.aNewTeamStaffMember()` | `app.zoneblitz.league.staff` |
+| `Player` (+ shape presets) | `PlayerBuilder.aPlayer()` | `app.zoneblitz.gamesimulator.roster` |
+| `Physical` | `PhysicalBuilder.aPhysical()` | `app.zoneblitz.gamesimulator.roster` |
+| `Skill` | `SkillBuilder.aSkill()` | `app.zoneblitz.gamesimulator.roster` |
+| `Tendencies` | `TendenciesBuilder.aTendencies()` | `app.zoneblitz.gamesimulator.roster` |
 
 ## Examples
 
@@ -56,6 +60,27 @@ var member =
 // StaffContract — either the existing-row flavor or the insert-side NewStaffContract
 var contract = aStaffContract().withSeasons(1, 5).build();
 var insert = aStaffContract().withTeamId(teamId).buildNew();
+```
+
+## Player shape presets
+
+`PlayerBuilder` exposes shape presets (`asBoxSafety`, `asRangeSafety`, `asPocketPasser`,
+`asScrambler`, `asPressCorner`, `asSlot`, `asOutsideWr`, `asSpeedRusher`, `asPowerAnchor`,
+`asBellCowRb`) that paint multiple axes at once to resemble a familiar player archetype.
+
+**These are test-only conveniences.** The runtime has no `BoxSafety` archetype field on
+`Player` — production code always reads attributes, never labels. Presets just construct a
+plausible attribute *shape* for fixtures.
+
+```java
+// Box-shape S facing a Cover-3 deep look — should grade poorly on the deep zone.
+var s = aPlayer().asBoxSafety().withId(1L, 1L).build();
+
+// Pocket-passer QB — high processing, low scramble threat.
+var qb = aPlayer().asPocketPasser().build();
+
+// Override after preset — preset paints a base shape, then individual axes refine.
+var fastBoxS = aPlayer().asBoxSafety().withSpeed(85).build();
 ```
 
 ## Adding a new builder

@@ -1,0 +1,58 @@
+{
+  "position": "TE",
+  "_comment": "Two components — inline blocker vs. flex receiver. Inline TEs lean on run-block + blockShedding + power; flex TEs on route-running + speed.",
+  "components": [
+    {
+      "weight": 0.5,
+      "name": "inline",
+      "means": {
+        "speed": 60, "acceleration": 65, "agility": 55, "strength": 70, "power": 70,
+        "stamina": 70, "explosiveness": 60,
+        "runBlock": 70, "blockShedding": 50, "routeRunning": 55, "hands": 60,
+        "breakTackle": 55, "ballCarrierVision": 50,
+        "toughness": 75, "motor": 70, "discipline": 70, "consistency": 70,
+        "footballIq": 65, "processing": 65, "composure": 65, "clutch": 65
+      },
+      "stddevs": {
+        "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
+        "stamina": 8, "explosiveness": 6,
+        "runBlock": 9, "blockShedding": 9, "routeRunning": 9, "hands": 9,
+        "breakTackle": 9, "ballCarrierVision": 9,
+        "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+      },
+      "correlations": [
+        ["speed", "acceleration", 0.85],
+        ["strength", "power", 0.75],
+        ["runBlock", "blockShedding", 0.5]
+      ]
+    },
+    {
+      "weight": 0.5,
+      "name": "flex",
+      "means": {
+        "speed": 70, "acceleration": 72, "agility": 68, "strength": 60, "power": 60,
+        "stamina": 70, "explosiveness": 70, "bend": 65,
+        "runBlock": 40, "blockShedding": 35, "routeRunning": 70, "hands": 70,
+        "breakTackle": 55, "ballCarrierVision": 55,
+        "toughness": 65, "motor": 70, "discipline": 65, "consistency": 65,
+        "footballIq": 70, "processing": 65, "composure": 65, "clutch": 65
+      },
+      "stddevs": {
+        "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
+        "stamina": 8, "explosiveness": 6, "bend": 7,
+        "runBlock": 9, "blockShedding": 9, "routeRunning": 9, "hands": 9,
+        "breakTackle": 9, "ballCarrierVision": 9,
+        "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+      },
+      "correlations": [
+        ["speed", "acceleration", 0.85],
+        ["acceleration", "explosiveness", 0.7],
+        ["speed", "explosiveness", 0.6],
+        ["agility", "bend", 0.5],
+        ["routeRunning", "hands", 0.4]
+      ]
+    }
+  ]
+}

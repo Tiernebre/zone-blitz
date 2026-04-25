@@ -1,0 +1,56 @@
+{
+  "position": "DL",
+  "_comment": "Two components — speed-rusher (edge/3-tech bend) vs. power-anchor (nose/5-tech). The classic pass-rush archetype split; same role assigner can put either body anywhere on the line, which is the point.",
+  "components": [
+    {
+      "weight": 0.5,
+      "name": "speed-rusher",
+      "means": {
+        "speed": 75, "acceleration": 80, "agility": 70, "strength": 65, "power": 60,
+        "stamina": 70, "explosiveness": 78, "bend": 75,
+        "passRushMoves": 75, "blockShedding": 55, "tackling": 60, "runBlock": 15,
+        "toughness": 70, "motor": 75, "discipline": 65, "consistency": 65,
+        "footballIq": 65, "processing": 65, "composure": 65, "clutch": 65
+      },
+      "stddevs": {
+        "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
+        "stamina": 8, "explosiveness": 7, "bend": 8,
+        "passRushMoves": 10, "blockShedding": 9, "tackling": 9, "runBlock": 7,
+        "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+      },
+      "correlations": [
+        ["speed", "acceleration", 0.85],
+        ["acceleration", "explosiveness", 0.7],
+        ["speed", "explosiveness", 0.6],
+        ["agility", "bend", 0.55],
+        ["passRushMoves", "bend", 0.5],
+        ["strength", "power", 0.7]
+      ]
+    },
+    {
+      "weight": 0.5,
+      "name": "power-anchor",
+      "means": {
+        "speed": 55, "acceleration": 60, "agility": 50, "strength": 82, "power": 80,
+        "stamina": 75, "explosiveness": 65, "bend": 50,
+        "passRushMoves": 55, "blockShedding": 75, "tackling": 70, "runBlock": 15,
+        "toughness": 80, "motor": 75, "discipline": 70, "consistency": 70,
+        "footballIq": 65, "processing": 60, "composure": 65, "clutch": 65
+      },
+      "stddevs": {
+        "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
+        "stamina": 8, "explosiveness": 7, "bend": 7,
+        "passRushMoves": 9, "blockShedding": 9, "tackling": 9, "runBlock": 7,
+        "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+      },
+      "correlations": [
+        ["speed", "acceleration", 0.85],
+        ["strength", "power", 0.8],
+        ["strength", "blockShedding", 0.5],
+        ["power", "tackling", 0.4]
+      ]
+    }
+  ]
+}

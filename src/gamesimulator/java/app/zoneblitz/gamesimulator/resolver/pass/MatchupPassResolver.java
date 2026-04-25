@@ -15,9 +15,12 @@ import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.PassRoles;
-import app.zoneblitz.gamesimulator.resolver.PositionBasedPassRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.SchemeAwarePassRoleAssigner;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.role.SchemeFitRoleAssigner;
 import app.zoneblitz.gamesimulator.roster.Player;
+import app.zoneblitz.gamesimulator.scheme.BuiltinSchemeCatalog;
+import app.zoneblitz.gamesimulator.scheme.OffensiveSchemeId;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,10 +35,10 @@ import java.util.Optional;
  * {@code INTERCEPTION} instead of merely sliding one aggregate ladder.
  *
  * <p>With {@link PassMatchupShift#ZERO} (or average-attribute rosters under {@link
- * ClampedPassMatchupShift}'s {@code DROPBACK} profile) the resolver reproduces the shipped
- * outcome-mix rates — baseline parity is a structural invariant of the resolver, not a wiring
- * accident. Target identity is decided by the {@link TargetSelector}; interceptor identity falls
- * back to first-available-by-role within coverage and rush roles until per-defender modeling lands.
+ * RoleMatchupPassShift}'s {@code DROPBACK} profile) the resolver reproduces the shipped outcome-mix
+ * rates — baseline parity is a structural invariant of the resolver, not a wiring accident. Target
+ * identity is decided by the {@link TargetSelector}; interceptor identity falls back to
+ * first-available-by-role within coverage and rush roles until per-defender modeling lands.
  *
  * <p>{@link PassOutcomeKind} is an engine-internal sampling classifier. Consumers see only {@link
  * PassOutcome} variants — the classifier never escapes this package.
@@ -173,10 +176,11 @@ public final class MatchupPassResolver implements PassResolver {
         repo.loadDistribution(PASSING_PLAYS, "bands.yardage.interception_return_yards");
     var shellSampler = BandCoverageShellSampler.load(repo);
     var composite =
-        new CompositePassMatchupShift(new ClampedPassMatchupShift(), new CoverageShellPassShift());
+        new CompositePassMatchupShift(new RoleMatchupPassShift(), new CoverageShellPassShift());
+    var defaultOffenseScheme = new BuiltinSchemeCatalog().offense(OffensiveSchemeId.WEST_COAST);
     return new MatchupPassResolver(
         sampler,
-        new PositionBasedPassRoleAssigner(),
+        new SchemeAwarePassRoleAssigner(new SchemeFitRoleAssigner(defaultOffenseScheme)),
         composite,
         new DownDistancePassShift(),
         shellSampler,

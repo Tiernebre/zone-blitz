@@ -40,7 +40,7 @@ sourceSets {
         java.srcDir("src/gamesimulator/java")
         resources.srcDir("src/gamesimulator/resources")
         resources.srcDir("data")
-        resources.include("bands/**")
+        resources.include("bands/**", "attributes/**")
     }
 }
 

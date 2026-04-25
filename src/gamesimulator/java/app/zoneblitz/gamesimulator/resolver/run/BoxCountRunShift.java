@@ -13,7 +13,7 @@ import java.util.Objects;
  * RNG stream so the main outcome/yardage stream is undisturbed) and returns {@code (sampled −
  * expected) × shiftPerDefender}. With the calibrated BDB slope of −0.667 YPC per extra defender, a
  * default {@code shiftPerDefender} of {@code -0.25} translates a 3-defender heavy-box tilt into
- * roughly a one-talent-tier disadvantage — comparable magnitude to {@link ClampedRunMatchupShift}'s
+ * roughly a one-talent-tier disadvantage — comparable magnitude to {@link RoleMatchupRunShift}'s
  * output, which is the point of compositing them.
  */
 public final class BoxCountRunShift implements RunMatchupShift {

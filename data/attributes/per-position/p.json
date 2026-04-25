@@ -1,0 +1,29 @@
+{
+  "position": "P",
+  "_comment": "Single component — punters vary on power/hang-time/accuracy but again continuous, not bimodal.",
+  "components": [
+    {
+      "weight": 1.0,
+      "name": "punter",
+      "means": {
+        "speed": 35, "acceleration": 40, "agility": 45, "strength": 55, "power": 60,
+        "stamina": 60, "explosiveness": 55,
+        "puntPower": 75, "puntAccuracy": 70, "puntHangTime": 72,
+        "composure": 70, "clutch": 65, "consistency": 72, "discipline": 70,
+        "toughness": 55, "motor": 60, "footballIq": 60, "processing": 60
+      },
+      "stddevs": {
+        "speed": 7, "acceleration": 7, "agility": 8, "strength": 9, "power": 9,
+        "stamina": 9, "explosiveness": 8,
+        "puntPower": 10, "puntAccuracy": 10, "puntHangTime": 10,
+        "composure": 10, "clutch": 10, "consistency": 10, "discipline": 9,
+        "toughness": 9, "motor": 9, "footballIq": 9, "processing": 9
+      },
+      "correlations": [
+        ["puntPower", "power", 0.5],
+        ["puntAccuracy", "consistency", 0.4],
+        ["puntHangTime", "puntPower", 0.4]
+      ]
+    }
+  ]
+}

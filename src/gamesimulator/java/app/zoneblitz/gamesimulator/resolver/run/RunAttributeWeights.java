@@ -7,8 +7,8 @@ import java.util.Objects;
 import java.util.function.ToDoubleFunction;
 
 /**
- * Per-role attribute weighting used by {@link ClampedRunMatchupShift}. Captures both the physical
- * mix (weights over each {@link Physical} axis, summing to 100) and the skill aggregate (a 0–100
+ * Per-role attribute weighting used by {@link RoleMatchupRunShift}. Captures both the physical mix
+ * (weights over each {@link Physical} axis, summing to 100) and the skill aggregate (a 0–100
  * scoring function over {@link Skill}). Scores are centered to {@code [-1, +1]} so an
  * average-everywhere player sits at 0.
  *

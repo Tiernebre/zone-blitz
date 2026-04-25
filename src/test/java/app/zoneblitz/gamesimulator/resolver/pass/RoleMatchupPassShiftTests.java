@@ -20,9 +20,9 @@ import app.zoneblitz.gamesimulator.roster.Tendencies;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-class ClampedPassMatchupShiftTests {
+class RoleMatchupPassShiftTests {
 
-  private final ClampedPassMatchupShift shift = new ClampedPassMatchupShift();
+  private final RoleMatchupPassShift shift = new RoleMatchupPassShift();
   private final PassRoleAssigner assigner = new PositionBasedPassRoleAssigner();
 
   private double computeFor(PassRoles roles) {

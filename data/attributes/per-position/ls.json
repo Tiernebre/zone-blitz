@@ -1,0 +1,25 @@
+{
+  "position": "LS",
+  "_comment": "Long-snapper. The sim doesn't model snap quality today — every axis floors. Profile exists so generation never trips on a missing position.",
+  "components": [
+    {
+      "weight": 1.0,
+      "name": "long-snapper",
+      "means": {
+        "speed": 35, "acceleration": 40, "agility": 50, "strength": 60, "power": 60,
+        "stamina": 65, "explosiveness": 50,
+        "discipline": 75, "consistency": 78, "composure": 70,
+        "toughness": 60, "motor": 60, "footballIq": 55, "processing": 55, "clutch": 60
+      },
+      "stddevs": {
+        "speed": 7, "acceleration": 7, "agility": 8, "strength": 9, "power": 9,
+        "stamina": 9, "explosiveness": 8,
+        "discipline": 9, "consistency": 9, "composure": 9,
+        "toughness": 9, "motor": 9, "footballIq": 9, "processing": 9, "clutch": 10
+      },
+      "correlations": [
+        ["consistency", "discipline", 0.4]
+      ]
+    }
+  ]
+}

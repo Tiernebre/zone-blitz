@@ -6,7 +6,14 @@ import java.util.List;
 import java.util.function.ToDoubleFunction;
 
 /**
- * Concept-aware, role-based pass-matchup shift with physical-fit clamping.
+ * Concept-aware, role-keyed pass-matchup shift with physical-fit clamping. Phase-5 successor to
+ * {@code ClampedPassMatchupShift} — the math currently mirrors the legacy bucket aggregation
+ * (coverage leg + pass-rush leg, weighted per concept profile) so calibration parity is preserved.
+ *
+ * <p>Phase 7+ extends this class to add per-{@code RolePair} contributions sourced from each
+ * scheme's {@code RoleDemandTable}: when scheme demand data is populated, individual pair deltas
+ * sum into the shift on top of (or in place of) the bucket-level aggregate. Until then this is a
+ * structural rename — the class name signals direction.
  *
  * <p>Formula per leg (coverage-leg and pass-rush-leg):
  *
@@ -17,18 +24,12 @@ import java.util.function.ToDoubleFunction;
  *   delta        = clamp(off_skill(weights) − def_skill(weights), floor, ceiling)
  * </pre>
  *
- * <p>The result is {@code coverageLegWeight × coverageDelta − passRushLegWeight × passRushDelta}
- * (pass-rush is subtracted because a defensive win there is bad for the offense), where all weight
- * families come from the {@link PassConceptProfile} chosen for the snap's {@link
- * app.zoneblitz.gamesimulator.event.PassConcept}. {@code DROPBACK} uses {@code 1.0/1.0} so the
- * legacy {@code coverage − pass_rush} shape is preserved exactly — baseline parity with {@link
- * MatchupPassResolver.PassMatchupShift#ZERO} remains a structural invariant.
- *
- * <p>Physical gap creates the window; skill delta moves within it. This is the math that rules out
- * an OL covering a 4.3 WR via maxed coverage skill: the floor rises with the offense's physical
- * advantage, preventing any defensive skill pool from dragging the matchup back below it.
+ * <p>The result is {@code coverageLegWeight × coverageDelta − passRushLegWeight × passRushDelta}.
+ * Physical gap creates the window; skill delta moves within it. {@code DROPBACK} uses {@code
+ * 1.0/1.0} so the legacy {@code coverage − pass_rush} shape is preserved exactly — baseline parity
+ * with {@link MatchupPassResolver.PassMatchupShift#ZERO} remains a structural invariant.
  */
-public final class ClampedPassMatchupShift implements MatchupPassResolver.PassMatchupShift {
+public final class RoleMatchupPassShift implements MatchupPassResolver.PassMatchupShift {
 
   @Override
   public double compute(PassMatchupContext context, RandomSource rng) {

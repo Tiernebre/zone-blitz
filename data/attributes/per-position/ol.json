@@ -1,0 +1,31 @@
+{
+  "position": "OL",
+  "_comment": "Single component for now — OL has five distinct alignments (LT/LG/C/RG/RT) but they're roles, not generative archetypes; the same body can play multiple. Pass-protection vs. run-block split is correlated, not bimodal.",
+  "components": [
+    {
+      "weight": 1.0,
+      "name": "trench",
+      "means": {
+        "speed": 35, "acceleration": 45, "agility": 55, "strength": 78, "power": 78,
+        "stamina": 75, "explosiveness": 55, "bend": 55,
+        "passSet": 65, "runBlock": 65, "blockShedding": 35,
+        "toughness": 75, "motor": 70, "discipline": 70, "consistency": 70,
+        "footballIq": 70, "processing": 65, "composure": 70, "clutch": 65
+      },
+      "stddevs": {
+        "speed": 7, "acceleration": 7, "agility": 8, "strength": 8, "power": 8,
+        "stamina": 8, "explosiveness": 7, "bend": 7,
+        "passSet": 10, "runBlock": 10, "blockShedding": 7,
+        "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+      },
+      "correlations": [
+        ["speed", "acceleration", 0.7],
+        ["strength", "power", 0.75],
+        ["passSet", "runBlock", 0.5],
+        ["passSet", "agility", 0.4],
+        ["runBlock", "strength", 0.4]
+      ]
+    }
+  ]
+}

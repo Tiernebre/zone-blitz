@@ -7,7 +7,13 @@ import java.util.Optional;
 import java.util.function.ToDoubleFunction;
 
 /**
- * Concept-aware, role-based run-matchup shift with physical-fit clamping.
+ * Concept-aware, role-keyed run-matchup shift with physical-fit clamping. Phase-6 successor to
+ * {@code ClampedRunMatchupShift} — math currently mirrors the legacy bucket aggregation
+ * (blocking-leg + carrier-leg, weighted per concept profile) so calibration parity is preserved.
+ *
+ * <p>Phase 7+ extends this class to add per-{@code RolePair} contributions sourced from each
+ * scheme's {@code RoleDemandTable}. Until then this is a structural rename — the class name signals
+ * direction.
  *
  * <p>Formula per leg (blocking-leg and carrier-leg):
  *
@@ -18,17 +24,12 @@ import java.util.function.ToDoubleFunction;
  *   delta        = clamp(off_skill(weights) − def_skill(weights), floor, ceiling)
  * </pre>
  *
- * <p>The result is {@code blockingLegWeight × blockingDelta + carrierLegWeight × carrierDelta},
- * where all four weight families — per-leg scalars, offensive blocker/carrier attribute mixes, and
- * defensive attribute mix — come from the {@link RunConceptProfile} chosen for the snap's {@link
- * RunConcept}. {@code INSIDE_ZONE} reproduces the legacy shift exactly, so baseline parity with
- * {@link MatchupRunResolver.RunMatchupShift#ZERO} is a structural invariant.
- *
- * <p>Defenders still sit on both legs — that's intentional: one run-defender pool handles both
- * block-defeat and downhill tackling. Concepts reshape which defensive attributes are weighted
- * (edge speed for stretch plays, interior anchor for power/sneak).
+ * <p>The result is {@code blockingLegWeight × blockingDelta + carrierLegWeight × carrierDelta}.
+ * Defenders sit on both legs intentionally — one pool handles block-defeat and downhill tackling.
+ * {@code INSIDE_ZONE} reproduces the legacy shift exactly so baseline parity with {@link
+ * MatchupRunResolver.RunMatchupShift#ZERO} is a structural invariant.
  */
-public final class ClampedRunMatchupShift implements MatchupRunResolver.RunMatchupShift {
+public final class RoleMatchupRunShift implements MatchupRunResolver.RunMatchupShift {
 
   @Override
   public double compute(RunMatchupContext context, RandomSource rng) {

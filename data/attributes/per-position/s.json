@@ -1,0 +1,60 @@
+{
+  "position": "S",
+  "_comment": "Two components — box-shape (run support, blitz) vs. coverage-shape (deep range, half-field). The canonical box-vs-range bimodality is the headline use case for emergent archetype: same Position, opposite shapes.",
+  "components": [
+    {
+      "weight": 0.45,
+      "name": "box-shape",
+      "means": {
+        "speed": 72, "acceleration": 75, "agility": 65, "strength": 72, "power": 70,
+        "stamina": 70, "explosiveness": 70, "bend": 50,
+        "coverageTechnique": 50, "tackling": 78, "blockShedding": 70, "hands": 50,
+        "passRushMoves": 55,
+        "toughness": 78, "motor": 75, "discipline": 72, "consistency": 70,
+        "footballIq": 72, "processing": 70, "composure": 70, "clutch": 70
+      },
+      "stddevs": {
+        "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
+        "stamina": 8, "explosiveness": 7, "bend": 7,
+        "coverageTechnique": 9, "tackling": 9, "blockShedding": 9, "hands": 9,
+        "passRushMoves": 9,
+        "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+      },
+      "correlations": [
+        ["speed", "acceleration", 0.85],
+        ["strength", "power", 0.75],
+        ["tackling", "blockShedding", 0.55],
+        ["tackling", "strength", 0.4]
+      ]
+    },
+    {
+      "weight": 0.55,
+      "name": "coverage-shape",
+      "means": {
+        "speed": 80, "acceleration": 80, "agility": 75, "strength": 55, "power": 50,
+        "stamina": 70, "explosiveness": 75, "bend": 70,
+        "coverageTechnique": 75, "tackling": 58, "blockShedding": 45, "hands": 60,
+        "passRushMoves": 35,
+        "toughness": 65, "motor": 70, "discipline": 70, "consistency": 70,
+        "footballIq": 75, "processing": 75, "composure": 70, "clutch": 70
+      },
+      "stddevs": {
+        "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
+        "stamina": 8, "explosiveness": 7, "bend": 7,
+        "coverageTechnique": 9, "tackling": 9, "blockShedding": 9, "hands": 9,
+        "passRushMoves": 8,
+        "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+      },
+      "correlations": [
+        ["speed", "acceleration", 0.85],
+        ["acceleration", "explosiveness", 0.7],
+        ["speed", "explosiveness", 0.6],
+        ["agility", "bend", 0.55],
+        ["coverageTechnique", "bend", 0.45],
+        ["coverageTechnique", "footballIq", 0.4]
+      ]
+    }
+  ]
+}

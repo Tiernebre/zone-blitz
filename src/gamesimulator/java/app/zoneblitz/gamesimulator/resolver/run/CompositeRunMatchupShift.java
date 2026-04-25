@@ -7,8 +7,8 @@ import java.util.Objects;
 
 /**
  * Sum of multiple {@link RunMatchupShift} components. Used to stack concerns like {@link
- * ClampedRunMatchupShift} (talent) and {@link BoxCountRunShift} (pre-snap defensive response)
- * without any single class owning both.
+ * RoleMatchupRunShift} (talent) and {@link BoxCountRunShift} (pre-snap defensive response) without
+ * any single class owning both.
  *
  * <p>An empty list is allowed and evaluates to {@code 0.0} — same as {@link RunMatchupShift#ZERO}.
  */

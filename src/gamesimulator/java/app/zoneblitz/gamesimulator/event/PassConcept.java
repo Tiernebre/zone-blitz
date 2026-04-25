@@ -10,7 +10,7 @@ package app.zoneblitz.gamesimulator.event;
  * hail marys pick 16%), which the resolver captures via concept-aware leg weights in the matchup
  * shift.
  */
-public enum PassConcept {
+public enum PassConcept implements ConceptFamily {
   /**
    * Short rhythm throws (air yards ≤ 5) — RPS/slant/flat/checkdown. High completion, near-zero
    * sack.

@@ -1,0 +1,58 @@
+{
+  "position": "WR",
+  "_comment": "Two components — outside (X/Z, vertical/possession) vs. slot (separation/agility). Receivers cluster on speed-vs-quickness and inside-vs-outside.",
+  "components": [
+    {
+      "weight": 0.55,
+      "name": "outside",
+      "means": {
+        "speed": 82, "acceleration": 80, "agility": 65, "strength": 60, "power": 55,
+        "stamina": 70, "explosiveness": 78, "bend": 60,
+        "routeRunning": 70, "hands": 70, "breakTackle": 55, "ballCarrierVision": 55,
+        "toughness": 65, "motor": 70, "consistency": 65, "discipline": 65,
+        "footballIq": 65, "processing": 65, "composure": 65, "clutch": 70
+      },
+      "stddevs": {
+        "speed": 5, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
+        "stamina": 8, "explosiveness": 6, "bend": 7,
+        "routeRunning": 9, "hands": 8, "breakTackle": 9, "ballCarrierVision": 9,
+        "toughness": 9, "motor": 9, "consistency": 9, "discipline": 9,
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+      },
+      "correlations": [
+        ["speed", "acceleration", 0.85],
+        ["acceleration", "explosiveness", 0.7],
+        ["speed", "explosiveness", 0.6],
+        ["agility", "bend", 0.5],
+        ["routeRunning", "hands", 0.4],
+        ["routeRunning", "footballIq", 0.4]
+      ]
+    },
+    {
+      "weight": 0.45,
+      "name": "slot",
+      "means": {
+        "speed": 75, "acceleration": 82, "agility": 80, "strength": 55, "power": 55,
+        "stamina": 70, "explosiveness": 75, "bend": 70,
+        "routeRunning": 75, "hands": 75, "breakTackle": 55, "ballCarrierVision": 60,
+        "toughness": 65, "motor": 70, "consistency": 70, "discipline": 70,
+        "footballIq": 72, "processing": 70, "composure": 65, "clutch": 70
+      },
+      "stddevs": {
+        "speed": 6, "acceleration": 6, "agility": 6, "strength": 8, "power": 8,
+        "stamina": 8, "explosiveness": 6, "bend": 7,
+        "routeRunning": 8, "hands": 8, "breakTackle": 9, "ballCarrierVision": 9,
+        "toughness": 9, "motor": 9, "consistency": 9, "discipline": 9,
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+      },
+      "correlations": [
+        ["speed", "acceleration", 0.85],
+        ["acceleration", "explosiveness", 0.7],
+        ["speed", "explosiveness", 0.6],
+        ["agility", "bend", 0.55],
+        ["routeRunning", "hands", 0.45],
+        ["routeRunning", "footballIq", 0.5]
+      ]
+    }
+  ]
+}

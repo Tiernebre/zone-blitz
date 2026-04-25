@@ -19,9 +19,9 @@ import app.zoneblitz.gamesimulator.roster.Tendencies;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-class ClampedRunMatchupShiftTests {
+class RoleMatchupRunShiftTests {
 
-  private final ClampedRunMatchupShift shift = new ClampedRunMatchupShift();
+  private final RoleMatchupRunShift shift = new RoleMatchupRunShift();
   private final RunRoleAssigner assigner = new PositionBasedRunRoleAssigner();
 
   private double computeFor(RunConcept concept, RunRoles roles) {
