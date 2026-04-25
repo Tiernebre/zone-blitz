@@ -2,12 +2,12 @@ package app.zoneblitz.gamesimulator.scoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.zoneblitz.gamesimulator.EnvironmentalModifiers;
 import app.zoneblitz.gamesimulator.GameInputs;
-import app.zoneblitz.gamesimulator.HomeFieldAdvantage;
-import app.zoneblitz.gamesimulator.Roof;
-import app.zoneblitz.gamesimulator.Surface;
-import app.zoneblitz.gamesimulator.Weather;
+import app.zoneblitz.gamesimulator.environment.EnvironmentalModifiers;
+import app.zoneblitz.gamesimulator.environment.HomeFieldAdvantage;
+import app.zoneblitz.gamesimulator.environment.Roof;
+import app.zoneblitz.gamesimulator.environment.Surface;
+import app.zoneblitz.gamesimulator.environment.Weather;
 import app.zoneblitz.gamesimulator.event.DownAndDistance;
 import app.zoneblitz.gamesimulator.event.FieldGoalResult;
 import app.zoneblitz.gamesimulator.event.FieldPosition;

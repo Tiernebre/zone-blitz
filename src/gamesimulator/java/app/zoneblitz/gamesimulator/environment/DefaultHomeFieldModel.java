@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.environment;
 
 import app.zoneblitz.gamesimulator.event.PenaltyType;
 import app.zoneblitz.gamesimulator.event.Side;

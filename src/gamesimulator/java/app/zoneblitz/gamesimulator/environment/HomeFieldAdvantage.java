@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.environment;
 
 /**
  * Per-team home-field strength on a 0–100 scale. 50 is the league-average stadium; 0 is a dome with

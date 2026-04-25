@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.environment;
 
 /**
  * Playing surface. Turf is slightly faster than natural grass and carries a slightly higher

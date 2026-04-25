@@ -1,6 +1,6 @@
 package app.zoneblitz.gamesimulator.injury;
 
-import app.zoneblitz.gamesimulator.Surface;
+import app.zoneblitz.gamesimulator.environment.Surface;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;

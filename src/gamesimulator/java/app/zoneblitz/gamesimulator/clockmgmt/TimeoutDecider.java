@@ -1,5 +1,6 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.clockmgmt;
 
+import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Coach;
@@ -10,7 +11,7 @@ import java.util.Optional;
  * timeout, or {@link Optional#empty()} to let the snap proceed.
  *
  * <p>Implementations consult {@link GameState#timeoutsFor(Side)} to respect the zero-floor and are
- * expected to be stateless — {@link GameSimulator} owns deduction via {@link
+ * expected to be stateless — {@code GameSimulator} owns deduction via {@link
  * GameState#withTimeoutUsed(Side)} and the event emission. Coach {@code clockAwareness} tendency is
  * the primary aggressiveness knob.
  */

@@ -1,8 +1,8 @@
 package app.zoneblitz.gamesimulator.resolver;
 
-import app.zoneblitz.gamesimulator.PlayCaller;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 
 /**
  * Assigns per-snap pass-play role buckets for the supplied play call. Pure given its inputs — no

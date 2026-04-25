@@ -1,7 +1,9 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.clockmgmt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.zoneblitz.gamesimulator.GameState;
+import app.zoneblitz.gamesimulator.TestGameStates;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.roster.Coach;

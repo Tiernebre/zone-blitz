@@ -1,7 +1,8 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.environment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.zoneblitz.gamesimulator.GameInputs;
 import org.junit.jupiter.api.Test;
 
 class EnvironmentalModifiersTests {

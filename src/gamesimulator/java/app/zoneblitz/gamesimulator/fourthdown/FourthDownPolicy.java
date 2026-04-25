@@ -1,11 +1,12 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.fourthdown;
 
+import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Coach;
 
 /**
  * Decides what to do on 4th down: kick a field goal, punt, or go for it. Consumers call this for
- * every 4th-down scrimmage snap; the engine's legacy field-position cutoffs in {@link SpecialTeams}
+ * every 4th-down scrimmage snap; the engine's legacy field-position cutoffs in {@code SpecialTeams}
  * stay as a conservative fallback when no policy is wired.
  *
  * <p>Implementations should consult {@link Coach#offense()} aggression, field position, down and

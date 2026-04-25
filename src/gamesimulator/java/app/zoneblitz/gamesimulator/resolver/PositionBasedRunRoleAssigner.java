@@ -1,8 +1,8 @@
 package app.zoneblitz.gamesimulator.resolver;
 
-import app.zoneblitz.gamesimulator.PlayCaller;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
 import java.util.ArrayList;

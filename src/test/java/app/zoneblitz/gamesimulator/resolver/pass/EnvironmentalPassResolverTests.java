@@ -2,17 +2,17 @@ package app.zoneblitz.gamesimulator.resolver.pass;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.zoneblitz.gamesimulator.EnvironmentalModifiers;
 import app.zoneblitz.gamesimulator.GameInputs;
 import app.zoneblitz.gamesimulator.GameState;
-import app.zoneblitz.gamesimulator.HomeFieldAdvantage;
-import app.zoneblitz.gamesimulator.PlayCaller;
-import app.zoneblitz.gamesimulator.Roof;
-import app.zoneblitz.gamesimulator.Surface;
-import app.zoneblitz.gamesimulator.Weather;
+import app.zoneblitz.gamesimulator.environment.EnvironmentalModifiers;
+import app.zoneblitz.gamesimulator.environment.HomeFieldAdvantage;
+import app.zoneblitz.gamesimulator.environment.Roof;
+import app.zoneblitz.gamesimulator.environment.Surface;
+import app.zoneblitz.gamesimulator.environment.Weather;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;

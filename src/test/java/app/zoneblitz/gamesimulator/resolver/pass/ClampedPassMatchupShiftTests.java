@@ -2,12 +2,12 @@ package app.zoneblitz.gamesimulator.resolver.pass;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.zoneblitz.gamesimulator.PlayCaller;
 import app.zoneblitz.gamesimulator.event.PassConcept;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.formation.CoverageShell;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
+import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.PassRoles;
 import app.zoneblitz.gamesimulator.resolver.PositionBasedPassRoleAssigner;

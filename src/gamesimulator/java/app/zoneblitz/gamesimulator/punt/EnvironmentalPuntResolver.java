@@ -1,6 +1,6 @@
 package app.zoneblitz.gamesimulator.punt;
 
-import app.zoneblitz.gamesimulator.EnvironmentalModifiers;
+import app.zoneblitz.gamesimulator.environment.EnvironmentalModifiers;
 import app.zoneblitz.gamesimulator.event.DownAndDistance;
 import app.zoneblitz.gamesimulator.event.FieldPosition;
 import app.zoneblitz.gamesimulator.event.GameClock;

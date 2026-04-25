@@ -1,7 +1,7 @@
 package app.zoneblitz.gamesimulator.personnel;
 
 import app.zoneblitz.gamesimulator.GameState;
-import app.zoneblitz.gamesimulator.PlayCaller;
+import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.Objects;
 

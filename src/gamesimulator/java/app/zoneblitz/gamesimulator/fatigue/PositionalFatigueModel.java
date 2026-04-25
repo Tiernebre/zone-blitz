@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.fatigue;
 
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
@@ -25,7 +25,7 @@ import java.util.Objects;
  * baseline does the same and the 55-snap LB baseline keeps three-down linebackers on the field
  * almost always.
  */
-final class PositionalFatigueModel implements FatigueModel {
+public final class PositionalFatigueModel implements FatigueModel {
 
   private static final int RB_BASE_THRESHOLD = 35;
   private static final int DL_BASE_THRESHOLD = 40;

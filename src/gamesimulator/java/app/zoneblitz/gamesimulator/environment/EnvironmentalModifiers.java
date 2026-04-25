@@ -1,5 +1,6 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.environment;
 
+import app.zoneblitz.gamesimulator.GameInputs;
 import java.util.Objects;
 
 /**

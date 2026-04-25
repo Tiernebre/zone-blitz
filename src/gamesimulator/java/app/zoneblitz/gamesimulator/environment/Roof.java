@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.environment;
 
 /**
  * Stadium roof configuration at kickoff. {@link #DOME} and {@link #RETRACTABLE_CLOSED} eliminate

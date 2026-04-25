@@ -2,8 +2,8 @@ package app.zoneblitz.gamesimulator.resolver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.zoneblitz.gamesimulator.PlayCaller;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
+import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.roster.Position;
 import org.junit.jupiter.api.Test;
 

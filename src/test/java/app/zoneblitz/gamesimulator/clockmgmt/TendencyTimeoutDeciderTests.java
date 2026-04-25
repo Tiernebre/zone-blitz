@@ -1,7 +1,8 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.clockmgmt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.event.DownAndDistance;
 import app.zoneblitz.gamesimulator.event.FieldPosition;
 import app.zoneblitz.gamesimulator.event.GameClock;

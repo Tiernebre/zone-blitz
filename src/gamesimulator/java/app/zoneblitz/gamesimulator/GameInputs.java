@@ -1,5 +1,10 @@
 package app.zoneblitz.gamesimulator;
 
+import app.zoneblitz.gamesimulator.environment.EnvironmentalModifiers;
+import app.zoneblitz.gamesimulator.environment.HomeFieldAdvantage;
+import app.zoneblitz.gamesimulator.environment.Roof;
+import app.zoneblitz.gamesimulator.environment.Surface;
+import app.zoneblitz.gamesimulator.environment.Weather;
 import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.Team;

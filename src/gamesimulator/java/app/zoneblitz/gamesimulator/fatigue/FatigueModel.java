@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.fatigue;
 
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * <p>Implementations are pure given inputs.
  */
-interface FatigueModel {
+public interface FatigueModel {
 
   /**
    * Rotate fatigued offensive skill players. Today only the running back position rotates: when

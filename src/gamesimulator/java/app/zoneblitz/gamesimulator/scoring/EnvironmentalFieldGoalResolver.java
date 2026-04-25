@@ -1,6 +1,6 @@
 package app.zoneblitz.gamesimulator.scoring;
 
-import app.zoneblitz.gamesimulator.EnvironmentalModifiers;
+import app.zoneblitz.gamesimulator.environment.EnvironmentalModifiers;
 import app.zoneblitz.gamesimulator.event.DownAndDistance;
 import app.zoneblitz.gamesimulator.event.FieldGoalResult;
 import app.zoneblitz.gamesimulator.event.FieldPosition;

@@ -1,5 +1,6 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.playcalling;
 
+import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.event.PassConcept;
 import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;

@@ -1,8 +1,9 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.fourthdown;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import app.zoneblitz.gamesimulator.TestGameStates;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.CoachId;

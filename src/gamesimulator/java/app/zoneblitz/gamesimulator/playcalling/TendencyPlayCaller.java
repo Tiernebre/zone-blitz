@@ -1,7 +1,6 @@
 package app.zoneblitz.gamesimulator.playcalling;
 
 import app.zoneblitz.gamesimulator.GameState;
-import app.zoneblitz.gamesimulator.PlayCaller;
 import app.zoneblitz.gamesimulator.band.BandRepository;
 import app.zoneblitz.gamesimulator.event.PassConcept;
 import app.zoneblitz.gamesimulator.event.RunConcept;

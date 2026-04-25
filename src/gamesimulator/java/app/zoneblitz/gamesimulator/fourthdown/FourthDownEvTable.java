@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.fourthdown;
 
 /**
  * Reference table of EV-optimal 4th-down go-for-it probabilities keyed by field position and

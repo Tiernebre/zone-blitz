@@ -1,6 +1,6 @@
 package app.zoneblitz.gamesimulator.injury;
 
-import app.zoneblitz.gamesimulator.Surface;
+import app.zoneblitz.gamesimulator.environment.Surface;
 import app.zoneblitz.gamesimulator.event.InjurySeverity;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.Side;

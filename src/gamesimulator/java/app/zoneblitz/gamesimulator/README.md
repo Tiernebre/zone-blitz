@@ -14,7 +14,7 @@ The dependency is enforced by source-set layout; treat any `league` import in th
 
 - `SimulateGame` — top-level use case. Simulate one game from a `GameInputs` and stream `PlayEvent`s.
 - `GameInputs`, `GameSummary`, `GameState`, `GameType` — the request/response shapes and game state.
-- `HomeFieldAdvantage`, `Weather`, `Surface`, `Roof`, `EnvironmentalModifiers` — environmental inputs.
+- `environment.HomeFieldAdvantage`, `environment.Weather`, `environment.Surface`, `environment.Roof`, `environment.EnvironmentalModifiers` — environmental inputs.
 - `PlayEvent` + event-package records (`DownAndDistance`, `PassConcept`, `RunConcept`, `PlayId`, `PlayerId`, `TeamId`, `GameClock`, `Score`, `PenaltyType`, `InjurySeverity`, `PatResult`, `TwoPointPlay`, `KickoffResult`, `PuntResult`, `FieldGoalResult`, `FumbleOutcome`, `IncompleteReason`, `Side`, `GameId`) — the output event vocabulary.
 
 ## Seam interfaces
@@ -22,9 +22,11 @@ The dependency is enforced by source-set layout; treat any `league` import in th
 Every stochastic seam takes `RandomSource` as a method parameter (not a field) so games replay byte-for-byte from a seed. No seam depends on Spring.
 
 - `RandomSource` (package `rng`) — the only source of randomness. `split(long key)` for per-stage child streams. `SplittableRandomSource` is the production implementation; only it may touch `java.util.SplittableRandom` directly (enforced by ArchUnit).
-- `PlayCaller` — offensive play-call selection given `GameState`, `Coach`, `RandomSource`.
-- `TimeoutDecider`, `EndOfHalfDecider` — clock-management heuristics; tendency-driven defaults ship.
-- `HomeFieldModel` — snap-level home-field tilt from environmental modifiers.
+- `playcalling.PlayCaller` — offensive play-call selection given `GameState`, `Coach`, `RandomSource`.
+- `clockmgmt.TimeoutDecider`, `clockmgmt.EndOfHalfDecider` — clock-management heuristics; tendency-driven defaults ship.
+- `fourthdown.FourthDownPolicy` — 4th-down go/kick/punt decision; `AggressionFourthDownPolicy` ships as the tendency-driven default.
+- `fatigue.FatigueModel` — rotation hook + per-snap performance multiplier; `PositionalFatigueModel` is the default.
+- `environment.HomeFieldModel` — snap-level home-field tilt from environmental modifiers.
 - `resolver.PlayResolver` — top-level dispatcher.
 - `resolver.pass.PassResolver`, `resolver.pass.TargetSelector`, `resolver.PassRoleAssigner` — pass family.
 - `resolver.run.RunResolver`, `resolver.RunRoleAssigner` — run family.
@@ -42,7 +44,7 @@ Every stochastic seam takes `RandomSource` as a method parameter (not a field) s
 
 ## Internal structure
 
-Sub-packages by concern: `band/`, `clock/`, `event/`, `formation/`, `injury/`, `kickoff/`, `output/`, `penalty/`, `personnel/`, `playcalling/`, `punt/`, `resolver/` (with `pass/` and `run/`), `rng/`, `roster/`, `scoring/`. Top-level engine classes (`GameSimulator`, `ScoringSequencer`, `SnapAdvance`, `PeriodController`, `SpecialTeams`, `PlayEventFactory`, `EndOfHalfPlays`) coordinate the pipeline.
+Sub-packages by concern: `band/`, `clock/`, `clockmgmt/`, `environment/`, `event/`, `fatigue/`, `formation/`, `fourthdown/`, `injury/`, `kickoff/`, `output/`, `penalty/`, `personnel/`, `playcalling/`, `punt/`, `resolver/` (with `pass/` and `run/`), `rng/`, `roster/`, `scoring/`. Top-level engine classes (`GameSimulator`, `ScoringSequencer`, `ScoringAftermath`, `SnapAdvance`, `PeriodController`, `SpecialTeams`, `PlayEventFactory`, `EndOfHalfPlays`, `TimeoutController`, `DownProgression`, `InjuryEmitter`, `PenaltyEmitter`) coordinate the pipeline.
 
 ## Extending
 

@@ -1,11 +1,11 @@
 package app.zoneblitz.gamesimulator.resolver.pass;
 
-import app.zoneblitz.gamesimulator.EnvironmentalModifiers;
 import app.zoneblitz.gamesimulator.GameState;
-import app.zoneblitz.gamesimulator.PlayCaller;
+import app.zoneblitz.gamesimulator.environment.EnvironmentalModifiers;
 import app.zoneblitz.gamesimulator.event.IncompleteReason;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import java.util.Objects;

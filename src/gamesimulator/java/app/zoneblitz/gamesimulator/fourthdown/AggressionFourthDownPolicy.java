@@ -1,5 +1,6 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.fourthdown;
 
+import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import java.util.Objects;

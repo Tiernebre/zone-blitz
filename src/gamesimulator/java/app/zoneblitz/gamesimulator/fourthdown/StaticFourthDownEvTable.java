@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.fourthdown;
 
 /**
  * Hand-encoded EV-optimal 4th-down go probabilities based on Ben Baldwin's 4th-down decision bot.

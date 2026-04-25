@@ -1,7 +1,6 @@
 package app.zoneblitz.gamesimulator.resolver.pass;
 
 import app.zoneblitz.gamesimulator.GameState;
-import app.zoneblitz.gamesimulator.PlayCaller;
 import app.zoneblitz.gamesimulator.band.BandRepository;
 import app.zoneblitz.gamesimulator.band.BandSampler;
 import app.zoneblitz.gamesimulator.band.DistributionalBand;
@@ -12,6 +11,7 @@ import app.zoneblitz.gamesimulator.formation.BandCoverageShellSampler;
 import app.zoneblitz.gamesimulator.formation.CoverageShellSampler;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.PassRoles;

@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.environment;
 
 /**
  * Environmental weather snapshot at kickoff. Values are treated as constant for the game — the sim

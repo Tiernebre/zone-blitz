@@ -1,4 +1,4 @@
-package app.zoneblitz.gamesimulator;
+package app.zoneblitz.gamesimulator.fatigue;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
