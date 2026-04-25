@@ -234,6 +234,11 @@ class QbPressureEscapeTests {
     private int ballCarrierVision = 50;
     private int breakTackle = 50;
     private int tackling = 50;
+    private int kickPower = 50;
+    private int kickAccuracy = 50;
+    private int puntPower = 50;
+    private int puntAccuracy = 50;
+    private int puntHangTime = 50;
 
     SkillBuilder passSet(int v) {
       this.passSet = v;
@@ -261,7 +266,12 @@ class QbPressureEscapeTests {
           runBlock,
           ballCarrierVision,
           breakTackle,
-          tackling);
+          tackling,
+          kickPower,
+          kickAccuracy,
+          puntPower,
+          puntAccuracy,
+          puntHangTime);
     }
   }
 

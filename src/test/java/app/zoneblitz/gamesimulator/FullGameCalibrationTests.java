@@ -632,7 +632,7 @@ class FullGameCalibrationTests {
     Skill skill() {
       return new Skill(
           axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue,
-          axisValue, axisValue);
+          axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue);
     }
 
     Tendencies tendencies() {

@@ -48,7 +48,7 @@ class ClampedRunMatchupShiftTests {
             Position.RB,
             "RB",
             Physical.average(),
-            new Skill(50, 50, 50, 50, 50, 50, 50, 95, 95, 50),
+            new Skill(50, 50, 50, 50, 50, 50, 50, 95, 95, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var eliteOl =
         new Player(
@@ -56,7 +56,7 @@ class ClampedRunMatchupShiftTests {
             Position.OL,
             "OL",
             Physical.average(),
-            new Skill(50, 50, 50, 50, 50, 50, 95, 50, 50, 50),
+            new Skill(50, 50, 50, 50, 50, 50, 95, 50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var offense = TestPersonnel.offenseWith(eliteRb, eliteOl);
     var defense = TestPersonnel.baselineDefense();
@@ -74,7 +74,7 @@ class ClampedRunMatchupShiftTests {
             Position.RB,
             "poor-RB",
             new Physical(30, 30, 30, 50, 50, 50, 50, 30),
-            new Skill(50, 50, 50, 50, 50, 50, 50, 100, 100, 50),
+            new Skill(50, 50, 50, 50, 50, 50, 50, 100, 100, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var poorBlocker =
         new Player(
@@ -82,7 +82,7 @@ class ClampedRunMatchupShiftTests {
             Position.OL,
             "poor-OL",
             new Physical(30, 30, 30, 30, 30, 30, 30, 30),
-            new Skill(50, 50, 50, 50, 50, 50, 100, 50, 50, 50),
+            new Skill(50, 50, 50, 50, 50, 50, 100, 50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var eliteDefender =
         new Player(
@@ -111,7 +111,7 @@ class ClampedRunMatchupShiftTests {
             Position.RB,
             "elite-RB",
             Physical.average(),
-            new Skill(50, 50, 50, 50, 50, 50, 50, 100, 100, 50),
+            new Skill(50, 50, 50, 50, 50, 50, 50, 100, 100, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var weakBlocker =
         new Player(
@@ -119,7 +119,7 @@ class ClampedRunMatchupShiftTests {
             Position.OL,
             "weak-OL",
             Physical.average(),
-            new Skill(50, 50, 50, 50, 50, 50, 0, 50, 50, 50),
+            new Skill(50, 50, 50, 50, 50, 50, 0, 50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var offense = TestPersonnel.offenseWith(eliteCarrier, weakBlocker);
     var defense = TestPersonnel.baselineDefense();
@@ -138,7 +138,7 @@ class ClampedRunMatchupShiftTests {
         Position.RB,
         "elite-RB",
         Physical.average(),
-        new Skill(50, 50, 50, 50, 50, 50, 50, 100, 100, 50),
+        new Skill(50, 50, 50, 50, 50, 50, 50, 100, 100, 50, 50, 50, 50, 50, 50),
         Tendencies.average());
   }
 
@@ -148,7 +148,7 @@ class ClampedRunMatchupShiftTests {
         Position.OL,
         "elite-OL",
         Physical.average(),
-        new Skill(50, 50, 50, 50, 50, 50, 100, 50, 50, 50),
+        new Skill(50, 50, 50, 50, 50, 50, 100, 50, 50, 50, 50, 50, 50, 50, 50),
         Tendencies.average());
   }
 

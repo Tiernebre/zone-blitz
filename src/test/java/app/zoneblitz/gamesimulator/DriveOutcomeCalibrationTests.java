@@ -239,7 +239,7 @@ class DriveOutcomeCalibrationTests {
   }
 
   private static Skill averageSkill() {
-    return new Skill(50, 50, 50, 50, 50, 50, 50, 50, 50, 50);
+    return new Skill(50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50);
   }
 
   private static Tendencies averageTendencies() {

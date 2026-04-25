@@ -9,6 +9,11 @@ package app.zoneblitz.gamesimulator.roster;
  * of attack), {@link #ballCarrierVision} and {@link #breakTackle} (the carrier), {@link #tackling}
  * (front-seven and box defenders finishing the play; {@link #blockShedding} doubles as the
  * shed-the-block axis for run defense).
+ *
+ * <p>Special-teams axes (drive {@code K} / {@code P} levers): {@link #kickPower} (FG distance
+ * ceiling, kickoff hang/distance), {@link #kickAccuracy} (FG/PAT make rate, wind resistance),
+ * {@link #puntPower} (gross punt yards), {@link #puntAccuracy} (placement: inside-20 vs.
+ * touchback/OOB tilt), {@link #puntHangTime} (limits punt return yards).
  */
 public record Skill(
     int passSet,
@@ -20,7 +25,12 @@ public record Skill(
     int runBlock,
     int ballCarrierVision,
     int breakTackle,
-    int tackling) {
+    int tackling,
+    int kickPower,
+    int kickAccuracy,
+    int puntPower,
+    int puntAccuracy,
+    int puntHangTime) {
 
   public Skill {
     requireInRange(passSet, "passSet");
@@ -33,11 +43,16 @@ public record Skill(
     requireInRange(ballCarrierVision, "ballCarrierVision");
     requireInRange(breakTackle, "breakTackle");
     requireInRange(tackling, "tackling");
+    requireInRange(kickPower, "kickPower");
+    requireInRange(kickAccuracy, "kickAccuracy");
+    requireInRange(puntPower, "puntPower");
+    requireInRange(puntAccuracy, "puntAccuracy");
+    requireInRange(puntHangTime, "puntHangTime");
   }
 
   /** Average-everywhere profile (all axes at 50). Matchup-neutral default. */
   public static Skill average() {
-    return new Skill(50, 50, 50, 50, 50, 50, 50, 50, 50, 50);
+    return new Skill(50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50);
   }
 
   private static void requireInRange(int value, String name) {
