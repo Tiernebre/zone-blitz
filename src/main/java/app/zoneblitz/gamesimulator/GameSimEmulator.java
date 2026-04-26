@@ -21,6 +21,7 @@ import app.zoneblitz.gamesimulator.penalty.BandPenaltyModel;
 import app.zoneblitz.gamesimulator.personnel.BaselinePersonnelSelector;
 import app.zoneblitz.gamesimulator.playcalling.BaselineDefensiveCallSelector;
 import app.zoneblitz.gamesimulator.playcalling.TendencyPlayCaller;
+import app.zoneblitz.gamesimulator.punt.AttributeAwarePuntResolver;
 import app.zoneblitz.gamesimulator.punt.BandPuntResolver;
 import app.zoneblitz.gamesimulator.resolver.DispatchingPlayResolver;
 import app.zoneblitz.gamesimulator.resolver.pass.HailMaryPassResolver;
@@ -32,6 +33,9 @@ import app.zoneblitz.gamesimulator.roster.CoachId;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
+import app.zoneblitz.gamesimulator.scoring.AttributeAwareExtraPointResolver;
+import app.zoneblitz.gamesimulator.scoring.AttributeAwareFieldGoalResolver;
+import app.zoneblitz.gamesimulator.scoring.AttributeAwareTwoPointResolver;
 import app.zoneblitz.gamesimulator.scoring.DistanceCurveFieldGoalResolver;
 import app.zoneblitz.gamesimulator.scoring.FlatRateExtraPointResolver;
 import app.zoneblitz.gamesimulator.scoring.FlatRateTwoPointResolver;
@@ -74,13 +78,13 @@ public final class GameSimEmulator {
             resolver,
             BandClockModel.load(repo, sampler),
             OnsideAwareKickoffResolver.withDefaultPolicy(new TouchbackKickoffResolver()),
-            new FlatRateExtraPointResolver(),
-            new DistanceCurveFieldGoalResolver(),
-            BandPuntResolver.load(repo, sampler),
+            new AttributeAwareExtraPointResolver(new FlatRateExtraPointResolver()),
+            new AttributeAwareFieldGoalResolver(new DistanceCurveFieldGoalResolver()),
+            new AttributeAwarePuntResolver(BandPuntResolver.load(repo, sampler)),
             new BandPenaltyModel(),
             BaselineDefensiveCallSelector.load(repo),
             new StandardTwoPointDecisionPolicy(),
-            new FlatRateTwoPointResolver(),
+            new AttributeAwareTwoPointResolver(new FlatRateTwoPointResolver()),
             new DefaultHomeFieldModel(),
             new TendencyTimeoutDecider());
 

@@ -12,7 +12,7 @@ import app.zoneblitz.gamesimulator.formation.BandBoxCountSampler;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
-import app.zoneblitz.gamesimulator.resolver.BaselineFumbleRecoveryModel;
+import app.zoneblitz.gamesimulator.resolver.AttributeAwareFumbleRecoveryModel;
 import app.zoneblitz.gamesimulator.resolver.FumbleRecoveryModel;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.resolver.RunRoles;
@@ -98,7 +98,7 @@ public final class MatchupRunResolver implements RunResolver {
         outcomeMix,
         yardsByKind,
         fumbleYards,
-        new BaselineFumbleRecoveryModel());
+        new AttributeAwareFumbleRecoveryModel());
   }
 
   public MatchupRunResolver(
@@ -156,9 +156,7 @@ public final class MatchupRunResolver implements RunResolver {
         new CompositeRunMatchupShift(
             new RoleMatchupRunShift(), new BoxCountRunShift(boxSampler), new GoalLineRunShift());
 
-    var fumbleRecoveryModel =
-        new BaselineFumbleRecoveryModel(
-            BaselineFumbleRecoveryModel.DEFAULT_DEFENSE_RECOVERY_RATE, sampler, fumbleReturnYards);
+    var fumbleRecoveryModel = new AttributeAwareFumbleRecoveryModel(sampler, fumbleReturnYards);
 
     var catalog = new BuiltinSchemeCatalog();
     var defaultOffenseScheme = catalog.offense(OffensiveSchemeId.WEST_COAST);

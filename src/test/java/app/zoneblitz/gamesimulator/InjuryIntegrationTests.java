@@ -17,7 +17,7 @@ import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.TeamId;
 import app.zoneblitz.gamesimulator.fatigue.PositionalFatigueModel;
-import app.zoneblitz.gamesimulator.injury.BaselineInjuryModel;
+import app.zoneblitz.gamesimulator.injury.AttributeAwareInjuryModel;
 import app.zoneblitz.gamesimulator.kickoff.TouchbackKickoffResolver;
 import app.zoneblitz.gamesimulator.penalty.NoPenaltyModel;
 import app.zoneblitz.gamesimulator.personnel.BaselinePersonnelSelector;
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
 class InjuryIntegrationTests {
 
   @Test
-  void simulate_withBaselineInjuryModel_emitsInjuryEventsAcrossGames() {
+  void simulate_withAttributeAwareInjuryModel_emitsInjuryEventsAcrossGames() {
     var injuries = 0;
     for (var seed = 1L; seed <= 10L; seed++) {
       var events = simulator().simulate(inputs(seed, Surface.GRASS)).toList();
@@ -114,7 +114,7 @@ class InjuryIntegrationTests {
         TimeoutDecider.never(),
         new TendencyEndOfHalfDecider(),
         new PositionalFatigueModel(),
-        new BaselineInjuryModel());
+        new AttributeAwareInjuryModel());
   }
 
   private GameInputs inputs(long seed, Surface surface) {

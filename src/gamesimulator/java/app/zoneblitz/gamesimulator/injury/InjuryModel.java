@@ -11,8 +11,9 @@ import java.util.List;
 /**
  * Draws zero or more {@link InjuryDraw}s for the players exposed to contact on a single resolved
  * scrimmage snap. Implementations are responsible for the per-snap base rate, position multipliers,
- * contact-type modifiers, the {@link Surface} modifier (turf elevates non-contact rate slightly),
- * and the toughness coupling (a {@code toughness} of 0 raises injury risk; 100 lowers it).
+ * contact-type modifiers, the {@link Surface} modifier (turf elevates rate slightly), and the
+ * player attribute coupling (toughness, agility, strength, awareness, and similar axes modulate the
+ * per-exposure rate).
  *
  * <p>Implementations must be deterministic given {@code (rng, outcome, personnel)}. A snap with no
  * injury returns an empty list.

@@ -22,9 +22,9 @@ import java.util.Random;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-class BaselineInjuryModelTests {
+class AttributeAwareInjuryModelTests {
 
-  private final InjuryModel model = new BaselineInjuryModel();
+  private final InjuryModel model = new AttributeAwareInjuryModel();
 
   @Test
   void draw_passIncomplete_neverInjures() {
@@ -51,8 +51,8 @@ class BaselineInjuryModelTests {
 
   @Test
   void draw_zeroToughness_injuresMuchMoreOftenThanHundredToughness() {
-    var weakRb = playerWithToughness(Position.RB, 0, "weak-rb");
-    var strongRb = playerWithToughness(Position.RB, 100, "strong-rb");
+    var weakRb = playerWith(Position.RB, 0, 50, 50, 50, "weak-rb");
+    var strongRb = playerWith(Position.RB, 100, 50, 50, 50, "strong-rb");
     var weakOffense = TestPersonnel.offenseWith(weakRb);
     var strongOffense = TestPersonnel.offenseWith(strongRb);
 
@@ -120,6 +120,99 @@ class BaselineInjuryModelTests {
     assertThat(hadDefense).isTrue();
   }
 
+  // --- new multiplier tests -------------------------------------------------------------------
+
+  @Test
+  void draw_highAgilityRb_injuredLessOftenOnTackle_thanLowAgilityRb() {
+    // High agility (90) vs low agility (10), all else average, TACKLE contact (run play).
+    var agilityRb = playerWithAgility(Position.RB, 90, "agile-rb");
+    var clumsyRb = playerWithAgility(Position.RB, 10, "clumsy-rb");
+    var agilityOffense = TestPersonnel.offenseWith(agilityRb);
+    var clumsyOffense = TestPersonnel.offenseWith(clumsyRb);
+
+    var agilityInjuries = countInjuriesAcrossSnaps(agilityRb, agilityOffense, 30_000, 55555L);
+    var clumsyInjuries = countInjuriesAcrossSnaps(clumsyRb, clumsyOffense, 30_000, 55555L);
+
+    assertThat(agilityInjuries)
+        .as(
+            "agile RB injuries=%d should be fewer than clumsy RB injuries=%d on tackles",
+            agilityInjuries, clumsyInjuries)
+        .isLessThan(clumsyInjuries);
+  }
+
+  @Test
+  void draw_highStrengthQb_injuredLessOftenOnSack_thanLowStrengthQb() {
+    // High strength (90) vs low strength (10) for QB on sack exposure.
+    var strongQb = playerWithStrength(Position.QB, 90, "strong-qb");
+    var weakQb = playerWithStrength(Position.QB, 10, "weak-qb");
+
+    var strongInjuries = countSackInjuriesForQb(strongQb, 30_000, 77777L);
+    var weakInjuries = countSackInjuriesForQb(weakQb, 30_000, 77777L);
+
+    assertThat(strongInjuries)
+        .as(
+            "strong QB injuries=%d should be fewer than weak QB injuries=%d on sacks",
+            strongInjuries, weakInjuries)
+        .isLessThan(weakInjuries);
+  }
+
+  @Test
+  void draw_highFootballIqPlayer_injuredLessOftenThanLowFootballIqPlayer() {
+    // Football IQ acts as awareness (avoids blindside); high vs low on a TACKLE play.
+    var smartRb = playerWithFootballIq(Position.RB, 90, "smart-rb");
+    var unawareRb = playerWithFootballIq(Position.RB, 10, "unaware-rb");
+    var smartOffense = TestPersonnel.offenseWith(smartRb);
+    var unawareOffense = TestPersonnel.offenseWith(unawareRb);
+
+    var smartInjuries = countInjuriesAcrossSnaps(smartRb, smartOffense, 30_000, 88888L);
+    var unawareInjuries = countInjuriesAcrossSnaps(unawareRb, unawareOffense, 30_000, 88888L);
+
+    assertThat(smartInjuries)
+        .as(
+            "high-IQ RB injuries=%d should be fewer than low-IQ RB injuries=%d",
+            smartInjuries, unawareInjuries)
+        .isLessThan(unawareInjuries);
+  }
+
+  @Test
+  void physicalMultiplier_averageProfile_isOne() {
+    var physical = Physical.average();
+    var tendencies = Tendencies.average();
+
+    var tackleM =
+        AttributeAwareInjuryModel.physicalMultiplier(physical, tendencies, ContactType.TACKLE);
+    var sackM =
+        AttributeAwareInjuryModel.physicalMultiplier(physical, tendencies, ContactType.SACK);
+    var pileM =
+        AttributeAwareInjuryModel.physicalMultiplier(physical, tendencies, ContactType.PILE);
+
+    assertThat(tackleM).isEqualTo(1.0);
+    assertThat(sackM).isEqualTo(1.0);
+    assertThat(pileM).isEqualTo(1.0);
+  }
+
+  @Test
+  void physicalMultiplier_extremeEliteProfile_doesNotExceedEnvelopeBound() {
+    // All physical axes at 100 — maximum score should be clamped to 1 − PHYSICAL_ENVELOPE.
+    var physical = new Physical(100, 100, 100, 100, 100, 100, 100, 100);
+    var tendencies = new Tendencies(50, 50, 100, 50, 50, 50, 50, 50);
+
+    var m = AttributeAwareInjuryModel.physicalMultiplier(physical, tendencies, ContactType.TACKLE);
+
+    assertThat(m).isEqualTo(1.0 - AttributeAwareInjuryModel.PHYSICAL_ENVELOPE);
+  }
+
+  @Test
+  void physicalMultiplier_extremePoorProfile_doesNotExceedEnvelopeBound() {
+    // All physical axes at 0 — minimum score should be clamped to 1 + PHYSICAL_ENVELOPE.
+    var physical = new Physical(0, 0, 0, 0, 0, 0, 0, 0);
+    var tendencies = new Tendencies(50, 50, 0, 50, 50, 50, 50, 50);
+
+    var m = AttributeAwareInjuryModel.physicalMultiplier(physical, tendencies, ContactType.TACKLE);
+
+    assertThat(m).isEqualTo(1.0 + AttributeAwareInjuryModel.PHYSICAL_ENVELOPE);
+  }
+
   // --- helpers ----------------------------------------------------------------------------------
 
   private int countInjuriesAcrossSnaps(
@@ -143,9 +236,29 @@ class BaselineInjuryModelTests {
     return count;
   }
 
+  private int countSackInjuriesForQb(Player qb, int snaps, long seed) {
+    var rng = new SeededRandomSource(seed);
+    var offense = TestPersonnel.offenseWith(qb);
+    var defense = TestPersonnel.baselineDefense();
+    var sackerId = defense.players().get(0).id();
+    var outcome =
+        new PassOutcome.Sack(
+            qb.id(),
+            List.of(sackerId),
+            7,
+            Optional.<app.zoneblitz.gamesimulator.event.FumbleOutcome>empty());
+    var count = 0;
+    for (var i = 0; i < snaps; i++) {
+      var draws = model.draw(outcome, offense, defense, Side.HOME, Surface.GRASS, rng);
+      // Count only the QB's injuries (Side.HOME = offense).
+      count += (int) draws.stream().filter(d -> d.player().equals(qb.id())).count();
+    }
+    return count;
+  }
+
   private int countInjuriesOnSurface(Surface surface, int snaps, long seed) {
     var rng = new SeededRandomSource(seed);
-    var carrier = playerWithToughness(Position.RB, 50, "rb");
+    var carrier = playerWith(Position.RB, 50, 50, 50, 50, "rb");
     var offense = TestPersonnel.offenseWith(carrier);
     var outcome =
         new RunOutcome.Run(
@@ -166,7 +279,7 @@ class BaselineInjuryModelTests {
 
   private List<InjuryDraw> sampleManyInjuries(int snaps, long seed) {
     var rng = new SeededRandomSource(seed);
-    var carrier = playerWithToughness(Position.RB, 0, "rb");
+    var carrier = playerWith(Position.RB, 0, 50, 50, 50, "rb");
     var offense = TestPersonnel.offenseWith(carrier);
     var outcome =
         new RunOutcome.Run(
@@ -194,18 +307,31 @@ class BaselineInjuryModelTests {
     return out;
   }
 
-  private static Player playerWithToughness(Position pos, int toughness, String name) {
+  /**
+   * Builds a player with explicit toughness, agility, strength, and footballIq; remaining axes at
+   * 50.
+   */
+  private static Player playerWith(
+      Position pos, int toughness, int agility, int strength, int footballIq, String name) {
     return new Player(
         new PlayerId(UUID.randomUUID()),
         pos,
         name,
-        Physical.average(),
+        new Physical(50, 50, agility, strength, 50, 50, 50, 50),
         Skill.average(),
-        new Tendencies(50, 50, 50, 50, toughness, 50, 50, 50));
+        new Tendencies(50, 50, footballIq, 50, toughness, 50, 50, 50));
   }
 
-  private static PlayerId pickFirstDefenderId() {
-    return TestPersonnel.baselineDefense().players().get(0).id();
+  private static Player playerWithAgility(Position pos, int agility, String name) {
+    return playerWith(pos, 50, agility, 50, 50, name);
+  }
+
+  private static Player playerWithStrength(Position pos, int strength, String name) {
+    return playerWith(pos, 50, 50, strength, 50, name);
+  }
+
+  private static Player playerWithFootballIq(Position pos, int footballIq, String name) {
+    return playerWith(pos, 50, 50, 50, footballIq, name);
   }
 
   /**

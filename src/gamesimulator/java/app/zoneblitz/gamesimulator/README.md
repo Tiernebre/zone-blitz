@@ -33,7 +33,7 @@ Every stochastic seam takes `RandomSource` as a method parameter (not a field) s
 - `resolver.FumbleRecoveryModel` — recovery side resolution.
 - `clock.ClockModel` — per-play clock advance (default `BandClockModel`).
 - `penalty.PenaltyModel` — pre-snap and play penalty sampling (default `BandPenaltyModel`).
-- `injury.InjuryModel` — injury draw (default `BaselineInjuryModel`).
+- `injury.InjuryModel` — injury draw (default `AttributeAwareInjuryModel`).
 - `formation.BoxCountSampler`, `formation.CoverageShellSampler` — pre-snap defensive formation samplers (band-backed defaults).
 - `playcalling.DefensiveCallSelector` — defensive call selection.
 - `personnel.PersonnelSelector` — who is on the field for a snap.

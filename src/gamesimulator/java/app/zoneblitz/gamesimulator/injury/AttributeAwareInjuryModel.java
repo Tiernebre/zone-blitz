@@ -10,27 +10,74 @@ import app.zoneblitz.gamesimulator.resolver.PassOutcome;
 import app.zoneblitz.gamesimulator.resolver.PlayOutcome;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
+import app.zoneblitz.gamesimulator.roster.Tendencies;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Baseline {@link InjuryModel} calibrated to ~6–10 documented injuries per league-wide game (both
- * teams combined): per-snap base rate per exposed player is small (~0.3–0.6%), modulated by
- * position, contact bucket, surface, and the player's {@code toughness}. Severity is sampled from a
- * fixed prior leaning heavily toward in-play / short-term outcomes.
+ * Multi-attribute {@link InjuryModel} calibrated to ~6–10 documented injuries per league-wide game
+ * (both teams combined). The per-snap injury rate for an exposed player is:
+ *
+ * <pre>
+ * rate = baseRate(contact)
+ *      × positionMultiplier(position)
+ *      × toughnessMultiplier(toughness)
+ *      × physicalMultiplier(agility, strength, footballIq, contact)
+ *      × surfaceMultiplier(surface)
+ * </pre>
+ *
+ * <p><b>Base rates per contact bucket:</b> TACKLE 0.50%, SACK 0.80%, PILE 0.70%.
+ *
+ * <p><b>Position multipliers</b> reflect documented NFL injury concentration: RBs/FBs and QBs
+ * absorb the heaviest exposure, linemen take volume contact, specialists almost never appear in
+ * injury reports.
+ *
+ * <p><b>Toughness multiplier</b> (from {@link Tendencies#toughness}): linear — 0 → ×1.5, 50 → ×1.0,
+ * 100 → ×0.5.
+ *
+ * <p><b>Physical multiplier</b> introduces three additional attribute axes from {@link Physical}
+ * and {@link Tendencies}:
+ *
+ * <ul>
+ *   <li>{@link Physical#agility()} — balance and evasion under contact; weighted most heavily on
+ *       TACKLE exposures where absorbing and shedding hits is the primary mechanism.
+ *   <li>{@link Physical#strength()} — ability to shed blockers, escape piles, and resist being
+ *       driven into the turf; weighted most heavily on SACK and PILE exposures.
+ *   <li>{@link Tendencies#footballIq()} — awareness proxy (anticipating hits, avoiding blindside
+ *       exposure); contributes equally across all contact types.
+ * </ul>
+ *
+ * <p>Each axis is centered to {@code [-1, +1]} (50 → 0, 0 → −1, 100 → +1). An average player across
+ * all three axes scores 0 and the physical multiplier is exactly ×1.0. The combined score is
+ * bounded to {@code [-1, +1]} before applying the envelope, so an extreme physical profile shifts
+ * injury rate by at most {@value #PHYSICAL_ENVELOPE} (±30%) in either direction. This keeps
+ * per-game injury counts inside the ~6–10 calibration band regardless of attribute extremes.
+ *
+ * <p><b>Surface multiplier:</b> TURF → ×1.10 (GRASS → ×1.0).
+ *
+ * <p><b>Severity</b> is sampled from a fixed prior: 60% PLAY, 20% DRIVE, 15% GAME_ENDING, 5%
+ * MULTI_GAME.
  *
  * <p>Exposed players per snap come from the resolver outcome — ball carrier and tackler on a
  * tackle, QB and sackers on a sack, plus a small extra "pile" exposure for short-yardage runs.
  */
-public final class BaselineInjuryModel implements InjuryModel {
+public final class AttributeAwareInjuryModel implements InjuryModel {
 
   private static final double BASE_TACKLE = 0.0050;
   private static final double BASE_SACK = 0.0080;
   private static final double BASE_PILE = 0.0070;
   private static final double TURF_MULTIPLIER = 1.10;
+
+  /**
+   * Maximum absolute injury-rate shift from the combined physical score. Bounds an extreme
+   * attribute profile to ±30% relative to the toughness-adjusted rate, keeping per-game injury
+   * counts inside the ~6–10 calibration band.
+   */
+  static final double PHYSICAL_ENVELOPE = 0.30;
 
   private static final double SEVERITY_PLAY_CUTOFF = 0.60;
   private static final double SEVERITY_DRIVE_CUTOFF = 0.80;
@@ -69,11 +116,11 @@ public final class BaselineInjuryModel implements InjuryModel {
     var p = player.get();
     var rate = baseRate(exposure.contact()) * positionMultiplier(p.position());
     rate *= toughnessMultiplier(p.tendencies().toughness());
+    rate *= physicalMultiplier(p.physical(), p.tendencies(), exposure.contact());
     if (surface == Surface.TURF) {
       rate *= TURF_MULTIPLIER;
     }
     var u = uniformDouble(rng);
-    System.out.println("DBG u=" + u + " rate=" + rate);
     if (u >= rate) {
       return Optional.empty();
     }
@@ -110,6 +157,45 @@ public final class BaselineInjuryModel implements InjuryModel {
   private static double toughnessMultiplier(int toughness) {
     var t = Math.max(0, Math.min(100, toughness));
     return 1.5 - (t / 100.0);
+  }
+
+  /**
+   * Multi-axis physical multiplier. Three axes are combined into a weighted score in {@code [-1,
+   * +1]}, then applied via a bounded multiplicative envelope:
+   *
+   * <ul>
+   *   <li>{@link Physical#agility()} — weighted at 60% for TACKLE, 20% for SACK/PILE.
+   *   <li>{@link Physical#strength()} — weighted at 20% for TACKLE, 60% for SACK/PILE.
+   *   <li>{@link Tendencies#footballIq()} — 20% across all contact types (awareness / blindside
+   *       avoidance).
+   * </ul>
+   *
+   * <p>A positive score (above-average physical profile) reduces injury rate; a negative score
+   * increases it. The result is clamped to {@code [1 − PHYSICAL_ENVELOPE, 1 + PHYSICAL_ENVELOPE]}.
+   */
+  static double physicalMultiplier(Physical physical, Tendencies tendencies, ContactType contact) {
+    var agility = centered(physical.agility());
+    var strength = centered(physical.strength());
+    var footballIq = centered(tendencies.footballIq());
+
+    // Contact-aware axis weights (agility, strength); iqWeight = 1 − agility − strength.
+    record Weights(double agility, double strength) {}
+    var w =
+        switch (contact) {
+          case TACKLE -> new Weights(0.60, 0.20);
+          case SACK, PILE -> new Weights(0.20, 0.60);
+        };
+    var iqWeight = 1.0 - w.agility() - w.strength();
+    var score = w.agility() * agility + w.strength() * strength + iqWeight * footballIq;
+    // Clamp to [-1, +1] before applying envelope.
+    score = Math.max(-1.0, Math.min(1.0, score));
+    // A higher score means a physically better player → LOWER injury rate.
+    return 1.0 - score * PHYSICAL_ENVELOPE;
+  }
+
+  /** Centers a 0–100 attribute value to {@code [-1, +1]}: 50 → 0, 0 → −1, 100 → +1. */
+  private static double centered(int value) {
+    return (value / 100.0 - 0.5) * 2.0;
   }
 
   private static InjurySeverity sampleSeverity(double draw) {
