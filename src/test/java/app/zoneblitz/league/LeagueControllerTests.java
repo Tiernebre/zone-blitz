@@ -10,6 +10,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -98,11 +99,21 @@ class LeagueControllerTests {
 
     mvc.perform(
             get("/leagues/rows")
-                .param("phase", "COMPLETE")
+                .queryParam("phase", "COMPLETE")
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
         .andExpect(status().isOk())
         .andExpect(content().string(Matchers.containsString("Zeta")))
-        .andExpect(content().string(Matchers.not(Matchers.containsString(">Alpha<"))));
+        .andExpect(content().string(Matchers.not(Matchers.containsString(">Alpha<"))))
+        .andExpect(header().string("HX-Push-Url", "/?phase=COMPLETE"));
+  }
+
+  @Test
+  void leaguesRows_withoutQueryString_pushesBareHomePath() throws Exception {
+    given(listLeagues.listFor("sub-1")).willReturn(List.of());
+
+    mvc.perform(get("/leagues/rows").with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isOk())
+        .andExpect(header().string("HX-Push-Url", "/"));
   }
 
   @Test

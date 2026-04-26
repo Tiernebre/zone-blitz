@@ -97,6 +97,37 @@ class HiringHeadCoachControllerTests {
   }
 
   @Test
+  void poolFragment_setsHxPushUrlToCanonicalPagePath() throws Exception {
+    given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
+
+    mvc.perform(
+            get("/leagues/42/hiring/head-coach/pool")
+                .queryParam("sort", "AGE")
+                .queryParam("dir", "ASC")
+                .queryParam("page", "1")
+                .queryParam("pageSize", "10")
+                .queryParam("archetype", "DEFENSIVE_PLAY_CALLER")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isOk())
+        .andExpect(
+            header()
+                .string(
+                    "HX-Push-Url",
+                    "/leagues/42/hiring/head-coach?sort=AGE&dir=ASC&page=1&pageSize=10&archetype=DEFENSIVE_PLAY_CALLER"));
+  }
+
+  @Test
+  void poolFragment_withoutQueryString_pushesBarePagePath() throws Exception {
+    given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
+
+    mvc.perform(
+            get("/leagues/42/hiring/head-coach/pool")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isOk())
+        .andExpect(header().string("HX-Push-Url", "/leagues/42/hiring/head-coach"));
+  }
+
+  @Test
   void candidatesFragment_returnsFragment() throws Exception {
     given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
 

@@ -10,6 +10,7 @@ import app.zoneblitz.league.hiring.MakeOfferResult;
 import app.zoneblitz.league.hiring.MatchCounterOffer;
 import app.zoneblitz.league.hiring.MatchCounterOfferResult;
 import app.zoneblitz.league.hiring.StartInterview;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,8 +99,13 @@ class HiringDirectorOfScoutingController {
       @AuthenticationPrincipal OAuth2User principal,
       @PathVariable long id,
       @ModelAttribute("poolQuery") DirectorOfScoutingPoolQuery poolQuery,
-      Model model) {
+      Model model,
+      HttpServletRequest request,
+      HttpServletResponse response) {
     addPoolModel(model, resolveView(principal, id), poolQuery);
+    response.setHeader(
+        "HX-Push-Url",
+        canonicalPushUrl("/leagues/" + id + "/hiring/director-of-scouting", request));
     return "league/hiring/director-of-scouting-fragments :: pool";
   }
 
@@ -286,5 +292,10 @@ class HiringDirectorOfScoutingController {
       Model model, DirectorOfScoutingHiringView view, DirectorOfScoutingPoolQuery query) {
     model.addAttribute("view", view);
     model.addAttribute("poolPage", DirectorOfScoutingPoolFilter.apply(view.pool(), query));
+  }
+
+  private static String canonicalPushUrl(String pagePath, HttpServletRequest request) {
+    var queryString = request.getQueryString();
+    return queryString == null || queryString.isEmpty() ? pagePath : pagePath + "?" + queryString;
   }
 }

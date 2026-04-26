@@ -10,6 +10,7 @@ import app.zoneblitz.league.hiring.MakeOfferResult;
 import app.zoneblitz.league.hiring.MatchCounterOffer;
 import app.zoneblitz.league.hiring.MatchCounterOfferResult;
 import app.zoneblitz.league.hiring.StartInterview;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,8 +96,12 @@ class HiringHeadCoachController {
       @AuthenticationPrincipal OAuth2User principal,
       @PathVariable long id,
       @ModelAttribute("poolQuery") HeadCoachPoolQuery poolQuery,
-      Model model) {
+      Model model,
+      HttpServletRequest request,
+      HttpServletResponse response) {
     addPoolModel(model, resolveView(principal, id), poolQuery);
+    response.setHeader(
+        "HX-Push-Url", canonicalPushUrl("/leagues/" + id + "/hiring/head-coach", request));
     return "league/hiring/head-coach-fragments :: pool";
   }
 
@@ -282,5 +287,10 @@ class HiringHeadCoachController {
       Model model, HeadCoachHiringView view, HeadCoachPoolQuery query) {
     model.addAttribute("view", view);
     model.addAttribute("poolPage", HeadCoachPoolFilter.apply(view.pool(), query));
+  }
+
+  private static String canonicalPushUrl(String pagePath, HttpServletRequest request) {
+    var queryString = request.getQueryString();
+    return queryString == null || queryString.isEmpty() ? pagePath : pagePath + "?" + queryString;
   }
 }

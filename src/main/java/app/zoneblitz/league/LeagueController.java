@@ -2,6 +2,8 @@ package app.zoneblitz.league;
 
 import app.zoneblitz.league.franchise.ListFranchises;
 import app.zoneblitz.league.phase.LeaguePhase;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.slf4j.Logger;
@@ -74,9 +76,14 @@ class LeagueController {
       @RequestParam(name = "dir", required = false) LeagueTableQuery.SortDir dir,
       @RequestParam(name = "page", required = false, defaultValue = "1") int page,
       @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
-      Model model) {
+      Model model,
+      HttpServletRequest request,
+      HttpServletResponse response) {
     var query = new LeagueTableQuery(q, name, franchise, phase, sort, dir, page, pageSize);
     model.addAttribute("tablePage", resolveTablePage(principal, query));
+    var queryString = request.getQueryString();
+    response.setHeader(
+        "HX-Push-Url", queryString == null || queryString.isEmpty() ? "/" : "/?" + queryString);
     return "leagues-table-fragments :: table";
   }
 

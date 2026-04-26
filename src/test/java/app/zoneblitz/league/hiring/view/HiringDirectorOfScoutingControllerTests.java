@@ -3,6 +3,7 @@ package app.zoneblitz.league.hiring.view;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -80,6 +81,22 @@ class HiringDirectorOfScoutingControllerTests {
                 .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
         .andExpect(status().isOk())
         .andExpect(view().name("league/hiring/director-of-scouting-fragments :: pool"));
+  }
+
+  @Test
+  void poolFragment_setsHxPushUrlToCanonicalPagePath() throws Exception {
+    given(viewHiring.view(42L, "sub-1")).willReturn(Optional.of(sampleView()));
+
+    mvc.perform(
+            get("/leagues/42/hiring/director-of-scouting/pool")
+                .queryParam("sort", "AGE")
+                .queryParam("dir", "DESC")
+                .with(oauth2Login().attributes(a -> a.put("sub", "sub-1"))))
+        .andExpect(status().isOk())
+        .andExpect(
+            header()
+                .string(
+                    "HX-Push-Url", "/leagues/42/hiring/director-of-scouting?sort=AGE&dir=DESC"));
   }
 
   @Test

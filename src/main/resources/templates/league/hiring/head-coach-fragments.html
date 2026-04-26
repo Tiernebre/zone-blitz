@@ -11,14 +11,8 @@
 	     hx-include="#hc-pool input, #hc-pool select"
 	     class="space-y-4">
 		<div th:insert="~{league/hiring/head-coach-fragments :: league-board}"></div>
-		<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-			<div class="lg:col-span-2">
-				<div th:insert="~{league/hiring/head-coach-fragments :: pool}"></div>
-			</div>
-			<div>
-				<div th:insert="~{league/hiring/head-coach-fragments :: candidates}"></div>
-			</div>
-		</div>
+		<div th:insert="~{league/hiring/head-coach-fragments :: candidates}"></div>
+		<div th:insert="~{league/hiring/head-coach-fragments :: pool}"></div>
 	</div>
 
 	<!-- Candidate pool table: prospect list. Action column narrows to Interview only.
@@ -31,7 +25,6 @@
 	         th:attr="hx-get=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/head-coach/pool'}"
 	         hx-target="this"
 	         hx-swap="outerHTML"
-	         hx-push-url="true"
 	         hx-include="#hc-pool input, #hc-pool select"
 	         hx-trigger="hc-pool:refresh"
 	         class="bg-white border border-slate-200 rounded p-4 shadow-sm space-y-3">
@@ -313,9 +306,9 @@
 	    remain visible (dimmed) with a "Hired by X" badge so negotiations that get snaked don't
 	    silently vanish mid-flow.
 	-->
-	<aside th:fragment="candidates"
-	       id="hc-candidates"
-	       class="bg-white border border-slate-200 rounded p-4 shadow-sm">
+	<section th:fragment="candidates"
+	         id="hc-candidates"
+	         class="bg-white border border-slate-200 rounded p-4 shadow-sm">
 		<div class="flex items-center justify-between mb-2">
 			<h2 class="text-lg font-semibold text-slate-900">Your candidates</h2>
 			<span class="text-xs text-slate-500"
@@ -328,7 +321,8 @@
 		<div th:if="${view.activeInterviews().isEmpty()}" class="text-slate-500 italic text-sm">
 			No interviews conducted yet.
 		</div>
-		<ul th:unless="${view.activeInterviews().isEmpty()}" class="space-y-3">
+		<ul th:unless="${view.activeInterviews().isEmpty()}"
+		    class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
 			<li th:each="row : ${view.activeInterviews()}"
 			    th:classappend="${row.hiredAway() or not row.canOffer()} ? ' opacity-60' : ''"
 			    class="border border-slate-100 rounded p-3 space-y-2">
@@ -454,7 +448,7 @@
 				</th:block>
 			</li>
 		</ul>
-	</aside>
+	</section>
 
 	<!--
 	    League-wide hiring board: one row per team, showing who (if anyone) they've hired from

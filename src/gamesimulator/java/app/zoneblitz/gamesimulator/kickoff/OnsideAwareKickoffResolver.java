@@ -25,8 +25,11 @@ import java.util.UUID;
  * an onside kick is sampled here:
  *
  * <ul>
- *   <li><b>Success probability</b> ≈ 10%, matching the post-2018 NFL baseline (nflfastR 2018-2023
- *       regular season: 29/321 declared onside kicks recovered by the kicking team, 9.0%).
+ *   <li><b>Success probability</b> is sourced from the injected {@link OnsideRecoveryRate}.
+ *       Defaults to a fixed 10% — matching the post-2018 NFL baseline (nflfastR 2018-2023 regular
+ *       season: 29/321 declared onside kicks recovered, 9.0%) — but production wiring layers an
+ *       attribute-aware decorator on top so kicker placement and hands-team ball-skills shift the
+ *       rate.
  *   <li><b>Success:</b> the kicking team retains possession at its own {@code KICK_YARDLINE +
  *       ONSIDE_TRAVEL} (~45), the minimum legal travel distance of an onside kick.
  *   <li><b>Failure:</b> the receiving team takes over at that same spot, which (from their frame)
@@ -34,9 +37,6 @@ import java.util.UUID;
  * </ul>
  */
 public final class OnsideAwareKickoffResolver implements KickoffResolver {
-
-  /** League-wide onside recovery rate 2018-2023 per nflfastR; stays on the kicking team. */
-  static final double ONSIDE_RECOVERY_RATE = 0.10;
 
   /** Kicks are taken from the kicking team's 35 yard line. */
   private static final int KICK_YARDLINE = 35;
@@ -46,15 +46,32 @@ public final class OnsideAwareKickoffResolver implements KickoffResolver {
 
   private final KickoffResolver delegate;
   private final OnsideKickPolicy policy;
+  private final OnsideRecoveryRate recoveryRate;
 
   public OnsideAwareKickoffResolver(KickoffResolver delegate, OnsideKickPolicy policy) {
+    this(delegate, policy, new FixedOnsideRecoveryRate());
+  }
+
+  public OnsideAwareKickoffResolver(
+      KickoffResolver delegate, OnsideKickPolicy policy, OnsideRecoveryRate recoveryRate) {
     this.delegate = Objects.requireNonNull(delegate, "delegate");
     this.policy = Objects.requireNonNull(policy, "policy");
+    this.recoveryRate = Objects.requireNonNull(recoveryRate, "recoveryRate");
   }
 
   /** Construct with the default score-and-time-driven policy wrapping {@code delegate}. */
   public static OnsideAwareKickoffResolver withDefaultPolicy(KickoffResolver delegate) {
     return new OnsideAwareKickoffResolver(delegate, new ScoreAndTimeOnsideKickPolicy());
+  }
+
+  /**
+   * Construct with the default score-and-time-driven policy and a custom recovery-rate model
+   * wrapping {@code delegate}.
+   */
+  public static OnsideAwareKickoffResolver withDefaultPolicy(
+      KickoffResolver delegate, OnsideRecoveryRate recoveryRate) {
+    return new OnsideAwareKickoffResolver(
+        delegate, new ScoreAndTimeOnsideKickPolicy(), recoveryRate);
   }
 
   @Override
@@ -93,7 +110,7 @@ public final class OnsideAwareKickoffResolver implements KickoffResolver {
       Score scoreAfter,
       RandomSource rng) {
     var kicker = KickoffPlayerSelection.pickAccuracyKicker(kickingTeam);
-    var kickingRecovers = rng.nextDouble() < ONSIDE_RECOVERY_RATE;
+    var kickingRecovers = rng.nextDouble() < recoveryRate.compute(kickingTeam, receivingTeam);
     var recoveringSpotKickingFrame = KICK_YARDLINE + ONSIDE_TRAVEL;
     var kickingSide = receivingSide == Side.HOME ? Side.AWAY : Side.HOME;
 
