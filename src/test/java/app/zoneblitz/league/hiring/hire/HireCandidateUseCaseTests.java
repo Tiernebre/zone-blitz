@@ -147,6 +147,43 @@ class HireCandidateUseCaseTests {
   }
 
   @Test
+  void hire_rejectsTeamsOtherOutstandingOffers_soSalaryCapDropsThem() {
+    var ownerSubject = "sub-" + System.nanoTime();
+    var league = createLeagueFor(ownerSubject);
+    leagues.updatePhaseAndResetDay(league.id(), LeaguePhase.HIRING_HEAD_COACH);
+    entryHandler.onEntry(league.id());
+    var pool =
+        pools
+            .findByLeaguePhaseAndType(
+                league.id(), LeaguePhase.HIRING_HEAD_COACH, CandidatePoolType.HEAD_COACH)
+            .orElseThrow();
+    var poolCandidates = candidates.findAllByPoolId(pool.id());
+    var hiredCandidateId = poolCandidates.get(0).id();
+    var otherCandidateId = poolCandidates.get(1).id();
+    var userTeamId = teams.userTeamIdForLeague(league.id()).orElseThrow();
+    var terms =
+        new OfferTerms(
+            new BigDecimal("8500000.00"),
+            4,
+            new BigDecimal("0.95"),
+            RoleScope.HIGH,
+            StaffContinuity.BRING_OWN);
+    var hiredOffer =
+        offers.insertActive(hiredCandidateId, userTeamId, OfferTermsJson.toJson(terms), 1);
+    offers.setStance(hiredOffer.id(), OfferStance.AGREED);
+    var otherOffer =
+        offers.insertActive(otherCandidateId, userTeamId, OfferTermsJson.toJson(terms), 1);
+
+    useCase.hire(league.id(), hiredCandidateId, ownerSubject);
+
+    assertThat(offers.findOutstandingForTeam(userTeamId)).isEmpty();
+    assertThat(offers.findById(otherOffer.id()))
+        .get()
+        .extracting(o -> o.status())
+        .isEqualTo(app.zoneblitz.league.hiring.OfferStatus.REJECTED);
+  }
+
+  @Test
   void hire_createsStaffContract_withCorrectGuaranteeCents() {
     // APY 5,000,000.00 * 5 yrs = 25,000,000.00 * 0.80 guarantee = 20,000,000.00 = 2,000,000,000
     // cents.
