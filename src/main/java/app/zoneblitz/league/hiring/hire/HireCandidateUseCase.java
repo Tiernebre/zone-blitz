@@ -109,6 +109,9 @@ class HireCandidateUseCase implements HireCandidate {
     for (var other : offers.findActiveForCandidate(candidateId)) {
       offers.resolve(other.id(), OfferStatus.REJECTED);
     }
+    for (var stale : offers.findOutstandingForTeam(teamId)) {
+      offers.resolve(stale.id(), OfferStatus.REJECTED);
+    }
     upsertHired(teamId, phase, candidateId, league.phaseDay(), offer.get(), league);
     log.info(
         "user hire leagueId={} teamId={} candidateId={} offerId={} day={}",
