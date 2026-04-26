@@ -71,6 +71,32 @@ class QbPressureEscapeTests {
   }
 
   @Test
+  void resolve_eliteOlVsAverageDl_drivesEscapeMoreOftenThanAverageMatchup() {
+    var averageRoles = rolesWith(averageOl(5), averageDl(4));
+    var eliteOlRoles = rolesWith(eliteOl(5), averageDl(4));
+    var qb = awareMobileQb();
+    var averageCounts = sample(model, averageRoles, qb, new SplittableRandomSource(6L));
+    var eliteOlCounts = sample(model, eliteOlRoles, qb, new SplittableRandomSource(6L));
+
+    assertThat(eliteOlCounts.sack)
+        .as("OL pass-pro attributes must reduce sack share even when DL is average")
+        .isLessThan(averageCounts.sack);
+  }
+
+  @Test
+  void resolve_elitePassRushVsAverageOl_compressesEscapeMoreThanAverageMatchup() {
+    var averageRoles = rolesWith(averageOl(5), averageDl(4));
+    var eliteRushRoles = rolesWith(averageOl(5), elitePassRush(4));
+    var qb = awareMobileQb();
+    var averageCounts = sample(model, averageRoles, qb, new SplittableRandomSource(7L));
+    var eliteDlCounts = sample(model, eliteRushRoles, qb, new SplittableRandomSource(7L));
+
+    assertThat(eliteDlCounts.sack)
+        .as("DL pass-rush attributes must compress QB escape and raise sack share")
+        .isGreaterThan(averageCounts.sack);
+  }
+
+  @Test
   void resolve_weakPassRushAgainstEliteOl_pressureModelDoesNotInflateSacksAboveSampled() {
     var roles = rolesWith(eliteOl(5), weakDl(4));
     var counts = sample(model, roles, awareMobileQb(), new SplittableRandomSource(5L));

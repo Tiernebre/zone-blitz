@@ -5,6 +5,7 @@ import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver.PassMatchup
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.role.DefensiveRole;
 import app.zoneblitz.gamesimulator.role.OffensiveRole;
+import app.zoneblitz.gamesimulator.role.OffensiveRoleAssignment;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
@@ -15,16 +16,22 @@ import java.util.Set;
  * play-action call gets a positive matchup shift — the LBs bite the run fake, leaving voids in the
  * coverage. Other pass concepts get nothing from this shift.
  *
- * <p>The base box-loading shift is then scaled by the QB's {@code playAction} skill (a great PA
- * fake amplifies the freeze; a weak fake bleeds the boost away) and dampened by the defense's
- * second-level {@code playRecognition} (LBs/safeties who diagnose the fake quickly stay in their
- * coverage zones). With league-average attributes (50/50/50) both factors evaluate to 1.0 and the
- * legacy magnitude is preserved.
+ * <p>The base box-loading shift is then scaled by three offensive believability factors and
+ * dampened by one defensive recognition factor:
  *
- * <p>Magnitude is symmetric with {@code BoxCountRunShift}'s {@code DEFAULT_SHIFT_PER_DEFENDER} but
- * inverted in sign: where a heavier box hurts the run, the same loaded box helps PA. Defaults are
- * tuned so a one-defender box-loading shift translates to a comparable matchup magnitude as a
- * role-keyed talent advantage in the role-shift composite.
+ * <ul>
+ *   <li><b>QB play-action skill</b> — a great PA fake amplifies the freeze; a weak fake bleeds the
+ *       boost away.
+ *   <li><b>RB run-threat</b> — the back actually has to look like a credible runner. Vision +
+ *       break-tackle blend captures "would the LBs respect this guy on a pure run?".
+ *   <li><b>OL run-block</b> — a stout run-blocking front sells the fake; a finesse line that never
+ *       moves bodies bleeds believability.
+ *   <li><b>Defense second-level play recognition</b> — LBs/safeties who diagnose the fake quickly
+ *       stay in their coverage zones, dampening the boost.
+ * </ul>
+ *
+ * <p>With league-average attributes (50/50/50) every factor evaluates to 1.0 and the legacy
+ * magnitude is preserved, keeping the calibration baseline intact.
  */
 public final class PlayActionBoxLoadingShift implements PassMatchupShift {
 
@@ -33,6 +40,12 @@ public final class PlayActionBoxLoadingShift implements PassMatchupShift {
 
   /** Maximum scaling/dampening factor either direction; clamps elite/floor amplification. */
   static final double MAX_FACTOR_SHIFT = 0.5;
+
+  /** Maximum scaling factor for the RB run-threat believability term. */
+  static final double MAX_RB_FACTOR_SHIFT = 0.3;
+
+  /** Maximum scaling factor for the OL run-block believability term. */
+  static final double MAX_OL_FACTOR_SHIFT = 0.3;
 
   private static final Set<DefensiveRole> SECOND_LEVEL =
       EnumSet.of(
@@ -43,6 +56,13 @@ public final class PlayActionBoxLoadingShift implements PassMatchupShift {
           DefensiveRole.DEEP_S,
           DefensiveRole.BOX_S,
           DefensiveRole.DIME_LB);
+
+  private static final Set<OffensiveRole> RB_ROLES =
+      EnumSet.of(OffensiveRole.RB_RUSH, OffensiveRole.RB_RECEIVE, OffensiveRole.RB_PROTECT);
+
+  private static final Set<OffensiveRole> OL_ROLES =
+      EnumSet.of(
+          OffensiveRole.LT, OffensiveRole.LG, OffensiveRole.C, OffensiveRole.RG, OffensiveRole.RT);
 
   private final double shiftPerDefender;
 
@@ -70,8 +90,10 @@ public final class PlayActionBoxLoadingShift implements PassMatchupShift {
       qb = context.assignment().offense().players().get(OffensiveRole.QB_MOVEMENT);
     }
     var qbFactor = qb == null ? 1.0 : 1.0 + MAX_FACTOR_SHIFT * centered(qb.skill().playAction());
+    var rbFactor = 1.0 + MAX_RB_FACTOR_SHIFT * meanRbRunThreat(context.assignment().offense());
+    var olFactor = 1.0 + MAX_OL_FACTOR_SHIFT * meanOlRunBlock(context.assignment().offense());
     var defenseFactor = 1.0 - MAX_FACTOR_SHIFT * meanSecondLevelPlayRecognition(context);
-    return base * qbFactor * defenseFactor;
+    return base * qbFactor * rbFactor * olFactor * defenseFactor;
   }
 
   private static double meanSecondLevelPlayRecognition(PassMatchupContext context) {
@@ -83,6 +105,39 @@ public final class PlayActionBoxLoadingShift implements PassMatchupShift {
         continue;
       }
       sum += entry.getValue().tendencies().playRecognition();
+      n++;
+    }
+    if (n == 0) {
+      return 0.0;
+    }
+    return centered(sum / n);
+  }
+
+  private static double meanRbRunThreat(OffensiveRoleAssignment offense) {
+    var n = 0;
+    var sum = 0.0;
+    for (var entry : offense.players().entrySet()) {
+      if (!RB_ROLES.contains(entry.getKey())) {
+        continue;
+      }
+      var skill = entry.getValue().skill();
+      sum += (skill.ballCarrierVision() + skill.breakTackle()) / 2.0;
+      n++;
+    }
+    if (n == 0) {
+      return 0.0;
+    }
+    return centered(sum / n);
+  }
+
+  private static double meanOlRunBlock(OffensiveRoleAssignment offense) {
+    var n = 0;
+    var sum = 0.0;
+    for (var entry : offense.players().entrySet()) {
+      if (!OL_ROLES.contains(entry.getKey())) {
+        continue;
+      }
+      sum += entry.getValue().skill().runBlock();
       n++;
     }
     if (n == 0) {

@@ -253,7 +253,7 @@ public final class MatchupPassResolver implements PassResolver {
             bundle.boxLoadingShift());
     var shift = matchupShift.compute(context, rng);
     var target = resolveTarget(call, roles, qbPlayer, qb, rng);
-    var offsets = situationalShift.compute(state);
+    var offsets = situationalShift.compute(state, assignment);
     var outcome = sampler.sampleRate(outcomeMix, shift, offsets, rng);
 
     return switch (outcome) {
