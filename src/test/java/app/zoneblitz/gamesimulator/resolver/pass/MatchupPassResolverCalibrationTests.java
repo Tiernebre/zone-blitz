@@ -15,11 +15,16 @@ import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
-import app.zoneblitz.gamesimulator.resolver.PositionBasedPassRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.pass.MatchupPassResolver.PassMatchupShift;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
+import app.zoneblitz.gamesimulator.role.SchemeFitRoleAssigner;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
+import app.zoneblitz.gamesimulator.scheme.BuiltinSchemeCatalog;
+import app.zoneblitz.gamesimulator.scheme.DefensiveScheme;
+import app.zoneblitz.gamesimulator.scheme.DefensiveSchemeId;
+import app.zoneblitz.gamesimulator.scheme.OffensiveScheme;
+import app.zoneblitz.gamesimulator.scheme.OffensiveSchemeId;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +44,9 @@ class MatchupPassResolverCalibrationTests {
   private final DefaultBandSampler sampler = new DefaultBandSampler();
   private final OffensivePersonnel offense = TestPersonnel.baselineOffense();
   private final DefensivePersonnel defense = TestPersonnel.baselineDefense();
+  private final BuiltinSchemeCatalog catalog = new BuiltinSchemeCatalog();
+  private final OffensiveScheme offenseScheme = catalog.offense(OffensiveSchemeId.WEST_COAST);
+  private final DefensiveScheme defenseScheme = catalog.defense(DefensiveSchemeId.COVER_2_PRESS);
 
   @Test
   void resolve_zeroShift_outcomeRatesTrackBase() {
@@ -124,7 +132,9 @@ class MatchupPassResolverCalibrationTests {
     var resolver =
         new MatchupPassResolver(
             sampler,
-            new PositionBasedPassRoleAssigner(),
+            new SchemeFitRoleAssigner(offenseScheme),
+            offenseScheme,
+            defenseScheme,
             (ctx, rng) -> 2.0,
             BandCoverageShellSampler.load(repo),
             new ScoreBasedTargetSelector(),
@@ -414,7 +424,9 @@ class MatchupPassResolverCalibrationTests {
         repo.loadDistribution("passing-plays.json", "bands.yardage.interception_return_yards");
     return new MatchupPassResolver(
         sampler,
-        new PositionBasedPassRoleAssigner(),
+        new SchemeFitRoleAssigner(offenseScheme),
+        offenseScheme,
+        defenseScheme,
         shift,
         BandCoverageShellSampler.load(repo),
         new ScoreBasedTargetSelector(),

@@ -7,10 +7,10 @@ import java.util.Objects;
 import java.util.function.ToDoubleFunction;
 
 /**
- * Per-role attribute weighting used by {@link AttributeAwarePuntResolver}. Mirrors {@code
- * RunAttributeWeights} / {@code PassAttributeWeights} — eight physical-axis weights summing to 100
- * plus a 0–100 skill aggregate, both centered to {@code [-1, +1]} so an average-everywhere punter
- * sits at 0.
+ * Per-role attribute weighting used by {@link AttributeAwarePuntResolver}. Same shape as the
+ * scheme-side {@link app.zoneblitz.gamesimulator.role.RoleDemand} — physical-axis weights summing
+ * to 100 plus a 0–100 skill aggregate, both centered to {@code [-1, +1]} so an average-everywhere
+ * punter sits at 0.
  *
  * <p>Package-private — punter weights are an internal seam of the punt resolver and never leak onto
  * its public API.

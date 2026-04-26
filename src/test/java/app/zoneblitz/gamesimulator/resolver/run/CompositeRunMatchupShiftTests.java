@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
+import app.zoneblitz.gamesimulator.resolver.MatchupContextDefaults;
 import app.zoneblitz.gamesimulator.resolver.RunRoles;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import java.util.List;
@@ -16,7 +17,12 @@ class CompositeRunMatchupShiftTests {
       new RunMatchupContext(
           RunConcept.INSIDE_ZONE,
           new RunRoles(Optional.empty(), List.of(), List.of()),
-          OffensiveFormation.SINGLEBACK);
+          OffensiveFormation.SINGLEBACK,
+          50,
+          10,
+          MatchupContextDefaults.OFFENSE,
+          MatchupContextDefaults.DEFENSE,
+          MatchupContextDefaults.EMPTY_ASSIGNMENT);
 
   @Test
   void compute_empty_returnsZero() {

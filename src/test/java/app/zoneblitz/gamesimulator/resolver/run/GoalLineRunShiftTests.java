@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
+import app.zoneblitz.gamesimulator.resolver.MatchupContextDefaults;
 import app.zoneblitz.gamesimulator.resolver.RunRoles;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import java.util.List;
@@ -16,7 +17,14 @@ class GoalLineRunShiftTests {
 
   private static RunMatchupContext ctxAt(int yardLine, int yardsToGo, RunConcept concept) {
     return new RunMatchupContext(
-        concept, EMPTY_ROLES, OffensiveFormation.SINGLEBACK, yardLine, yardsToGo);
+        concept,
+        EMPTY_ROLES,
+        OffensiveFormation.SINGLEBACK,
+        yardLine,
+        yardsToGo,
+        MatchupContextDefaults.OFFENSE,
+        MatchupContextDefaults.DEFENSE,
+        MatchupContextDefaults.EMPTY_ASSIGNMENT);
   }
 
   @Test

@@ -16,9 +16,11 @@ import java.util.Objects;
  * personnel; FANGIO_LIGHT_BOX prefers two-high quarters with sub packages; BUDDY_RYAN_46 piles
  * extra rushers and plays man-cover-1.
  *
- * <p>Demand tables remain empty in this phase — Phase 8 (scouting) and Phase 9 (calibration) will
- * populate role-keyed demand vectors. The preference and bias maps are enough for downstream code
- * to differentiate scheme behavior at the personnel/formation/concept level.
+ * <p>Every scheme shares the same {@link LegacyConceptDemands} table — the per-(role, concept)
+ * overrides translated from the legacy bucket-keyed concept profiles, so the role-keyed matchup
+ * shifts reproduce the legacy aggregation exactly. The table holds no role-default entries, so
+ * scouting still falls back to {@link DefaultRoleDemands} for general scheme-fit scoring.
+ * Per-scheme demand variance lands in a follow-up calibration phase.
  */
 public final class BuiltinSchemeCatalog implements SchemeCatalog {
 
@@ -50,7 +52,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
 
   private static Map<OffensiveSchemeId, OffensiveScheme> buildOffense() {
     var map = new EnumMap<OffensiveSchemeId, OffensiveScheme>(OffensiveSchemeId.class);
-    var emptyTable = RoleDemandTable.ofDefaults(Map.of());
+    var sharedTable = LegacyConceptDemands.table();
 
     map.put(
         OffensiveSchemeId.WEST_COAST,
@@ -70,7 +72,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 PassConcept.SCREEN, 1.2,
                 PassConcept.PLAY_ACTION, 0.9),
             Map.of(RunConcept.OUTSIDE_ZONE, 1.2, RunConcept.INSIDE_ZONE, 1.1),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     map.put(
@@ -88,7 +90,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 PassConcept.HAIL_MARY, 1.5,
                 PassConcept.PLAY_ACTION, 0.7),
             Map.of(RunConcept.QB_DRAW, 1.4, RunConcept.DRAW, 1.2),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     map.put(
@@ -105,7 +107,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 RunConcept.OUTSIDE_ZONE, 1.3,
                 RunConcept.QB_DRAW, 1.4,
                 RunConcept.INSIDE_ZONE, 1.1),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     map.put(
@@ -130,7 +132,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 RunConcept.COUNTER, 1.4,
                 RunConcept.TRAP, 1.3,
                 RunConcept.SWEEP, 1.1),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     map.put(
@@ -150,7 +152,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 PassConcept.DROPBACK, 1.0,
                 PassConcept.QUICK_GAME, 1.0),
             Map.of(RunConcept.OUTSIDE_ZONE, 1.5, RunConcept.INSIDE_ZONE, 1.2),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     map.put(
@@ -174,7 +176,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 RunConcept.INSIDE_ZONE, 1.1,
                 RunConcept.POWER, 1.1,
                 RunConcept.COUNTER, 1.0),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     return Map.copyOf(map);
@@ -182,7 +184,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
 
   private static Map<DefensiveSchemeId, DefensiveScheme> buildDefense() {
     var map = new EnumMap<DefensiveSchemeId, DefensiveScheme>(DefensiveSchemeId.class);
-    var emptyTable = RoleDemandTable.ofDefaults(Map.of());
+    var sharedTable = LegacyConceptDemands.table();
 
     map.put(
         DefensiveSchemeId.COVER_2_PRESS,
@@ -195,7 +197,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 CoverageShell.TWO_MAN, 0.20,
                 CoverageShell.COVER_3, 0.15),
             Map.of(4, 0.75, 5, 0.20, 3, 0.05),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     map.put(
@@ -212,7 +214,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 CoverageShell.QUARTERS, 0.15,
                 CoverageShell.COVER_1, 0.15),
             Map.of(4, 0.70, 5, 0.20, 3, 0.10),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     map.put(
@@ -229,7 +231,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 CoverageShell.COVER_6, 0.30,
                 CoverageShell.COVER_3, 0.15),
             Map.of(4, 0.80, 3, 0.15, 5, 0.05),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     map.put(
@@ -246,7 +248,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 CoverageShell.COVER_6, 0.25,
                 CoverageShell.COVER_2, 0.15),
             Map.of(4, 0.75, 3, 0.20, 5, 0.05),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     map.put(
@@ -263,7 +265,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 CoverageShell.COVER_0, 0.20,
                 CoverageShell.COVER_3, 0.20),
             Map.of(5, 0.45, 6, 0.25, 4, 0.25, 7, 0.05),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     map.put(
@@ -277,7 +279,7 @@ public final class BuiltinSchemeCatalog implements SchemeCatalog {
                 CoverageShell.COVER_3, 0.20,
                 CoverageShell.TWO_MAN, 0.10),
             Map.of(4, 0.85, 3, 0.10, 5, 0.05),
-            emptyTable,
+            sharedTable,
             Map.of()));
 
     return Map.copyOf(map);

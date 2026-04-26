@@ -8,10 +8,10 @@ import java.util.function.ToDoubleFunction;
 
 /**
  * Per-role attribute weighting used by the kicker-driven scoring resolvers ({@link
- * AttributeAwareFieldGoalResolver}, {@link AttributeAwareExtraPointResolver}). Mirrors {@code
- * RunAttributeWeights} / {@code PassAttributeWeights} — eight physical-axis weights summing to 100
- * plus a 0–100 skill aggregate, both centered to {@code [-1, +1]} so an average-everywhere kicker
- * sits at 0.
+ * AttributeAwareFieldGoalResolver}, {@link AttributeAwareExtraPointResolver}). Same shape as the
+ * scheme-side {@link app.zoneblitz.gamesimulator.role.RoleDemand} — physical-axis weights summing
+ * to 100 plus a 0–100 skill aggregate, both centered to {@code [-1, +1]} so an average-everywhere
+ * kicker sits at 0.
  *
  * <p>Package-private — kicker weights are an internal seam of the scoring resolvers and never leak
  * onto their public API.

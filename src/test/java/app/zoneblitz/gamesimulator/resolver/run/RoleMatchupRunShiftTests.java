@@ -5,12 +5,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
-import app.zoneblitz.gamesimulator.resolver.PositionBasedRunRoleAssigner;
-import app.zoneblitz.gamesimulator.resolver.RunRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.MatchupContextDefaults;
 import app.zoneblitz.gamesimulator.resolver.RunRoles;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
+import app.zoneblitz.gamesimulator.role.RoleAssigner;
+import app.zoneblitz.gamesimulator.role.SchemeFitRoleAssigner;
 import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
@@ -22,11 +25,22 @@ import org.junit.jupiter.api.Test;
 class RoleMatchupRunShiftTests {
 
   private final RoleMatchupRunShift shift = new RoleMatchupRunShift();
-  private final RunRoleAssigner assigner = new PositionBasedRunRoleAssigner();
+  private final RoleAssigner assigner = new SchemeFitRoleAssigner(MatchupContextDefaults.OFFENSE);
 
-  private double computeFor(RunConcept concept, RunRoles roles) {
+  private double computeFor(
+      RunConcept concept, OffensivePersonnel offense, DefensivePersonnel defense) {
+    var assignment = assigner.assign(run(), offense, defense);
+    var roles = RunRoles.from(assignment);
     return shift.compute(
-        new RunMatchupContext(concept, roles, OffensiveFormation.SINGLEBACK),
+        new RunMatchupContext(
+            concept,
+            roles,
+            OffensiveFormation.SINGLEBACK,
+            50,
+            10,
+            MatchupContextDefaults.OFFENSE,
+            MatchupContextDefaults.DEFENSE,
+            assignment),
         new SplittableRandomSource(0L));
   }
 
@@ -35,7 +49,7 @@ class RoleMatchupRunShiftTests {
     var offense = TestPersonnel.baselineOffense();
     var defense = TestPersonnel.baselineDefense();
 
-    var result = computeFor(RunConcept.INSIDE_ZONE, assigner.assign(run(), offense, defense));
+    var result = computeFor(RunConcept.INSIDE_ZONE, offense, defense);
 
     assertThat(result).isZero();
   }
@@ -61,7 +75,7 @@ class RoleMatchupRunShiftTests {
     var offense = TestPersonnel.offenseWith(eliteRb, eliteOl);
     var defense = TestPersonnel.baselineDefense();
 
-    var result = computeFor(RunConcept.INSIDE_ZONE, assigner.assign(run(), offense, defense));
+    var result = computeFor(RunConcept.INSIDE_ZONE, offense, defense);
 
     assertThat(result).isPositive();
   }
@@ -95,7 +109,7 @@ class RoleMatchupRunShiftTests {
     var offense = TestPersonnel.offenseWith(poorCarrier, poorBlocker);
     var defense = TestPersonnel.defenseWith(eliteDefender);
 
-    var clamped = computeFor(RunConcept.INSIDE_ZONE, assigner.assign(run(), offense, defense));
+    var clamped = computeFor(RunConcept.INSIDE_ZONE, offense, defense);
     var rawSkillDeltaSum = (1.0 - 0.0) + (1.0 - 0.0);
 
     assertThat(clamped)
@@ -124,32 +138,12 @@ class RoleMatchupRunShiftTests {
     var offense = TestPersonnel.offenseWith(eliteCarrier, weakBlocker);
     var defense = TestPersonnel.baselineDefense();
 
-    var power = computeFor(RunConcept.POWER, assigner.assign(run(), offense, defense));
-    var draw = computeFor(RunConcept.DRAW, assigner.assign(run(), offense, defense));
+    var power = computeFor(RunConcept.POWER, offense, defense);
+    var draw = computeFor(RunConcept.DRAW, offense, defense);
 
     assertThat(draw)
         .as("DRAW's 1.3 carrier weight amplifies the elite-carrier leg more than POWER's 0.8 does")
         .isGreaterThan(power);
-  }
-
-  private static Player eliteCarrier() {
-    return new Player(
-        pid(1),
-        Position.RB,
-        "elite-RB",
-        Physical.average(),
-        new Skill(50, 50, 50, 50, 50, 50, 50, 100, 100, 50, 50, 50, 50, 50, 50),
-        Tendencies.average());
-  }
-
-  private static Player eliteBlocker() {
-    return new Player(
-        pid(2),
-        Position.OL,
-        "elite-OL",
-        Physical.average(),
-        new Skill(50, 50, 50, 50, 50, 50, 100, 50, 50, 50, 50, 50, 50, 50, 50),
-        Tendencies.average());
   }
 
   private static PlayCaller.PlayCall run() {

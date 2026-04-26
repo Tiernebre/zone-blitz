@@ -28,8 +28,8 @@ Every stochastic seam takes `RandomSource` as a method parameter (not a field) s
 - `fatigue.FatigueModel` — rotation hook + per-snap performance multiplier; `PositionalFatigueModel` is the default.
 - `environment.HomeFieldModel` — snap-level home-field tilt from environmental modifiers.
 - `resolver.PlayResolver` — top-level dispatcher.
-- `resolver.pass.PassResolver`, `resolver.pass.TargetSelector`, `resolver.PassRoleAssigner` — pass family.
-- `resolver.run.RunResolver`, `resolver.RunRoleAssigner` — run family.
+- `resolver.pass.PassResolver`, `resolver.pass.TargetSelector` — pass family. Role assignment goes through `role.RoleAssigner` (impl: `SchemeFitRoleAssigner`); the resolver derives bucket-flattened `PassRoles` via `PassRoles.from(RoleAssignmentPair)`.
+- `resolver.run.RunResolver` — run family. Role assignment via `role.RoleAssigner`; bucket flattening via `RunRoles.from(RoleAssignmentPair)`.
 - `resolver.FumbleRecoveryModel` — recovery side resolution.
 - `clock.ClockModel` — per-play clock advance (default `BandClockModel`).
 - `penalty.PenaltyModel` — pre-snap and play penalty sampling (default `BandPenaltyModel`).

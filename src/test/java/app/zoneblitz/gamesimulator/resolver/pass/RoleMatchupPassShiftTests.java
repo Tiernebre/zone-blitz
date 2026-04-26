@@ -6,12 +6,15 @@ import app.zoneblitz.gamesimulator.event.PassConcept;
 import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.formation.CoverageShell;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
+import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
-import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.MatchupContextDefaults;
 import app.zoneblitz.gamesimulator.resolver.PassRoles;
-import app.zoneblitz.gamesimulator.resolver.PositionBasedPassRoleAssigner;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
+import app.zoneblitz.gamesimulator.role.RoleAssigner;
+import app.zoneblitz.gamesimulator.role.SchemeFitRoleAssigner;
 import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.roster.Position;
@@ -23,12 +26,20 @@ import org.junit.jupiter.api.Test;
 class RoleMatchupPassShiftTests {
 
   private final RoleMatchupPassShift shift = new RoleMatchupPassShift();
-  private final PassRoleAssigner assigner = new PositionBasedPassRoleAssigner();
+  private final RoleAssigner assigner = new SchemeFitRoleAssigner(MatchupContextDefaults.OFFENSE);
 
-  private double computeFor(PassRoles roles) {
+  private double computeFor(OffensivePersonnel offense, DefensivePersonnel defense) {
+    var assignment = assigner.assign(pass(), offense, defense);
+    var roles = PassRoles.from(assignment);
     return shift.compute(
         new PassMatchupContext(
-            PassConcept.DROPBACK, roles, OffensiveFormation.SHOTGUN, CoverageShell.COVER_3),
+            PassConcept.DROPBACK,
+            roles,
+            OffensiveFormation.SHOTGUN,
+            CoverageShell.COVER_3,
+            MatchupContextDefaults.OFFENSE,
+            MatchupContextDefaults.DEFENSE,
+            assignment),
         new SplittableRandomSource(0L));
   }
 
@@ -37,7 +48,7 @@ class RoleMatchupPassShiftTests {
     var offense = TestPersonnel.baselineOffense();
     var defense = TestPersonnel.baselineDefense();
 
-    var result = computeFor(assigner.assign(pass(), offense, defense));
+    var result = computeFor(offense, defense);
 
     assertThat(result).isZero();
   }
@@ -63,7 +74,7 @@ class RoleMatchupPassShiftTests {
     var offense = TestPersonnel.offenseWith(wr);
     var defense = TestPersonnel.defenseWith(cb);
 
-    var result = computeFor(assigner.assign(pass(), offense, defense));
+    var result = computeFor(offense, defense);
 
     assertThat(result).isPositive();
   }
@@ -89,7 +100,7 @@ class RoleMatchupPassShiftTests {
     var offense = TestPersonnel.offenseWith(wr);
     var defense = TestPersonnel.defenseWith(olInCoverage);
 
-    var clamped = computeFor(assigner.assign(pass(), offense, defense));
+    var clamped = computeFor(offense, defense);
     var rawSkillDelta = (0.0) - (1.0);
 
     assertThat(clamped)
@@ -118,7 +129,7 @@ class RoleMatchupPassShiftTests {
     var offense = TestPersonnel.offenseWith(poorWr);
     var defense = TestPersonnel.defenseWith(eliteCb);
 
-    var clamped = computeFor(assigner.assign(pass(), offense, defense));
+    var clamped = computeFor(offense, defense);
     var rawSkillDelta = 1.0 - 0.0;
 
     assertThat(clamped)

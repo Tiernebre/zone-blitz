@@ -13,13 +13,15 @@ import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.resolver.PassOutcome;
-import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.PassRoles;
-import app.zoneblitz.gamesimulator.resolver.SchemeAwarePassRoleAssigner;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.role.RoleAssigner;
 import app.zoneblitz.gamesimulator.role.SchemeFitRoleAssigner;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.scheme.BuiltinSchemeCatalog;
+import app.zoneblitz.gamesimulator.scheme.DefensiveScheme;
+import app.zoneblitz.gamesimulator.scheme.DefensiveSchemeId;
+import app.zoneblitz.gamesimulator.scheme.OffensiveScheme;
 import app.zoneblitz.gamesimulator.scheme.OffensiveSchemeId;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +88,9 @@ public final class MatchupPassResolver implements PassResolver {
   private static final double DEFAULT_EXPLOSIVE_GAMMA = 0.04;
 
   private final BandSampler sampler;
-  private final PassRoleAssigner roleAssigner;
+  private final RoleAssigner roleAssigner;
+  private final OffensiveScheme offenseScheme;
+  private final DefensiveScheme defenseScheme;
   private final PassMatchupShift matchupShift;
   private final SituationalPassShift situationalShift;
   private final CoverageShellSampler shellSampler;
@@ -100,7 +104,9 @@ public final class MatchupPassResolver implements PassResolver {
 
   public MatchupPassResolver(
       BandSampler sampler,
-      PassRoleAssigner roleAssigner,
+      RoleAssigner roleAssigner,
+      OffensiveScheme offenseScheme,
+      DefensiveScheme defenseScheme,
       PassMatchupShift matchupShift,
       CoverageShellSampler shellSampler,
       TargetSelector targetSelector,
@@ -113,6 +119,8 @@ public final class MatchupPassResolver implements PassResolver {
     this(
         sampler,
         roleAssigner,
+        offenseScheme,
+        defenseScheme,
         matchupShift,
         SituationalPassShift.ZERO,
         shellSampler,
@@ -127,7 +135,9 @@ public final class MatchupPassResolver implements PassResolver {
 
   MatchupPassResolver(
       BandSampler sampler,
-      PassRoleAssigner roleAssigner,
+      RoleAssigner roleAssigner,
+      OffensiveScheme offenseScheme,
+      DefensiveScheme defenseScheme,
       PassMatchupShift matchupShift,
       SituationalPassShift situationalShift,
       CoverageShellSampler shellSampler,
@@ -140,6 +150,8 @@ public final class MatchupPassResolver implements PassResolver {
       DistributionalBand interceptionReturnYards) {
     this.sampler = Objects.requireNonNull(sampler, "sampler");
     this.roleAssigner = Objects.requireNonNull(roleAssigner, "roleAssigner");
+    this.offenseScheme = Objects.requireNonNull(offenseScheme, "offenseScheme");
+    this.defenseScheme = Objects.requireNonNull(defenseScheme, "defenseScheme");
     this.matchupShift = Objects.requireNonNull(matchupShift, "matchupShift");
     this.situationalShift = Objects.requireNonNull(situationalShift, "situationalShift");
     this.shellSampler = Objects.requireNonNull(shellSampler, "shellSampler");
@@ -177,10 +189,14 @@ public final class MatchupPassResolver implements PassResolver {
     var shellSampler = BandCoverageShellSampler.load(repo);
     var composite =
         new CompositePassMatchupShift(new RoleMatchupPassShift(), new CoverageShellPassShift());
-    var defaultOffenseScheme = new BuiltinSchemeCatalog().offense(OffensiveSchemeId.WEST_COAST);
+    var catalog = new BuiltinSchemeCatalog();
+    var defaultOffenseScheme = catalog.offense(OffensiveSchemeId.WEST_COAST);
+    var defaultDefenseScheme = catalog.defense(DefensiveSchemeId.COVER_2_PRESS);
     return new MatchupPassResolver(
         sampler,
-        new SchemeAwarePassRoleAssigner(new SchemeFitRoleAssigner(defaultOffenseScheme)),
+        new SchemeFitRoleAssigner(defaultOffenseScheme),
+        defaultOffenseScheme,
+        defaultDefenseScheme,
         composite,
         new DownDistancePassShift(),
         shellSampler,
@@ -208,10 +224,19 @@ public final class MatchupPassResolver implements PassResolver {
 
     var qbPlayer = offense.quarterback();
     var qb = qbPlayer.id();
-    var roles = roleAssigner.assign(call, offense, defense);
+    var assignment = roleAssigner.assign(call, offense, defense);
+    var roles = PassRoles.from(assignment);
     var shellRng = rng.split(SHELL_SPLIT_KEY);
     var shell = shellSampler.sample(call.formation(), shellRng);
-    var context = new PassMatchupContext(call.passConcept(), roles, call.formation(), shell);
+    var context =
+        new PassMatchupContext(
+            call.passConcept(),
+            roles,
+            call.formation(),
+            shell,
+            offenseScheme,
+            defenseScheme,
+            assignment);
     var shift = matchupShift.compute(context, rng);
     var target = resolveTarget(call, roles, qbPlayer, qb, rng);
     var offsets = situationalShift.compute(state);

@@ -30,8 +30,10 @@ public interface PlayCaller {
    *
    * <p>{@code runConcept} carries coach intent into the run resolver's matchup shift and is stamped
    * onto the resulting {@code RunOutcome.Run}. {@code passConcept} does the same for passes via
-   * {@code PassConceptProfiles}. {@code formation} feeds the pre-snap box-count and coverage-shell
-   * samplers. All fields are required. Convenience constructors default the missing fields:
+   * each scheme's per-(role, concept) demand entries in {@link
+   * app.zoneblitz.gamesimulator.scheme.RoleDemandTable}. {@code formation} feeds the pre-snap
+   * box-count and coverage-shell samplers. All fields are required. Convenience constructors
+   * default the missing fields:
    *
    * <ul>
    *   <li>run kind → {@link RunConcept#INSIDE_ZONE}, {@link PassConcept#DROPBACK} (placeholder,

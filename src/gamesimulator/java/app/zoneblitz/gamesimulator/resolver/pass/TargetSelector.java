@@ -1,7 +1,6 @@
 package app.zoneblitz.gamesimulator.resolver.pass;
 
 import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
-import app.zoneblitz.gamesimulator.resolver.PassRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.PassRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Player;
@@ -41,7 +40,7 @@ public interface TargetSelector {
    * selector that draws no randomness.
    *
    * @param call the play call
-   * @param roles role buckets from {@link PassRoleAssigner#assign}
+   * @param roles bucket-flattened role view derived from the role assignment
    * @param qb the QB executing the dropback
    * @param rng randomness source
    * @return a {@link TargetChoice} describing the outcome shape and (for {@code Throw}) the target

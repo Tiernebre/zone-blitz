@@ -13,11 +13,14 @@ import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
 import app.zoneblitz.gamesimulator.resolver.BaselineFumbleRecoveryModel;
 import app.zoneblitz.gamesimulator.resolver.FumbleRecoveryModel;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
-import app.zoneblitz.gamesimulator.resolver.RunRoleAssigner;
-import app.zoneblitz.gamesimulator.resolver.SchemeAwareRunRoleAssigner;
+import app.zoneblitz.gamesimulator.resolver.RunRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.role.RoleAssigner;
 import app.zoneblitz.gamesimulator.role.SchemeFitRoleAssigner;
 import app.zoneblitz.gamesimulator.scheme.BuiltinSchemeCatalog;
+import app.zoneblitz.gamesimulator.scheme.DefensiveScheme;
+import app.zoneblitz.gamesimulator.scheme.DefensiveSchemeId;
+import app.zoneblitz.gamesimulator.scheme.OffensiveScheme;
 import app.zoneblitz.gamesimulator.scheme.OffensiveSchemeId;
 import java.util.EnumMap;
 import java.util.Map;
@@ -35,7 +38,7 @@ import java.util.Optional;
  * <p>With {@link RunMatchupShift#ZERO} (or average-attribute rosters under {@link
  * RoleMatchupRunShift}) the resolver reproduces the shipped outcome-mix rates and per-bucket ladder
  * percentiles — baseline parity is a structural invariant of the resolver, not a wiring accident.
- * Carrier identity is decided pre-snap by the {@link RunRoleAssigner}; tackler identity is deferred
+ * Carrier identity is decided pre-snap by the {@link RoleAssigner}; tackler identity is deferred
  * until run-defender assignment separates first-level from second-level defenders.
  *
  * <p>{@link RunOutcomeKind} is an engine-internal sampling classifier. Consumers see only {@link
@@ -63,7 +66,9 @@ public final class MatchupRunResolver implements RunResolver {
           RunOutcomeKind.FUMBLE, -0.2);
 
   private final BandSampler sampler;
-  private final RunRoleAssigner roleAssigner;
+  private final RoleAssigner roleAssigner;
+  private final OffensiveScheme offenseScheme;
+  private final DefensiveScheme defenseScheme;
   private final RunMatchupShift matchupShift;
   private final RateBand<RunOutcomeKind> outcomeMix;
   private final Map<RunOutcomeKind, DistributionalBand> yardsByKind;
@@ -72,7 +77,9 @@ public final class MatchupRunResolver implements RunResolver {
 
   public MatchupRunResolver(
       BandSampler sampler,
-      RunRoleAssigner roleAssigner,
+      RoleAssigner roleAssigner,
+      OffensiveScheme offenseScheme,
+      DefensiveScheme defenseScheme,
       RunMatchupShift matchupShift,
       RateBand<RunOutcomeKind> outcomeMix,
       Map<RunOutcomeKind, DistributionalBand> yardsByKind,
@@ -80,6 +87,8 @@ public final class MatchupRunResolver implements RunResolver {
     this(
         sampler,
         roleAssigner,
+        offenseScheme,
+        defenseScheme,
         matchupShift,
         outcomeMix,
         yardsByKind,
@@ -89,7 +98,9 @@ public final class MatchupRunResolver implements RunResolver {
 
   public MatchupRunResolver(
       BandSampler sampler,
-      RunRoleAssigner roleAssigner,
+      RoleAssigner roleAssigner,
+      OffensiveScheme offenseScheme,
+      DefensiveScheme defenseScheme,
       RunMatchupShift matchupShift,
       RateBand<RunOutcomeKind> outcomeMix,
       Map<RunOutcomeKind, DistributionalBand> yardsByKind,
@@ -97,6 +108,8 @@ public final class MatchupRunResolver implements RunResolver {
       FumbleRecoveryModel fumbleRecoveryModel) {
     this.sampler = Objects.requireNonNull(sampler, "sampler");
     this.roleAssigner = Objects.requireNonNull(roleAssigner, "roleAssigner");
+    this.offenseScheme = Objects.requireNonNull(offenseScheme, "offenseScheme");
+    this.defenseScheme = Objects.requireNonNull(defenseScheme, "defenseScheme");
     this.matchupShift = Objects.requireNonNull(matchupShift, "matchupShift");
     this.outcomeMix = Objects.requireNonNull(outcomeMix, "outcomeMix");
     this.fumbleRecoveryModel = Objects.requireNonNull(fumbleRecoveryModel, "fumbleRecoveryModel");
@@ -142,10 +155,14 @@ public final class MatchupRunResolver implements RunResolver {
         new BaselineFumbleRecoveryModel(
             BaselineFumbleRecoveryModel.DEFAULT_DEFENSE_RECOVERY_RATE, sampler, fumbleReturnYards);
 
-    var defaultOffenseScheme = new BuiltinSchemeCatalog().offense(OffensiveSchemeId.WEST_COAST);
+    var catalog = new BuiltinSchemeCatalog();
+    var defaultOffenseScheme = catalog.offense(OffensiveSchemeId.WEST_COAST);
+    var defaultDefenseScheme = catalog.defense(DefensiveSchemeId.COVER_2_PRESS);
     return new MatchupRunResolver(
         sampler,
-        new SchemeAwareRunRoleAssigner(new SchemeFitRoleAssigner(defaultOffenseScheme)),
+        new SchemeFitRoleAssigner(defaultOffenseScheme),
+        defaultOffenseScheme,
+        defaultDefenseScheme,
         composite,
         outcomeMix,
         yardsByKind,
@@ -166,7 +183,8 @@ public final class MatchupRunResolver implements RunResolver {
     Objects.requireNonNull(defense, "defense");
     Objects.requireNonNull(rng, "rng");
 
-    var roles = roleAssigner.assign(call, offense, defense);
+    var assignment = roleAssigner.assign(call, offense, defense);
+    var roles = RunRoles.from(assignment);
     var carrier =
         roles
             .ballCarrier()
@@ -181,7 +199,10 @@ public final class MatchupRunResolver implements RunResolver {
             roles,
             call.formation(),
             state.spot().yardLine(),
-            state.downAndDistance().yardsToGo());
+            state.downAndDistance().yardsToGo(),
+            offenseScheme,
+            defenseScheme,
+            assignment);
     var shift = matchupShift.compute(context, rng);
     var kind = sampler.sampleRate(outcomeMix, shift, rng);
     var yardsBand = kind == RunOutcomeKind.FUMBLE ? fumbleYards : yardsByKind.get(kind);

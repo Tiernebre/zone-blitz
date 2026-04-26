@@ -6,6 +6,7 @@ import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.formation.BoxCountSampler;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
 import app.zoneblitz.gamesimulator.formation.PlayType;
+import app.zoneblitz.gamesimulator.resolver.MatchupContextDefaults;
 import app.zoneblitz.gamesimulator.resolver.RunRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
@@ -19,7 +20,12 @@ class BoxCountRunShiftTests {
       new RunMatchupContext(
           RunConcept.INSIDE_ZONE,
           new RunRoles(Optional.empty(), List.of(), List.of()),
-          OffensiveFormation.SINGLEBACK);
+          OffensiveFormation.SINGLEBACK,
+          50,
+          10,
+          MatchupContextDefaults.OFFENSE,
+          MatchupContextDefaults.DEFENSE,
+          MatchupContextDefaults.EMPTY_ASSIGNMENT);
 
   @Test
   void compute_sampledEqualsExpected_returnsZero() {

@@ -13,10 +13,15 @@ import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.playcalling.PlayCaller;
-import app.zoneblitz.gamesimulator.resolver.PositionBasedRunRoleAssigner;
 import app.zoneblitz.gamesimulator.resolver.RunOutcome;
 import app.zoneblitz.gamesimulator.resolver.run.MatchupRunResolver.RunMatchupShift;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
+import app.zoneblitz.gamesimulator.role.SchemeFitRoleAssigner;
+import app.zoneblitz.gamesimulator.scheme.BuiltinSchemeCatalog;
+import app.zoneblitz.gamesimulator.scheme.DefensiveScheme;
+import app.zoneblitz.gamesimulator.scheme.DefensiveSchemeId;
+import app.zoneblitz.gamesimulator.scheme.OffensiveScheme;
+import app.zoneblitz.gamesimulator.scheme.OffensiveSchemeId;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
@@ -31,6 +36,9 @@ class MatchupRunResolverTests {
   private final DefaultBandSampler sampler = new DefaultBandSampler();
   private final OffensivePersonnel offense = TestPersonnel.baselineOffense();
   private final DefensivePersonnel defense = TestPersonnel.baselineDefense();
+  private final BuiltinSchemeCatalog catalog = new BuiltinSchemeCatalog();
+  private final OffensiveScheme offenseScheme = catalog.offense(OffensiveSchemeId.WEST_COAST);
+  private final DefensiveScheme defenseScheme = catalog.defense(DefensiveSchemeId.COVER_2_PRESS);
 
   @Test
   void resolve_zeroShift_outcomeRatesTrackBase() {
@@ -215,7 +223,14 @@ class MatchupRunResolverTests {
         repo.loadDistribution("rushing-plays.json", "bands.by_outcome.breakaway"));
     var fumbleYards = repo.loadDistribution("rushing-plays.json", "bands.overall");
     return new MatchupRunResolver(
-        sampler, new PositionBasedRunRoleAssigner(), shift, mix, yardsByKind, fumbleYards);
+        sampler,
+        new SchemeFitRoleAssigner(offenseScheme),
+        offenseScheme,
+        defenseScheme,
+        shift,
+        mix,
+        yardsByKind,
+        fumbleYards);
   }
 
   private static RateBand<RunOutcomeKind> forcedKind(RunOutcomeKind only) {

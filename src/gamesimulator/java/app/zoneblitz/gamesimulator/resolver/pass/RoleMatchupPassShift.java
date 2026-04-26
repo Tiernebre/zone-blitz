@@ -1,19 +1,23 @@
 package app.zoneblitz.gamesimulator.resolver.pass;
 
+import app.zoneblitz.gamesimulator.event.PassConcept;
+import app.zoneblitz.gamesimulator.resolver.PassRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
+import app.zoneblitz.gamesimulator.role.DefensiveRole;
+import app.zoneblitz.gamesimulator.role.DefensiveRoleAssignment;
+import app.zoneblitz.gamesimulator.role.OffensiveRole;
+import app.zoneblitz.gamesimulator.role.OffensiveRoleAssignment;
+import app.zoneblitz.gamesimulator.role.RoleDemand;
 import app.zoneblitz.gamesimulator.roster.Player;
-import java.util.List;
+import app.zoneblitz.gamesimulator.scheme.RoleDemandTable;
 import java.util.function.ToDoubleFunction;
 
 /**
- * Concept-aware, role-keyed pass-matchup shift with physical-fit clamping. Phase-5 successor to
- * {@code ClampedPassMatchupShift} — the math currently mirrors the legacy bucket aggregation
- * (coverage leg + pass-rush leg, weighted per concept profile) so calibration parity is preserved.
- *
- * <p>Phase 7+ extends this class to add per-{@code RolePair} contributions sourced from each
- * scheme's {@code RoleDemandTable}: when scheme demand data is populated, individual pair deltas
- * sum into the shift on top of (or in place of) the bucket-level aggregate. Until then this is a
- * structural rename — the class name signals direction.
+ * Concept-aware, role-keyed pass-matchup shift with physical-fit clamping. Aggregates per-(role,
+ * player) demand scores from each scheme's {@link RoleDemandTable} into the four legacy buckets
+ * (route runners, coverage defenders, pass rushers, pass blockers), then runs the same
+ * physical-floor / physical-ceiling clamp as before. Concept leg weights come from {@link
+ * PassConcept#coverageLegWeight()} / {@link PassConcept#passRushLegWeight()}.
  *
  * <p>Formula per leg (coverage-leg and pass-rush-leg):
  *
@@ -33,25 +37,28 @@ public final class RoleMatchupPassShift implements MatchupPassResolver.PassMatch
 
   @Override
   public double compute(PassMatchupContext context, RandomSource rng) {
-    var profile = PassConceptProfiles.forConcept(context.concept());
-    var roles = context.roles();
+    var concept = context.concept();
+    var offTable = context.offenseScheme().demandTable();
+    var defTable = context.defenseScheme().demandTable();
+    var offense = context.assignment().offense();
+    var defense = context.assignment().defense();
 
-    var coverage =
-        clampedDelta(
-            aggregate(roles.routeRunners(), profile.offRoute()::skillScore),
-            aggregate(roles.coverageDefenders(), profile.defCoverage()::skillScore),
-            aggregate(roles.routeRunners(), p -> profile.offRoute().physicalScore(p.physical())),
-            aggregate(
-                roles.coverageDefenders(), p -> profile.defCoverage().physicalScore(p.physical())));
-    var passRush =
-        clampedDelta(
-            aggregate(roles.passRushers(), profile.defPassRush()::skillScore),
-            aggregate(roles.passBlockers(), profile.offProtection()::skillScore),
-            aggregate(roles.passRushers(), p -> profile.defPassRush().physicalScore(p.physical())),
-            aggregate(
-                roles.passBlockers(), p -> profile.offProtection().physicalScore(p.physical())));
+    var routeSkill = aggregateOffense(offense, offTable, concept, PassRoles::isRouteRunner, true);
+    var routePhys = aggregateOffense(offense, offTable, concept, PassRoles::isRouteRunner, false);
+    var coverageSkill =
+        aggregateDefense(defense, defTable, concept, PassRoles::isCoverageDefender, true);
+    var coveragePhys =
+        aggregateDefense(defense, defTable, concept, PassRoles::isCoverageDefender, false);
 
-    return profile.coverageLegWeight() * coverage - profile.passRushLegWeight() * passRush;
+    var protSkill = aggregateOffense(offense, offTable, concept, PassRoles::isPassBlocker, true);
+    var protPhys = aggregateOffense(offense, offTable, concept, PassRoles::isPassBlocker, false);
+    var rushSkill = aggregateDefense(defense, defTable, concept, PassRoles::isPassRusher, true);
+    var rushPhys = aggregateDefense(defense, defTable, concept, PassRoles::isPassRusher, false);
+
+    var coverage = clampedDelta(routeSkill, coverageSkill, routePhys, coveragePhys);
+    var passRush = clampedDelta(rushSkill, protSkill, rushPhys, protPhys);
+
+    return concept.coverageLegWeight() * coverage - concept.passRushLegWeight() * passRush;
   }
 
   private static double clampedDelta(
@@ -63,14 +70,46 @@ public final class RoleMatchupPassShift implements MatchupPassResolver.PassMatch
     return Math.max(floor, Math.min(ceiling, raw));
   }
 
-  private static double aggregate(List<Player> players, ToDoubleFunction<Player> scorer) {
-    if (players.isEmpty()) {
-      return 0.0;
-    }
+  private static double aggregateOffense(
+      OffensiveRoleAssignment assignment,
+      RoleDemandTable table,
+      PassConcept concept,
+      java.util.function.Predicate<OffensiveRole> bucket,
+      boolean skill) {
+    var n = 0;
     var sum = 0.0;
-    for (var p : players) {
-      sum += scorer.applyAsDouble(p);
+    for (var entry : assignment.players().entrySet()) {
+      if (!bucket.test(entry.getKey())) {
+        continue;
+      }
+      var demand = table.lookup(entry.getKey(), concept);
+      sum += score(demand, entry.getValue(), skill);
+      n++;
     }
-    return sum / players.size();
+    return n == 0 ? 0.0 : sum / n;
+  }
+
+  private static double aggregateDefense(
+      DefensiveRoleAssignment assignment,
+      RoleDemandTable table,
+      PassConcept concept,
+      java.util.function.Predicate<DefensiveRole> bucket,
+      boolean skill) {
+    var n = 0;
+    var sum = 0.0;
+    for (var entry : assignment.players().entrySet()) {
+      if (!bucket.test(entry.getKey())) {
+        continue;
+      }
+      var demand = table.lookup(entry.getKey(), concept);
+      sum += score(demand, entry.getValue(), skill);
+      n++;
+    }
+    return n == 0 ? 0.0 : sum / n;
+  }
+
+  private static double score(RoleDemand demand, Player player, boolean skill) {
+    ToDoubleFunction<Player> fn = skill ? demand::skillScore : demand::physicalScore;
+    return fn.applyAsDouble(player);
   }
 }
