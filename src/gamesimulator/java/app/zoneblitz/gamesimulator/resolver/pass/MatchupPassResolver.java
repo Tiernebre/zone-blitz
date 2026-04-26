@@ -1,6 +1,8 @@
 package app.zoneblitz.gamesimulator.resolver.pass;
 
 import app.zoneblitz.gamesimulator.GameState;
+import app.zoneblitz.gamesimulator.adjustments.DefensiveAdjustmentSource;
+import app.zoneblitz.gamesimulator.adjustments.StatsBasedDefensiveAdjustments;
 import app.zoneblitz.gamesimulator.band.BandRepository;
 import app.zoneblitz.gamesimulator.band.BandSampler;
 import app.zoneblitz.gamesimulator.band.DistributionalBand;
@@ -17,6 +19,7 @@ import app.zoneblitz.gamesimulator.resolver.PassRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.role.RoleAssigner;
 import app.zoneblitz.gamesimulator.role.SchemeFitRoleAssigner;
+import app.zoneblitz.gamesimulator.roster.DefensiveCoachTendencies;
 import app.zoneblitz.gamesimulator.roster.Player;
 import app.zoneblitz.gamesimulator.scheme.BuiltinSchemeCatalog;
 import app.zoneblitz.gamesimulator.scheme.DefensiveScheme;
@@ -101,6 +104,8 @@ public final class MatchupPassResolver implements PassResolver {
   private final DistributionalBand sackYards;
   private final DistributionalBand scrambleYards;
   private final DistributionalBand interceptionReturnYards;
+  private final DefensiveAdjustmentSource defensiveAdjustments =
+      new StatsBasedDefensiveAdjustments();
 
   public MatchupPassResolver(
       BandSampler sampler,
@@ -188,7 +193,10 @@ public final class MatchupPassResolver implements PassResolver {
         repo.loadDistribution(PASSING_PLAYS, "bands.yardage.interception_return_yards");
     var shellSampler = BandCoverageShellSampler.load(repo);
     var composite =
-        new CompositePassMatchupShift(new RoleMatchupPassShift(), new CoverageShellPassShift());
+        new CompositePassMatchupShift(
+            new RoleMatchupPassShift(),
+            new CoverageShellPassShift(),
+            new PlayActionBoxLoadingShift());
     var catalog = new BuiltinSchemeCatalog();
     var defaultOffenseScheme = catalog.offense(OffensiveSchemeId.WEST_COAST);
     var defaultDefenseScheme = catalog.defense(DefensiveSchemeId.COVER_2_PRESS);
@@ -228,6 +236,9 @@ public final class MatchupPassResolver implements PassResolver {
     var roles = PassRoles.from(assignment);
     var shellRng = rng.split(SHELL_SPLIT_KEY);
     var shell = shellSampler.sample(call.formation(), shellRng);
+    var bundle =
+        defensiveAdjustments.compute(
+            state.stats().forOffense(state.possession()), DefensiveCoachTendencies.average());
     var context =
         new PassMatchupContext(
             call.passConcept(),
@@ -236,7 +247,8 @@ public final class MatchupPassResolver implements PassResolver {
             shell,
             offenseScheme,
             defenseScheme,
-            assignment);
+            assignment,
+            bundle.boxLoadingShift());
     var shift = matchupShift.compute(context, rng);
     var target = resolveTarget(call, roles, qbPlayer, qb, rng);
     var offsets = situationalShift.compute(state);

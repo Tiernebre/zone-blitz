@@ -53,17 +53,30 @@ class StatsBasedOffensiveAdjustmentsTests {
   }
 
   @Test
-  void compute_highStuffRate_pivotToPlayActionAwayFromInsideZone() {
+  void compute_highStuffRate_pivotToPassAndAwayFromInsideZone() {
     var stuffed = new TeamPlayLog(0, 0, 0, 0, 0, 10, 12, 5, 0, 0, 0, List.of());
 
     var adj = source.compute(stuffed, oc);
 
-    assertThat(adj.passConceptMultiplier(PassConcept.PLAY_ACTION))
-        .isEqualTo(StatsBasedOffensiveAdjustments.STUFFED_PLAY_ACTION_MULT);
     assertThat(adj.runConceptMultiplier(RunConcept.INSIDE_ZONE))
         .isEqualTo(StatsBasedOffensiveAdjustments.STUFFED_INSIDE_ZONE_MULT);
     assertThat(adj.passRateLogitShift())
         .isEqualTo(StatsBasedOffensiveAdjustments.STUFFED_PASS_RATE_LOGIT_SHIFT);
+    assertThat(adj.passConceptMultiplier(PassConcept.PLAY_ACTION))
+        .as("PA needs a credible run threat — stuffed runs do not boost PA")
+        .isEqualTo(1.0);
+  }
+
+  @Test
+  void compute_runHumming_boostsPlayActionAndInsideZone() {
+    var hotRun = new TeamPlayLog(0, 0, 0, 0, 0, 10, 70, 0, 0, 0, 0, List.of());
+
+    var adj = source.compute(hotRun, oc);
+
+    assertThat(adj.passConceptMultiplier(PassConcept.PLAY_ACTION))
+        .isEqualTo(StatsBasedOffensiveAdjustments.RUN_HUMMING_PLAY_ACTION_MULT);
+    assertThat(adj.runConceptMultiplier(RunConcept.INSIDE_ZONE))
+        .isEqualTo(StatsBasedOffensiveAdjustments.RUN_HUMMING_INSIDE_ZONE_MULT);
   }
 
   @Test

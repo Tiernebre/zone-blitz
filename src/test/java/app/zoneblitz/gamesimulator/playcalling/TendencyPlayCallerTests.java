@@ -71,14 +71,14 @@ class TendencyPlayCallerTests {
   }
 
   @Test
-  void offenseGettingStuffed_increasesPlayActionShare() {
+  void offenseRunningWell_increasesPlayActionShare() {
     var emptyState = state(1, 10, 50, 1, 600);
-    var stuffedState = emptyState.withStats(homeStuffed());
+    var hotRunState = emptyState.withStats(homeRunHumming());
 
     var emptyPa = countPassConcept(emptyState, neutralCoach(), PassConcept.PLAY_ACTION, 200L);
-    var stuffedPa = countPassConcept(stuffedState, neutralCoach(), PassConcept.PLAY_ACTION, 200L);
+    var hotPa = countPassConcept(hotRunState, neutralCoach(), PassConcept.PLAY_ACTION, 200L);
 
-    assertThat(stuffedPa).isGreaterThan(emptyPa);
+    assertThat(hotPa).isGreaterThan(emptyPa);
   }
 
   private int countPassConcept(GameState state, Coach coach, PassConcept concept, long seed) {
@@ -118,8 +118,8 @@ class TendencyPlayCallerTests {
     return new GameStats(log, TeamPlayLog.empty());
   }
 
-  private static GameStats homeStuffed() {
-    var log = new TeamPlayLog(0, 0, 0, 0, 0, 10, 12, 5, 0, 0, 0, List.of());
+  private static GameStats homeRunHumming() {
+    var log = new TeamPlayLog(0, 0, 0, 0, 0, 10, 70, 0, 0, 0, 0, List.of());
     return new GameStats(log, TeamPlayLog.empty());
   }
 

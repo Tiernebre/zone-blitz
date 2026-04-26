@@ -30,7 +30,8 @@ public record PassMatchupContext(
     CoverageShell shell,
     OffensiveScheme offenseScheme,
     DefensiveScheme defenseScheme,
-    RoleAssignmentPair assignment) {
+    RoleAssignmentPair assignment,
+    double boxLoadingShift) {
 
   public PassMatchupContext {
     Objects.requireNonNull(concept, "concept");
@@ -40,5 +41,17 @@ public record PassMatchupContext(
     Objects.requireNonNull(offenseScheme, "offenseScheme");
     Objects.requireNonNull(defenseScheme, "defenseScheme");
     Objects.requireNonNull(assignment, "assignment");
+  }
+
+  /** Convenience constructor that defaults the box-loading shift to zero. */
+  public PassMatchupContext(
+      PassConcept concept,
+      PassRoles roles,
+      OffensiveFormation formation,
+      CoverageShell shell,
+      OffensiveScheme offenseScheme,
+      DefensiveScheme defenseScheme,
+      RoleAssignmentPair assignment) {
+    this(concept, roles, formation, shell, offenseScheme, defenseScheme, assignment, 0.0);
   }
 }
