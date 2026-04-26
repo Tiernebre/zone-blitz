@@ -83,7 +83,7 @@ class AggressionFourthDownPolicyTests {
   }
 
   private static Coach coachWith(int aggression, int decisionQuality) {
-    var offense = new CoachTendencies(50, aggression, 50, 50, 50, 50, 50, 50, 50, 50);
+    var offense = new CoachTendencies(50, aggression, 50, 50, 50, 50, 50, 50, 50, 50, 50);
     var quality = new CoachQuality(decisionQuality, 50);
     return new Coach(
         new CoachId(new UUID(9L, aggression * 1000L + decisionQuality)),

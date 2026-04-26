@@ -1,5 +1,7 @@
 package app.zoneblitz.gamesimulator;
 
+import app.zoneblitz.gamesimulator.adjustments.GameStatsAccumulator;
+import app.zoneblitz.gamesimulator.adjustments.RollingGameStatsAccumulator;
 import app.zoneblitz.gamesimulator.clock.ClockModel;
 import app.zoneblitz.gamesimulator.clockmgmt.EndOfHalfDecider;
 import app.zoneblitz.gamesimulator.clockmgmt.TendencyEndOfHalfDecider;
@@ -34,6 +36,7 @@ import app.zoneblitz.gamesimulator.scoring.TwoPointResolver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -80,6 +83,7 @@ final class GameSimulator implements SimulateGame {
   private final ScoringAftermath aftermath;
   private final InjuryEmitter injuries;
   private final FourthDownPolicy fourthDownPolicy = new AggressionFourthDownPolicy();
+  private final GameStatsAccumulator statsAccumulator = new RollingGameStatsAccumulator();
 
   GameSimulator(
       PlayCaller caller,
@@ -421,6 +425,9 @@ final class GameSimulator implements SimulateGame {
     }
 
     out.add(event);
+    state =
+        state.withStats(
+            statsAccumulator.apply(state.stats(), event, offenseSide, Optional.of(call)));
     var participants =
         new ArrayList<PlayerId>(offPersonnel.players().size() + defPersonnel.players().size());
     offPersonnel.players().forEach(p -> participants.add(p.id()));

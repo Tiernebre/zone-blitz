@@ -16,6 +16,8 @@ package app.zoneblitz.gamesimulator.roster;
  *   <li>{@code aggressionOnDowns} — situational blitz (3rd-down, red-zone).
  *   <li>{@code runFitDiscipline} — gap integrity vs aggressive flow (future run-fit hook).
  *   <li>{@code substitutionAggression} — nickel/dime usage on early downs.
+ *   <li>{@code inGameAdaptability} — how much of the stats-based in-game adjustment bundle the DC
+ *       actually applies. 50 ⇒ standard responsiveness; 0 ⇒ stubborn; 100 ⇒ ultra-reactive.
  * </ul>
  */
 public record DefensiveCoachTendencies(
@@ -26,7 +28,8 @@ public record DefensiveCoachTendencies(
     int disguiseFrequency,
     int aggressionOnDowns,
     int runFitDiscipline,
-    int substitutionAggression) {
+    int substitutionAggression,
+    int inGameAdaptability) {
 
   public DefensiveCoachTendencies {
     requireInRange(blitzFrequency, "blitzFrequency");
@@ -37,11 +40,12 @@ public record DefensiveCoachTendencies(
     requireInRange(aggressionOnDowns, "aggressionOnDowns");
     requireInRange(runFitDiscipline, "runFitDiscipline");
     requireInRange(substitutionAggression, "substitutionAggression");
+    requireInRange(inGameAdaptability, "inGameAdaptability");
   }
 
   /** League-average coordinator (all axes at 50). */
   public static DefensiveCoachTendencies average() {
-    return new DefensiveCoachTendencies(50, 50, 50, 50, 50, 50, 50, 50);
+    return new DefensiveCoachTendencies(50, 50, 50, 50, 50, 50, 50, 50, 50);
   }
 
   private static void requireInRange(int value, String name) {

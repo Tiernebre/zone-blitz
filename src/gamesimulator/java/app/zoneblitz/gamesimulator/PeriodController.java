@@ -20,6 +20,15 @@ final class PeriodController {
   private static final long HALFTIME_KICKOFF_KEY = 0xB00BL;
   private static final long OT_KICKOFF_KEY = 0xD1AABBL;
 
+  /** Stats decay applied at every quarter boundary except halftime — recent trends fade. */
+  static final double QUARTER_DECAY_FACTOR = 0.7;
+
+  /**
+   * Stats decay applied at halftime — bigger fade than between-quarter decay to mirror the bigger
+   * adjustment opportunity coaches have during the long break.
+   */
+  static final double HALFTIME_DECAY_FACTOR = 0.5;
+
   private final ScoringSequencer scoring;
 
   PeriodController(ScoringSequencer scoring) {
@@ -52,7 +61,11 @@ final class PeriodController {
     var advanced = state.withClock(nextClock);
     if (quarter == 2) {
       var secondHalfReceiver = openingReceiver == Side.HOME ? Side.AWAY : Side.HOME;
-      var afterHalf = advanced.withTimeoutsReset().withFatigueRecovered(1.0);
+      var afterHalf =
+          advanced
+              .withTimeoutsReset()
+              .withFatigueRecovered(1.0)
+              .withStats(advanced.stats().decay(HALFTIME_DECAY_FACTOR));
       return scoring.emitKickoff(
           out,
           afterHalf,
@@ -61,7 +74,7 @@ final class PeriodController {
           seq,
           root.split(gameKey ^ HALFTIME_KICKOFF_KEY));
     }
-    return advanced;
+    return advanced.withStats(advanced.stats().decay(QUARTER_DECAY_FACTOR));
   }
 
   /**

@@ -35,7 +35,8 @@ public record RunMatchupContext(
     int yardsToGo,
     OffensiveScheme offenseScheme,
     DefensiveScheme defenseScheme,
-    RoleAssignmentPair assignment) {
+    RoleAssignmentPair assignment,
+    double boxLoadingShift) {
 
   public RunMatchupContext {
     Objects.requireNonNull(concept, "concept");
@@ -44,6 +45,28 @@ public record RunMatchupContext(
     Objects.requireNonNull(offenseScheme, "offenseScheme");
     Objects.requireNonNull(defenseScheme, "defenseScheme");
     Objects.requireNonNull(assignment, "assignment");
+  }
+
+  /** Convenience constructor for callers that don't yet supply an in-game box-loading shift. */
+  public RunMatchupContext(
+      RunConcept concept,
+      RunRoles roles,
+      OffensiveFormation formation,
+      int yardLine,
+      int yardsToGo,
+      OffensiveScheme offenseScheme,
+      DefensiveScheme defenseScheme,
+      RoleAssignmentPair assignment) {
+    this(
+        concept,
+        roles,
+        formation,
+        yardLine,
+        yardsToGo,
+        offenseScheme,
+        defenseScheme,
+        assignment,
+        0.0);
   }
 
   /** Yards from the offense's current spot to the opponent's goal line. */

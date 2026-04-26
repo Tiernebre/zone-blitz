@@ -1,6 +1,9 @@
 package app.zoneblitz.gamesimulator.playcalling;
 
 import app.zoneblitz.gamesimulator.GameState;
+import app.zoneblitz.gamesimulator.adjustments.DefensiveAdjustmentSource;
+import app.zoneblitz.gamesimulator.adjustments.DefensiveAdjustments;
+import app.zoneblitz.gamesimulator.adjustments.StatsBasedDefensiveAdjustments;
 import app.zoneblitz.gamesimulator.band.BandRepository;
 import app.zoneblitz.gamesimulator.formation.CoverageShell;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
@@ -34,9 +37,16 @@ public final class BaselineDefensiveCallSelector implements DefensiveCallSelecto
   private static final double SHELL_MAX_MULTIPLIER = 1.6;
 
   private final DefensiveCallBands bands;
+  private final DefensiveAdjustmentSource adjustments;
 
   public BaselineDefensiveCallSelector(DefensiveCallBands bands) {
+    this(bands, new StatsBasedDefensiveAdjustments());
+  }
+
+  public BaselineDefensiveCallSelector(
+      DefensiveCallBands bands, DefensiveAdjustmentSource adjustments) {
     this.bands = Objects.requireNonNull(bands, "bands");
+    this.adjustments = Objects.requireNonNull(adjustments, "adjustments");
   }
 
   public static BaselineDefensiveCallSelector load(BandRepository repo) {
@@ -55,19 +65,26 @@ public final class BaselineDefensiveCallSelector implements DefensiveCallSelecto
     Objects.requireNonNull(rng, "rng");
 
     var situation = Situation.from(state);
-    var extraRushers = pickExtraRushers(situation, dc, rng);
-    var manZone = pickManZone(offenseFormation, dc, rng);
-    var shell = pickShell(offenseFormation, dc, manZone, rng);
+    var bundle = adjustments.compute(state.stats().forOffense(state.possession()), dc);
+    var extraRushers = pickExtraRushers(situation, dc, bundle, rng);
+    var manZone = pickManZone(offenseFormation, dc, bundle, rng);
+    var shell = pickShell(offenseFormation, dc, bundle, manZone, rng);
     var personnel = pickPersonnel(situation, offenseFormation, dc, rng);
     return new DefensiveCall(shell, manZone, extraRushers, personnel);
   }
 
-  private int pickExtraRushers(Situation situation, DefensiveCoachTendencies dc, RandomSource rng) {
+  private int pickExtraRushers(
+      Situation situation,
+      DefensiveCoachTendencies dc,
+      DefensiveAdjustments bundle,
+      RandomSource rng) {
     var base = DefensiveCallBands.BASELINE_BLITZ_RATE;
     var situationalShift = blitzSituationalShift(situation);
     var coachShift = normalize(dc.blitzFrequency()) * BLITZ_MAX_LOGIT_SHIFT;
     var downsBoost = situation.down() >= 3 ? normalize(dc.aggressionOnDowns()) * 0.3 : 0.0;
-    var blitzRate = sigmoid(logit(base) + situationalShift + coachShift + downsBoost);
+    var blitzRate =
+        sigmoid(
+            logit(base) + situationalShift + coachShift + downsBoost + bundle.blitzLogitShift());
 
     if (rng.nextDouble() >= blitzRate) {
       return 0;
@@ -76,20 +93,25 @@ public final class BaselineDefensiveCallSelector implements DefensiveCallSelecto
   }
 
   private ManZone pickManZone(
-      OffensiveFormation formation, DefensiveCoachTendencies dc, RandomSource rng) {
+      OffensiveFormation formation,
+      DefensiveCoachTendencies dc,
+      DefensiveAdjustments bundle,
+      RandomSource rng) {
     var base = bands.manRateBaseline(formation);
     var shift = normalize(dc.manZoneBias()) * MAN_MAX_LOGIT_SHIFT;
-    var manRate = sigmoid(logit(base) + shift);
+    var manRate = sigmoid(logit(base) + shift + bundle.manRateLogitShift());
     return rng.nextDouble() < manRate ? ManZone.MAN : ManZone.ZONE;
   }
 
   private CoverageShell pickShell(
       OffensiveFormation formation,
       DefensiveCoachTendencies dc,
+      DefensiveAdjustments bundle,
       ManZone manZone,
       RandomSource rng) {
     var baseline = bands.shellBaseline(formation);
     var singleHighLean = normalize(dc.coverageShellBias());
+    var adjMult = bundle.singleHighShellMultiplier();
     var weights = new EnumMap<CoverageShell, Double>(CoverageShell.class);
     for (var entry : baseline.entrySet()) {
       var shell = entry.getKey();
@@ -98,9 +120,19 @@ public final class BaselineDefensiveCallSelector implements DefensiveCallSelecto
         w *= 0.15;
       }
       w *= singleHighMultiplier(shell, singleHighLean);
+      if (isSingleHigh(shell)) {
+        w *= adjMult;
+      }
       weights.put(shell, w);
     }
     return sample(normalize(weights), rng, CoverageShell.COVER_3);
+  }
+
+  private static boolean isSingleHigh(CoverageShell shell) {
+    return switch (shell) {
+      case COVER_0, COVER_1, COVER_3 -> true;
+      default -> false;
+    };
   }
 
   private DefensivePackage pickPersonnel(
@@ -154,12 +186,7 @@ public final class BaselineDefensiveCallSelector implements DefensiveCallSelecto
   }
 
   private static double singleHighMultiplier(CoverageShell shell, double singleHighLean) {
-    var isSingleHigh =
-        switch (shell) {
-          case COVER_0, COVER_1, COVER_3 -> true;
-          default -> false;
-        };
-    var direction = isSingleHigh ? singleHighLean : -singleHighLean;
+    var direction = isSingleHigh(shell) ? singleHighLean : -singleHighLean;
     if (direction >= 0) {
       return 1.0 + direction * (SHELL_MAX_MULTIPLIER - 1.0);
     }

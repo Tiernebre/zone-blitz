@@ -58,6 +58,27 @@ class BoxCountRunShiftTests {
   }
 
   @Test
+  void compute_positiveBoxLoadingShift_pullsTowardHeavierBox() {
+    var ctxWithLoad =
+        new RunMatchupContext(
+            RunConcept.INSIDE_ZONE,
+            new RunRoles(Optional.empty(), List.of(), List.of()),
+            OffensiveFormation.SINGLEBACK,
+            50,
+            10,
+            MatchupContextDefaults.OFFENSE,
+            MatchupContextDefaults.DEFENSE,
+            MatchupContextDefaults.EMPTY_ASSIGNMENT,
+            1.0);
+    var sampler = new FixedSampler(7, 7.0);
+    var shift = new BoxCountRunShift(sampler, -0.25);
+
+    var result = shift.compute(ctxWithLoad, new SplittableRandomSource(0L));
+
+    assertThat(result).isEqualTo(-0.25); // (7 + 1.0 - 7) * -0.25
+  }
+
+  @Test
   void compute_usesSplitChildStream_notParent() {
     // The shift must split the RNG — the parent's stream must still be at its original position
     // after a compute() call.

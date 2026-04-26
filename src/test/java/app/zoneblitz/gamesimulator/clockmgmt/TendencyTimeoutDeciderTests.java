@@ -144,7 +144,8 @@ class TendencyTimeoutDeciderTests {
         base.awayTimeouts(),
         base.phase(),
         base.overtimeRound(),
-        base.overtime());
+        base.overtime(),
+        base.stats());
   }
 
   private static final class ConstantRandomSource implements RandomSource {

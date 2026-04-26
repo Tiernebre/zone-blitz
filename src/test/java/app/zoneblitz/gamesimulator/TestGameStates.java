@@ -1,5 +1,6 @@
 package app.zoneblitz.gamesimulator;
 
+import app.zoneblitz.gamesimulator.adjustments.GameStats;
 import app.zoneblitz.gamesimulator.event.DownAndDistance;
 import app.zoneblitz.gamesimulator.event.FieldPosition;
 import app.zoneblitz.gamesimulator.event.GameClock;
@@ -39,7 +40,8 @@ public final class TestGameStates {
         3,
         GameState.Phase.REGULATION,
         0,
-        GameState.OvertimeState.notStarted());
+        GameState.OvertimeState.notStarted(),
+        GameStats.empty());
   }
 
   public static GameState neutral(int down, int yardsToGo, int yardLine) {

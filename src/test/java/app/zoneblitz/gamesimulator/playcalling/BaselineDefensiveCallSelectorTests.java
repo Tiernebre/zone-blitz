@@ -4,10 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.TestGameStates;
+import app.zoneblitz.gamesimulator.adjustments.GameStats;
+import app.zoneblitz.gamesimulator.adjustments.TeamPlayLog;
 import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
+import app.zoneblitz.gamesimulator.formation.CoverageShell;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
 import app.zoneblitz.gamesimulator.rng.SplittableRandomSource;
 import app.zoneblitz.gamesimulator.roster.DefensiveCoachTendencies;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class BaselineDefensiveCallSelectorTests {
@@ -65,6 +69,78 @@ class BaselineDefensiveCallSelectorTests {
     assertThat(manAggressive).isGreaterThan(manNeutral + SAMPLES / 10);
   }
 
+  @Test
+  void offenseRunningWell_raisesBlitzRateOverEmptyStatsBaseline() {
+    var emptyState = state(1, 10, 50);
+    var hotRunState = emptyState.withStats(homeRunHumming());
+
+    var emptyBlitzes = countBlitz(emptyState, OffensiveFormation.SHOTGUN, average(), 77L);
+    var hotBlitzes = countBlitz(hotRunState, OffensiveFormation.SHOTGUN, average(), 77L);
+
+    assertThat(hotBlitzes).isGreaterThan(emptyBlitzes + SAMPLES / 25);
+  }
+
+  @Test
+  void offensePassingWell_increasesTwoHighShellShare() {
+    var emptyState = state(1, 10, 50);
+    var hotPassState = emptyState.withStats(homePassHumming());
+
+    var emptyTwoHigh = countTwoHigh(emptyState, OffensiveFormation.SHOTGUN, average(), 88L);
+    var hotTwoHigh = countTwoHigh(hotPassState, OffensiveFormation.SHOTGUN, average(), 88L);
+
+    assertThat(hotTwoHigh).isGreaterThan(emptyTwoHigh + SAMPLES / 50);
+  }
+
+  @Test
+  void stubbornDc_dampensTheStatsBasedShift() {
+    var hotRunState = state(1, 10, 50).withStats(homeRunHumming());
+
+    var reactiveBlitzes =
+        countBlitz(
+            hotRunState,
+            OffensiveFormation.SHOTGUN,
+            new DefensiveCoachTendencies(50, 50, 50, 50, 50, 50, 50, 50, 100),
+            99L);
+    var stubbornBlitzes =
+        countBlitz(
+            hotRunState,
+            OffensiveFormation.SHOTGUN,
+            new DefensiveCoachTendencies(50, 50, 50, 50, 50, 50, 50, 50, 0),
+            99L);
+
+    assertThat(stubbornBlitzes).isLessThan(reactiveBlitzes);
+  }
+
+  private int countTwoHigh(
+      GameState state, OffensiveFormation formation, DefensiveCoachTendencies dc, long seed) {
+    var rng = new SplittableRandomSource(seed);
+    var twoHigh = 0;
+    for (var i = 0; i < SAMPLES; i++) {
+      var call = selector.select(state, formation, dc, rng.split(i));
+      if (isTwoHigh(call.shell())) {
+        twoHigh++;
+      }
+    }
+    return twoHigh;
+  }
+
+  private static boolean isTwoHigh(CoverageShell shell) {
+    return switch (shell) {
+      case COVER_2, COVER_6, TWO_MAN, QUARTERS -> true;
+      default -> false;
+    };
+  }
+
+  private static GameStats homeRunHumming() {
+    var hot = new TeamPlayLog(0, 0, 0, 0, 0, 10, 70, 0, 0, 0, 0, List.of());
+    return new GameStats(hot, TeamPlayLog.empty());
+  }
+
+  private static GameStats homePassHumming() {
+    var hot = new TeamPlayLog(10, 90, 7, 0, 0, 0, 0, 0, 0, 0, 0, List.of());
+    return new GameStats(hot, TeamPlayLog.empty());
+  }
+
   private int countBlitz(
       GameState state, OffensiveFormation formation, DefensiveCoachTendencies dc, long seed) {
     var rng = new SplittableRandomSource(seed);
@@ -96,11 +172,11 @@ class BaselineDefensiveCallSelectorTests {
   }
 
   private static DefensiveCoachTendencies withBlitzFrequency(int value) {
-    return new DefensiveCoachTendencies(value, 50, 50, 50, 50, 50, 50, 50);
+    return new DefensiveCoachTendencies(value, 50, 50, 50, 50, 50, 50, 50, 50);
   }
 
   private static DefensiveCoachTendencies withManBias(int value) {
-    return new DefensiveCoachTendencies(50, 50, 50, value, 50, 50, 50, 50);
+    return new DefensiveCoachTendencies(50, 50, 50, value, 50, 50, 50, 50, 50);
   }
 
   private static GameState state(int down, int dist, int yardLine) {

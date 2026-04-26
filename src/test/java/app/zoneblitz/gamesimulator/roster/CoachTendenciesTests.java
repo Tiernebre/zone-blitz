@@ -21,16 +21,23 @@ class CoachTendenciesTests {
 
   @Test
   void constructor_rejectsAxisBelowZero() {
-    assertThatThrownBy(() -> new CoachTendencies(-1, 50, 50, 50, 50, 50, 50, 50, 50, 50))
+    assertThatThrownBy(() -> new CoachTendencies(-1, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("passHeaviness");
   }
 
   @Test
   void constructor_rejectsAxisAboveHundred() {
-    assertThatThrownBy(() -> new CoachTendencies(50, 50, 50, 50, 50, 50, 50, 101, 50, 50))
+    assertThatThrownBy(() -> new CoachTendencies(50, 50, 50, 50, 50, 50, 50, 101, 50, 50, 50))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("shotgunPreference");
+  }
+
+  @Test
+  void constructor_rejectsInGameAdaptabilityOutOfRange() {
+    assertThatThrownBy(() -> new CoachTendencies(50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 200))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("inGameAdaptability");
   }
 
   @Test

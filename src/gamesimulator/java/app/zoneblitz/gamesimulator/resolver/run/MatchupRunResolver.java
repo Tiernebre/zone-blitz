@@ -1,6 +1,8 @@
 package app.zoneblitz.gamesimulator.resolver.run;
 
 import app.zoneblitz.gamesimulator.GameState;
+import app.zoneblitz.gamesimulator.adjustments.DefensiveAdjustmentSource;
+import app.zoneblitz.gamesimulator.adjustments.StatsBasedDefensiveAdjustments;
 import app.zoneblitz.gamesimulator.band.BandRepository;
 import app.zoneblitz.gamesimulator.band.BandSampler;
 import app.zoneblitz.gamesimulator.band.DistributionalBand;
@@ -17,6 +19,7 @@ import app.zoneblitz.gamesimulator.resolver.RunRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.role.RoleAssigner;
 import app.zoneblitz.gamesimulator.role.SchemeFitRoleAssigner;
+import app.zoneblitz.gamesimulator.roster.DefensiveCoachTendencies;
 import app.zoneblitz.gamesimulator.scheme.BuiltinSchemeCatalog;
 import app.zoneblitz.gamesimulator.scheme.DefensiveScheme;
 import app.zoneblitz.gamesimulator.scheme.DefensiveSchemeId;
@@ -74,6 +77,8 @@ public final class MatchupRunResolver implements RunResolver {
   private final Map<RunOutcomeKind, DistributionalBand> yardsByKind;
   private final DistributionalBand fumbleYards;
   private final FumbleRecoveryModel fumbleRecoveryModel;
+  private final DefensiveAdjustmentSource defensiveAdjustments =
+      new StatsBasedDefensiveAdjustments();
 
   public MatchupRunResolver(
       BandSampler sampler,
@@ -193,6 +198,9 @@ public final class MatchupRunResolver implements RunResolver {
                     new IllegalStateException(
                         "Offensive personnel has no rushing-eligible player"));
     var concept = call.runConcept();
+    var bundle =
+        defensiveAdjustments.compute(
+            state.stats().forOffense(state.possession()), DefensiveCoachTendencies.average());
     var context =
         new RunMatchupContext(
             concept,
@@ -202,7 +210,8 @@ public final class MatchupRunResolver implements RunResolver {
             state.downAndDistance().yardsToGo(),
             offenseScheme,
             defenseScheme,
-            assignment);
+            assignment,
+            bundle.boxLoadingShift());
     var shift = matchupShift.compute(context, rng);
     var kind = sampler.sampleRate(outcomeMix, shift, rng);
     var yardsBand = kind == RunOutcomeKind.FUMBLE ? fumbleYards : yardsByKind.get(kind);

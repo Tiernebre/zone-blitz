@@ -19,6 +19,9 @@ package app.zoneblitz.gamesimulator.roster;
  *   <li>{@code shotgunPreference} — SHOTGUN vs SINGLEBACK/PISTOL under-center mix.
  *   <li>{@code clockAwareness} — situational adjustment intensity in late-half/late-game.
  *   <li>{@code riskTolerance} — HAIL_MARY threshold, 2-pt tries, explosive-shot bias.
+ *   <li>{@code inGameAdaptability} — how much of the stats-based in-game adjustment bundle the
+ *       coach actually applies. 50 ⇒ standard responsiveness; 0 ⇒ stubborn (ignore the bundle); 100
+ *       ⇒ ultra-reactive (apply at full magnitude or beyond).
  * </ul>
  */
 public record CoachTendencies(
@@ -31,7 +34,8 @@ public record CoachTendencies(
     int gapRunPreference,
     int shotgunPreference,
     int clockAwareness,
-    int riskTolerance) {
+    int riskTolerance,
+    int inGameAdaptability) {
 
   public CoachTendencies {
     requireInRange(passHeaviness, "passHeaviness");
@@ -44,11 +48,12 @@ public record CoachTendencies(
     requireInRange(shotgunPreference, "shotgunPreference");
     requireInRange(clockAwareness, "clockAwareness");
     requireInRange(riskTolerance, "riskTolerance");
+    requireInRange(inGameAdaptability, "inGameAdaptability");
   }
 
   /** League-average coordinator (all axes at 50). Baseline call mix. */
   public static CoachTendencies average() {
-    return new CoachTendencies(50, 50, 50, 50, 50, 50, 50, 50, 50, 50);
+    return new CoachTendencies(50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50);
   }
 
   private static void requireInRange(int value, String name) {

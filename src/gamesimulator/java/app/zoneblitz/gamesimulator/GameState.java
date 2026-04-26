@@ -1,5 +1,6 @@
 package app.zoneblitz.gamesimulator;
 
+import app.zoneblitz.gamesimulator.adjustments.GameStats;
 import app.zoneblitz.gamesimulator.event.DownAndDistance;
 import app.zoneblitz.gamesimulator.event.FieldPosition;
 import app.zoneblitz.gamesimulator.event.GameClock;
@@ -35,7 +36,8 @@ public record GameState(
     int awayTimeouts,
     Phase phase,
     int overtimeRound,
-    OvertimeState overtime) {
+    OvertimeState overtime,
+    GameStats stats) {
 
   public GameState {
     Objects.requireNonNull(score, "score");
@@ -48,6 +50,7 @@ public record GameState(
     Objects.requireNonNull(injuredPlayers, "injuredPlayers");
     Objects.requireNonNull(phase, "phase");
     Objects.requireNonNull(overtime, "overtime");
+    Objects.requireNonNull(stats, "stats");
     fatigueSnapCounts = Map.copyOf(fatigueSnapCounts);
     injuredPlayers = List.copyOf(injuredPlayers);
   }
@@ -67,7 +70,8 @@ public record GameState(
         3,
         Phase.REGULATION,
         0,
-        OvertimeState.notStarted());
+        OvertimeState.notStarted(),
+        GameStats.empty());
   }
 
   /**
@@ -95,7 +99,8 @@ public record GameState(
         awayTimeouts,
         phase,
         overtimeRound,
-        overtime);
+        overtime,
+        stats);
   }
 
   /** Replace the current score. Used after PAT and FG events update it on their own. */
@@ -114,7 +119,8 @@ public record GameState(
         awayTimeouts,
         phase,
         overtimeRound,
-        overtime);
+        overtime,
+        stats);
   }
 
   /**
@@ -141,7 +147,8 @@ public record GameState(
         awayTimeouts,
         phase,
         overtimeRound,
-        overtime);
+        overtime,
+        stats);
   }
 
   public GameState withPhase(Phase newPhase) {
@@ -159,7 +166,8 @@ public record GameState(
         awayTimeouts,
         newPhase,
         overtimeRound,
-        overtime);
+        overtime,
+        stats);
   }
 
   /**
@@ -186,7 +194,8 @@ public record GameState(
         newAway,
         phase,
         overtimeRound,
-        overtime);
+        overtime,
+        stats);
   }
 
   /** Reset both sides' timeouts to 3 each. Invoked at half and at the start of overtime. */
@@ -204,7 +213,8 @@ public record GameState(
         3,
         phase,
         overtimeRound,
-        overtime);
+        overtime,
+        stats);
   }
 
   /** Remaining timeouts for the given side. */
@@ -237,7 +247,8 @@ public record GameState(
         recovered.awayTimeouts,
         recovered.phase,
         recovered.overtimeRound,
-        recovered.overtime);
+        recovered.overtime,
+        recovered.stats);
   }
 
   public GameState withOvertimeRound(int newOvertimeRound) {
@@ -254,7 +265,8 @@ public record GameState(
         awayTimeouts,
         phase,
         newOvertimeRound,
-        overtime);
+        overtime,
+        stats);
   }
 
   /**
@@ -285,7 +297,8 @@ public record GameState(
         awayTimeouts,
         phase,
         overtimeRound,
-        overtime);
+        overtime,
+        stats);
   }
 
   /**
@@ -322,7 +335,8 @@ public record GameState(
         awayTimeouts,
         phase,
         overtimeRound,
-        overtime);
+        overtime,
+        stats);
   }
 
   /**
@@ -351,7 +365,8 @@ public record GameState(
         awayTimeouts,
         phase,
         overtimeRound,
-        overtime);
+        overtime,
+        stats);
   }
 
   public GameState withOvertime(OvertimeState newOvertime) {
@@ -369,7 +384,30 @@ public record GameState(
         awayTimeouts,
         phase,
         overtimeRound,
-        newOvertime);
+        newOvertime,
+        stats);
+  }
+
+  /**
+   * Add the {@link GameStats} field. Called by the simulator after each scrimmage play resolves.
+   */
+  public GameState withStats(GameStats newStats) {
+    Objects.requireNonNull(newStats, "newStats");
+    return new GameState(
+        score,
+        clock,
+        downAndDistance,
+        spot,
+        possession,
+        drive,
+        fatigueSnapCounts,
+        injuredPlayers,
+        homeTimeouts,
+        awayTimeouts,
+        phase,
+        overtimeRound,
+        overtime,
+        newStats);
   }
 
   /** Per-drive bookkeeping. */

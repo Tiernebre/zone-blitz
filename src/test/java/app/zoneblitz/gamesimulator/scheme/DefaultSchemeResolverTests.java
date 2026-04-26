@@ -93,11 +93,11 @@ class DefaultSchemeResolverTests {
   }
 
   private static CoachTendencies passHeavyTendencies() {
-    return new CoachTendencies(80, 60, 50, 70, 50, 50, 40, 60, 50, 50);
+    return new CoachTendencies(80, 60, 50, 70, 50, 50, 40, 60, 50, 50, 50);
   }
 
   private static CoachTendencies runHeavyGapTendencies() {
-    return new CoachTendencies(30, 50, 50, 40, 30, 30, 70, 30, 50, 50);
+    return new CoachTendencies(30, 50, 50, 40, 30, 30, 70, 30, 50, 50, 50);
   }
 
   private static CoachTendencies neutralOffense() {
@@ -109,6 +109,6 @@ class DefaultSchemeResolverTests {
   }
 
   private static DefensiveCoachTendencies blitzHeavyDefense() {
-    return new DefensiveCoachTendencies(80, 70, 50, 50, 50, 70, 50, 50);
+    return new DefensiveCoachTendencies(80, 70, 50, 50, 50, 70, 50, 50, 50);
   }
 }

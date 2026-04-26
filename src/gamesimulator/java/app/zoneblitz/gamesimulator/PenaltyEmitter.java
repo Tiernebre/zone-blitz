@@ -150,7 +150,8 @@ final class PenaltyEmitter {
               state.awayTimeouts(),
               state.phase(),
               state.overtimeRound(),
-              state.overtime());
+              state.overtime(),
+              state.stats());
       case PenaltyEnforcer.Applied.TurnoverOnDowns t ->
           state
               .withClock(clockAfter)
