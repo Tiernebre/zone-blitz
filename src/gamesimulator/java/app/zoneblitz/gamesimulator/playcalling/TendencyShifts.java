@@ -112,13 +112,28 @@ final class TendencyShifts {
 
   private static double conceptMultiplier(
       PassConcept concept, CoachTendencies tendencies, Situation situation) {
+    var aggression = normalize(tendencies.aggression());
     return switch (concept) {
       case PLAY_ACTION -> boost(normalize(tendencies.playActionAffinity()));
       case SCREEN -> boost(normalize(tendencies.screenAffinity()));
       case RPO -> boost(normalize(tendencies.rpoAffinity()));
       case HAIL_MARY -> hailMaryMultiplier(tendencies, situation);
-      case QUICK_GAME, DROPBACK -> 1.0;
+      case QUICK_GAME -> aggressionBoost(-aggression);
+      case DROPBACK -> aggressionBoost(aggression);
     };
+  }
+
+  private static final double AGGRESSION_MAX_MULTIPLIER = 1.3;
+
+  /**
+   * Smaller-magnitude boost specifically for the QUICK_GAME ↔ DROPBACK aggression axis. Caps
+   * tighter than {@link #boost} so the situational pass-concept mix still dominates the call.
+   */
+  private static double aggressionBoost(double delta) {
+    if (delta >= 0) {
+      return 1.0 + delta * (AGGRESSION_MAX_MULTIPLIER - 1.0);
+    }
+    return 1.0 + delta * (1.0 - 1.0 / AGGRESSION_MAX_MULTIPLIER);
   }
 
   private static double hailMaryMultiplier(CoachTendencies tendencies, Situation situation) {

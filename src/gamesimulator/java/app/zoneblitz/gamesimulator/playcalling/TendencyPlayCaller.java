@@ -11,6 +11,7 @@ import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Coach;
 import app.zoneblitz.gamesimulator.roster.CoachTendencies;
+import app.zoneblitz.gamesimulator.roster.RosterProfile;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,6 +25,13 @@ import java.util.Objects;
  * bands.
  */
 public final class TendencyPlayCaller implements PlayCaller {
+
+  /**
+   * Logit shift per unit of {@link RosterProfile#passLean()}. At saturation (passLean = ±1) the
+   * pass-rate logit moves by this much, which translates to roughly a 4-percentage-point swing on a
+   * 50% baseline pass rate. Conservative on purpose — situational priors should still dominate.
+   */
+  static final double ROSTER_PASS_LEAN_SCALE = 0.15;
 
   private final PlayCallBands bands;
   private final OffensiveAdjustmentSource adjustments;
@@ -43,9 +51,11 @@ public final class TendencyPlayCaller implements PlayCaller {
   }
 
   @Override
-  public PlayCall call(GameState state, Coach offensiveCoach, RandomSource rng) {
+  public PlayCall call(
+      GameState state, Coach offensiveCoach, RosterProfile offenseProfile, RandomSource rng) {
     Objects.requireNonNull(state, "state");
     Objects.requireNonNull(offensiveCoach, "offensiveCoach");
+    Objects.requireNonNull(offenseProfile, "offenseProfile");
     Objects.requireNonNull(rng, "rng");
 
     var tendencies = offensiveCoach.offense();
@@ -53,7 +63,8 @@ public final class TendencyPlayCaller implements PlayCaller {
     var bundle = adjustments.compute(state.stats().forOffense(state.possession()), tendencies);
 
     var basePassRate = TendencyShifts.blendedPassRate(bands, situation, tendencies);
-    var passRate = applyLogitShift(basePassRate, bundle.passRateLogitShift());
+    var rosterShift = offenseProfile.passLean() * ROSTER_PASS_LEAN_SCALE;
+    var passRate = applyLogitShift(basePassRate, bundle.passRateLogitShift() + rosterShift);
     var isPass = rng.nextDouble() < passRate;
 
     if (isPass) {

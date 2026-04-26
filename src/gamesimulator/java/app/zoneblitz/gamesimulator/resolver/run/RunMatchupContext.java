@@ -2,6 +2,7 @@ package app.zoneblitz.gamesimulator.resolver.run;
 
 import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
 import app.zoneblitz.gamesimulator.resolver.RunRoles;
 import app.zoneblitz.gamesimulator.role.RoleAssignmentPair;
 import app.zoneblitz.gamesimulator.scheme.DefensiveScheme;
@@ -22,10 +23,11 @@ import java.util.Objects;
  * GoalLineRunShift}; {@link MatchupRunResolver.RunMatchupShift} implementations that ignore field
  * position simply don't read these fields.
  *
- * <p>{@code assignment} is the fine-grained role-to-player mapping the role-keyed shift consumes to
+ * <p>{@code offense} is the on-field personnel grouping, used by personnel-aware samplers (e.g.
+ * {@link BoxCountRunShift}) to shift formation distributions on OL run-threat. {@code assignment}
+ * is the role-to-player mapping derived from {@code offense} that the role-keyed shift reads to
  * compute per-(role, player) demand scores. {@code roles} is the bucket-flattened view used by the
- * resolver and pre-existing consumers — derived from {@code assignment} via {@link
- * RunRoles#from(RoleAssignmentPair)}.
+ * resolver — derived from {@code assignment} via {@link RunRoles#from(RoleAssignmentPair)}.
  */
 public record RunMatchupContext(
     RunConcept concept,
@@ -35,6 +37,7 @@ public record RunMatchupContext(
     int yardsToGo,
     OffensiveScheme offenseScheme,
     DefensiveScheme defenseScheme,
+    OffensivePersonnel offense,
     RoleAssignmentPair assignment,
     double boxLoadingShift) {
 
@@ -44,6 +47,7 @@ public record RunMatchupContext(
     Objects.requireNonNull(formation, "formation");
     Objects.requireNonNull(offenseScheme, "offenseScheme");
     Objects.requireNonNull(defenseScheme, "defenseScheme");
+    Objects.requireNonNull(offense, "offense");
     Objects.requireNonNull(assignment, "assignment");
   }
 
@@ -56,6 +60,7 @@ public record RunMatchupContext(
       int yardsToGo,
       OffensiveScheme offenseScheme,
       DefensiveScheme defenseScheme,
+      OffensivePersonnel offense,
       RoleAssignmentPair assignment) {
     this(
         concept,
@@ -65,6 +70,7 @@ public record RunMatchupContext(
         yardsToGo,
         offenseScheme,
         defenseScheme,
+        offense,
         assignment,
         0.0);
   }

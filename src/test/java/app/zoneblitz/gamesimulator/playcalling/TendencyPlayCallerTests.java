@@ -81,11 +81,46 @@ class TendencyPlayCallerTests {
     assertThat(hotPa).isGreaterThan(emptyPa);
   }
 
+  @Test
+  void highAggression_biasesAwayFromQuickGame_towardDropback() {
+    var state = state(1, 10, 50, 1, 600);
+    var conservativeQg = countPassConcept(state, withAggression(5), PassConcept.QUICK_GAME, 300L);
+    var aggressiveQg = countPassConcept(state, withAggression(95), PassConcept.QUICK_GAME, 300L);
+
+    assertThat(aggressiveQg).isLessThan(conservativeQg);
+  }
+
+  @Test
+  void aggressionAtNeutralValue_reproducesBaselineConceptShare() {
+    var state = state(1, 10, 50, 1, 600);
+    var neutralDropback = countPassConcept(state, neutralCoach(), PassConcept.DROPBACK, 400L);
+    var explicitNeutralDropback =
+        countPassConcept(state, withAggression(50), PassConcept.DROPBACK, 400L);
+
+    assertThat(explicitNeutralDropback)
+        .isCloseTo(neutralDropback, org.assertj.core.data.Offset.offset(SAMPLES / 50));
+  }
+
+  private static Coach withAggression(int value) {
+    var offense = new CoachTendencies(50, value, 50, 50, 50, 50, 50, 50, 50, 50, 50);
+    return new Coach(
+        new CoachId(new UUID(7L, 800L + value)),
+        "Aggression-" + value,
+        offense,
+        DefensiveCoachTendencies.average(),
+        CoachQuality.average());
+  }
+
   private int countPassConcept(GameState state, Coach coach, PassConcept concept, long seed) {
     var rng = new SplittableRandomSource(seed);
     var hits = 0;
     for (var i = 0; i < SAMPLES; i++) {
-      var call = caller.call(state, coach, rng.split(i));
+      var call =
+          caller.call(
+              state,
+              coach,
+              app.zoneblitz.gamesimulator.roster.RosterProfile.leagueAverage(),
+              rng.split(i));
       if ("pass".equalsIgnoreCase(call.kind()) && call.passConcept() == concept) {
         hits++;
       }
@@ -127,7 +162,12 @@ class TendencyPlayCallerTests {
     var rng = new SplittableRandomSource(seed);
     var passes = 0;
     for (var i = 0; i < SAMPLES; i++) {
-      var call = caller.call(state, coach, rng.split(i));
+      var call =
+          caller.call(
+              state,
+              coach,
+              app.zoneblitz.gamesimulator.roster.RosterProfile.leagueAverage(),
+              rng.split(i));
       if ("pass".equalsIgnoreCase(call.kind())) {
         passes++;
       }

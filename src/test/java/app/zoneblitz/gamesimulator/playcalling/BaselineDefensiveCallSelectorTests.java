@@ -55,7 +55,13 @@ class BaselineDefensiveCallSelectorTests {
     var state = state(2, 1, 98);
     var rng = new SplittableRandomSource(44L);
     for (var i = 0; i < 100; i++) {
-      var call = selector.select(state, OffensiveFormation.I_FORM, average(), rng.split(i));
+      var call =
+          selector.select(
+              state,
+              OffensiveFormation.I_FORM,
+              average(),
+              app.zoneblitz.gamesimulator.roster.RosterProfile.leagueAverage(),
+              rng.split(i));
       assertThat(call.personnelPackage()).isEqualTo(DefensivePackage.GOAL_LINE);
     }
   }
@@ -116,7 +122,13 @@ class BaselineDefensiveCallSelectorTests {
     var rng = new SplittableRandomSource(seed);
     var twoHigh = 0;
     for (var i = 0; i < SAMPLES; i++) {
-      var call = selector.select(state, formation, dc, rng.split(i));
+      var call =
+          selector.select(
+              state,
+              formation,
+              dc,
+              app.zoneblitz.gamesimulator.roster.RosterProfile.leagueAverage(),
+              rng.split(i));
       if (isTwoHigh(call.shell())) {
         twoHigh++;
       }
@@ -146,7 +158,13 @@ class BaselineDefensiveCallSelectorTests {
     var rng = new SplittableRandomSource(seed);
     var blitzes = 0;
     for (var i = 0; i < SAMPLES; i++) {
-      var call = selector.select(state, formation, dc, rng.split(i));
+      var call =
+          selector.select(
+              state,
+              formation,
+              dc,
+              app.zoneblitz.gamesimulator.roster.RosterProfile.leagueAverage(),
+              rng.split(i));
       if (call.extraRushers() > 0) {
         blitzes++;
       }
@@ -159,7 +177,13 @@ class BaselineDefensiveCallSelectorTests {
     var rng = new SplittableRandomSource(seed);
     var mans = 0;
     for (var i = 0; i < SAMPLES; i++) {
-      var call = selector.select(state, formation, dc, rng.split(i));
+      var call =
+          selector.select(
+              state,
+              formation,
+              dc,
+              app.zoneblitz.gamesimulator.roster.RosterProfile.leagueAverage(),
+              rng.split(i));
       if (call.manZone() == ManZone.MAN) {
         mans++;
       }

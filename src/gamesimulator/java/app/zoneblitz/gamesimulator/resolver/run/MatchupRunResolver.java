@@ -211,6 +211,7 @@ public final class MatchupRunResolver implements RunResolver {
             state.downAndDistance().yardsToGo(),
             offenseScheme,
             defenseScheme,
+            offense,
             assignment,
             bundle.boxLoadingShift());
     var shift = matchupShift.compute(context, rng);

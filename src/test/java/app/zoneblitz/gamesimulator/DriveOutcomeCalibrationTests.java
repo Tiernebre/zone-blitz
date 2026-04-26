@@ -201,7 +201,11 @@ class DriveOutcomeCalibrationTests {
     }
 
     @Override
-    public PlayCall call(GameState state, Coach coach, RandomSource rs) {
+    public PlayCall call(
+        GameState state,
+        Coach coach,
+        app.zoneblitz.gamesimulator.roster.RosterProfile profile,
+        RandomSource rs) {
       return new PlayCall(rng.nextDouble() < passRate ? "pass" : "run");
     }
   }

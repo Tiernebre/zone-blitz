@@ -350,14 +350,20 @@ final class GameSimulator implements SimulateGame {
     var defense = defenseSide == Side.HOME ? inputs.home() : inputs.away();
     var offenseCoach = offenseSide == Side.HOME ? inputs.homeCoach() : inputs.awayCoach();
     var defenseCoach = defenseSide == Side.HOME ? inputs.homeCoach() : inputs.awayCoach();
-    var call = caller.call(state, offenseCoach, snapRng);
+    var offenseProfile = app.zoneblitz.gamesimulator.roster.RosterProfile.of(offense);
+    var defenseProfile = app.zoneblitz.gamesimulator.roster.RosterProfile.of(defense);
+    var call = caller.call(state, offenseCoach, offenseProfile, snapRng);
     // Defensive call is selected pre-snap for every scrimmage play. It is not yet fed into the
     // pass/run resolvers' matchup shifts — that wiring is the phase-5 follow-up. Selecting it
     // here keeps the seam exercised so calibration tests can assert league-average blitz / shell
     // distributions and the DC's tendencies have an observable effect.
     var defensiveCall =
         defensiveCallSelector.select(
-            state, call.formation(), defenseCoach.defense(), snapRng.split(DEFENSIVE_CALL_KEY));
+            state,
+            call.formation(),
+            defenseCoach.defense(),
+            defenseProfile,
+            snapRng.split(DEFENSIVE_CALL_KEY));
     Objects.requireNonNull(defensiveCall, "defensiveCall");
     var offPersonnelRaw = personnel.selectOffense(call, state, offense);
     var offPersonnel =

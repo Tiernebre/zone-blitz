@@ -1,6 +1,7 @@
 package app.zoneblitz.gamesimulator.resolver.pass;
 
 import app.zoneblitz.gamesimulator.GameState;
+import app.zoneblitz.gamesimulator.role.RoleAssignmentPair;
 import java.util.Map;
 
 /**
@@ -15,19 +16,25 @@ import java.util.Map;
  *
  * <p>Offsets are additive in log-odds space. {@code +0.3} roughly multiplies the odds of that
  * outcome by {@code e^0.3 ≈ 1.35}. Outcomes not present in the returned map are unshifted.
+ *
+ * <p>Implementations may consume player attributes via {@code assignment} — e.g. a poised QB or a
+ * dominant OL dampens the obvious-pass sack penalty. Average-attribute rosters must reproduce the
+ * legacy situation-only offsets so the calibration baseline holds.
  */
 @FunctionalInterface
 interface SituationalPassShift {
 
   /** Identity shift — no situational offsets, used to pin baseline parity in tests. */
-  SituationalPassShift ZERO = state -> Map.of();
+  SituationalPassShift ZERO = (state, assignment) -> Map.of();
 
   /**
    * Compute per-outcome logit offsets for the supplied pre-snap state.
    *
    * @param state pre-snap game state (down/distance is the main signal; score & clock inform
    *     garbage-time extensions in future revisions)
+   * @param assignment fine-grained role-to-player mapping; implementations read attributes from
+   *     this to soften or sharpen situational offsets
    * @return immutable map of outcome → logit offset; may be empty
    */
-  Map<PassOutcomeKind, Double> compute(GameState state);
+  Map<PassOutcomeKind, Double> compute(GameState state, RoleAssignmentPair assignment);
 }

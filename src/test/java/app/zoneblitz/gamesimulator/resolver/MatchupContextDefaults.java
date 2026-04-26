@@ -1,5 +1,7 @@
 package app.zoneblitz.gamesimulator.resolver;
 
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.role.DefensiveRoleAssignment;
 import app.zoneblitz.gamesimulator.role.OffensiveRoleAssignment;
 import app.zoneblitz.gamesimulator.role.RoleAssignmentPair;
@@ -27,6 +29,7 @@ public final class MatchupContextDefaults {
   public static final RoleAssignmentPair EMPTY_ASSIGNMENT =
       new RoleAssignmentPair(
           new OffensiveRoleAssignment(Map.of()), new DefensiveRoleAssignment(Map.of()));
+  public static final OffensivePersonnel BASELINE_OFFENSE = TestPersonnel.baselineOffense();
 
   private MatchupContextDefaults() {}
 }

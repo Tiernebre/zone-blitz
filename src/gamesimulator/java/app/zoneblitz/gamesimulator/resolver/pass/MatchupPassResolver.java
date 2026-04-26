@@ -237,7 +237,7 @@ public final class MatchupPassResolver implements PassResolver {
     var assignment = roleAssigner.assign(call, offense, defense);
     var roles = PassRoles.from(assignment);
     var shellRng = rng.split(SHELL_SPLIT_KEY);
-    var shell = shellSampler.sample(call.formation(), shellRng);
+    var shell = shellSampler.sample(call.formation(), offense, shellRng);
     var bundle =
         defensiveAdjustments.compute(
             state.stats().forOffense(state.possession()), DefensiveCoachTendencies.average());
@@ -253,7 +253,7 @@ public final class MatchupPassResolver implements PassResolver {
             bundle.boxLoadingShift());
     var shift = matchupShift.compute(context, rng);
     var target = resolveTarget(call, roles, qbPlayer, qb, rng);
-    var offsets = situationalShift.compute(state);
+    var offsets = situationalShift.compute(state, assignment);
     var outcome = sampler.sampleRate(outcomeMix, shift, offsets, rng);
 
     return switch (outcome) {

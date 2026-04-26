@@ -6,6 +6,7 @@ import app.zoneblitz.gamesimulator.event.RunConcept;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Coach;
+import app.zoneblitz.gamesimulator.roster.RosterProfile;
 import java.util.Objects;
 
 /**
@@ -21,9 +22,13 @@ public interface PlayCaller {
    * @param offensiveCoach the coach whose tendencies drive this call — implementations are free to
    *     ignore it (scripted/alternating callers) or consult {@link Coach#offense()} (the
    *     tendency-driven production caller)
+   * @param offenseProfile aggregate attribute strengths of the offense's full roster; tendency-
+   *     driven callers consult {@link RosterProfile#passLean()} to nudge run/pass mix toward where
+   *     the team is strongest. Scripted callers may ignore it
    * @param rng randomness source for probabilistic callers; scripted implementations may ignore it
    */
-  PlayCall call(GameState state, Coach offensiveCoach, RandomSource rng);
+  PlayCall call(
+      GameState state, Coach offensiveCoach, RosterProfile offenseProfile, RandomSource rng);
 
   /**
    * Opaque play-call placeholder — will be replaced with a sealed hierarchy.
