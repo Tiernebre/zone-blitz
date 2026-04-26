@@ -1,10 +1,13 @@
 package app.zoneblitz.gamesimulator.penalty;
 
+import static app.zoneblitz.gamesimulator.roster.PlayerBuilder.aPlayer;
+import static app.zoneblitz.gamesimulator.roster.TendenciesBuilder.aTendencies;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
 import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.TestGameStates;
+import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.personnel.DefensivePersonnel;
 import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
@@ -15,6 +18,10 @@ import app.zoneblitz.gamesimulator.roster.CoachId;
 import app.zoneblitz.gamesimulator.roster.CoachQuality;
 import app.zoneblitz.gamesimulator.roster.CoachTendencies;
 import app.zoneblitz.gamesimulator.roster.DefensiveCoachTendencies;
+import app.zoneblitz.gamesimulator.roster.Player;
+import app.zoneblitz.gamesimulator.roster.Position;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -149,6 +156,102 @@ class BandPenaltyModelTests {
     // Catalog post-play total ≈ 0.00136/play — rare, so wider relative tolerance.
     var rate = (double) hits / DRAWS;
     assertThat(rate).isBetween(0.0008, 0.0025);
+  }
+
+  @Test
+  void duringPlay_lowDisciplinePlayer_isFlaggedDisproportionatelyMoreThanHighDiscipline() {
+    var lowest = olWithDiscipline(0, "ol-low", 1L);
+    var middle1 = olWithDiscipline(25, "ol-mid1", 2L);
+    var middle2 = olWithDiscipline(50, "ol-mid2", 3L);
+    var middle3 = olWithDiscipline(75, "ol-mid3", 4L);
+    var highest = olWithDiscipline(100, "ol-high", 5L);
+    var spreadOffense = TestPersonnel.offenseWith(lowest, middle1, middle2, middle3, highest);
+
+    var counts = drainOffenseCommitterCounts(0xD15C0L, spreadOffense, 10_000);
+
+    var lowestHits = counts.getOrDefault(lowest.id(), 0);
+    var highestHits = counts.getOrDefault(highest.id(), 0);
+    assertThat(lowestHits)
+        .as("lowest-discipline player should be flagged more than highest-discipline")
+        .isGreaterThan(highestHits);
+    // Envelope: low/high weights are 2.0 vs 0.25 (floor) → ~8x ceiling, but spread across 5 players
+    // makes the practical ratio land in [1.5, 8]. A loose lower bound keeps the test stable.
+    assertThat((double) lowestHits / Math.max(1, highestHits)).isGreaterThan(1.5);
+  }
+
+  @Test
+  void duringPlay_uniformDiscipline_distributesCommitterApproximatelyUniformly() {
+    var p1 = olWithDiscipline(50, "ol-u1", 11L);
+    var p2 = olWithDiscipline(50, "ol-u2", 12L);
+    var p3 = olWithDiscipline(50, "ol-u3", 13L);
+    var p4 = olWithDiscipline(50, "ol-u4", 14L);
+    var p5 = olWithDiscipline(50, "ol-u5", 15L);
+    var uniformOffense = TestPersonnel.offenseWith(p1, p2, p3, p4, p5);
+
+    var counts = drainOffenseCommitterCounts(0xC0DEL, uniformOffense, 100_000);
+    var c1 = counts.getOrDefault(p1.id(), 0);
+    var c2 = counts.getOrDefault(p2.id(), 0);
+    var c3 = counts.getOrDefault(p3.id(), 0);
+    var c4 = counts.getOrDefault(p4.id(), 0);
+    var c5 = counts.getOrDefault(p5.id(), 0);
+
+    // With identical discipline every player carries weight 1.0 and the offending-unit draw is
+    // uniform across all 11 offensive players. With 100k trials, each of the 5 named OL should land
+    // within a loose ratio bound of every other to defend against pure sampling variance.
+    var min = Math.min(Math.min(Math.min(c1, c2), Math.min(c3, c4)), c5);
+    var max = Math.max(Math.max(Math.max(c1, c2), Math.max(c3, c4)), c5);
+    assertThat(min).isGreaterThan(0);
+    assertThat((double) max / min).isLessThan(1.3);
+  }
+
+  @Test
+  void duringPlay_disciplineSpreadOnOffendingUnit_preservesAggregateRate() {
+    var lowest = olWithDiscipline(0, "ol-low", 21L);
+    var middle1 = olWithDiscipline(25, "ol-mid1", 22L);
+    var middle2 = olWithDiscipline(50, "ol-mid2", 23L);
+    var middle3 = olWithDiscipline(75, "ol-mid3", 24L);
+    var highest = olWithDiscipline(100, "ol-high", 25L);
+    var spreadOffense = TestPersonnel.offenseWith(lowest, middle1, middle2, middle3, highest);
+
+    var spreadRate = drainDuringPlay(0xB44E1L, GameState.initial(), spreadOffense, defense);
+    var baselineRate = drainDuringPlay(0xB44E1L, GameState.initial(), offense, defense);
+
+    // The spread OL averages discipline 50, identical to baseline; aggregate rate shouldn't drift.
+    assertThat(spreadRate).isCloseTo(baselineRate, within(0.005));
+  }
+
+  private double drainDuringPlay(
+      long seed, GameState s, OffensivePersonnel off, DefensivePersonnel def) {
+    var root = new SplittableRandomSource(seed);
+    var hits = 0;
+    for (var i = 0; i < DRAWS; i++) {
+      if (model.duringPlay(null, null, s, off, def, root.split(i)).isPresent()) {
+        hits++;
+      }
+    }
+    return (double) hits / DRAWS;
+  }
+
+  private Map<PlayerId, Integer> drainOffenseCommitterCounts(
+      long seed, OffensivePersonnel off, int trials) {
+    var root = new SplittableRandomSource(seed);
+    var counts = new HashMap<PlayerId, Integer>();
+    for (var i = 0; i < trials; i++) {
+      var draw = model.duringPlay(null, null, state, off, defense, root.split(i));
+      if (draw.isPresent() && draw.get().against() == state.possession()) {
+        counts.merge(draw.get().committedBy(), 1, Integer::sum);
+      }
+    }
+    return counts;
+  }
+
+  private static Player olWithDiscipline(int discipline, String name, long idLow) {
+    return aPlayer()
+        .withId(0L, idLow)
+        .atPosition(Position.OL)
+        .withDisplayName(name)
+        .withTendencies(aTendencies().withDiscipline(discipline))
+        .build();
   }
 
   private static Coach coachWithPreparation(int preparation, long idBits) {

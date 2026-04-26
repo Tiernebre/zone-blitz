@@ -11,7 +11,6 @@ import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.Score;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
-import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.Objects;
 import java.util.Optional;
@@ -93,7 +92,7 @@ public final class OnsideAwareKickoffResolver implements KickoffResolver {
       GameClock clock,
       Score scoreAfter,
       RandomSource rng) {
-    var kicker = pickKicker(kickingTeam);
+    var kicker = KickoffPlayerSelection.pickAccuracyKicker(kickingTeam);
     var kickingRecovers = rng.nextDouble() < ONSIDE_RECOVERY_RATE;
     var recoveringSpotKickingFrame = KICK_YARDLINE + ONSIDE_TRAVEL;
     var kickingSide = receivingSide == Side.HOME ? Side.AWAY : Side.HOME;
@@ -105,12 +104,12 @@ public final class OnsideAwareKickoffResolver implements KickoffResolver {
 
     if (kickingRecovers) {
       result = KickoffResult.ONSIDE_RECOVERED_BY_KICKING;
-      returner = Optional.of(pickRecoverer(kickingTeam));
+      returner = Optional.of(KickoffPlayerSelection.pickOnsideRecoverer(kickingTeam));
       nextPossession = kickingSide;
       nextSpotYardLine = recoveringSpotKickingFrame;
     } else {
       result = KickoffResult.ONSIDE_RECOVERED_BY_RECEIVING;
-      returner = Optional.of(pickRecoverer(receivingTeam));
+      returner = Optional.of(KickoffPlayerSelection.pickOnsideRecoverer(receivingTeam));
       nextPossession = receivingSide;
       nextSpotYardLine = 100 - recoveringSpotKickingFrame;
     }
@@ -132,21 +131,5 @@ public final class OnsideAwareKickoffResolver implements KickoffResolver {
             ONSIDE_TRAVEL,
             true);
     return new Resolved(event, nextPossession, nextSpotYardLine);
-  }
-
-  private static PlayerId pickKicker(Team team) {
-    return team.roster().stream()
-        .filter(p -> p.position() == Position.K)
-        .map(p -> p.id())
-        .findFirst()
-        .orElseGet(() -> team.roster().get(0).id());
-  }
-
-  private static PlayerId pickRecoverer(Team team) {
-    return team.roster().stream()
-        .filter(p -> p.position() != Position.K && p.position() != Position.P)
-        .map(p -> p.id())
-        .findFirst()
-        .orElseGet(() -> team.roster().get(0).id());
   }
 }

@@ -7,11 +7,9 @@ import app.zoneblitz.gamesimulator.event.GameId;
 import app.zoneblitz.gamesimulator.event.KickoffResult;
 import app.zoneblitz.gamesimulator.event.PlayEvent;
 import app.zoneblitz.gamesimulator.event.PlayId;
-import app.zoneblitz.gamesimulator.event.PlayerId;
 import app.zoneblitz.gamesimulator.event.Score;
 import app.zoneblitz.gamesimulator.event.Side;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
-import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Team;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,7 +38,7 @@ public final class TouchbackKickoffResolver implements KickoffResolver {
     Objects.requireNonNull(gameId, "gameId");
     Objects.requireNonNull(clock, "clock");
     Objects.requireNonNull(scoreAfter, "scoreAfter");
-    var kicker = pickKicker(kickingTeam);
+    var kicker = KickoffPlayerSelection.pickPowerKicker(kickingTeam);
     var id = new PlayId(new UUID(gameId.value().getMostSignificantBits(), 0xFF00L | sequence));
     var event =
         new PlayEvent.Kickoff(
@@ -58,13 +56,5 @@ public final class TouchbackKickoffResolver implements KickoffResolver {
             0,
             false);
     return new Resolved(event, receivingSide, TOUCHBACK_SPOT);
-  }
-
-  private static PlayerId pickKicker(Team team) {
-    return team.roster().stream()
-        .filter(p -> p.position() == Position.K)
-        .map(p -> p.id())
-        .findFirst()
-        .orElseGet(() -> team.roster().get(0).id());
   }
 }

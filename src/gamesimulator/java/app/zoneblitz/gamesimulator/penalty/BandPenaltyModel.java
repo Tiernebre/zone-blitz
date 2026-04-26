@@ -19,15 +19,19 @@ import java.util.Optional;
  * Default {@link PenaltyModel} calibrated to nflfastR 2020–2024 per-play rates (see {@link
  * PenaltyCatalog}). Each bucket's aggregate rate is drawn once per snap; the specific type is
  * chosen from that bucket's cumulative distribution, then the against-side is chosen by the type's
- * offense/defense split, then a committing player is drawn uniformly from the offending unit.
+ * offense/defense split, then a committing player is drawn from the offending unit by an
+ * inverse-discipline weighted sample (see {@link #pickCommitter}).
  *
  * <p>Per-player {@code discipline} shifts the rate linearly around the league-average baseline:
  * unit mean of 50 leaves rates unchanged, mean of 100 cuts them by {@link #MAX_SHIFT}, mean of 0
- * raises them by the same fraction. For pre-snap draws, each side's {@link Coach#quality()} {@code
- * preparation} layers on top of player discipline as a second multiplier — preparation of 50 is
- * neutral, 100 cuts pre-snap rates by {@link #MAX_PREP_SHIFT}, 0 raises them by the same fraction.
- * Only pre-snap penalties are preparation-sensitive; live-ball and post-play fouls remain driven by
- * player discipline alone.
+ * raises them by the same fraction. Once a flag fires, the offending player is drawn from the
+ * offending unit by an inverse-discipline weighted sample so the worst-discipline players are
+ * disproportionately likely to be flagged; the envelope is bounded by {@link #COMMITTER_K} so the
+ * spread between the highest- and lowest-discipline player stays under ~3x. For pre-snap draws,
+ * each side's {@link Coach#quality()} {@code preparation} layers on top of player discipline as a
+ * second multiplier — preparation of 50 is neutral, 100 cuts pre-snap rates by {@link
+ * #MAX_PREP_SHIFT}, 0 raises them by the same fraction. Only pre-snap penalties are
+ * preparation-sensitive; live-ball and post-play fouls remain driven by player discipline alone.
  */
 public final class BandPenaltyModel implements PenaltyModel {
 
@@ -36,6 +40,19 @@ public final class BandPenaltyModel implements PenaltyModel {
 
   /** Maximum linear rate shift at the coach-preparation extremes (preparation 0 or 100). */
   private static final double MAX_PREP_SHIFT = 0.8;
+
+  /**
+   * Envelope on the inverse-discipline committer-pick weights. With {@code k = 1.0} a discipline-0
+   * player carries a base weight of 2.0 and a discipline-100 player carries 0.0 (clamped to {@link
+   * #COMMITTER_FLOOR}); the resulting max:min weight ratio sits at 8:1 with the floor active and
+   * roughly 3:1 between realistic extremes (e.g. discipline 25 vs 75).
+   */
+  private static final double COMMITTER_K = 1.0;
+
+  /**
+   * Lower clamp on the per-player committer weight so even a flawless player can still be flagged.
+   */
+  private static final double COMMITTER_FLOOR = 0.25;
 
   /**
    * Down + distance threshold past which a snap is treated as an "obvious pass" situation for
@@ -163,9 +180,29 @@ public final class BandPenaltyModel implements PenaltyModel {
 
     var against = rng.nextDouble() < picked.offenseProb() ? offenseSide : other(offenseSide);
     var offendingUnit = (against == offenseSide) ? offense.players() : defense.players();
-    var committedBy = offendingUnit.get((int) (rng.nextDouble() * offendingUnit.size())).id();
+    var committedBy = pickCommitter(offendingUnit, rng);
     var enforcement = PenaltyCatalog.enforcementFor(picked.type(), against, offenseSide);
     return Optional.of(new Drawn(picked.type(), against, committedBy, picked.yards(), enforcement));
+  }
+
+  private static PlayerId pickCommitter(List<Player> unit, RandomSource rng) {
+    var weights = new double[unit.size()];
+    var total = 0.0;
+    for (var i = 0; i < unit.size(); i++) {
+      var raw = 1 + COMMITTER_K * (50.0 - unit.get(i).tendencies().discipline()) / 50.0;
+      var w = Math.max(COMMITTER_FLOOR, raw);
+      weights[i] = w;
+      total += w;
+    }
+    var roll = rng.nextDouble() * total;
+    var acc = 0.0;
+    for (var i = 0; i < unit.size(); i++) {
+      acc += weights[i];
+      if (roll < acc) {
+        return unit.get(i).id();
+      }
+    }
+    return unit.get(unit.size() - 1).id();
   }
 
   private static double disciplineFactor(List<Player> unit) {

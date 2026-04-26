@@ -1,5 +1,7 @@
 package app.zoneblitz.gamesimulator.kickoff;
 
+import static app.zoneblitz.gamesimulator.roster.PlayerBuilder.aPlayer;
+import static app.zoneblitz.gamesimulator.roster.SkillBuilder.aSkill;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.event.GameClock;
@@ -93,6 +95,100 @@ class OnsideAwareKickoffResolverTests {
     assertThat(resolved.nextPossession()).isEqualTo(Side.HOME);
     assertThat(resolved.nextSpotYardLine()).isEqualTo(55);
     assertThat(resolved.event().returner()).contains(RECEIVER_ID);
+  }
+
+  @Test
+  void resolveOnside_whenMultipleKickersOnRoster_picksHighestKickAccuracy() {
+    var powerLegId = new PlayerId(new UUID(3L, 1L));
+    var preciseLegId = new PlayerId(new UUID(3L, 2L));
+    var kicking =
+        new Team(
+            new TeamId(new UUID(3L, 0L)),
+            "Kicking",
+            List.of(
+                aPlayer()
+                    .withId(powerLegId)
+                    .atPosition(Position.K)
+                    .withDisplayName("Power Leg")
+                    .withSkill(aSkill().withKickPower(95).withKickAccuracy(60))
+                    .build(),
+                aPlayer()
+                    .withId(preciseLegId)
+                    .atPosition(Position.K)
+                    .withDisplayName("Precise Leg")
+                    .withSkill(aSkill().withKickPower(70).withKickAccuracy(90))
+                    .build(),
+                new Player(KICK_COVER_ID, Position.LB, "Coverage")));
+    var resolver =
+        new OnsideAwareKickoffResolver(
+            new TouchbackKickoffResolver(), (side, score, clock) -> true);
+
+    var resolved =
+        resolver.resolve(
+            kicking, RECEIVING, Side.HOME, GAME, 1, LATE_Q4, AWAY_DOWN_SEVEN, new FixedRng(0.0));
+
+    assertThat(resolved.event().onside()).isTrue();
+    assertThat(resolved.event().kicker()).isEqualTo(preciseLegId);
+  }
+
+  @Test
+  void resolveOnside_whenRecoveringTeamHasMultipleEligible_picksHighestBallSkills() {
+    var stoneHandsId = new PlayerId(new UUID(4L, 1L));
+    var stickyHandsId = new PlayerId(new UUID(4L, 2L));
+    var kicking =
+        new Team(
+            new TeamId(new UUID(4L, 0L)),
+            "Kicking",
+            List.of(
+                new Player(KICKER_ID, Position.K, "Kicker"),
+                aPlayer()
+                    .withId(stoneHandsId)
+                    .atPosition(Position.LB)
+                    .withDisplayName("Stone Hands")
+                    .withSkill(aSkill().withBallSkills(40))
+                    .build(),
+                aPlayer()
+                    .withId(stickyHandsId)
+                    .atPosition(Position.S)
+                    .withDisplayName("Hands Team Ace")
+                    .withSkill(aSkill().withBallSkills(88))
+                    .build()));
+    var resolver =
+        new OnsideAwareKickoffResolver(
+            new TouchbackKickoffResolver(), (side, score, clock) -> true);
+
+    var resolved =
+        resolver.resolve(
+            kicking, RECEIVING, Side.HOME, GAME, 1, LATE_Q4, AWAY_DOWN_SEVEN, new FixedRng(0.0));
+
+    assertThat(resolved.event().result()).isEqualTo(KickoffResult.ONSIDE_RECOVERED_BY_KICKING);
+    assertThat(resolved.event().returner()).contains(stickyHandsId);
+  }
+
+  @Test
+  void resolveOnside_whenNoKickerOnRoster_fallsBackToFirstRosterPlayer() {
+    var firstId = new PlayerId(new UUID(5L, 1L));
+    var secondId = new PlayerId(new UUID(5L, 2L));
+    var kicking =
+        new Team(
+            new TeamId(new UUID(5L, 0L)),
+            "Kicking",
+            List.of(
+                aPlayer().withId(firstId).atPosition(Position.LB).withDisplayName("First").build(),
+                aPlayer()
+                    .withId(secondId)
+                    .atPosition(Position.WR)
+                    .withDisplayName("Second")
+                    .build()));
+    var resolver =
+        new OnsideAwareKickoffResolver(
+            new TouchbackKickoffResolver(), (side, score, clock) -> true);
+
+    var resolved =
+        resolver.resolve(
+            kicking, RECEIVING, Side.HOME, GAME, 1, LATE_Q4, AWAY_DOWN_SEVEN, new FixedRng(0.0));
+
+    assertThat(resolved.event().kicker()).isEqualTo(firstId);
   }
 
   @Test
