@@ -4,7 +4,9 @@
 	<!-- Empty body: used when the response body is irrelevant because HX-Redirect is set. -->
 	<div th:fragment="redirecting"></div>
 
-	<div th:fragment="combined" id="hiring-regions" class="space-y-4">
+	<div th:fragment="combined" id="hiring-regions"
+	     hx-include="#dos-pool input, #dos-pool select"
+	     class="space-y-4">
 		<div th:insert="~{league/hiring/director-of-scouting-fragments :: league-board}"></div>
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 			<div class="lg:col-span-2">
@@ -18,32 +20,172 @@
 
 	<section th:fragment="pool"
 	         id="dos-pool"
-	         class="bg-white border border-slate-200 rounded p-4 shadow-sm">
-		<h2 class="text-lg font-semibold text-slate-900">Director of Scouting candidate pool</h2>
-		<p class="text-sm text-slate-500 mb-3">Evaluator ability is not visible. Interview to gauge mutual interest; judge everything else from the public record.</p>
-		<div th:if="${view.pool().isEmpty()}" class="text-slate-500 italic text-sm">
-			No candidates available yet.
+	         th:with="query=${poolPage.query()}, rows=${poolPage.rows()}"
+	         th:attr="hx-get=@{'/leagues/' + ${view.league().leagueId()} + '/hiring/director-of-scouting/pool'}"
+	         hx-target="this"
+	         hx-swap="outerHTML"
+	         hx-push-url="true"
+	         hx-include="#dos-pool input, #dos-pool select"
+	         hx-trigger="dos-pool:refresh"
+	         class="bg-white border border-slate-200 rounded p-4 shadow-sm space-y-3">
+
+		<input type="hidden" name="sort" th:value="${query.sort().name()}">
+		<input type="hidden" name="dir" th:value="${query.dir().name()}">
+		<input type="hidden" name="page" th:value="${query.page()}">
+		<input type="hidden" name="pageSize" th:value="${query.pageSize()}">
+
+		<div>
+			<h2 class="text-lg font-semibold text-slate-900">Director of Scouting candidate pool</h2>
+			<p class="text-sm text-slate-500">Evaluator ability is not visible. Interview to gauge mutual interest; judge everything else from the public record.</p>
 		</div>
-		<table th:unless="${view.pool().isEmpty()}"
+
+		<div class="flex items-center gap-3 flex-wrap">
+			<label class="flex-1 min-w-[200px]">
+				<span class="sr-only">Search</span>
+				<input type="search" name="q" th:value="${query.q()}"
+				       placeholder="Search name, archetype, specialty…"
+				       data-filter-input
+				       class="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+			</label>
+			<label class="flex items-center gap-2 text-sm">
+				<span class="text-slate-600">Archetype</span>
+				<select name="archetype" data-filter-input
+				        class="px-3 py-2 border border-slate-300 rounded text-sm bg-white">
+					<option value="">All</option>
+					<option th:each="a : ${T(app.zoneblitz.league.hiring.CandidateArchetype).values()}"
+					        th:value="${a.name()}"
+					        th:text="${a.displayName()}"
+					        th:selected="${query.archetype() == a.name()}"></option>
+				</select>
+			</label>
+			<label class="flex items-center gap-2 text-sm">
+				<span class="text-slate-600">Specialty</span>
+				<select name="specialty" data-filter-input
+				        class="px-3 py-2 border border-slate-300 rounded text-sm bg-white">
+					<option value="">All</option>
+					<option th:each="s : ${T(app.zoneblitz.league.staff.SpecialtyPosition).values()}"
+					        th:value="${s.name()}"
+					        th:text="${s.name()}"
+					        th:selected="${query.specialty() == s.name()}"></option>
+				</select>
+			</label>
+			<label class="flex items-center gap-2 text-sm">
+				<span class="text-slate-600">Status</span>
+				<select name="status" data-filter-input
+				        class="px-3 py-2 border border-slate-300 rounded text-sm bg-white">
+					<option value="">All</option>
+					<option th:each="st : ${T(app.zoneblitz.league.hiring.view.DirectorOfScoutingPoolQuery.Status).values()}"
+					        th:value="${st.name()}"
+					        th:text="${st.displayName()}"
+					        th:selected="${query.status() == st.name()}"></option>
+				</select>
+			</label>
+			<span class="text-xs text-slate-500 tabular-nums"
+			      th:text="${poolPage.filteredRows()} + ' of ' + ${poolPage.totalRows()} + ' candidates'"></span>
+		</div>
+
+		<div th:if="${rows.isEmpty()}" class="text-slate-500 italic text-sm">
+			<span th:if="${poolPage.totalRows() == 0}">No candidates available yet.</span>
+			<span th:unless="${poolPage.totalRows() == 0}">No candidates match your filters.</span>
+		</div>
+		<table th:unless="${rows.isEmpty()}"
 		       class="w-full text-sm border-collapse">
 			<thead>
-				<tr class="text-left text-slate-600 border-b border-slate-200">
-					<th class="py-2 pr-2">Name</th>
-					<th class="py-2 pr-2">Archetype</th>
-					<th class="py-2 pr-2">Specialty</th>
-					<th class="py-2 pr-2">Age</th>
-					<th class="py-2 pr-2" title="Years as director of scouting">DoS Yrs</th>
-					<th class="py-2 pr-2" title="Years as scout">Scout Yrs</th>
-					<th class="py-2 pr-2" title="Years as area scout">Area Yrs</th>
-					<th class="py-2 pr-2">Comp target</th>
-					<th class="py-2 pr-2">Length</th>
-					<th class="py-2 pr-2">Guaranteed</th>
-					<th class="py-2 pr-2">Interest</th>
+				<tr class="text-left text-slate-600 border-b border-slate-200"
+				    th:with="sortName=${query.sort().name()}, dirName=${query.dir().name()}">
+					<th class="py-2 pr-2">
+						<button type="button" data-sort-key="NAME"
+						        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+							Name
+							<span th:if="${sortName == 'NAME'}" class="text-xs"
+							      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+						</button>
+					</th>
+					<th class="py-2 pr-2">
+						<button type="button" data-sort-key="ARCHETYPE"
+						        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+							Archetype
+							<span th:if="${sortName == 'ARCHETYPE'}" class="text-xs"
+							      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+						</button>
+					</th>
+					<th class="py-2 pr-2">
+						<button type="button" data-sort-key="SPECIALTY"
+						        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+							Specialty
+							<span th:if="${sortName == 'SPECIALTY'}" class="text-xs"
+							      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+						</button>
+					</th>
+					<th class="py-2 pr-2">
+						<button type="button" data-sort-key="AGE"
+						        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+							Age
+							<span th:if="${sortName == 'AGE'}" class="text-xs"
+							      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+						</button>
+					</th>
+					<th class="py-2 pr-2" title="Years as director of scouting">
+						<button type="button" data-sort-key="DOS_YEARS"
+						        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+							DoS Yrs
+							<span th:if="${sortName == 'DOS_YEARS'}" class="text-xs"
+							      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+						</button>
+					</th>
+					<th class="py-2 pr-2" title="Years as scout">
+						<button type="button" data-sort-key="SCOUT_YEARS"
+						        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+							Scout Yrs
+							<span th:if="${sortName == 'SCOUT_YEARS'}" class="text-xs"
+							      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+						</button>
+					</th>
+					<th class="py-2 pr-2" title="Years as area scout">
+						<button type="button" data-sort-key="AREA_YEARS"
+						        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+							Area Yrs
+							<span th:if="${sortName == 'AREA_YEARS'}" class="text-xs"
+							      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+						</button>
+					</th>
+					<th class="py-2 pr-2">
+						<button type="button" data-sort-key="COMP"
+						        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+							Comp target
+							<span th:if="${sortName == 'COMP'}" class="text-xs"
+							      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+						</button>
+					</th>
+					<th class="py-2 pr-2">
+						<button type="button" data-sort-key="LENGTH"
+						        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+							Length
+							<span th:if="${sortName == 'LENGTH'}" class="text-xs"
+							      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+						</button>
+					</th>
+					<th class="py-2 pr-2">
+						<button type="button" data-sort-key="GUARANTEED"
+						        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+							Guaranteed
+							<span th:if="${sortName == 'GUARANTEED'}" class="text-xs"
+							      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+						</button>
+					</th>
+					<th class="py-2 pr-2">
+						<button type="button" data-sort-key="INTEREST"
+						        class="inline-flex items-center gap-1 font-semibold hover:text-slate-900 cursor-pointer">
+							Interest
+							<span th:if="${sortName == 'INTEREST'}" class="text-xs"
+							      th:text="${dirName == 'ASC'} ? '▲' : '▼'"></span>
+						</button>
+					</th>
 					<th class="py-2 pr-2"></th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr th:each="row : ${view.pool()}"
+				<tr th:each="row : ${rows}"
 				    th:attr="data-candidate-id=${row.id()}"
 				    class="border-b border-slate-100">
 					<td class="py-2 pr-2 font-medium text-slate-900" th:text="${row.name()}"></td>
@@ -82,6 +224,80 @@
 				</tr>
 			</tbody>
 		</table>
+
+		<div th:unless="${rows.isEmpty() and poolPage.totalPages() == 1}"
+		     class="flex items-center justify-between text-sm text-slate-600">
+			<span>
+				Page <span class="font-semibold" th:text="${query.page()}">1</span>
+				of <span class="font-semibold" th:text="${poolPage.totalPages()}">1</span>
+			</span>
+			<div class="flex gap-2">
+				<button type="button" data-page-delta="-1" th:disabled="${!poolPage.hasPrev()}"
+				        class="px-3 py-1 border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+					Prev
+				</button>
+				<button type="button" data-page-delta="1" th:disabled="${!poolPage.hasNext()}"
+				        class="px-3 py-1 border border-slate-300 rounded hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+					Next
+				</button>
+			</div>
+		</div>
+
+		<script>
+			(function () {
+				var root = document.getElementById('dos-pool');
+				if (!root || root.dataset.wired) return;
+				root.dataset.wired = '1';
+
+				function refresh() { htmx.trigger(root, 'dos-pool:refresh'); }
+
+				function resetPage() { root.querySelector('input[name=page]').value = '1'; }
+
+				var debounceTimer;
+				function debouncedRefresh() {
+					clearTimeout(debounceTimer);
+					debounceTimer = setTimeout(refresh, 250);
+				}
+
+				root.addEventListener('input', function (e) {
+					if (e.target.matches('[data-filter-input]') && e.target.type !== 'hidden') {
+						resetPage();
+						debouncedRefresh();
+					}
+				});
+				root.addEventListener('change', function (e) {
+					if (e.target.matches('select[data-filter-input]')) {
+						resetPage();
+						refresh();
+					}
+				});
+
+				root.querySelectorAll('button[data-sort-key]').forEach(function (btn) {
+					btn.addEventListener('click', function () {
+						var sortInput = root.querySelector('input[name=sort]');
+						var dirInput = root.querySelector('input[name=dir]');
+						var key = btn.dataset.sortKey;
+						if (sortInput.value === key) {
+							dirInput.value = dirInput.value === 'ASC' ? 'DESC' : 'ASC';
+						} else {
+							sortInput.value = key;
+							dirInput.value = 'ASC';
+						}
+						resetPage();
+						refresh();
+					});
+				});
+
+				root.querySelectorAll('button[data-page-delta]').forEach(function (btn) {
+					btn.addEventListener('click', function () {
+						if (btn.disabled) return;
+						var pageInput = root.querySelector('input[name=page]');
+						pageInput.value = String(Math.max(1, parseInt(pageInput.value, 10) + parseInt(btn.dataset.pageDelta, 10)));
+						refresh();
+					});
+				});
+			})();
+		</script>
 	</section>
 
 	<aside th:fragment="candidates"

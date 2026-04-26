@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -56,13 +57,30 @@ class HiringHeadCoachController {
     this.declineCounterOffer = declineCounterOffer;
   }
 
+  @ModelAttribute("poolQuery")
+  HeadCoachPoolQuery poolQuery(
+      @RequestParam(name = "q", required = false) String q,
+      @RequestParam(name = "archetype", required = false) String archetype,
+      @RequestParam(name = "specialty", required = false) String specialty,
+      @RequestParam(name = "status", required = false) String status,
+      @RequestParam(name = "sort", required = false) HeadCoachPoolQuery.SortKey sort,
+      @RequestParam(name = "dir", required = false) HeadCoachPoolQuery.SortDir dir,
+      @RequestParam(name = "page", required = false, defaultValue = "1") int page,
+      @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize) {
+    return new HeadCoachPoolQuery(q, archetype, specialty, status, sort, dir, page, pageSize);
+  }
+
   @GetMapping("/leagues/{id}/hiring/head-coach")
-  String page(@AuthenticationPrincipal OAuth2User principal, @PathVariable long id, Model model) {
+  String page(
+      @AuthenticationPrincipal OAuth2User principal,
+      @PathVariable long id,
+      @ModelAttribute("poolQuery") HeadCoachPoolQuery poolQuery,
+      Model model) {
     var view = resolveView(principal, id);
     if (userHasHired(view)) {
       return "redirect:/leagues/" + id + "/hiring/head-coach/summary";
     }
-    model.addAttribute("view", view);
+    addPoolModel(model, view, poolQuery);
     return "league/hiring/head-coach";
   }
 
@@ -74,8 +92,11 @@ class HiringHeadCoachController {
 
   @GetMapping("/leagues/{id}/hiring/head-coach/pool")
   String poolFragment(
-      @AuthenticationPrincipal OAuth2User principal, @PathVariable long id, Model model) {
-    model.addAttribute("view", resolveView(principal, id));
+      @AuthenticationPrincipal OAuth2User principal,
+      @PathVariable long id,
+      @ModelAttribute("poolQuery") HeadCoachPoolQuery poolQuery,
+      Model model) {
+    addPoolModel(model, resolveView(principal, id), poolQuery);
     return "league/hiring/head-coach-fragments :: pool";
   }
 
@@ -91,12 +112,13 @@ class HiringHeadCoachController {
       @AuthenticationPrincipal OAuth2User principal,
       @PathVariable long id,
       @PathVariable long candidateId,
+      @ModelAttribute("poolQuery") HeadCoachPoolQuery poolQuery,
       Model model) {
     var result = startInterview.start(id, candidateId, principal.getAttribute("sub"));
     return switch (result) {
       case InterviewResult.Started started -> {
         log.info("interview started leagueId={} candidateId={}", id, started.candidateId());
-        model.addAttribute("view", resolveView(principal, id));
+        addPoolModel(model, resolveView(principal, id), poolQuery);
         yield "league/hiring/head-coach-fragments :: combined";
       }
       case InterviewResult.NotFound ignored ->
@@ -118,6 +140,7 @@ class HiringHeadCoachController {
       @PathVariable long id,
       @PathVariable long candidateId,
       @ModelAttribute MakeOfferForm form,
+      @ModelAttribute("poolQuery") HeadCoachPoolQuery poolQuery,
       Model model) {
     var result = makeOffer.offer(id, candidateId, principal.getAttribute("sub"), form.toTerms());
     return switch (result) {
@@ -128,7 +151,7 @@ class HiringHeadCoachController {
             candidateId,
             created.offer().id(),
             created.offer().revisionCount());
-        model.addAttribute("view", resolveView(principal, id));
+        addPoolModel(model, resolveView(principal, id), poolQuery);
         yield "league/hiring/head-coach-fragments :: combined";
       }
       case MakeOfferResult.NotFound ignored ->
@@ -196,6 +219,7 @@ class HiringHeadCoachController {
       @AuthenticationPrincipal OAuth2User principal,
       @PathVariable long id,
       @PathVariable long offerId,
+      @ModelAttribute("poolQuery") HeadCoachPoolQuery poolQuery,
       Model model) {
     var result = matchCounterOffer.match(id, offerId, principal.getAttribute("sub"));
     return switch (result) {
@@ -205,7 +229,7 @@ class HiringHeadCoachController {
             id,
             matched.offer().id(),
             matched.offer().revisionCount());
-        model.addAttribute("view", resolveView(principal, id));
+        addPoolModel(model, resolveView(principal, id), poolQuery);
         yield "league/hiring/head-coach-fragments :: combined";
       }
       case MatchCounterOfferResult.NotFound ignored ->
@@ -231,12 +255,13 @@ class HiringHeadCoachController {
       @AuthenticationPrincipal OAuth2User principal,
       @PathVariable long id,
       @PathVariable long offerId,
+      @ModelAttribute("poolQuery") HeadCoachPoolQuery poolQuery,
       Model model) {
     var result = declineCounterOffer.decline(id, offerId, principal.getAttribute("sub"));
     return switch (result) {
       case DeclineCounterOfferResult.Declined declined -> {
         log.info("counter declined leagueId={} offerId={}", id, declined.offerId());
-        model.addAttribute("view", resolveView(principal, id));
+        addPoolModel(model, resolveView(principal, id), poolQuery);
         yield "league/hiring/head-coach-fragments :: combined";
       }
       case DeclineCounterOfferResult.NotFound ignored ->
@@ -251,5 +276,11 @@ class HiringHeadCoachController {
     return viewHiring
         .view(id, principal.getAttribute("sub"))
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+  }
+
+  private static void addPoolModel(
+      Model model, HeadCoachHiringView view, HeadCoachPoolQuery query) {
+    model.addAttribute("view", view);
+    model.addAttribute("poolPage", HeadCoachPoolFilter.apply(view.pool(), query));
   }
 }
