@@ -3,6 +3,8 @@ package app.zoneblitz.gamesimulator.formation;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 class BandBoxCountSamplerTests {
 
+  private static final OffensivePersonnel BASELINE = TestPersonnel.baselineOffense();
   private final BandBoxCountSampler sampler =
       BandBoxCountSampler.load(new ClasspathBandRepository());
 
@@ -19,7 +22,7 @@ class BandBoxCountSamplerTests {
     var rng = new SeededRandom(42);
     var seen = new HashMap<Integer, Integer>();
     for (var i = 0; i < 20_000; i++) {
-      var box = sampler.sample(OffensiveFormation.SINGLEBACK, PlayType.RUN, rng);
+      var box = sampler.sample(OffensiveFormation.SINGLEBACK, PlayType.RUN, BASELINE, rng);
       seen.merge(box, 1, Integer::sum);
     }
     assertThat(seen.keySet()).allMatch(b -> b >= 4 && b <= 11);
@@ -31,7 +34,7 @@ class BandBoxCountSamplerTests {
     var total = 0L;
     var draws = 30_000;
     for (var i = 0; i < draws; i++) {
-      total += sampler.sample(OffensiveFormation.SHOTGUN, PlayType.RUN, rng);
+      total += sampler.sample(OffensiveFormation.SHOTGUN, PlayType.RUN, BASELINE, rng);
     }
     var mean = total / (double) draws;
     assertThat(mean).isCloseTo(6.32, org.assertj.core.data.Offset.offset(0.05));
@@ -44,8 +47,8 @@ class BandBoxCountSamplerTests {
     var shotgunTotal = 0L;
     var draws = 10_000;
     for (var i = 0; i < draws; i++) {
-      iFormTotal += sampler.sample(OffensiveFormation.I_FORM, PlayType.PASS, rng);
-      shotgunTotal += sampler.sample(OffensiveFormation.SHOTGUN, PlayType.PASS, rng);
+      iFormTotal += sampler.sample(OffensiveFormation.I_FORM, PlayType.PASS, BASELINE, rng);
+      shotgunTotal += sampler.sample(OffensiveFormation.SHOTGUN, PlayType.PASS, BASELINE, rng);
     }
     assertThat(iFormTotal / (double) draws).isGreaterThan(shotgunTotal / (double) draws + 1.0);
   }
@@ -59,8 +62,9 @@ class BandBoxCountSamplerTests {
     var singlebackRunTotal = 0L;
     var draws = 10_000;
     for (var i = 0; i < draws; i++) {
-      emptyRunTotal += sampler.sample(OffensiveFormation.EMPTY, PlayType.RUN, rng);
-      singlebackRunTotal += sampler.sample(OffensiveFormation.SINGLEBACK, PlayType.RUN, rng);
+      emptyRunTotal += sampler.sample(OffensiveFormation.EMPTY, PlayType.RUN, BASELINE, rng);
+      singlebackRunTotal +=
+          sampler.sample(OffensiveFormation.SINGLEBACK, PlayType.RUN, BASELINE, rng);
     }
     assertThat(emptyRunTotal / (double) draws).isLessThan(singlebackRunTotal / (double) draws);
   }

@@ -23,22 +23,18 @@ class AttributeAwareCoverageShellSamplerTests {
       BandCoverageShellSampler.load(new ClasspathBandRepository());
 
   @Test
-  void sample_withAveragePersonnel_matchesBaselineDistribution() {
-    var rng1 = new SeededRandom(123);
-    var rng2 = new SeededRandom(123);
+  void sample_withAveragePersonnel_matchesBandSingleHighRate() {
+    // BDB 2023 SHOTGUN single-high rate is ~53%. League-average attributes contribute zero shift,
+    // so the sampled rate must reproduce the underlying band distribution.
+    var rng = new SeededRandom(123);
     var personnel = personnel(50, 50);
     var draws = 30_000;
-
-    var baselineSingleHigh = 0;
-    var attrSingleHigh = 0;
+    var singleHigh = 0;
     for (var i = 0; i < draws; i++) {
-      if (isSingleHigh(sampler.sample(OffensiveFormation.SHOTGUN, rng1))) baselineSingleHigh++;
-      if (isSingleHigh(sampler.sample(OffensiveFormation.SHOTGUN, personnel, rng2)))
-        attrSingleHigh++;
+      if (isSingleHigh(sampler.sample(OffensiveFormation.SHOTGUN, personnel, rng))) singleHigh++;
     }
-    var baselineRate = baselineSingleHigh / (double) draws;
-    var attrRate = attrSingleHigh / (double) draws;
-    assertThat(attrRate).isCloseTo(baselineRate, org.assertj.core.data.Offset.offset(0.02));
+    assertThat(singleHigh / (double) draws)
+        .isCloseTo(0.53, org.assertj.core.data.Offset.offset(0.03));
   }
 
   @Test

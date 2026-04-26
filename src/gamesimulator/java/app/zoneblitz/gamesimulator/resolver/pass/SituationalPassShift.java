@@ -3,7 +3,6 @@ package app.zoneblitz.gamesimulator.resolver.pass;
 import app.zoneblitz.gamesimulator.GameState;
 import app.zoneblitz.gamesimulator.role.RoleAssignmentPair;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Per-outcome logit offsets for the pass outcome-mix band, conditioned on game situation. Layered
@@ -38,17 +37,4 @@ interface SituationalPassShift {
    * @return immutable map of outcome → logit offset; may be empty
    */
   Map<PassOutcomeKind, Double> compute(GameState state, RoleAssignmentPair assignment);
-
-  /**
-   * Convenience overload for callers that don't carry assignment context. Defaults to an empty
-   * assignment; impls that read attributes will fall back to their no-personnel paths.
-   */
-  default Map<PassOutcomeKind, Double> compute(GameState state) {
-    Objects.requireNonNull(state, "state");
-    return compute(
-        state,
-        new RoleAssignmentPair(
-            new app.zoneblitz.gamesimulator.role.OffensiveRoleAssignment(Map.of()),
-            new app.zoneblitz.gamesimulator.role.DefensiveRoleAssignment(Map.of())));
-  }
 }

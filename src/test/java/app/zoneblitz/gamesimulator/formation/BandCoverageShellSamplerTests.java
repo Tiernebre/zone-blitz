@@ -3,6 +3,8 @@ package app.zoneblitz.gamesimulator.formation;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.zoneblitz.gamesimulator.band.ClasspathBandRepository;
+import app.zoneblitz.gamesimulator.personnel.OffensivePersonnel;
+import app.zoneblitz.gamesimulator.personnel.TestPersonnel;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import java.util.EnumMap;
 import java.util.Random;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 class BandCoverageShellSamplerTests {
 
+  private static final OffensivePersonnel BASELINE = TestPersonnel.baselineOffense();
   private final BandCoverageShellSampler sampler =
       BandCoverageShellSampler.load(new ClasspathBandRepository());
 
@@ -22,8 +25,8 @@ class BandCoverageShellSamplerTests {
     var sgSingleHigh = 0;
     var draws = 20_000;
     for (var i = 0; i < draws; i++) {
-      if (isSingleHigh(sampler.sample(OffensiveFormation.SINGLEBACK, rng))) sbSingleHigh++;
-      if (isSingleHigh(sampler.sample(OffensiveFormation.SHOTGUN, rng))) sgSingleHigh++;
+      if (isSingleHigh(sampler.sample(OffensiveFormation.SINGLEBACK, BASELINE, rng))) sbSingleHigh++;
+      if (isSingleHigh(sampler.sample(OffensiveFormation.SHOTGUN, BASELINE, rng))) sgSingleHigh++;
     }
     assertThat(sbSingleHigh / (double) draws).isGreaterThan(sgSingleHigh / (double) draws + 0.05);
   }
@@ -35,7 +38,7 @@ class BandCoverageShellSamplerTests {
     var rng = new SeededRandom(7);
     var seen = new EnumMap<CoverageShell, Integer>(CoverageShell.class);
     for (var i = 0; i < 10_000; i++) {
-      var shell = sampler.sample(OffensiveFormation.JUMBO, rng);
+      var shell = sampler.sample(OffensiveFormation.JUMBO, BASELINE, rng);
       seen.merge(shell, 1, Integer::sum);
     }
     assertThat(seen).containsKey(CoverageShell.COVER_3).containsKey(CoverageShell.COVER_1);
@@ -48,7 +51,8 @@ class BandCoverageShellSamplerTests {
     var zone = 0;
     var draws = 20_000;
     for (var i = 0; i < draws; i++) {
-      if (sampler.sample(OffensiveFormation.SHOTGUN, rng).type() == CoverageType.ZONE) zone++;
+      if (sampler.sample(OffensiveFormation.SHOTGUN, BASELINE, rng).type() == CoverageType.ZONE)
+        zone++;
     }
     assertThat(zone / (double) draws).isCloseTo(0.637, org.assertj.core.data.Offset.offset(0.02));
   }

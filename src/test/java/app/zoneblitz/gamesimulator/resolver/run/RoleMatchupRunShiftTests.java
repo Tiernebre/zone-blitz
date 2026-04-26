@@ -40,6 +40,7 @@ class RoleMatchupRunShiftTests {
             10,
             MatchupContextDefaults.OFFENSE,
             MatchupContextDefaults.DEFENSE,
+            offense,
             assignment),
         new SplittableRandomSource(0L));
   }

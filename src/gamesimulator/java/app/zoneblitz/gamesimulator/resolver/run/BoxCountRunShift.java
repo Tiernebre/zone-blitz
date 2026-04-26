@@ -84,8 +84,9 @@ public final class BoxCountRunShift implements RunMatchupShift {
     Objects.requireNonNull(context, "context");
     Objects.requireNonNull(rng, "rng");
     var child = rng.split(BOX_SPLIT_KEY);
-    var sampled = sampler.sample(context.formation(), PlayType.RUN, child);
-    var expected = sampler.expectedBox(context.formation(), PlayType.RUN);
+    var offense = context.offense();
+    var sampled = sampler.sample(context.formation(), PlayType.RUN, offense, child);
+    var expected = sampler.expectedBox(context.formation(), PlayType.RUN, offense);
     var effective = sampled + context.boxLoadingShift();
     var raw = (effective - expected) * shiftPerDefender;
     return raw * trenchFactor(context);

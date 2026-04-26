@@ -38,6 +38,7 @@ class BoxCountRunShiftTests {
           10,
           MatchupContextDefaults.OFFENSE,
           MatchupContextDefaults.DEFENSE,
+          MatchupContextDefaults.BASELINE_OFFENSE,
           MatchupContextDefaults.EMPTY_ASSIGNMENT);
 
   @Test
@@ -81,6 +82,7 @@ class BoxCountRunShiftTests {
             10,
             MatchupContextDefaults.OFFENSE,
             MatchupContextDefaults.DEFENSE,
+            MatchupContextDefaults.BASELINE_OFFENSE,
             MatchupContextDefaults.EMPTY_ASSIGNMENT,
             1.0);
     var sampler = new FixedSampler(7, 7.0);
@@ -175,6 +177,7 @@ class BoxCountRunShiftTests {
         10,
         MatchupContextDefaults.OFFENSE,
         MatchupContextDefaults.DEFENSE,
+        MatchupContextDefaults.BASELINE_OFFENSE,
         assignment);
   }
 
@@ -248,13 +251,20 @@ class BoxCountRunShiftTests {
     }
 
     @Override
-    public int sample(OffensiveFormation formation, PlayType playType, RandomSource rng) {
+    public int sample(
+        OffensiveFormation formation,
+        PlayType playType,
+        app.zoneblitz.gamesimulator.personnel.OffensivePersonnel personnel,
+        RandomSource rng) {
       rng.nextDouble(); // consume a draw to mirror real samplers
       return fixed;
     }
 
     @Override
-    public double expectedBox(OffensiveFormation formation, PlayType playType) {
+    public double expectedBox(
+        OffensiveFormation formation,
+        PlayType playType,
+        app.zoneblitz.gamesimulator.personnel.OffensivePersonnel personnel) {
       return expected;
     }
   }

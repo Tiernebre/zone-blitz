@@ -67,14 +67,6 @@ public final class BandCoverageShellSampler implements CoverageShellSampler {
   }
 
   @Override
-  public CoverageShell sample(OffensiveFormation formation, RandomSource rng) {
-    Objects.requireNonNull(formation, "formation");
-    Objects.requireNonNull(rng, "rng");
-    var weights = byFormation.getOrDefault(formation, fallback);
-    return weightedSample(weights, rng.nextDouble());
-  }
-
-  @Override
   public CoverageShell sample(
       OffensiveFormation formation, OffensivePersonnel personnel, RandomSource rng) {
     Objects.requireNonNull(formation, "formation");

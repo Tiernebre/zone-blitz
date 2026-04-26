@@ -38,6 +38,7 @@ class GoalLineRunShiftTests {
         yardsToGo,
         MatchupContextDefaults.OFFENSE,
         MatchupContextDefaults.DEFENSE,
+        MatchupContextDefaults.BASELINE_OFFENSE,
         MatchupContextDefaults.EMPTY_ASSIGNMENT);
   }
 
@@ -202,6 +203,7 @@ class GoalLineRunShiftTests {
         yardsToGo,
         MatchupContextDefaults.OFFENSE,
         MatchupContextDefaults.DEFENSE,
+        MatchupContextDefaults.BASELINE_OFFENSE,
         assignment);
   }
 

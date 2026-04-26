@@ -22,6 +22,7 @@ class CompositeRunMatchupShiftTests {
           10,
           MatchupContextDefaults.OFFENSE,
           MatchupContextDefaults.DEFENSE,
+          MatchupContextDefaults.BASELINE_OFFENSE,
           MatchupContextDefaults.EMPTY_ASSIGNMENT);
 
   @Test

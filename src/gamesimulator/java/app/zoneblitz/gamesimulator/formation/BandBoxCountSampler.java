@@ -79,23 +79,6 @@ public final class BandBoxCountSampler implements BoxCountSampler {
   }
 
   @Override
-  public int sample(OffensiveFormation formation, PlayType playType, RandomSource rng) {
-    Objects.requireNonNull(formation, "formation");
-    Objects.requireNonNull(playType, "playType");
-    Objects.requireNonNull(rng, "rng");
-    var weights = pick(formation, playType);
-    return weightedSample(weights, rng.nextDouble());
-  }
-
-  @Override
-  public double expectedBox(OffensiveFormation formation, PlayType playType) {
-    Objects.requireNonNull(formation, "formation");
-    Objects.requireNonNull(playType, "playType");
-    var weights = pick(formation, playType);
-    return mean(weights);
-  }
-
-  @Override
   public int sample(
       OffensiveFormation formation,
       PlayType playType,

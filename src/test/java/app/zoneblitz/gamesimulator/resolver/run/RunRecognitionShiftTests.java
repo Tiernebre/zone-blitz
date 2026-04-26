@@ -41,6 +41,7 @@ class RunRecognitionShiftTests {
         10,
         MatchupContextDefaults.OFFENSE,
         MatchupContextDefaults.DEFENSE,
+        MatchupContextDefaults.BASELINE_OFFENSE,
         assignment);
   }
 
