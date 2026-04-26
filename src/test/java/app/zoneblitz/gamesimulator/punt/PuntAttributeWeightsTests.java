@@ -45,7 +45,9 @@ class PuntAttributeWeightsTests {
             Position.P,
             "P",
             Physical.average(),
-            new Skill(50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100, 50, 50),
+            new Skill(
+                50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
 
     assertThat(w.skillScore(elite)).isEqualTo(1.0);

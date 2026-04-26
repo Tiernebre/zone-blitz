@@ -87,7 +87,9 @@ class RoleDemandTests {
             Position.WR,
             "Test",
             Physical.average(),
-            new Skill(50, 100, 50, 50, 50, 0, 50, 50, 50, 50, 50, 50, 50, 50, 50),
+            new Skill(
+                50, 100, 50, 50, 50, 0, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
 
     assertThat(demand.skillScore(p)).isEqualTo((60 - 50) / 50.0);
@@ -118,7 +120,9 @@ class RoleDemandTests {
     var skill =
         new Skill(
             skillAxes, skillAxes, skillAxes, skillAxes, skillAxes, skillAxes, skillAxes, skillAxes,
-            skillAxes, skillAxes, skillAxes, skillAxes, skillAxes, skillAxes, skillAxes);
+            skillAxes, skillAxes, skillAxes, skillAxes, skillAxes, skillAxes, skillAxes, skillAxes,
+            skillAxes, skillAxes, skillAxes, skillAxes, skillAxes, skillAxes, skillAxes, skillAxes,
+            skillAxes, skillAxes, skillAxes, skillAxes, skillAxes);
     return new Player(ID, Position.WR, "Test", phys, skill, Tendencies.average());
   }
 }

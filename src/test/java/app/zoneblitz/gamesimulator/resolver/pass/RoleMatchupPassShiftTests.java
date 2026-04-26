@@ -61,7 +61,9 @@ class RoleMatchupPassShiftTests {
             Position.WR,
             "WR",
             Physical.average(),
-            new Skill(50, 90, 50, 50, 50, 90, 50, 50, 50, 50, 50, 50, 50, 50, 50),
+            new Skill(
+                50, 90, 50, 50, 50, 90, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var cb =
         new Player(
@@ -69,7 +71,9 @@ class RoleMatchupPassShiftTests {
             Position.CB,
             "CB",
             Physical.average(),
-            new Skill(50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50),
+            new Skill(
+                50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var offense = TestPersonnel.offenseWith(wr);
     var defense = TestPersonnel.defenseWith(cb);
@@ -95,7 +99,9 @@ class RoleMatchupPassShiftTests {
             Position.CB,
             "OL-masquerading",
             new Physical(35, 35, 30, 95, 95, 20, 50, 25),
-            new Skill(50, 50, 100, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50),
+            new Skill(
+                50, 50, 100, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var offense = TestPersonnel.offenseWith(wr);
     var defense = TestPersonnel.defenseWith(olInCoverage);
@@ -116,7 +122,9 @@ class RoleMatchupPassShiftTests {
             Position.WR,
             "poor-WR",
             new Physical(35, 35, 30, 50, 50, 50, 50, 25),
-            new Skill(50, 100, 50, 50, 50, 100, 50, 50, 50, 50, 50, 50, 50, 50, 50),
+            new Skill(
+                50, 100, 50, 50, 50, 100, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var eliteCb =
         new Player(

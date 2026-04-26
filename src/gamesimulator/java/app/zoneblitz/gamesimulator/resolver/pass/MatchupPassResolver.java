@@ -196,7 +196,9 @@ public final class MatchupPassResolver implements PassResolver {
         new CompositePassMatchupShift(
             new RoleMatchupPassShift(),
             new CoverageShellPassShift(),
-            new PlayActionBoxLoadingShift());
+            new PlayActionBoxLoadingShift(),
+            new QbThrowingShift(),
+            new DefensiveSecondaryShift());
     var catalog = new BuiltinSchemeCatalog();
     var defaultOffenseScheme = catalog.offense(OffensiveSchemeId.WEST_COAST);
     var defaultDefenseScheme = catalog.defense(DefensiveSchemeId.COVER_2_PRESS);

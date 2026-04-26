@@ -122,7 +122,7 @@ class PositionalFatigueModelTests {
         name,
         Physical.average(),
         Skill.average(),
-        new Tendencies(50, 50, 50, 50, 50, 50, 50, motor));
+        new Tendencies(50, 50, 50, 50, 50, 50, 50, motor, 50));
   }
 
   private static OffensivePersonnel offenseWith(Player rb) {

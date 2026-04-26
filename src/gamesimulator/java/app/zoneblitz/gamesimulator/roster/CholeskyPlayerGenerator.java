@@ -30,7 +30,7 @@ public final class CholeskyPlayerGenerator implements PlayerGenerator {
   static final double FLOOR_MEAN = 10.0;
   static final double FLOOR_STDDEV = 5.0;
 
-  private static final int N = 31;
+  private static final int N = AxisRegistry.AXIS_COUNT;
   private static final double SHRINKAGE_STEP = 0.02;
   private static final double MAX_SHRINKAGE = 0.5;
   private static final Logger log = System.getLogger(CholeskyPlayerGenerator.class.getName());
@@ -127,7 +127,21 @@ public final class CholeskyPlayerGenerator implements PlayerGenerator {
             sampled[idx(SkillAxis.KICK_ACCURACY)],
             sampled[idx(SkillAxis.PUNT_POWER)],
             sampled[idx(SkillAxis.PUNT_ACCURACY)],
-            sampled[idx(SkillAxis.PUNT_HANG_TIME)]);
+            sampled[idx(SkillAxis.PUNT_HANG_TIME)],
+            sampled[idx(SkillAxis.ARM_STRENGTH)],
+            sampled[idx(SkillAxis.SHORT_ACCURACY)],
+            sampled[idx(SkillAxis.DEEP_ACCURACY)],
+            sampled[idx(SkillAxis.POCKET_PRESENCE)],
+            sampled[idx(SkillAxis.PLAY_ACTION)],
+            sampled[idx(SkillAxis.MOBILITY)],
+            sampled[idx(SkillAxis.CARRYING)],
+            sampled[idx(SkillAxis.CATCHING)],
+            sampled[idx(SkillAxis.PASS_PROTECTION)],
+            sampled[idx(SkillAxis.RELEASE)],
+            sampled[idx(SkillAxis.CONTESTED_CATCH)],
+            sampled[idx(SkillAxis.PRESS_COVERAGE)],
+            sampled[idx(SkillAxis.BALL_SKILLS)],
+            sampled[idx(SkillAxis.SNAP_ACCURACY)]);
     var tend =
         new Tendencies(
             sampled[idx(TendencyAxis.COMPOSURE)],
@@ -137,7 +151,8 @@ public final class CholeskyPlayerGenerator implements PlayerGenerator {
             sampled[idx(TendencyAxis.TOUGHNESS)],
             sampled[idx(TendencyAxis.CLUTCH)],
             sampled[idx(TendencyAxis.CONSISTENCY)],
-            sampled[idx(TendencyAxis.MOTOR)]);
+            sampled[idx(TendencyAxis.MOTOR)],
+            sampled[idx(TendencyAxis.PLAY_RECOGNITION)]);
     return new Player(id, position, displayName, phys, skill, tend);
   }
 

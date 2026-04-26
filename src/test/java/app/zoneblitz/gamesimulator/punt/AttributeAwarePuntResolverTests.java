@@ -263,6 +263,34 @@ class AttributeAwarePuntResolverTests {
 
   private static Skill skillWith(int puntPower, int puntAccuracy, int puntHangTime) {
     return new Skill(
-        50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, puntPower, puntAccuracy, puntHangTime);
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        puntPower,
+        puntAccuracy,
+        puntHangTime,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50);
   }
 }

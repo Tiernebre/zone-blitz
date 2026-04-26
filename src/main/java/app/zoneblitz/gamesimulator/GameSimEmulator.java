@@ -23,6 +23,7 @@ import app.zoneblitz.gamesimulator.playcalling.BaselineDefensiveCallSelector;
 import app.zoneblitz.gamesimulator.playcalling.TendencyPlayCaller;
 import app.zoneblitz.gamesimulator.punt.AttributeAwarePuntResolver;
 import app.zoneblitz.gamesimulator.punt.BandPuntResolver;
+import app.zoneblitz.gamesimulator.punt.LongSnapperAwarePuntResolver;
 import app.zoneblitz.gamesimulator.resolver.DispatchingPlayResolver;
 import app.zoneblitz.gamesimulator.resolver.pass.HailMaryPassResolver;
 import app.zoneblitz.gamesimulator.resolver.run.MatchupRunResolver;
@@ -39,6 +40,7 @@ import app.zoneblitz.gamesimulator.scoring.AttributeAwareTwoPointResolver;
 import app.zoneblitz.gamesimulator.scoring.DistanceCurveFieldGoalResolver;
 import app.zoneblitz.gamesimulator.scoring.FlatRateExtraPointResolver;
 import app.zoneblitz.gamesimulator.scoring.FlatRateTwoPointResolver;
+import app.zoneblitz.gamesimulator.scoring.LongSnapperAwareFieldGoalResolver;
 import app.zoneblitz.gamesimulator.scoring.StandardTwoPointDecisionPolicy;
 import app.zoneblitz.names.CuratedNameGenerator;
 import app.zoneblitz.names.NameGenerator;
@@ -79,8 +81,10 @@ public final class GameSimEmulator {
             BandClockModel.load(repo, sampler),
             OnsideAwareKickoffResolver.withDefaultPolicy(new TouchbackKickoffResolver()),
             new AttributeAwareExtraPointResolver(new FlatRateExtraPointResolver()),
-            new AttributeAwareFieldGoalResolver(new DistanceCurveFieldGoalResolver()),
-            new AttributeAwarePuntResolver(BandPuntResolver.load(repo, sampler)),
+            new LongSnapperAwareFieldGoalResolver(
+                new AttributeAwareFieldGoalResolver(new DistanceCurveFieldGoalResolver())),
+            new LongSnapperAwarePuntResolver(
+                new AttributeAwarePuntResolver(BandPuntResolver.load(repo, sampler))),
             new BandPenaltyModel(),
             BaselineDefensiveCallSelector.load(repo),
             new StandardTwoPointDecisionPolicy(),

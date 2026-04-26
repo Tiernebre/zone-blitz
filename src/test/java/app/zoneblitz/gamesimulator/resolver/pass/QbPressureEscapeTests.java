@@ -271,7 +271,21 @@ class QbPressureEscapeTests {
           kickAccuracy,
           puntPower,
           puntAccuracy,
-          puntHangTime);
+          puntHangTime,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50,
+          50);
     }
   }
 
@@ -348,7 +362,7 @@ class QbPressureEscapeTests {
 
     Tendencies build() {
       return new Tendencies(
-          composure, discipline, footballIq, processing, toughness, clutch, consistency, motor);
+          composure, discipline, footballIq, processing, toughness, clutch, consistency, motor, 50);
     }
   }
 }

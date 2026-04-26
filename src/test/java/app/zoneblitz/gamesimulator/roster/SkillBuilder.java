@@ -21,6 +21,20 @@ public final class SkillBuilder {
   private int puntPower = 50;
   private int puntAccuracy = 50;
   private int puntHangTime = 50;
+  private int armStrength = 50;
+  private int shortAccuracy = 50;
+  private int deepAccuracy = 50;
+  private int pocketPresence = 50;
+  private int playAction = 50;
+  private int mobility = 50;
+  private int carrying = 50;
+  private int catching = 50;
+  private int passProtection = 50;
+  private int release = 50;
+  private int contestedCatch = 50;
+  private int pressCoverage = 50;
+  private int ballSkills = 50;
+  private int snapAccuracy = 50;
 
   public static SkillBuilder aSkill() {
     return new SkillBuilder();
@@ -101,6 +115,76 @@ public final class SkillBuilder {
     return this;
   }
 
+  public SkillBuilder withArmStrength(int v) {
+    this.armStrength = v;
+    return this;
+  }
+
+  public SkillBuilder withShortAccuracy(int v) {
+    this.shortAccuracy = v;
+    return this;
+  }
+
+  public SkillBuilder withDeepAccuracy(int v) {
+    this.deepAccuracy = v;
+    return this;
+  }
+
+  public SkillBuilder withPocketPresence(int v) {
+    this.pocketPresence = v;
+    return this;
+  }
+
+  public SkillBuilder withPlayAction(int v) {
+    this.playAction = v;
+    return this;
+  }
+
+  public SkillBuilder withMobility(int v) {
+    this.mobility = v;
+    return this;
+  }
+
+  public SkillBuilder withCarrying(int v) {
+    this.carrying = v;
+    return this;
+  }
+
+  public SkillBuilder withCatching(int v) {
+    this.catching = v;
+    return this;
+  }
+
+  public SkillBuilder withPassProtection(int v) {
+    this.passProtection = v;
+    return this;
+  }
+
+  public SkillBuilder withRelease(int v) {
+    this.release = v;
+    return this;
+  }
+
+  public SkillBuilder withContestedCatch(int v) {
+    this.contestedCatch = v;
+    return this;
+  }
+
+  public SkillBuilder withPressCoverage(int v) {
+    this.pressCoverage = v;
+    return this;
+  }
+
+  public SkillBuilder withBallSkills(int v) {
+    this.ballSkills = v;
+    return this;
+  }
+
+  public SkillBuilder withSnapAccuracy(int v) {
+    this.snapAccuracy = v;
+    return this;
+  }
+
   public Skill build() {
     return new Skill(
         passSet,
@@ -117,6 +201,20 @@ public final class SkillBuilder {
         kickAccuracy,
         puntPower,
         puntAccuracy,
-        puntHangTime);
+        puntHangTime,
+        armStrength,
+        shortAccuracy,
+        deepAccuracy,
+        pocketPresence,
+        playAction,
+        mobility,
+        carrying,
+        catching,
+        passProtection,
+        release,
+        contestedCatch,
+        pressCoverage,
+        ballSkills,
+        snapAccuracy);
   }
 }

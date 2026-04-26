@@ -154,7 +154,10 @@ public final class MatchupRunResolver implements RunResolver {
     var boxSampler = BandBoxCountSampler.load(repo);
     var composite =
         new CompositeRunMatchupShift(
-            new RoleMatchupRunShift(), new BoxCountRunShift(boxSampler), new GoalLineRunShift());
+            new RoleMatchupRunShift(),
+            new BoxCountRunShift(boxSampler),
+            new GoalLineRunShift(),
+            new RunRecognitionShift());
 
     var fumbleRecoveryModel = new AttributeAwareFumbleRecoveryModel(sampler, fumbleReturnYards);
 

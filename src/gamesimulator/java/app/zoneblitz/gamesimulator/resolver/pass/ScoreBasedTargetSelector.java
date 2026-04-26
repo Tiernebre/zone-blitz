@@ -11,9 +11,14 @@ import app.zoneblitz.gamesimulator.roster.Position;
  * the argmax. Under the hood:
  *
  * <ul>
- *   <li><b>Per-receiver matchup</b> {@code m_route_i} is a two-axis (route running + hands vs.
- *       coverage technique) delta re-centered to {@code [-1, +1]}, matching the scaling of {@link
- *       ClampedPassMatchupShift}. Coverage assignment is positional round-robin.
+ *   <li><b>Per-receiver matchup</b> {@code m_route_i} blends the receiver's catching/route axes
+ *       against the defender's coverage axes. The receiver side mixes route-running, the relevant
+ *       catch axis (hands for WR/TE, {@code catching} for RB out-of-backfield), and {@code release}
+ *       (LOS technique). The defender side mixes coverage technique and {@code pressCoverage} (jam
+ *       at the snap). Coverage assignment is positional round-robin.
+ *   <li><b>Contested-catch boost</b> on deep routes: WR/TE receivers running deeper routes get a
+ *       proportional bump from {@code contestedCatch}, the 50-50 ball axis. Average-50 contributes
+ *       zero so baseline target distribution is preserved.
  *   <li><b>Depth value</b> rewards shallow throws slightly — shorter routes are "more open" absent
  *       any other signal.
  *   <li><b>Position-tier bias</b> separates WRs (primary reads) from TEs (secondary) from RBs
@@ -38,6 +43,8 @@ public final class ScoreBasedTargetSelector implements TargetSelector {
   private static final double SIGMA_AT_AVERAGE = 0.35;
   private static final double SIGMA_AT_ELITE = 0.10;
   private static final double SIGMA_AT_FLOOR = 0.70;
+  private static final double CONTESTED_CATCH_BOOST_PER_YARD = 0.012;
+  private static final int CONTESTED_DEPTH_THRESHOLD = 8;
 
   @Override
   public TargetChoice select(
@@ -57,6 +64,7 @@ public final class ScoreBasedTargetSelector implements TargetSelector {
       var depth = routeDepth(receiver.position());
       var score =
           routeMatchup(receiver, defender)
+              + contestedCatchBoost(receiver, depth)
               + depthValue(depth)
               + tierBias(receiver.position())
               + rng.nextGaussian() * sigma;
@@ -70,12 +78,31 @@ public final class ScoreBasedTargetSelector implements TargetSelector {
   }
 
   private static double routeMatchup(Player receiver, Player defender) {
-    var off = centered((receiver.skill().routeRunning() + receiver.skill().hands()) / 2.0);
+    var catchAxis =
+        receiver.position() == Position.RB ? receiver.skill().catching() : receiver.skill().hands();
+    var off =
+        centered((receiver.skill().routeRunning() + catchAxis + receiver.skill().release()) / 3.0);
     if (defender == null) {
       return off;
     }
-    var def = centered(defender.skill().coverageTechnique());
+    var def =
+        centered((defender.skill().coverageTechnique() + defender.skill().pressCoverage()) / 2.0);
     return off - def;
+  }
+
+  private static double contestedCatchBoost(Player receiver, int depth) {
+    if (receiver.position() == Position.RB) {
+      return 0.0;
+    }
+    var depthOver = depth - CONTESTED_DEPTH_THRESHOLD;
+    if (depthOver <= 0) {
+      return 0.0;
+    }
+    return CONTESTED_CATCH_BOOST_PER_YARD * depthOver * centered(receiver.skill().contestedCatch());
+  }
+
+  private static double centered(int zeroToHundred) {
+    return centered((double) zeroToHundred);
   }
 
   private static int routeDepth(Position position) {

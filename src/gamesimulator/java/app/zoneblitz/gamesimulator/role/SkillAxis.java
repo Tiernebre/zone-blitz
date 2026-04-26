@@ -5,8 +5,8 @@ import app.zoneblitz.gamesimulator.roster.Skill;
 import java.util.function.ToIntFunction;
 
 /**
- * Axis identifier for the fifteen {@link Skill} attributes. Used by {@link RoleDemand} to weight
- * technique contributions per role.
+ * Axis identifier for the {@link Skill} attributes. Used by {@link RoleDemand} to weight technique
+ * contributions per role.
  */
 public enum SkillAxis implements AttributeAxis {
   PASS_SET(Skill::passSet),
@@ -23,7 +23,21 @@ public enum SkillAxis implements AttributeAxis {
   KICK_ACCURACY(Skill::kickAccuracy),
   PUNT_POWER(Skill::puntPower),
   PUNT_ACCURACY(Skill::puntAccuracy),
-  PUNT_HANG_TIME(Skill::puntHangTime);
+  PUNT_HANG_TIME(Skill::puntHangTime),
+  ARM_STRENGTH(Skill::armStrength),
+  SHORT_ACCURACY(Skill::shortAccuracy),
+  DEEP_ACCURACY(Skill::deepAccuracy),
+  POCKET_PRESENCE(Skill::pocketPresence),
+  PLAY_ACTION(Skill::playAction),
+  MOBILITY(Skill::mobility),
+  CARRYING(Skill::carrying),
+  CATCHING(Skill::catching),
+  PASS_PROTECTION(Skill::passProtection),
+  RELEASE(Skill::release),
+  CONTESTED_CATCH(Skill::contestedCatch),
+  PRESS_COVERAGE(Skill::pressCoverage),
+  BALL_SKILLS(Skill::ballSkills),
+  SNAP_ACCURACY(Skill::snapAccuracy);
 
   private final ToIntFunction<Skill> extractor;
 

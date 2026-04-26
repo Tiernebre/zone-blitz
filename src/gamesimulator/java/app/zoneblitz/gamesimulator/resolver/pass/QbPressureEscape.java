@@ -4,6 +4,7 @@ import app.zoneblitz.gamesimulator.resolver.PassRoles;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.Physical;
 import app.zoneblitz.gamesimulator.roster.Player;
+import app.zoneblitz.gamesimulator.roster.Position;
 import app.zoneblitz.gamesimulator.roster.Skill;
 import app.zoneblitz.gamesimulator.roster.Tendencies;
 import java.util.List;
@@ -17,10 +18,13 @@ import java.util.function.ToDoubleFunction;
  * power / agility physical; DL contributes {@code passRushMoves + blockShedding} skill and a mirror
  * physical mix. The scalar shapes how much pressure a QB absorbs.
  *
- * <p>Given a nominal sack, the model redistributes outcome mass toward scramble (QB mobility — a
- * speed / acceleration / agility blend) and throwaway (QB awareness — {@code processing} tendency
- * with a small {@code footballIq} lift). At average attributes and even matchup the redistribution
- * is zero, so the shipped sack rate is preserved by construction.
+ * <p>Given a nominal sack, the model redistributes outcome mass toward scramble (QB mobility) and
+ * throwaway (QB awareness). Mobility blends physical speed/acceleration/agility (60%) with the
+ * dedicated {@code mobility} skill (40%) — the skill axis captures escape instinct distinct from
+ * raw athleticism. Awareness blends the {@code processing} tendency (40%) and {@code footballIq}
+ * (15%) with the dedicated {@code pocketPresence} skill (45%) — pocket presence is the proxy for
+ * sack-vs-throwaway decision quality under pressure. At average attributes and even matchup the
+ * redistribution is zero, so the shipped sack rate is preserved by construction.
  *
  * <p>Package-private: the pressure classifier drives sampling; outcome records never see it.
  */
@@ -35,7 +39,7 @@ final class QbPressureEscape implements PressureModel {
   @Override
   public PressureResolution resolve(PassRoles roles, Player qb, RandomSource rng) {
     var pressure = pressureStrength(roles);
-    var mobility = qbMobilityEdge(qb.physical());
+    var mobility = qbMobilityEdge(qb);
     var awareness = qbAwarenessEdge(qb.tendencies(), qb.skill());
 
     var scrambleRedirect =
@@ -68,7 +72,7 @@ final class QbPressureEscape implements PressureModel {
     if (blockers.isEmpty() && rushers.isEmpty()) {
       return 0.0;
     }
-    var olSkill = aggregate(blockers, p -> p.skill().passSet());
+    var olSkill = aggregate(blockers, QbPressureEscape::blockerProtectionSkill);
     var dlSkill =
         aggregate(rushers, p -> (p.skill().passRushMoves() + p.skill().blockShedding()) / 2.0);
     var olPhysical =
@@ -84,13 +88,26 @@ final class QbPressureEscape implements PressureModel {
     return clamp((skillGap + physicalGap) / 2.0, 1.0);
   }
 
+  private static double blockerProtectionSkill(Player p) {
+    return p.position() == Position.RB ? p.skill().passProtection() : p.skill().passSet();
+  }
+
   private static double qbMobilityEdge(Physical physical) {
     var raw = (physical.speed() + physical.acceleration() + physical.agility()) / 3.0;
     return centered(raw);
   }
 
-  private static double qbAwarenessEdge(Tendencies tendencies, Skill ignoredSkill) {
-    var raw = 0.75 * tendencies.processing() + 0.25 * tendencies.footballIq();
+  private static double qbMobilityEdge(Player qb) {
+    var physicalEdge = qbMobilityEdge(qb.physical());
+    var skillEdge = centered(qb.skill().mobility());
+    return 0.60 * physicalEdge + 0.40 * skillEdge;
+  }
+
+  private static double qbAwarenessEdge(Tendencies tendencies, Skill skill) {
+    var raw =
+        0.40 * tendencies.processing()
+            + 0.15 * tendencies.footballIq()
+            + 0.45 * skill.pocketPresence();
     return centered(raw);
   }
 

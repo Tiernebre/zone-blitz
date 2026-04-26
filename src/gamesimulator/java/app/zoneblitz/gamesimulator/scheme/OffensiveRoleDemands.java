@@ -186,10 +186,10 @@ final class OffensiveRoleDemands {
                 PhysicalAxis.AGILITY, 20,
                 PhysicalAxis.STAMINA, 20),
             Map.of(
-                SkillAxis.PASS_SET, 35,
-                SkillAxis.RUN_BLOCK, 30,
-                SkillAxis.BLOCK_SHEDDING, 20,
-                SkillAxis.BREAK_TACKLE, 15),
+                SkillAxis.PASS_PROTECTION, 50,
+                SkillAxis.RUN_BLOCK, 25,
+                SkillAxis.BLOCK_SHEDDING, 15,
+                SkillAxis.BREAK_TACKLE, 10),
             Map.of(
                 TendencyAxis.TOUGHNESS, 40,
                 TendencyAxis.PROCESSING, 30,

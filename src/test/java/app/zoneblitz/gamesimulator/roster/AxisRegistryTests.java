@@ -14,10 +14,10 @@ class AxisRegistryTests {
   void axesInOrder_orderedAsPhysicalSkillTendency() {
     var axes = AxisRegistry.AXES_IN_ORDER;
 
-    assertThat(axes).hasSize(31);
+    assertThat(axes).hasSize(46);
     assertThat(axes.subList(0, 8)).containsExactly(PhysicalAxis.values());
-    assertThat(axes.subList(8, 23)).containsExactly(SkillAxis.values());
-    assertThat(axes.subList(23, 31)).containsExactly(TendencyAxis.values());
+    assertThat(axes.subList(8, 37)).containsExactly(SkillAxis.values());
+    assertThat(axes.subList(37, 46)).containsExactly(TendencyAxis.values());
   }
 
   @Test
@@ -43,6 +43,6 @@ class AxisRegistryTests {
   void indexOf_returnsConsistentIndex() {
     assertThat(AxisRegistry.indexOf(PhysicalAxis.SPEED)).isEqualTo(0);
     assertThat(AxisRegistry.indexOf(SkillAxis.PASS_SET)).isEqualTo(8);
-    assertThat(AxisRegistry.indexOf(TendencyAxis.COMPOSURE)).isEqualTo(23);
+    assertThat(AxisRegistry.indexOf(TendencyAxis.COMPOSURE)).isEqualTo(37);
   }
 }

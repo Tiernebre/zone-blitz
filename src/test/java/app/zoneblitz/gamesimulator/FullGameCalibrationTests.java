@@ -632,12 +632,15 @@ class FullGameCalibrationTests {
     Skill skill() {
       return new Skill(
           axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue,
-          axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue);
+          axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue,
+          axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue,
+          axisValue, axisValue, axisValue, axisValue, axisValue);
     }
 
     Tendencies tendencies() {
       return new Tendencies(
-          axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue);
+          axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue,
+          axisValue);
     }
   }
 }

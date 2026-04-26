@@ -37,6 +37,11 @@ import java.util.Optional;
  * app.zoneblitz.gamesimulator.roster.Skill#blockShedding()} (40 %, proximity/pursuit effort at the
  * pile).
  *
+ * <p>Ball-security blend favors the dedicated {@code carrying} axis (60 %) over the legacy
+ * vision/break-tackle proxies — carrying is the literal protect-the-ball technique. Vision (25 %)
+ * still contributes (avoiding hits in the first place), as does break-tackle (15 %, surviving the
+ * hit without losing the ball).
+ *
  * <p>The net shift is clamped to {@code ±}{@link #MAX_SIDE_SHIFT} ({@value #MAX_SIDE_SHIFT}) so
  * that even extreme-attribute mismatches cannot push the recovery rate outside {@code [0.30,
  * 0.70]}. This bound reflects the real-world observation that fumble recoveries retain significant
@@ -134,11 +139,14 @@ public final class AttributeAwareFumbleRecoveryModel implements FumbleRecoveryMo
   }
 
   /**
-   * Centered ball-security score for the carrier: {@code ballCarrierVision} (70 %) + {@code
-   * breakTackle} (30 %), mapped from [0, 100] to [-1, +1].
+   * Centered ball-security score for the carrier: {@code carrying} (60 %) + {@code
+   * ballCarrierVision} (25 %) + {@code breakTackle} (15 %), mapped from [0, 100] to [-1, +1].
    */
   private static double ballSecurityScore(Player carrier) {
-    var raw = 0.70 * carrier.skill().ballCarrierVision() + 0.30 * carrier.skill().breakTackle();
+    var raw =
+        0.60 * carrier.skill().carrying()
+            + 0.25 * carrier.skill().ballCarrierVision()
+            + 0.15 * carrier.skill().breakTackle();
     return centered(raw);
   }
 

@@ -195,7 +195,7 @@ class AttributeAwareInjuryModelTests {
   void physicalMultiplier_extremeEliteProfile_doesNotExceedEnvelopeBound() {
     // All physical axes at 100 — maximum score should be clamped to 1 − PHYSICAL_ENVELOPE.
     var physical = new Physical(100, 100, 100, 100, 100, 100, 100, 100);
-    var tendencies = new Tendencies(50, 50, 100, 50, 50, 50, 50, 50);
+    var tendencies = new Tendencies(50, 50, 100, 50, 50, 50, 50, 50, 50);
 
     var m = AttributeAwareInjuryModel.physicalMultiplier(physical, tendencies, ContactType.TACKLE);
 
@@ -206,7 +206,7 @@ class AttributeAwareInjuryModelTests {
   void physicalMultiplier_extremePoorProfile_doesNotExceedEnvelopeBound() {
     // All physical axes at 0 — minimum score should be clamped to 1 + PHYSICAL_ENVELOPE.
     var physical = new Physical(0, 0, 0, 0, 0, 0, 0, 0);
-    var tendencies = new Tendencies(50, 50, 0, 50, 50, 50, 50, 50);
+    var tendencies = new Tendencies(50, 50, 0, 50, 50, 50, 50, 50, 50);
 
     var m = AttributeAwareInjuryModel.physicalMultiplier(physical, tendencies, ContactType.TACKLE);
 
@@ -319,7 +319,7 @@ class AttributeAwareInjuryModelTests {
         name,
         new Physical(50, 50, agility, strength, 50, 50, 50, 50),
         Skill.average(),
-        new Tendencies(50, 50, footballIq, 50, toughness, 50, 50, 50));
+        new Tendencies(50, 50, footballIq, 50, toughness, 50, 50, 50, 50));
   }
 
   private static Player playerWithAgility(Position pos, int agility, String name) {

@@ -7,8 +7,7 @@ package app.zoneblitz.gamesimulator.roster;
  * composure decays |m| in high-leverage contexts, discipline shifts per-player penalty rates,
  * football IQ lowers INT rate / gates run fit, processing reduces effective pressure, toughness
  * resists injury, clutch is a late-game composure variant, consistency narrows variance, motor
- * resists fatigue. R4 carries the fields so downstream tasks (PenaltyModel, InjuryModel,
- * FatigueModel, in-context composure decay) can read them without schema churn.
+ * resists fatigue, play recognition reduces PA-freeze and sharpens run-fit at first contact.
  */
 public record Tendencies(
     int composure,
@@ -18,7 +17,8 @@ public record Tendencies(
     int toughness,
     int clutch,
     int consistency,
-    int motor) {
+    int motor,
+    int playRecognition) {
 
   public Tendencies {
     requireInRange(composure, "composure");
@@ -29,11 +29,12 @@ public record Tendencies(
     requireInRange(clutch, "clutch");
     requireInRange(consistency, "consistency");
     requireInRange(motor, "motor");
+    requireInRange(playRecognition, "playRecognition");
   }
 
   /** Average-everywhere profile (all axes at 50). Matchup-neutral default. */
   public static Tendencies average() {
-    return new Tendencies(50, 50, 50, 50, 50, 50, 50, 50);
+    return new Tendencies(50, 50, 50, 50, 50, 50, 50, 50, 50);
   }
 
   private static void requireInRange(int value, String name) {

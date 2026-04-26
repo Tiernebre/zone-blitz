@@ -1,6 +1,6 @@
 {
   "position": "LB",
-  "_comment": "Two components — coverage LB (nickel/will) vs. thumper (mike/sam). The coverage/run-fit split is real even off-ball.",
+  "_comment": "Two components — coverage LB (nickel/will) vs. thumper (mike/sam). Both rely on play recognition for run-fit and PA-freeze resistance.",
   "components": [
     {
       "weight": 0.5,
@@ -10,20 +10,23 @@
         "stamina": 75, "explosiveness": 70, "bend": 65,
         "coverageTechnique": 65, "tackling": 65, "blockShedding": 50, "passRushMoves": 50,
         "toughness": 70, "motor": 75, "discipline": 70, "consistency": 70,
-        "footballIq": 75, "processing": 75, "composure": 65, "clutch": 65
+        "footballIq": 75, "processing": 75, "composure": 65, "clutch": 65,
+        "playRecognition": 75
       },
       "stddevs": {
         "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
         "stamina": 8, "explosiveness": 7, "bend": 7,
         "coverageTechnique": 9, "tackling": 9, "blockShedding": 9, "passRushMoves": 9,
         "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
-        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10,
+        "playRecognition": 9
       },
       "correlations": [
         ["speed", "acceleration", 0.85],
         ["agility", "bend", 0.5],
         ["coverageTechnique", "footballIq", 0.4],
-        ["strength", "power", 0.7]
+        ["strength", "power", 0.7],
+        ["playRecognition", "processing", 0.5]
       ]
     },
     {
@@ -34,20 +37,23 @@
         "stamina": 75, "explosiveness": 68, "bend": 55,
         "coverageTechnique": 50, "tackling": 78, "blockShedding": 70, "passRushMoves": 55,
         "toughness": 78, "motor": 75, "discipline": 72, "consistency": 70,
-        "footballIq": 72, "processing": 70, "composure": 65, "clutch": 65
+        "footballIq": 72, "processing": 70, "composure": 65, "clutch": 65,
+        "playRecognition": 78
       },
       "stddevs": {
         "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
         "stamina": 8, "explosiveness": 7, "bend": 7,
         "coverageTechnique": 9, "tackling": 9, "blockShedding": 9, "passRushMoves": 9,
         "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
-        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10,
+        "playRecognition": 9
       },
       "correlations": [
         ["speed", "acceleration", 0.85],
         ["strength", "power", 0.75],
         ["tackling", "blockShedding", 0.5],
-        ["tackling", "strength", 0.4]
+        ["tackling", "strength", 0.4],
+        ["playRecognition", "processing", 0.5]
       ]
     }
   ]

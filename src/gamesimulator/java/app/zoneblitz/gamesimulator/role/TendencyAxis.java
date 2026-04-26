@@ -5,7 +5,7 @@ import app.zoneblitz.gamesimulator.roster.Tendencies;
 import java.util.function.ToIntFunction;
 
 /**
- * Axis identifier for the eight {@link Tendencies} attributes. Used by {@link RoleDemand} to weight
+ * Axis identifier for the {@link Tendencies} attributes. Used by {@link RoleDemand} to weight
  * behavioral contributions per role.
  */
 public enum TendencyAxis implements AttributeAxis {
@@ -16,7 +16,8 @@ public enum TendencyAxis implements AttributeAxis {
   TOUGHNESS(Tendencies::toughness),
   CLUTCH(Tendencies::clutch),
   CONSISTENCY(Tendencies::consistency),
-  MOTOR(Tendencies::motor);
+  MOTOR(Tendencies::motor),
+  PLAY_RECOGNITION(Tendencies::playRecognition);
 
   private final ToIntFunction<Tendencies> extractor;
 

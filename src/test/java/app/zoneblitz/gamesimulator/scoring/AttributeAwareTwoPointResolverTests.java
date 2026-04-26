@@ -264,7 +264,7 @@ class AttributeAwareTwoPointResolverTests {
             .withBreakTackle(90)
             .build();
     var elitePhys = aPhysical().withStrength(90).withPower(90).withExplosiveness(90).build();
-    var eliteTend = new Tendencies(50, 50, 90, 90, 50, 50, 50, 50);
+    var eliteTend = new Tendencies(50, 50, 90, 90, 50, 50, 50, 50, 50);
 
     var players = new ArrayList<Player>();
     players.add(new Player(pid(10, 1), Position.QB, "Elite QB", elitePhys, eliteSkill, eliteTend));
@@ -307,7 +307,7 @@ class AttributeAwareTwoPointResolverTests {
             .withBreakTackle(15)
             .build();
     var weakPhys = aPhysical().withStrength(15).withPower(15).withExplosiveness(15).build();
-    var weakTend = new Tendencies(50, 50, 15, 15, 50, 50, 50, 50);
+    var weakTend = new Tendencies(50, 50, 15, 15, 50, 50, 50, 50, 50);
 
     var players = new ArrayList<Player>();
     players.add(new Player(pid(20, 1), Position.QB, "Weak QB", weakPhys, weakSkill, weakTend));

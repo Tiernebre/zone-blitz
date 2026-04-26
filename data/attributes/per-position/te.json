@@ -1,6 +1,6 @@
 {
   "position": "TE",
-  "_comment": "Two components — inline blocker vs. flex receiver. Inline TEs lean on run-block + blockShedding + power; flex TEs on route-running + speed.",
+  "_comment": "Two components — inline blocker vs. flex receiver. Inline TEs lean on run-block + blockShedding + power; flex TEs on route-running + speed + receiver-style attributes (release/contestedCatch).",
   "components": [
     {
       "weight": 0.5,
@@ -10,6 +10,7 @@
         "stamina": 70, "explosiveness": 60,
         "runBlock": 70, "blockShedding": 50, "routeRunning": 55, "hands": 60,
         "breakTackle": 55, "ballCarrierVision": 50,
+        "release": 50, "contestedCatch": 60, "catching": 55,
         "toughness": 75, "motor": 70, "discipline": 70, "consistency": 70,
         "footballIq": 65, "processing": 65, "composure": 65, "clutch": 65
       },
@@ -18,13 +19,15 @@
         "stamina": 8, "explosiveness": 6,
         "runBlock": 9, "blockShedding": 9, "routeRunning": 9, "hands": 9,
         "breakTackle": 9, "ballCarrierVision": 9,
+        "release": 9, "contestedCatch": 9, "catching": 9,
         "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
         "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
       },
       "correlations": [
         ["speed", "acceleration", 0.85],
         ["strength", "power", 0.75],
-        ["runBlock", "blockShedding", 0.5]
+        ["runBlock", "blockShedding", 0.5],
+        ["contestedCatch", "strength", 0.4]
       ]
     },
     {
@@ -35,6 +38,7 @@
         "stamina": 70, "explosiveness": 70, "bend": 65,
         "runBlock": 40, "blockShedding": 35, "routeRunning": 70, "hands": 70,
         "breakTackle": 55, "ballCarrierVision": 55,
+        "release": 65, "contestedCatch": 70, "catching": 70,
         "toughness": 65, "motor": 70, "discipline": 65, "consistency": 65,
         "footballIq": 70, "processing": 65, "composure": 65, "clutch": 65
       },
@@ -43,6 +47,7 @@
         "stamina": 8, "explosiveness": 6, "bend": 7,
         "runBlock": 9, "blockShedding": 9, "routeRunning": 9, "hands": 9,
         "breakTackle": 9, "ballCarrierVision": 9,
+        "release": 9, "contestedCatch": 9, "catching": 9,
         "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
         "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
       },
@@ -51,7 +56,9 @@
         ["acceleration", "explosiveness", 0.7],
         ["speed", "explosiveness", 0.6],
         ["agility", "bend", 0.5],
-        ["routeRunning", "hands", 0.4]
+        ["routeRunning", "hands", 0.4],
+        ["release", "agility", 0.4],
+        ["catching", "hands", 0.5]
       ]
     }
   ]

@@ -122,6 +122,35 @@ class AttributeAwareFieldGoalResolverTests {
   }
 
   private static Skill skillWithKickAxes(int kickPower, int kickAccuracy) {
-    return new Skill(50, 50, 50, 50, 50, 50, 50, 50, 50, 50, kickPower, kickAccuracy, 50, 50, 50);
+    return new Skill(
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        kickPower,
+        kickAccuracy,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50);
   }
 }

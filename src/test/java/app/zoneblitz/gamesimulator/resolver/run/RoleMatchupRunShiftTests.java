@@ -62,7 +62,9 @@ class RoleMatchupRunShiftTests {
             Position.RB,
             "RB",
             Physical.average(),
-            new Skill(50, 50, 50, 50, 50, 50, 50, 95, 95, 50, 50, 50, 50, 50, 50),
+            new Skill(
+                50, 50, 50, 50, 50, 50, 50, 95, 95, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var eliteOl =
         new Player(
@@ -70,7 +72,9 @@ class RoleMatchupRunShiftTests {
             Position.OL,
             "OL",
             Physical.average(),
-            new Skill(50, 50, 50, 50, 50, 50, 95, 50, 50, 50, 50, 50, 50, 50, 50),
+            new Skill(
+                50, 50, 50, 50, 50, 50, 95, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var offense = TestPersonnel.offenseWith(eliteRb, eliteOl);
     var defense = TestPersonnel.baselineDefense();
@@ -88,7 +92,9 @@ class RoleMatchupRunShiftTests {
             Position.RB,
             "poor-RB",
             new Physical(30, 30, 30, 50, 50, 50, 50, 30),
-            new Skill(50, 50, 50, 50, 50, 50, 50, 100, 100, 50, 50, 50, 50, 50, 50),
+            new Skill(
+                50, 50, 50, 50, 50, 50, 50, 100, 100, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var poorBlocker =
         new Player(
@@ -96,7 +102,9 @@ class RoleMatchupRunShiftTests {
             Position.OL,
             "poor-OL",
             new Physical(30, 30, 30, 30, 30, 30, 30, 30),
-            new Skill(50, 50, 50, 50, 50, 50, 100, 50, 50, 50, 50, 50, 50, 50, 50),
+            new Skill(
+                50, 50, 50, 50, 50, 50, 100, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var eliteDefender =
         new Player(
@@ -125,7 +133,9 @@ class RoleMatchupRunShiftTests {
             Position.RB,
             "elite-RB",
             Physical.average(),
-            new Skill(50, 50, 50, 50, 50, 50, 50, 100, 100, 50, 50, 50, 50, 50, 50),
+            new Skill(
+                50, 50, 50, 50, 50, 50, 50, 100, 100, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var weakBlocker =
         new Player(
@@ -133,7 +143,9 @@ class RoleMatchupRunShiftTests {
             Position.OL,
             "weak-OL",
             Physical.average(),
-            new Skill(50, 50, 50, 50, 50, 50, 0, 50, 50, 50, 50, 50, 50, 50, 50),
+            new Skill(
+                50, 50, 50, 50, 50, 50, 0, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+                50, 50, 50, 50, 50, 50, 50, 50),
             Tendencies.average());
     var offense = TestPersonnel.offenseWith(eliteCarrier, weakBlocker);
     var defense = TestPersonnel.baselineDefense();

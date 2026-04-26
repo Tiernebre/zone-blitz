@@ -109,6 +109,35 @@ class AttributeAwareExtraPointResolverTests {
   }
 
   private static Skill skillWithKickAccuracy(int kickAccuracy) {
-    return new Skill(50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, kickAccuracy, 50, 50, 50);
+    return new Skill(
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        kickAccuracy,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50);
   }
 }

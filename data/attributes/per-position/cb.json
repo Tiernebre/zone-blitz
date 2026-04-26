@@ -1,6 +1,6 @@
 {
   "position": "CB",
-  "_comment": "Two components — press-man (length, route-recognition) vs. off-zone (deep speed, ball-skills). Same body type can play either, but the attribute shape differs.",
+  "_comment": "Two components — press-man (length, route-recognition, jam) vs. off-zone (deep speed, ball-skills). Press-mans win at the line via pressCoverage; off-zones win on the ball via ballSkills.",
   "components": [
     {
       "weight": 0.5,
@@ -9,22 +9,28 @@
         "speed": 78, "acceleration": 80, "agility": 75, "strength": 60, "power": 55,
         "stamina": 70, "explosiveness": 75, "bend": 70,
         "coverageTechnique": 72, "hands": 55, "tackling": 60, "blockShedding": 40,
+        "pressCoverage": 78, "ballSkills": 65,
         "toughness": 70, "motor": 70, "discipline": 70, "consistency": 70,
-        "footballIq": 72, "processing": 72, "composure": 70, "clutch": 70
+        "footballIq": 72, "processing": 72, "composure": 70, "clutch": 70,
+        "playRecognition": 70
       },
       "stddevs": {
         "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
         "stamina": 8, "explosiveness": 7, "bend": 7,
         "coverageTechnique": 9, "hands": 9, "tackling": 9, "blockShedding": 8,
+        "pressCoverage": 9, "ballSkills": 9,
         "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
-        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10,
+        "playRecognition": 9
       },
       "correlations": [
         ["speed", "acceleration", 0.85],
         ["acceleration", "explosiveness", 0.7],
         ["speed", "explosiveness", 0.6],
         ["agility", "bend", 0.55],
-        ["coverageTechnique", "footballIq", 0.45]
+        ["coverageTechnique", "footballIq", 0.45],
+        ["pressCoverage", "strength", 0.4],
+        ["pressCoverage", "coverageTechnique", 0.4]
       ]
     },
     {
@@ -34,22 +40,28 @@
         "speed": 82, "acceleration": 80, "agility": 72, "strength": 55, "power": 50,
         "stamina": 70, "explosiveness": 78, "bend": 65,
         "coverageTechnique": 65, "hands": 65, "tackling": 55, "blockShedding": 35,
+        "pressCoverage": 50, "ballSkills": 78,
         "toughness": 65, "motor": 70, "discipline": 70, "consistency": 70,
-        "footballIq": 75, "processing": 72, "composure": 70, "clutch": 70
+        "footballIq": 75, "processing": 72, "composure": 70, "clutch": 70,
+        "playRecognition": 75
       },
       "stddevs": {
         "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
         "stamina": 8, "explosiveness": 7, "bend": 7,
         "coverageTechnique": 9, "hands": 9, "tackling": 9, "blockShedding": 8,
+        "pressCoverage": 10, "ballSkills": 9,
         "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
-        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
+        "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10,
+        "playRecognition": 9
       },
       "correlations": [
         ["speed", "acceleration", 0.85],
         ["acceleration", "explosiveness", 0.7],
         ["speed", "explosiveness", 0.6],
         ["coverageTechnique", "hands", 0.4],
-        ["coverageTechnique", "footballIq", 0.5]
+        ["coverageTechnique", "footballIq", 0.5],
+        ["ballSkills", "hands", 0.5],
+        ["ballSkills", "footballIq", 0.4]
       ]
     }
   ]

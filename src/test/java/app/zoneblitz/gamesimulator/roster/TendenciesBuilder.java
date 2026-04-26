@@ -14,6 +14,7 @@ public final class TendenciesBuilder {
   private int clutch = 50;
   private int consistency = 50;
   private int motor = 50;
+  private int playRecognition = 50;
 
   public static TendenciesBuilder aTendencies() {
     return new TendenciesBuilder();
@@ -59,8 +60,21 @@ public final class TendenciesBuilder {
     return this;
   }
 
+  public TendenciesBuilder withPlayRecognition(int v) {
+    this.playRecognition = v;
+    return this;
+  }
+
   public Tendencies build() {
     return new Tendencies(
-        composure, discipline, footballIq, processing, toughness, clutch, consistency, motor);
+        composure,
+        discipline,
+        footballIq,
+        processing,
+        toughness,
+        clutch,
+        consistency,
+        motor,
+        playRecognition);
   }
 }

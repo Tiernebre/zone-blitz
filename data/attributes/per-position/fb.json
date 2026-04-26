@@ -9,6 +9,7 @@
         "speed": 55, "acceleration": 60, "agility": 55, "strength": 75, "power": 78,
         "stamina": 70, "explosiveness": 60,
         "runBlock": 70, "blockShedding": 30, "ballCarrierVision": 55, "breakTackle": 60, "hands": 50, "routeRunning": 35,
+        "carrying": 70, "catching": 50, "passProtection": 65,
         "toughness": 80, "motor": 75, "discipline": 70, "consistency": 70,
         "footballIq": 65, "processing": 60, "composure": 65, "clutch": 60
       },
@@ -16,6 +17,7 @@
         "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
         "stamina": 8, "explosiveness": 6,
         "runBlock": 9, "blockShedding": 7, "ballCarrierVision": 9, "breakTackle": 9, "hands": 9, "routeRunning": 8,
+        "carrying": 9, "catching": 9, "passProtection": 9,
         "toughness": 9, "motor": 9, "discipline": 9, "consistency": 9,
         "footballIq": 9, "processing": 9, "composure": 9, "clutch": 10
       },

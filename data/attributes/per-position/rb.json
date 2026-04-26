@@ -1,6 +1,6 @@
 {
   "position": "RB",
-  "_comment": "Two components — bell-cow power back vs. receiving/COP back.",
+  "_comment": "Two components — bell-cow power back vs. receiving/COP back. Bell-cows protect the ball through contact (high carrying) and stay in to block (passProtection); COP backs catch the ball (catching).",
   "components": [
     {
       "weight": 0.55,
@@ -9,15 +9,17 @@
         "speed": 70, "acceleration": 75, "agility": 70, "strength": 75, "power": 75,
         "stamina": 75, "explosiveness": 70, "bend": 60,
         "ballCarrierVision": 75, "breakTackle": 75, "runBlock": 35, "hands": 50, "routeRunning": 45,
+        "carrying": 75, "catching": 50, "passProtection": 65,
         "toughness": 75, "motor": 75, "footballIq": 65, "processing": 65, "consistency": 70,
-        "discipline": 65, "composure": 65, "clutch": 65
+        "discipline": 65, "composure": 65, "clutch": 65, "playRecognition": 65
       },
       "stddevs": {
         "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
         "stamina": 8, "explosiveness": 7, "bend": 8,
         "ballCarrierVision": 10, "breakTackle": 9, "runBlock": 8, "hands": 9, "routeRunning": 9,
+        "carrying": 9, "catching": 9, "passProtection": 9,
         "toughness": 9, "motor": 9, "footballIq": 9, "processing": 9, "consistency": 9,
-        "discipline": 9, "composure": 9, "clutch": 10
+        "discipline": 9, "composure": 9, "clutch": 10, "playRecognition": 9
       },
       "correlations": [
         ["speed", "acceleration", 0.85],
@@ -26,7 +28,9 @@
         ["strength", "power", 0.75],
         ["agility", "bend", 0.5],
         ["breakTackle", "strength", 0.5],
-        ["ballCarrierVision", "footballIq", 0.4]
+        ["ballCarrierVision", "footballIq", 0.4],
+        ["carrying", "ballCarrierVision", 0.4],
+        ["passProtection", "strength", 0.4]
       ]
     },
     {
@@ -36,22 +40,25 @@
         "speed": 80, "acceleration": 82, "agility": 78, "strength": 60, "power": 60,
         "stamina": 70, "explosiveness": 75, "bend": 65,
         "ballCarrierVision": 65, "breakTackle": 55, "runBlock": 30, "hands": 70, "routeRunning": 60,
+        "carrying": 65, "catching": 75, "passProtection": 55,
         "toughness": 65, "motor": 70, "footballIq": 70, "processing": 70, "consistency": 65,
-        "discipline": 65, "composure": 65, "clutch": 65
+        "discipline": 65, "composure": 65, "clutch": 65, "playRecognition": 68
       },
       "stddevs": {
         "speed": 6, "acceleration": 6, "agility": 7, "strength": 8, "power": 8,
         "stamina": 8, "explosiveness": 7, "bend": 8,
         "ballCarrierVision": 9, "breakTackle": 9, "runBlock": 7, "hands": 8, "routeRunning": 9,
+        "carrying": 9, "catching": 8, "passProtection": 9,
         "toughness": 9, "motor": 9, "footballIq": 9, "processing": 9, "consistency": 9,
-        "discipline": 9, "composure": 9, "clutch": 10
+        "discipline": 9, "composure": 9, "clutch": 10, "playRecognition": 9
       },
       "correlations": [
         ["speed", "acceleration", 0.85],
         ["acceleration", "explosiveness", 0.7],
         ["speed", "explosiveness", 0.6],
         ["agility", "bend", 0.5],
-        ["routeRunning", "hands", 0.4]
+        ["routeRunning", "hands", 0.4],
+        ["catching", "hands", 0.5]
       ]
     }
   ]

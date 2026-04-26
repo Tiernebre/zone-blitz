@@ -258,11 +258,13 @@ class TalentAxisSweepCalibrationTests {
           new Skill(
               axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue,
               axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue,
+              axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue,
+              axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue,
               axisValue);
       var tendencies =
           new Tendencies(
               axisValue, axisValue, axisValue, axisValue, axisValue, axisValue, axisValue,
-              axisValue);
+              axisValue, axisValue);
       out.add(new Player(id, position, name, physical, skill, tendencies));
     }
   }

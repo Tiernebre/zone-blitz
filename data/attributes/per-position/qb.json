@@ -1,6 +1,6 @@
 {
   "position": "QB",
-  "_comment": "Two components — pocket vs. dual-threat. QB skill axes are mostly irrelevant under current sim (no throw-power/accuracy yet); core levers are physical (scrambling) and tendencies (processing/iq/composure resist pressure and INT rate).",
+  "_comment": "Two components — pocket vs. dual-threat. Pocket QBs lean on accuracy + pocket presence; dual-threats trade some accuracy for mobility. Arm strength is roughly equal across components — both archetypes need NFL throwing power.",
   "components": [
     {
       "weight": 0.6,
@@ -8,14 +8,20 @@
       "means": {
         "speed": 50, "acceleration": 50, "agility": 55, "strength": 55, "power": 55,
         "stamina": 60, "explosiveness": 50,
+        "armStrength": 72, "shortAccuracy": 75, "deepAccuracy": 70,
+        "pocketPresence": 78, "playAction": 70, "mobility": 45,
         "composure": 75, "footballIq": 78, "processing": 78, "toughness": 65,
-        "clutch": 70, "consistency": 70, "motor": 65, "discipline": 65
+        "clutch": 70, "consistency": 70, "motor": 65, "discipline": 65,
+        "playRecognition": 72
       },
       "stddevs": {
         "speed": 6, "acceleration": 6, "agility": 7, "strength": 7, "power": 7,
         "stamina": 8, "explosiveness": 6,
+        "armStrength": 9, "shortAccuracy": 9, "deepAccuracy": 10,
+        "pocketPresence": 9, "playAction": 9, "mobility": 9,
         "composure": 10, "footballIq": 9, "processing": 9, "toughness": 9,
-        "clutch": 10, "consistency": 9, "motor": 9, "discipline": 9
+        "clutch": 10, "consistency": 9, "motor": 9, "discipline": 9,
+        "playRecognition": 9
       },
       "correlations": [
         ["speed", "acceleration", 0.85],
@@ -23,7 +29,12 @@
         ["speed", "explosiveness", 0.6],
         ["strength", "power", 0.75],
         ["footballIq", "processing", 0.6],
-        ["composure", "clutch", 0.5]
+        ["composure", "clutch", 0.5],
+        ["shortAccuracy", "deepAccuracy", 0.5],
+        ["pocketPresence", "processing", 0.5],
+        ["mobility", "speed", 0.6],
+        ["armStrength", "strength", 0.4],
+        ["playAction", "footballIq", 0.4]
       ]
     },
     {
@@ -32,14 +43,20 @@
       "means": {
         "speed": 80, "acceleration": 80, "agility": 75, "strength": 60, "power": 60,
         "stamina": 70, "explosiveness": 75, "bend": 60,
+        "armStrength": 75, "shortAccuracy": 68, "deepAccuracy": 65,
+        "pocketPresence": 60, "playAction": 65, "mobility": 82,
         "composure": 65, "footballIq": 65, "processing": 65, "toughness": 70,
-        "clutch": 65, "consistency": 60, "motor": 75, "discipline": 60
+        "clutch": 65, "consistency": 60, "motor": 75, "discipline": 60,
+        "playRecognition": 65
       },
       "stddevs": {
         "speed": 7, "acceleration": 7, "agility": 8, "strength": 8, "power": 8,
         "stamina": 8, "explosiveness": 7, "bend": 8,
+        "armStrength": 9, "shortAccuracy": 10, "deepAccuracy": 10,
+        "pocketPresence": 10, "playAction": 10, "mobility": 8,
         "composure": 10, "footballIq": 10, "processing": 10, "toughness": 9,
-        "clutch": 10, "consistency": 10, "motor": 9, "discipline": 9
+        "clutch": 10, "consistency": 10, "motor": 9, "discipline": 9,
+        "playRecognition": 10
       },
       "correlations": [
         ["speed", "acceleration", 0.85],
@@ -47,7 +64,11 @@
         ["speed", "explosiveness", 0.6],
         ["agility", "bend", 0.5],
         ["strength", "power", 0.75],
-        ["footballIq", "processing", 0.55]
+        ["footballIq", "processing", 0.55],
+        ["shortAccuracy", "deepAccuracy", 0.45],
+        ["mobility", "speed", 0.7],
+        ["mobility", "agility", 0.5],
+        ["armStrength", "strength", 0.4]
       ]
     }
   ]

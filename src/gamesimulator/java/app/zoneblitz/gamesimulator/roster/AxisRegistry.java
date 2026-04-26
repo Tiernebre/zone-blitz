@@ -14,10 +14,12 @@ import java.util.Map;
  * AttributeAxis} constants. Translation is the camelCase form of the enum constant name — {@code
  * PASS_SET} ↔ {@code passSet}.
  *
- * <p>Also exposes the canonical 31-axis ordering used by the Cholesky sampler: physical (8) first,
- * then skill (15), then tendency (8).
+ * <p>Also exposes the canonical 46-axis ordering used by the Cholesky sampler: physical (8) first,
+ * then skill (29), then tendency (9).
  */
 final class AxisRegistry {
+
+  static final int AXIS_COUNT = 46;
 
   static final List<AttributeAxis> AXES_IN_ORDER = buildAxisList();
 
@@ -47,7 +49,7 @@ final class AxisRegistry {
   }
 
   private static List<AttributeAxis> buildAxisList() {
-    var list = new java.util.ArrayList<AttributeAxis>(31);
+    var list = new java.util.ArrayList<AttributeAxis>(AXIS_COUNT);
     for (var a : PhysicalAxis.values()) {
       list.add(a);
     }
