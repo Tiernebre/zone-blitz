@@ -9,6 +9,7 @@ import app.zoneblitz.gamesimulator.formation.CoverageShell;
 import app.zoneblitz.gamesimulator.formation.OffensiveFormation;
 import app.zoneblitz.gamesimulator.rng.RandomSource;
 import app.zoneblitz.gamesimulator.roster.DefensiveCoachTendencies;
+import app.zoneblitz.gamesimulator.roster.RosterProfile;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -36,6 +37,13 @@ public final class BaselineDefensiveCallSelector implements DefensiveCallSelecto
   private static final double MAN_MAX_LOGIT_SHIFT = 0.6;
   private static final double SHELL_MAX_MULTIPLIER = 1.6;
 
+  /**
+   * Logit shift per unit of {@link RosterProfile#pressureLean()}. Conservative — at saturation a
+   * stacked DL room moves the blitz logit by 0.20, roughly a 5-percentage-point swing on the
+   * baseline blitz rate. Coach tendencies and situational priors still dominate.
+   */
+  static final double ROSTER_PRESSURE_LEAN_SCALE = 0.20;
+
   private final DefensiveCallBands bands;
   private final DefensiveAdjustmentSource adjustments;
 
@@ -58,15 +66,17 @@ public final class BaselineDefensiveCallSelector implements DefensiveCallSelecto
       GameState state,
       OffensiveFormation offenseFormation,
       DefensiveCoachTendencies dc,
+      RosterProfile defenseProfile,
       RandomSource rng) {
     Objects.requireNonNull(state, "state");
     Objects.requireNonNull(offenseFormation, "offenseFormation");
     Objects.requireNonNull(dc, "dc");
+    Objects.requireNonNull(defenseProfile, "defenseProfile");
     Objects.requireNonNull(rng, "rng");
 
     var situation = Situation.from(state);
     var bundle = adjustments.compute(state.stats().forOffense(state.possession()), dc);
-    var extraRushers = pickExtraRushers(situation, dc, bundle, rng);
+    var extraRushers = pickExtraRushers(situation, dc, defenseProfile, bundle, rng);
     var manZone = pickManZone(offenseFormation, dc, bundle, rng);
     var shell = pickShell(offenseFormation, dc, bundle, manZone, rng);
     var personnel = pickPersonnel(situation, offenseFormation, dc, rng);
@@ -76,15 +86,22 @@ public final class BaselineDefensiveCallSelector implements DefensiveCallSelecto
   private int pickExtraRushers(
       Situation situation,
       DefensiveCoachTendencies dc,
+      RosterProfile defenseProfile,
       DefensiveAdjustments bundle,
       RandomSource rng) {
     var base = DefensiveCallBands.BASELINE_BLITZ_RATE;
     var situationalShift = blitzSituationalShift(situation);
     var coachShift = normalize(dc.blitzFrequency()) * BLITZ_MAX_LOGIT_SHIFT;
     var downsBoost = situation.down() >= 3 ? normalize(dc.aggressionOnDowns()) * 0.3 : 0.0;
+    var rosterShift = defenseProfile.pressureLean() * ROSTER_PRESSURE_LEAN_SCALE;
     var blitzRate =
         sigmoid(
-            logit(base) + situationalShift + coachShift + downsBoost + bundle.blitzLogitShift());
+            logit(base)
+                + situationalShift
+                + coachShift
+                + downsBoost
+                + rosterShift
+                + bundle.blitzLogitShift());
 
     if (rng.nextDouble() >= blitzRate) {
       return 0;

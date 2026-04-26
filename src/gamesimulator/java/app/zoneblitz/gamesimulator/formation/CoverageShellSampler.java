@@ -8,12 +8,12 @@ import app.zoneblitz.gamesimulator.rng.RandomSource;
  * personnel.
  *
  * <p>Implementations draw from formation-conditional priors calibrated on Big Data Bowl 2023's PFF
- * labels, then multiplicatively shift two-high vs. single-high weights based on the receiver
- * room's vertical-threat profile (speed, route-running). The sampled shell feeds the pass-matchup
- * shift: concept-vs-shell fit (flood vs. Cover-3, mesh vs. man, etc.) tilts the matchup scalar.
+ * labels, then multiplicatively shift two-high vs. single-high weights based on the receiver room's
+ * vertical-threat profile (speed, route-running). The sampled shell feeds the pass-matchup shift:
+ * concept-vs-shell fit (flood vs. Cover-3, mesh vs. man, etc.) tilts the matchup scalar.
  *
- * <p>Only called on dropback plays. Run calls don't need a sampled shell — the defense's run fit
- * is already encoded via the sampled box count.
+ * <p>Only called on dropback plays. Run calls don't need a sampled shell — the defense's run fit is
+ * already encoded via the sampled box count.
  *
  * <p>With league-average receiver attributes the personnel-aware shift collapses to the
  * formation-only distribution — baseline parity is a structural invariant.
@@ -29,5 +29,6 @@ public interface CoverageShellSampler {
    * @param rng randomness source
    * @return sampled shell
    */
-  CoverageShell sample(OffensiveFormation formation, OffensivePersonnel personnel, RandomSource rng);
+  CoverageShell sample(
+      OffensiveFormation formation, OffensivePersonnel personnel, RandomSource rng);
 }

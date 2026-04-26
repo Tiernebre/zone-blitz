@@ -25,7 +25,8 @@ class BandCoverageShellSamplerTests {
     var sgSingleHigh = 0;
     var draws = 20_000;
     for (var i = 0; i < draws; i++) {
-      if (isSingleHigh(sampler.sample(OffensiveFormation.SINGLEBACK, BASELINE, rng))) sbSingleHigh++;
+      if (isSingleHigh(sampler.sample(OffensiveFormation.SINGLEBACK, BASELINE, rng)))
+        sbSingleHigh++;
       if (isSingleHigh(sampler.sample(OffensiveFormation.SHOTGUN, BASELINE, rng))) sgSingleHigh++;
     }
     assertThat(sbSingleHigh / (double) draws).isGreaterThan(sgSingleHigh / (double) draws + 0.05);

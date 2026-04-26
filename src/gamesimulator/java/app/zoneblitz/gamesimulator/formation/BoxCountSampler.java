@@ -9,9 +9,9 @@ import app.zoneblitz.gamesimulator.rng.RandomSource;
  *
  * <p>Implementations draw from formation-conditional distributions calibrated on Big Data Bowl
  * tracking data, then multiplicatively shift the band based on the offense's run-threat profile
- * (heavy OL ⇒ defense loads box; light OL ⇒ defense bails). The sampled value feeds the
- * run-matchup shift: offenses tilt positive when the sampled box is lighter than the formation's
- * expected box, and negative when it's heavier.
+ * (heavy OL ⇒ defense loads box; light OL ⇒ defense bails). The sampled value feeds the run-matchup
+ * shift: offenses tilt positive when the sampled box is lighter than the formation's expected box,
+ * and negative when it's heavier.
  *
  * <p>With league-average attributes the personnel-aware shift collapses to the formation-only
  * distribution — baseline parity is a structural invariant.
@@ -40,6 +40,5 @@ public interface BoxCountSampler {
    * Shifts that reference a "neutral" box call this to compute a delta without a second sampling
    * pass; the returned value matches the matched {@link #sample}'s mean.
    */
-  double expectedBox(
-      OffensiveFormation formation, PlayType playType, OffensivePersonnel personnel);
+  double expectedBox(OffensiveFormation formation, PlayType playType, OffensivePersonnel personnel);
 }

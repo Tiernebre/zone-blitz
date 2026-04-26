@@ -572,6 +572,7 @@ class FullGameCalibrationTests {
     public PlayCall call(
         GameState state,
         app.zoneblitz.gamesimulator.roster.Coach coach,
+        app.zoneblitz.gamesimulator.roster.RosterProfile profile,
         app.zoneblitz.gamesimulator.rng.RandomSource rs) {
       return new PlayCall(rng.nextDouble() < passRate ? "pass" : "run");
     }

@@ -33,8 +33,7 @@ class AttributeAwareBoxCountSamplerTests {
     for (var i = 0; i < draws; i++) {
       total += sampler.sample(OffensiveFormation.SINGLEBACK, PlayType.RUN, personnel, rng);
     }
-    assertThat(total / (double) draws)
-        .isCloseTo(6.96, org.assertj.core.data.Offset.offset(0.07));
+    assertThat(total / (double) draws).isCloseTo(6.96, org.assertj.core.data.Offset.offset(0.07));
   }
 
   @Test

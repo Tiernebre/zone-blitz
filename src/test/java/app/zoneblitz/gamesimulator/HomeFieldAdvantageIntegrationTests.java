@@ -180,7 +180,10 @@ class HomeFieldAdvantageIntegrationTests {
 
     @Override
     public PlayCall call(
-        GameState state, Coach coach, app.zoneblitz.gamesimulator.rng.RandomSource rs) {
+        GameState state,
+        Coach coach,
+        app.zoneblitz.gamesimulator.roster.RosterProfile profile,
+        app.zoneblitz.gamesimulator.rng.RandomSource rs) {
       return new PlayCall(rng.nextDouble() < passRate ? "pass" : "run");
     }
   }

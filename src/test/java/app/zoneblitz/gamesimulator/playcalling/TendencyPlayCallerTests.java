@@ -115,7 +115,12 @@ class TendencyPlayCallerTests {
     var rng = new SplittableRandomSource(seed);
     var hits = 0;
     for (var i = 0; i < SAMPLES; i++) {
-      var call = caller.call(state, coach, rng.split(i));
+      var call =
+          caller.call(
+              state,
+              coach,
+              app.zoneblitz.gamesimulator.roster.RosterProfile.leagueAverage(),
+              rng.split(i));
       if ("pass".equalsIgnoreCase(call.kind()) && call.passConcept() == concept) {
         hits++;
       }
@@ -157,7 +162,12 @@ class TendencyPlayCallerTests {
     var rng = new SplittableRandomSource(seed);
     var passes = 0;
     for (var i = 0; i < SAMPLES; i++) {
-      var call = caller.call(state, coach, rng.split(i));
+      var call =
+          caller.call(
+              state,
+              coach,
+              app.zoneblitz.gamesimulator.roster.RosterProfile.leagueAverage(),
+              rng.split(i));
       if ("pass".equalsIgnoreCase(call.kind())) {
         passes++;
       }
