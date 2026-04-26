@@ -6,6 +6,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title th:text="${pageTitle}">Zone Blitz</title>
+	<link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
 	<script>
 		if (localStorage.getItem('sidebar-collapsed') === '1') {
 			document.documentElement.classList.add('sidebar-collapsed');
